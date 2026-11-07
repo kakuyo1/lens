@@ -48,6 +48,10 @@ public:
     [[nodiscard]] virtual QString id() const = 0;
     /// @return Whether the backend has what it needs to try anything at all; false is the page's "unconfigured".
     [[nodiscard]] virtual bool configured() const = 0;
+    /// @return Whether this device holds credentials that can run a round: the page's signed-in state.
+    ///         What "credentials" are is the backend's to say -- a GitHub token pair, or a WebDAV
+    ///         server, username and app password.
+    [[nodiscard]] virtual bool signedIn() const = 0;
     /// @return The network the sync round runs on; alive for as long as the backend is.
     [[nodiscard]] virtual core::sync::Transport& transport()         = 0;
     [[nodiscard]] virtual SignInPhase            signInPhase() const = 0;

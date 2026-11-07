@@ -26,6 +26,9 @@ constexpr auto kIterations   = "iterations";
 constexpr auto kSnapshot     = "settingsSnapshot";
 constexpr auto kLastSyncedAt = "lastSyncedAt";
 constexpr auto kProvider     = "provider";
+constexpr auto kServer       = "server";
+constexpr auto kUsername     = "username";
+constexpr auto kAppPassword  = "appPassword";
 
 /// @return A fresh device id in the shape QUuid::WithoutBraces wrote: 8-4-4-4-12 lower-case hex.
 /// @note The id is opaque and not a secret; the shape is kept so a document written by either
@@ -61,6 +64,41 @@ std::string SyncPartition::provider() const
     // A device-local choice, not sign-in state: it survives forgetAll() like the device id does.
     auto named = section().value<std::string>(kProvider, "");
     return named.empty() ? std::string(kDefaultProvider) : named;
+}
+
+void SyncPartition::setProvider(std::string provider)
+{
+    section().set<std::string>(kProvider, std::move(provider));
+}
+
+std::string SyncPartition::server() const
+{
+    return section().value<std::string>(kServer, "");
+}
+
+void SyncPartition::setServer(std::string server)
+{
+    section().set<std::string>(kServer, std::move(server));
+}
+
+std::string SyncPartition::username() const
+{
+    return section().value<std::string>(kUsername, "");
+}
+
+void SyncPartition::setUsername(std::string username)
+{
+    section().set<std::string>(kUsername, std::move(username));
+}
+
+std::string SyncPartition::appPassword() const
+{
+    return section().value<std::string>(kAppPassword, "");
+}
+
+void SyncPartition::setAppPassword(std::string appPassword)
+{
+    section().set<std::string>(kAppPassword, std::move(appPassword));
 }
 
 bool SyncPartition::signedIn() const
@@ -201,7 +239,7 @@ void SyncPartition::forgetCloudCopy()
 void SyncPartition::forgetAll()
 {
     auto section = this->section();
-    for (const char* key : {kToken, kRefreshToken, kLogin, kGistId, kKey, kSalt, kIterations, kSnapshot, kLastSyncedAt})
+    for (const char* key : {kToken, kRefreshToken, kLogin, kGistId, kKey, kSalt, kIterations, kSnapshot, kLastSyncedAt, kServer, kUsername, kAppPassword})
         section.remove(key);
 }
 

@@ -15,11 +15,12 @@ Use GitHub's private vulnerability reporting if it is enabled. Otherwise, open a
 | Youdao or Google Translate | The single word, for pronunciation. | Only when online audio is the active engine. No key is sent. |
 | Wikimedia Commons | A 2–5 word English query. | Only when you open pictures. Nothing else is sent. |
 | GitHub | Sign-in, encrypted sync, the update check, and downloads you start. | The update check sends only a version User-Agent. GitHub sees the gist's size, update times, and access IPs, not its contents. |
+| Your WebDAV server (sync through WebDAV only) | The encrypted sync envelope, one file. | Basic-auth credentials you enter stay in the settings document. The server sees the envelope's size and times, not its contents. |
 | huggingface.co | Voice-file downloads. | No reader data. |
 
 ## Local data
 
-- `%APPDATA%\Lens\settings.json` holds your settings, learning data, caches, the API key, OCR credentials, the GitHub token and its refresh token, and the sync key. It is plain JSON that Lens does not encrypt. Anyone who can read it can decrypt the cloud copy.
+- `%APPDATA%\Lens\settings.json` holds your settings, learning data, caches, the API key, OCR credentials, the GitHub token and its refresh token, the WebDAV server, username and app password, and the sync key. It is plain JSON that Lens does not encrypt. Anyone who can read it can decrypt the cloud copy.
 - Pictures, pronunciation audio, and voice models are cached locally. None of them is synced or uploaded.
 - Logs can contain the words you looked up. Logs rotate, and for packaged launches they may be written inside the install folder.
 - Selection capture briefly replaces the clipboard and then tries to restore it. Another application can prevent a perfect restore.

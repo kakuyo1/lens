@@ -18,15 +18,21 @@ Item {
 
     function closeChild() {}
 
-    /// @return The line for one sync error kind, or empty when the kind is empty or unknown.
+    /// @return The line for one sync error kind, or empty when the kind is empty or unknown. The
+    ///         GitHub-flavored kinds read differently on WebDAV, where the same code means the form.
     function errorText(kind) {
-        if (kind === "proxy") return qsTranslate("SettingsPopup", "Needs a proxy from mainland China");
+        if (kind === "proxy")
+            return page.sync.provider === "webdav" ? qsTranslate("SettingsPopup", "The server could not be reached; check the address")
+                                                   : qsTranslate("SettingsPopup", "Needs a proxy from mainland China");
         if (kind === "passphrase") return qsTranslate("SettingsPopup", "The passphrase does not open the cloud copy");
         if (kind === "generic") return qsTranslate("SettingsPopup", "Sync failed; try again");
         if (kind === "expired") return qsTranslate("SettingsPopup", "The sign-in code expired");
         // Not the same thing as the line above: that one is the device code running out before the
-        // reader approved it, this one is a stored token GitHub no longer accepts.
-        if (kind === "signInExpired") return qsTranslate("SettingsPopup", "The GitHub sign-in expired; sign in again");
+        // reader approved it, this one is a stored token GitHub no longer accepts -- or, on WebDAV,
+        // credentials the server refused.
+        if (kind === "signInExpired")
+            return page.sync.provider === "webdav" ? qsTranslate("SettingsPopup", "The server refused the credentials; check the form")
+                                                   : qsTranslate("SettingsPopup", "The GitHub sign-in expired; sign in again");
         if (kind === "denied") return qsTranslate("SettingsPopup", "Sign-in was refused");
         if (kind === "noGist") return qsTranslate("SettingsPopup", "No cloud copy to delete");
         return "";
@@ -37,14 +43,210 @@ Item {
         width: parent.width
         spacing: 16
 
+        Segment {
+            objectName: "providerField"
+            width: parent.width
+            height: 31
+            labels: [qsTranslate("SettingsPopup", "GitHub"), qsTranslate("SettingsPopup", "WebDAV")]
+            currentIndex: page.sync.provider === "webdav" ? 1 : 0
+            onPicked: (index) => page.sync.useProvider(index === 1 ? "webdav" : "github")
+        }
+
         Text {
             objectName: "unconfiguredNote"
             width: parent.width
-            visible: page.sync.state === "unconfigured"
+            visible: page.sync.state === "unconfigured" && page.sync.provider !== "webdav"
             text: qsTranslate("SettingsPopup", "Sync is not available in this build yet. The project has not registered its GitHub sign-in.")
             color: page.tokens.muted
             font.pixelSize: 12
             wrapMode: Text.WordWrap
+        }
+
+        Column {
+            id: webdavFormBlock
+            objectName: "webdavFormBlock"
+            width: parent.width
+            spacing: 10
+            visible: page.sync.state === "unconfigured" && page.sync.provider === "webdav"
+            height: visible ? implicitHeight : 0
+
+            Text {
+                width: parent.width
+                text: qsTranslate("SettingsPopup", "Sync with your own WebDAV server: Nutstore, Alist, a NAS. The cloud copy is encrypted with your passphrase.")
+                color: page.tokens.muted
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
+            }
+
+            Column {
+                width: parent.width
+                spacing: 7
+
+                Text {
+                    text: qsTranslate("SettingsPopup", "Server address")
+                    color: page.tokens.muted
+                    font.pixelSize: 12
+                }
+
+                Rectangle {
+                    width: parent.width
+                    height: 35
+                    radius: page.tokens.radiusField
+                    color: page.tokens.panel2
+                    border.width: 1
+                    border.color: webdavServerInput.activeFocus ? page.tokens.ink : page.tokens.line
+
+                    TextInput {
+                        id: webdavServerInput
+                        objectName: "webdavServerInput"
+                        anchors.fill: parent
+                        anchors.leftMargin: 11
+                        anchors.rightMargin: 11
+                        verticalAlignment: TextInput.AlignVCenter
+                        color: page.tokens.text
+                        font.pixelSize: 13
+                        selectByMouse: true
+                        activeFocusOnTab: true
+                        Accessible.name: qsTranslate("SettingsPopup", "Server address")
+                        // Saved when the field is left, and re-bound to the stored value, so a
+                        // sign-out elsewhere empties it again.
+                        onEditingFinished: {
+                            page.sync.setWebdavServer(text);
+                            text = Qt.binding(() => page.sync.webdavServer);
+                        }
+                        text: page.sync.webdavServer
+                    }
+
+                    Text {
+                        anchors.fill: parent
+                        anchors.leftMargin: 11
+                        anchors.rightMargin: 11
+                        verticalAlignment: Text.AlignVCenter
+                        visible: webdavServerInput.text === "" && !webdavServerInput.activeFocus
+                        text: "https://dav.jianguoyun.com/dav/"
+                        color: page.tokens.faint
+                        font.pixelSize: 13
+                    }
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 7
+
+                Text {
+                    text: qsTranslate("SettingsPopup", "Username")
+                    color: page.tokens.muted
+                    font.pixelSize: 12
+                }
+
+                Rectangle {
+                    width: parent.width
+                    height: 35
+                    radius: page.tokens.radiusField
+                    color: page.tokens.panel2
+                    border.width: 1
+                    border.color: webdavUsernameInput.activeFocus ? page.tokens.ink : page.tokens.line
+
+                    TextInput {
+                        id: webdavUsernameInput
+                        objectName: "webdavUsernameInput"
+                        anchors.fill: parent
+                        anchors.leftMargin: 11
+                        anchors.rightMargin: 11
+                        verticalAlignment: TextInput.AlignVCenter
+                        color: page.tokens.text
+                        font.pixelSize: 13
+                        selectByMouse: true
+                        activeFocusOnTab: true
+                        Accessible.name: qsTranslate("SettingsPopup", "Username")
+                        onEditingFinished: {
+                            page.sync.setWebdavUsername(text);
+                            text = Qt.binding(() => page.sync.webdavUsername);
+                        }
+                        text: page.sync.webdavUsername
+                    }
+                }
+
+                Text {
+                    width: parent.width
+                    text: qsTranslate("SettingsPopup", "For Nutstore, the email or phone the account registered with; other servers follow their own rule.")
+                    color: page.tokens.faint
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 7
+
+                Text {
+                    text: qsTranslate("SettingsPopup", "App password")
+                    color: page.tokens.muted
+                    font.pixelSize: 12
+                }
+
+                Rectangle {
+                    width: parent.width
+                    height: 35
+                    radius: page.tokens.radiusField
+                    color: page.tokens.panel2
+                    border.width: 1
+                    border.color: webdavPasswordInput.activeFocus ? page.tokens.ink : page.tokens.line
+
+                    TextInput {
+                        id: webdavPasswordInput
+                        objectName: "webdavPasswordInput"
+                        anchors.fill: parent
+                        anchors.leftMargin: 11
+                        anchors.rightMargin: 11
+                        verticalAlignment: TextInput.AlignVCenter
+                        echoMode: TextInput.Password
+                        color: page.tokens.text
+                        font.pixelSize: 13
+                        selectByMouse: true
+                        activeFocusOnTab: true
+                        Accessible.name: qsTranslate("SettingsPopup", "App password")
+                        onEditingFinished: page.sync.setWebdavAppPassword(text)
+                        onActiveFocusChanged: if (!activeFocus)
+                            text = ""
+                    }
+
+                    // The password is never read back: the field starts empty, and a stored one
+                    // shows as dots while it sits there.
+                    Text {
+                        anchors.fill: parent
+                        anchors.leftMargin: 11
+                        anchors.rightMargin: 11
+                        verticalAlignment: Text.AlignVCenter
+                        visible: webdavPasswordInput.text === "" && page.sync.hasWebdavPassword
+                        text: "\u2022\u2022\u2022\u2022\u2022\u2022"
+                        color: page.tokens.faint
+                        font.pixelSize: 13
+                    }
+                }
+
+                Text {
+                    width: parent.width
+                    text: qsTranslate("SettingsPopup", "An app password created in your server's settings, not your login password.")
+                    color: page.tokens.faint
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
+                }
+            }
+
+            Chip {
+                objectName: "testConnectionButton"
+                label: qsTranslate("SettingsPopup", "Test connection")
+                selected: true
+                readonly property bool ready: page.sync.webdavServer !== "" && page.sync.webdavUsername !== "" && page.sync.hasWebdavPassword
+                opacity: ready ? 1 : 0.45
+                onPicked: {
+                    if (ready)
+                        page.sync.startLogin();
+                }
+            }
         }
 
         Column {
@@ -164,7 +366,8 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Signed in as %1").arg(page.sync.login)
+                text: page.sync.provider === "webdav" ? qsTranslate("SettingsPopup", "Server %1").arg(page.sync.webdavServer)
+                                                      : qsTranslate("SettingsPopup", "Signed in as %1").arg(page.sync.login)
                 color: page.tokens.text
                 font.pixelSize: 13
                 font.weight: Font.Bold
@@ -259,7 +462,8 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Log out keeps this device's data. Delete cloud data removes the copy in your GitHub account.")
+                text: page.sync.provider === "webdav" ? qsTranslate("SettingsPopup", "Log out keeps this device's data. Delete cloud data removes the copy on your WebDAV server.")
+                                                      : qsTranslate("SettingsPopup", "Log out keeps this device's data. Delete cloud data removes the copy in your GitHub account.")
                 color: page.tokens.faint
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap

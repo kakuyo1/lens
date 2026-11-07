@@ -4,6 +4,7 @@
 #include <functional>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include "core/document/known_store.h"
 #include "core/document/stats_store.h"
@@ -22,6 +23,12 @@
  */
 
 namespace lens::core::sync {
+
+/// The cloud copy's identity on its provider: the description its gist carries and the file it lives
+/// in. Both are part of the cloud format (docs/adr/0042); a transport that addresses a file by name
+/// reads them instead of spelling its own.
+inline constexpr std::string_view kDescription = "lens-sync";
+inline constexpr std::string_view kFileName    = "lens-sync.json";
 
 /// @brief One request a round asks the transport to carry.
 struct Request {

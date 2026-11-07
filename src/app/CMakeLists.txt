@@ -66,6 +66,10 @@ add_library(lens_app STATIC
   duties/sync_backend.cpp
   duties/github_backend.h
   duties/github_backend.cpp
+  duties/webdav_backend.h
+  duties/webdav_backend.cpp
+  duties/webdav_transport.h
+  duties/webdav_transport.cpp
   duties/sync_transport.h
   duties/sync_transport.cpp
   duties/update_duty.h

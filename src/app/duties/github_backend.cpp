@@ -97,6 +97,11 @@ bool GithubBackend::configured() const
     return !config_.clientId.isEmpty();
 }
 
+bool GithubBackend::signedIn() const
+{
+    return partition_.signedIn();
+}
+
 core::sync::Transport& GithubBackend::transport()
 {
     return transport_;

@@ -2,6 +2,7 @@ add_library(lens_sync STATIC
   sync_config.cpp
   github_auth.cpp
   gist_client.cpp
+  webdav_client.cpp
 )
 
 # src/ is exposed for self-contained "sync/xxx.h" includes, as lens_update does.

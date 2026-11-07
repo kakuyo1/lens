@@ -28,12 +28,6 @@
 
 检查更新只走 GitHub Releases，地址在 `data/update.json`，国内需代理。实测国内可达的镜像（版本接口与发布页两处），定下后只改 `data/update.json`，并在 `SECURITY.md` 写明出站地址。
 
-## 账号与同步的扩展
-
-- **WebDAV 后端**：ADR 0157 已定，作为第二个 provider 落地（client、backend、设置页三步）。
-- **Gist 端点可配置**：让自建 `api.github.com` 反代的读者改写 Gist 的 base URL；自配端点会拿到 token，`SECURITY.md` 要写明这个边界。
-- **其他登录方式**：ADR 0042 只定 GitHub 设备登录。评估微软账号（OneDrive）、谷歌账号、手机号或邮箱验证码；后两者需要服务端发码，属于托管后端，要另开 ADR，并实测国内短信与邮件的可达性与费用。
-
 # TODO by user
 
 ## 自定义安装页面

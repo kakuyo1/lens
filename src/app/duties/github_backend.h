@@ -41,6 +41,7 @@ public:
 
     QString                id() const override;
     bool                   configured() const override;
+    bool                   signedIn() const override;
     core::sync::Transport& transport() override;
     SignInPhase            signInPhase() const override;
     QString                userCode() const override;

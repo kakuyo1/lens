@@ -21,10 +21,6 @@ namespace lens::core::sync {
 
 namespace {
 
-/// The gist's description and the file in it; both are part of the cloud format (docs/adr/0042).
-constexpr auto kDescription = "lens-sync";
-constexpr auto kFileName    = "lens-sync.json";
-
 /// Backoff for a failed automatic sync: 30 s, 1 min, 2 min, 4 min, then 8 min for each attempt after.
 /// Capped, so a sync that keeps failing (no network, no proxy) costs one request per 8 minutes.
 constexpr int kRetryBaseMs = 30 * 1000;
@@ -113,9 +109,10 @@ void SyncRound::begin(const Start& start)
             hooks_.error("passphrase");
         return;
     }
-    if (!partition_.signedIn())
-        return;
 
+    // Whether this device holds credentials that may run a round is the adapter's judgement, and it
+    // differs by provider: a token pair for GitHub, three stored fields for WebDAV. The round itself
+    // only asks for the key it encrypts with.
     passphrase_       = start.passphrase;
     manual_           = start.manual;
     refreshedThisRun_ = false;
@@ -183,19 +180,19 @@ void SyncRound::ask(Request::Kind kind)
     request.kind  = kind;
     request.token = partition_.token();
     switch (kind) {
-        case Request::Kind::List: request.description = kDescription; break;
+        case Request::Kind::List: request.description = std::string(kDescription); break;
         case Request::Kind::Read:
             request.gistId   = gistId_;
-            request.fileName = kFileName;
+            request.fileName = std::string(kFileName);
             break;
         case Request::Kind::Create:
-            request.description = kDescription;
-            request.fileName    = kFileName;
+            request.description = std::string(kDescription);
+            request.fileName    = std::string(kFileName);
             request.content     = sealed_;
             break;
         case Request::Kind::Update:
             request.gistId   = uploadGistId_;
-            request.fileName = kFileName;
+            request.fileName = std::string(kFileName);
             request.content  = sealed_;
             break;
         case Request::Kind::Delete: request.gistId = gistId_; break;

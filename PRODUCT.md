@@ -192,7 +192,7 @@ web
 | `tesseractExecutable` / `tesseractDataDirectory` / `rapidOcrExecutable` / `rapidOcrModelDirectory` | Tesseract 与 RapidOCR 的程序及模型路径 | 空值分别表示随包 exe、相邻 tessdata 与未配置；RapidOCR 模型目录必须 ASCII（ADR 0132） |
 | `OCR-API-KEY` / `OCR-SECRET-KEY` / `OCR-SERVICES` | 在线凭据双槽与按服务保存的地址、凭据 | 独立机密：不进设置投影、日志、导出与同步，边界见 `SECURITY.md` |
 | `ONBOARDING` | `done`：首次引导已记入 | 布尔，缺省未记入；不进同步白名单，卸载不删（ADR 0144） |
-| `sync` | 登录令牌、派生密钥与设备本地的后端选择（`provider`，缺省 github，`docs/adr/0156`） | 不进入同步内容 |
+| `sync` | 登录令牌、派生密钥、设备本地的后端选择（`provider`，缺省 github）与 WebDAV 凭据（`server` / `username` / `appPassword`，`docs/adr/0157`） | 不进入同步内容 |
 
 - `StatsStore` 与 `KnownStore` 共用这份文档，但 `StatsStore` 不自己读写，只写 `history` / `daily`。
 - 百科图缓存不住在这份文档里：缩略图与图注、署名落在 `%APPDATA%\Lens\pictures\cache\v1\` 自己的目录，按查询词哈希分目录，默认 64 MB / 30 天，不写入 `settings.json`、不参与同步、不上传；关于页显示其大小并可清除，下一次看图重新下载；卸载行为沿用 `%APPDATA%\Lens` 的规则（`docs/adr/0079`）。

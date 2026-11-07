@@ -39,6 +39,18 @@ public:
 
     /// @return The storage backend this device syncs through, kDefaultProvider unless the document says otherwise.
     [[nodiscard]] std::string provider() const;
+    /// @brief Name the storage backend this device syncs through; a device-local choice.
+    void setProvider(std::string provider);
+
+    /// @return The WebDAV server address the reader entered, or empty when none is stored.
+    [[nodiscard]] std::string server() const;
+    void                      setServer(std::string server);
+    [[nodiscard]] std::string username() const;
+    void                      setUsername(std::string username);
+    /// @return The WebDAV app password, or empty when none is stored. A secret: written once, never
+    ///         read back to a surface, and it lives in the settings document like the GitHub token.
+    [[nodiscard]] std::string appPassword() const;
+    void                      setAppPassword(std::string appPassword);
 
     /// @return Whether an access token is stored.
     [[nodiscard]] bool        signedIn() const;

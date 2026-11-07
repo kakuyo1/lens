@@ -22,24 +22,15 @@ constexpr int kPollMs = 10 * 60 * 1000;
 
 SyncDuty::SyncDuty(StorageDuty& storage, const std::filesystem::path& dataDir, QNetworkAccessManager* manager, QObject* parent)
     : QObject(parent),
+      storage_(storage),
+      dataDir_(dataDir),
+      manager_(manager),
       partition_(storage.knownStore()),
       debounce_(this),
       poll_(this),
       retry_(this)
 {
-    backend_ = makeSyncBackend(partition_.provider(), dataDir, manager, partition_, this);
-    round_   = std::make_unique<core::sync::SyncRound>(backend_->transport(), storage.knownStore(), storage.statsStore(), partition_, core::sync::SyncRound::Clock{}, roundHooks());
-
-    connect(backend_.get(), &SyncBackend::changed, this, &SyncDuty::stateChanged);
-    connect(backend_.get(), &SyncBackend::failed, this, [this](const QString& code) {
-        setError(code);
-        emit stateChanged();
-    });
-    connect(backend_.get(), &SyncBackend::completed, this, [this] {
-        emit stateChanged();
-        // A change made while the name was read still has to go up; the fingerprint decides that.
-        scheduleSync();
-    });
+    rebuildBackend();
 
     debounce_.setSingleShot(true);
     debounce_.setInterval(kDebounceMs);
@@ -50,6 +41,35 @@ SyncDuty::SyncDuty(StorageDuty& storage, const std::filesystem::path& dataDir, Q
 
     retry_.setSingleShot(true);
     connect(&retry_, &QTimer::timeout, this, [this] { run(QString(), false); });
+}
+
+void SyncDuty::rebuildBackend()
+{
+    debounce_.stop();
+    poll_.stop();
+    retry_.stop();
+    // The round holds the old transport by reference; it dies before the backend does.
+    round_.reset();
+    backend_ = makeSyncBackend(partition_.provider(), dataDir_, manager_, partition_, this);
+    connectBackend();
+    round_ = std::make_unique<core::sync::SyncRound>(backend_->transport(), storage_.knownStore(), storage_.statsStore(), partition_, core::sync::SyncRound::Clock{}, roundHooks());
+    setError(QString());
+    emit providerChanged();
+    emit stateChanged();
+}
+
+void SyncDuty::connectBackend()
+{
+    connect(backend_.get(), &SyncBackend::changed, this, &SyncDuty::stateChanged);
+    connect(backend_.get(), &SyncBackend::failed, this, [this](const QString& code) {
+        setError(code);
+        emit stateChanged();
+    });
+    connect(backend_.get(), &SyncBackend::completed, this, [this] {
+        emit stateChanged();
+        // A change made while the name was read still has to go up; the fingerprint decides that.
+        scheduleSync();
+    });
 }
 
 core::sync::Hooks SyncDuty::roundHooks()
@@ -76,7 +96,20 @@ QString SyncDuty::state() const
         return QStringLiteral("syncing");
     if (backend_->signInPhase() == SignInPhase::Pending)
         return QStringLiteral("codePending");
-    return partition_.signedIn() ? QStringLiteral("signedIn") : QStringLiteral("signedOut");
+    return backend_->signedIn() ? QStringLiteral("signedIn") : QStringLiteral("signedOut");
+}
+
+QString SyncDuty::provider() const
+{
+    return QString::fromStdString(partition_.provider());
+}
+
+void SyncDuty::useProvider(QString provider)
+{
+    if (provider.toStdString() == partition_.provider())
+        return;
+    partition_.setProvider(provider.toStdString());
+    rebuildBackend();
 }
 
 QString SyncDuty::login() const
@@ -102,6 +135,21 @@ QString SyncDuty::lastSyncedAt() const
 bool SyncDuty::hasPassphrase() const
 {
     return partition_.hasKey();
+}
+
+QString SyncDuty::webdavServer() const
+{
+    return QString::fromStdString(partition_.server());
+}
+
+QString SyncDuty::webdavUsername() const
+{
+    return QString::fromStdString(partition_.username());
+}
+
+bool SyncDuty::hasWebdavPassword() const
+{
+    return not partition_.appPassword().empty();
 }
 
 QString SyncDuty::error() const
@@ -146,6 +194,7 @@ void SyncDuty::logOut()
     partition_.forgetAll();
     setError(QString());
     emit stateChanged();
+    emit webdavChanged();
 }
 
 void SyncDuty::deleteCloudData()
@@ -156,9 +205,34 @@ void SyncDuty::deleteCloudData()
     round_->removeCloud();
 }
 
+// Every form field trims what it stores: a paste that carries an invisible tab or a trailing
+// newline would otherwise sit in the credential and be refused as part of it (the OCR credential
+// writer trims for the same reason).
+
+void SyncDuty::setWebdavServer(QString server)
+{
+    partition_.setServer(server.trimmed().toStdString());
+    emit webdavChanged();
+    emit stateChanged();
+}
+
+void SyncDuty::setWebdavUsername(QString username)
+{
+    partition_.setUsername(username.trimmed().toStdString());
+    emit webdavChanged();
+    emit stateChanged();
+}
+
+void SyncDuty::setWebdavAppPassword(QString appPassword)
+{
+    partition_.setAppPassword(appPassword.trimmed().toStdString());
+    emit webdavChanged();
+    emit stateChanged();
+}
+
 void SyncDuty::startAtLaunch()
 {
-    if (!backend_->configured() || !partition_.signedIn() || !partition_.hasKey())
+    if (!backend_->configured() || !backend_->signedIn() || !partition_.hasKey())
         return;
     QTimer::singleShot(kLaunchMs, this, [this] { run(QString(), false); });
     startPolling();
@@ -166,14 +240,14 @@ void SyncDuty::startAtLaunch()
 
 void SyncDuty::startPolling()
 {
-    if (!backend_->configured() || !partition_.signedIn() || !partition_.hasKey() || poll_.isActive())
+    if (!backend_->configured() || !backend_->signedIn() || !partition_.hasKey() || poll_.isActive())
         return;
     poll_.start();
 }
 
 void SyncDuty::scheduleSync()
 {
-    if (round_->applying() || !backend_->configured() || !partition_.signedIn() || !partition_.hasKey())
+    if (round_->applying() || !backend_->configured() || !backend_->signedIn() || !partition_.hasKey())
         return;
     // A change that leaves what a sync carries untouched (a hotkey, an API key, a bubble setting, or
     // a pop that the snapshot already counts) has nothing to upload, so it does not wake the timer.
@@ -197,7 +271,7 @@ void SyncDuty::run(const QString& passphrase, bool asked)
     }
     if (backend_->signInPhase() != SignInPhase::Idle)
         return;
-    if (!backend_->configured() || !partition_.signedIn())
+    if (!backend_->configured() || !backend_->signedIn())
         return;
     round_->begin({passphrase.toStdString(), asked});
 }

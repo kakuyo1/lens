@@ -10,7 +10,7 @@
   - **登录流**：无设备码。`SyncBackend::startLogin` 用已存凭据做一次可达性校验；`userCode`/`verificationUri` 恒为空，`signInPhase` 基本只在 Idle。
   - **并发**：沿用 Gist 的语义——last-writer-wins、读时合并（sync_merge），不上 ETag/If-Match；Gist 也没上，两台设备同时写的窗口由下一轮合并收敛。
 - **后果**：
-  - `WebdavBackend` 实现同一接口、走同一工厂分支，SyncDuty 不动；provider 选择 UI、`setProvider` 与 i18n 随第 2 步。
+  - `WebdavBackend` 实现同一接口、走同一工厂分支，SyncDuty 不动；provider 选择 UI、`setProvider` 与 i18n 随第 2 步。落地时缝上还动了三处：`SyncBackend` 增加 `signedIn()`（token 语义代表不了 WebDAV 的凭据语义）；`SyncRound::begin()` 撤掉 token 门槛（有无凭据是适配层的判断，轮只要求密钥）；页面的 “Test connection” 沿 OCR 在线页的显式连接检测先例。
   - 坚果云的配额与频率限制数字实现时核对官方文档，不写死进代码；信封 KB 级、轮次低频，免费额度预期足够。
   - 被排除的方案：
     - S3 兼容（OSS/COS/R2）先行：SigV4 签名代码量大，读者要开 bucket 与 AK/SK，上手成本高；Alist 已能把 WebDAV 桥接到这些存储。

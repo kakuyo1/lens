@@ -280,98 +280,98 @@
 <context>
     <name>OnboardingWizard</name>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="217"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="267"/>
         <source>Welcome to Lens</source>
         <translation>欢迎使用 Lens</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="229"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="279"/>
         <source>Step %1 of %2</source>
         <translation>第 %1 步，共 %2 步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="248"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="298"/>
         <source>Skip the setup</source>
         <translation>跳过设置</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="271"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="329"/>
         <source>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp; learning.</source>
         <translation>选择阅读中被解释的程度。档位决定 Lens 解释哪些词、放过哪些词；以后可在“阅读学习”里更改。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="284"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="293"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="342"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="351"/>
         <source>Vocabulary level</source>
         <translation>词汇档位</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="314"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="372"/>
         <source>Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; any provider below works the same.</source>
         <translation>选择写释义的服务，并粘贴它发给你的 key。默认 DeepSeek，可人民币直充；下列服务商均可用。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="327"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="336"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="385"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="394"/>
         <source>Provider</source>
         <translation>服务商</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="348"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="376"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="406"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="434"/>
         <source>Service address</source>
         <translation>服务地址</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="384"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="442"/>
         <source>The address is the provider&apos;s default; override it when it moves or when you use a custom service.</source>
         <translation>地址是服务商的默认值；默认变了或用自定义服务时，在这里改。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="396"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="423"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="454"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="481"/>
         <source>API key</source>
         <translation>API key</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="451"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="509"/>
         <source>Create a key in your provider&apos;s dashboard; it is stored on this device only.</source>
         <translation>在服务商的控制台里创建 key；只保存在本机。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="459"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="517"/>
         <source>On DeepSeek a word lookup costs about 0.001 CNY, so one yuan covers about 1000; the cost panel keeps the running total.</source>
         <translation>在 DeepSeek 上，一次查词约 0.001 元，1 元大约够查 1000 次；花费面板记录累计。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="477"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="535"/>
         <source>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</source>
         <translation>整个循环就是这样：随手选中英文，解释出现在文字旁。在这里试一次——拖选下面这句里的 &quot;quiet&quot;，卡片会出现在窗口旁。不会发送任何内容；这张卡是样例。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="499"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="557"/>
         <source>The evening was &quot;quiet&quot;, and the page felt close.
 One small word at a time, the reading opens.</source>
         <translation>The evening was &quot;quiet&quot;, and the page felt close.
 One small word at a time, the reading opens.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="514"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="572"/>
         <source>Lens lives in the tray. The tray menu&apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</source>
         <translation>Lens 常驻托盘。托盘菜单的设置项会再次打开此面板；设置 key 之前，首行会一直提醒。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="545"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="620"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="553"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="628"/>
         <source>Next</source>
         <translation>下一步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="561"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="636"/>
         <source>Done</source>
         <translation>完成</translation>
     </message>
@@ -784,7 +784,6 @@ One small word at a time, the reading opens.</translation>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="150"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="515"/>
         <source>Close</source>
         <translation>关闭</translation>
@@ -960,111 +959,111 @@ One small word at a time, the reading opens.</translation>
         <translation>解释语言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="164"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="145"/>
         <source>Card content</source>
         <translation>词卡内容</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="171"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="152"/>
         <source>Multiple senses</source>
         <translation>多义解释</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="183"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="164"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="193"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="174"/>
         <source>Example sentence</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="208"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="189"/>
         <source>Word details</source>
         <translation>词卡细节</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="216"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="197"/>
         <source>IPA</source>
         <translation>音标</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="228"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="209"/>
         <source>Part of speech</source>
         <translation>词性</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="238"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="219"/>
         <source>Signpost</source>
         <translation>义项路标</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="248"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="229"/>
         <source>Collocations</source>
         <translation>搭配</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="259"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="240"/>
         <source>Pictures</source>
         <translation>图片</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="276"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="257"/>
         <source>Pronunciation</source>
         <translation>发音</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="284"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="265"/>
         <source>Auto-play</source>
         <translation>自动播放</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="303"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="284"/>
         <source>American</source>
         <translation>美式</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="303"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="284"/>
         <source>British</source>
         <translation>英式</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="313"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="320"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="294"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="301"/>
         <source>Engine</source>
         <translation>引擎</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="332"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="313"/>
         <source>Voice: %1</source>
         <translation>音色：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="333"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="314"/>
         <source>No system voice is installed for this accent.</source>
         <translation>这个口音没有已安装的系统音色。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="344"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="351"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="325"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="332"/>
         <source>Fallback</source>
         <translation>兜底</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="365"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="372"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="346"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="353"/>
         <source>Online source</source>
         <translation>在线来源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="379"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="360"/>
         <source>Only the word is sent, to the source you pick.</source>
         <translation>只发送单词，发往你选择的来源。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="392"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="399"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="373"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="380"/>
         <source>Local voice</source>
         <translation>本地音色</translation>
     </message>
@@ -1091,39 +1090,39 @@ One small word at a time, the reading opens.</translation>
         <translation>未下载。本地引擎不会发声。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="136"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="130"/>
         <source>Holding the globe on a card peeks at your mother tongue, but only under English. This setting writes explanations in the chosen language.</source>
         <translation>在卡片上按住地球可以看一眼母语，但只在英文解释下；这一项会让所有解释都用所选语言写出。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="417"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="398"/>
         <source>Download</source>
         <translation>下载</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="429"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="410"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="106"/>
         <source>Remove</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="435"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="416"/>
         <source>Voice files stay on this computer and are not synced.</source>
         <translation>音色文件只保存在这台电脑上，不参与同步。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="447"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="456"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="428"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="437"/>
         <source>Word review</source>
         <translation>单词复习</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="468"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="449"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
         <translation>宠物多久举一次提问牌，问你查过的词。&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="478"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="459"/>
         <source>Unavailable while the pet is off.</source>
         <translation>宠物关闭时不可用。</translation>
     </message>
@@ -1337,7 +1336,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="295"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="276"/>
         <source>Accent</source>
         <translation>强调色</translation>
     </message>
@@ -1427,7 +1426,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="108"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="33"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
-        <location filename="../src/app/app_controller.cpp" line="505"/>
+        <location filename="../src/app/app_controller.cpp" line="506"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -1448,7 +1447,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="99"/>
-        <location filename="../src/app/app_controller.cpp" line="495"/>
+        <location filename="../src/app/app_controller.cpp" line="496"/>
         <source>The OCR language data is missing</source>
         <translation>缺少 OCR 语言数据</translation>
     </message>
@@ -1615,7 +1614,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="272"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1113"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1142"/>
         <source>Desktop companion</source>
         <translation>桌面宠物</translation>
     </message>
@@ -1690,6 +1689,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="139"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="241"/>
         <source>Test connection</source>
         <translation>测试连接</translation>
     </message>
@@ -1749,12 +1749,12 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="46"/>
-        <location filename="../src/app/app_controller.cpp" line="494"/>
+        <location filename="../src/app/app_controller.cpp" line="495"/>
         <source>Checking OCR</source>
         <translation>正在检查 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="502"/>
+        <location filename="../src/app/app_controller.cpp" line="503"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 运行时不可用</translation>
     </message>
@@ -2395,7 +2395,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="209"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1115"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1144"/>
         <source>Dog</source>
         <translation>小狗</translation>
     </message>
@@ -2573,79 +2573,137 @@ One small word at a time, the reading opens.</translation>
         <translation>输入 %1 / 输出 %2 %3 / 每 %4 个 token</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="23"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="25"/>
+        <source>The server could not be reached; check the address</source>
+        <translation>无法连接服务器，请检查地址</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="26"/>
         <source>Needs a proxy from mainland China</source>
         <translation>中国大陆需要代理</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="24"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="27"/>
         <source>The passphrase does not open the cloud copy</source>
         <translation>口令无法打开云端副本</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="25"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="28"/>
         <source>Sync failed; try again</source>
         <translation>同步失败，请重试</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="26"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="29"/>
         <source>The sign-in code expired</source>
         <translation>登录码已过期</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="29"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="34"/>
+        <source>The server refused the credentials; check the form</source>
+        <translation>服务器拒绝了凭据，请检查表单</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="35"/>
         <source>The GitHub sign-in expired; sign in again</source>
         <translation>GitHub 登录已失效，请重新登录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="30"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="36"/>
         <source>Sign-in was refused</source>
         <translation>登录被拒绝</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="31"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="37"/>
         <source>No cloud copy to delete</source>
         <translation>没有可删除的云端副本</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="44"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="50"/>
+        <source>GitHub</source>
+        <translation>GitHub</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="50"/>
+        <source>WebDAV</source>
+        <translation>WebDAV</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="59"/>
         <source>Sync is not available in this build yet. The project has not registered its GitHub sign-in.</source>
         <translation>此版本暂不提供同步：项目尚未注册 GitHub 登录。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="60"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="75"/>
+        <source>Sync with your own WebDAV server: Nutstore, Alist, a NAS. The cloud copy is encrypted with your passphrase.</source>
+        <translation>用自己的 WebDAV 服务器同步：坚果云、Alist、NAS。云端副本以口令加密。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="86"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="110"/>
+        <source>Server address</source>
+        <translation>服务器地址</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="138"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="162"/>
+        <source>Username</source>
+        <translation>用户名</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="173"/>
+        <source>For Nutstore, the email or phone the account registered with; other servers follow their own rule.</source>
+        <translation>坚果云填注册的邮箱或手机号；其他服务器按各自要求填。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="185"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="210"/>
+        <source>App password</source>
+        <translation>应用密码</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="232"/>
+        <source>An app password created in your server&apos;s settings, not your login password.</source>
+        <translation>在服务器的设置里生成的应用密码，不是登录密码。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="262"/>
         <source>Sync your settings and learning data with your GitHub account. The cloud copy is encrypted with your passphrase.</source>
         <translation>把设置和学习数据同步到你的 GitHub 账号。云端副本用口令加密。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="68"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="270"/>
         <source>Sign in with GitHub</source>
         <translation>使用 GitHub 登录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="84"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="286"/>
         <source>Open this address in a browser, then enter the code:</source>
         <translation>在浏览器中打开以下地址，然后输入验证码：</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="109"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="311"/>
         <source>Copy address</source>
         <translation>复制网址</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="118"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="320"/>
         <source>Open in browser</source>
         <translation>在浏览器中打开</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="137"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="339"/>
         <source>Copy code</source>
         <translation>复制验证码</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="145"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="347"/>
         <source>Waiting for GitHub to confirm</source>
         <translation>等待 GitHub 确认</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="369"/>
+        <source>Server %1</source>
+        <translation>服务器 %1</translation>
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="87"/>
@@ -2659,11 +2717,11 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="423"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="404"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="99"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="152"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="295"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="354"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="499"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="631"/>
         <source>Cancel</source>
         <translation>取消</translation>
@@ -2674,63 +2732,68 @@ One small word at a time, the reading opens.</translation>
         <translation>启用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="167"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="370"/>
         <source>Signed in as %1</source>
         <translation>已登录为 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="176"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="379"/>
         <source>Last synced %1</source>
         <translation>上次同步：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="177"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="380"/>
         <source>Not synced yet</source>
         <translation>尚未同步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="191"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="216"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="394"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="419"/>
         <source>Passphrase</source>
         <translation>口令</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="222"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="425"/>
         <source>Encrypts the cloud copy. The passphrase is never stored; only a derived key stays on this device.</source>
         <translation>用于加密云端副本。口令不会被保存，本机只保留由它派生的密钥。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="230"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="433"/>
         <source>Set passphrase</source>
         <translation>设置口令</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="244"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="447"/>
         <source>Sync now</source>
         <translation>立即同步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="255"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="458"/>
         <source>Log out</source>
         <translation>退出登录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="262"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="465"/>
+        <source>Log out keeps this device&apos;s data. Delete cloud data removes the copy on your WebDAV server.</source>
+        <translation>退出登录保留本机数据。删除云端数据会删掉 WebDAV 服务器上的副本。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="466"/>
         <source>Log out keeps this device&apos;s data. Delete cloud data removes the copy in your GitHub account.</source>
         <translation>退出登录会保留本机数据。删除云端数据只会移除 GitHub 账号中的副本。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="274"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="478"/>
         <source>Delete cloud data</source>
         <translation>删除云端数据</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="285"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="489"/>
         <source>Confirm delete</source>
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1114"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1143"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>该宠物包已不存在，已切换到 %1。</translation>
     </message>
@@ -3740,125 +3803,125 @@ One small word at a time, the reading opens.</translation>
         <translation>现在解释</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="485"/>
+        <location filename="../src/app/app_controller.cpp" line="486"/>
         <source>Screenshot capture is off.</source>
         <translation>截图取词未开启。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="486"/>
+        <location filename="../src/app/app_controller.cpp" line="487"/>
         <source>Online OCR is not configured.</source>
         <translation>在线 OCR 尚未配置。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="487"/>
-        <location filename="../src/app/app_controller.cpp" line="674"/>
+        <location filename="../src/app/app_controller.cpp" line="488"/>
+        <location filename="../src/app/app_controller.cpp" line="675"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日预算已用尽。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="488"/>
+        <location filename="../src/app/app_controller.cpp" line="489"/>
         <source>A recognition is already running.</source>
         <translation>正在识别，请稍候。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="490"/>
+        <location filename="../src/app/app_controller.cpp" line="491"/>
         <source>That region cannot be captured.</source>
         <translation>所选区域无法取词（须在同一块屏幕内且不过大）。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="491"/>
+        <location filename="../src/app/app_controller.cpp" line="492"/>
         <source>No text was found in that region.</source>
         <translation>所选区域里没有找到文字。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="492"/>
+        <location filename="../src/app/app_controller.cpp" line="493"/>
         <source>That region could not be read.</source>
         <translation>所选区域无法识别。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="493"/>
+        <location filename="../src/app/app_controller.cpp" line="494"/>
         <source>The recognition was cancelled.</source>
         <translation>识别已取消。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="496"/>
+        <location filename="../src/app/app_controller.cpp" line="497"/>
         <source>The OCR result could not be read.</source>
         <translation>无法读取 OCR 结果。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="497"/>
+        <location filename="../src/app/app_controller.cpp" line="498"/>
         <source>The online OCR service could not be reached.</source>
         <translation>无法连接在线 OCR 服务。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="498"/>
+        <location filename="../src/app/app_controller.cpp" line="499"/>
         <source>The online OCR service returned an incomplete result.</source>
         <translation>在线 OCR 服务返回了不完整的结果。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="555"/>
+        <location filename="../src/app/app_controller.cpp" line="556"/>
         <source>%1 px</source>
         <translation>%1 px</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="557"/>
+        <location filename="../src/app/app_controller.cpp" line="558"/>
         <source>Default</source>
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="705"/>
+        <location filename="../src/app/app_controller.cpp" line="706"/>
         <source>American</source>
         <translation>美式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="707"/>
+        <location filename="../src/app/app_controller.cpp" line="708"/>
         <source>British</source>
         <translation>英式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="712"/>
+        <location filename="../src/app/app_controller.cpp" line="713"/>
         <source>System voice</source>
         <translation>系统合成</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="714"/>
-        <location filename="../src/app/app_controller.cpp" line="721"/>
+        <location filename="../src/app/app_controller.cpp" line="715"/>
+        <location filename="../src/app/app_controller.cpp" line="722"/>
         <source>Online audio</source>
         <translation>在线音频</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="716"/>
-        <location filename="../src/app/app_controller.cpp" line="723"/>
+        <location filename="../src/app/app_controller.cpp" line="717"/>
+        <location filename="../src/app/app_controller.cpp" line="724"/>
         <source>Local model</source>
         <translation>本地模型</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="725"/>
+        <location filename="../src/app/app_controller.cpp" line="726"/>
         <source>Silent</source>
         <translation>不发音</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="743"/>
+        <location filename="../src/app/app_controller.cpp" line="744"/>
         <source>Automatic</source>
         <translation>自动</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="745"/>
+        <location filename="../src/app/app_controller.cpp" line="746"/>
         <source>Kokoro</source>
         <translation>Kokoro</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="747"/>
+        <location filename="../src/app/app_controller.cpp" line="748"/>
         <source>LJSpeech</source>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="987"/>
+        <location filename="../src/app/app_controller.cpp" line="988"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="987"/>
+        <location filename="../src/app/app_controller.cpp" line="988"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

@@ -25,19 +25,27 @@ Item {
     TokenHost { id: host; width: root.width; height: root.height }
 
     /// Stands in for the sync duty. The state is set per case; the other fields are what the controller
-    /// would report once GitHub has issued a code.
+    /// would report once GitHub has issued a code, or once the WebDAV form has been filled in.
     Component {
         id: dutyStub
         QtObject {
             property string state: "unconfigured"
+            property string provider: "github"
             property string userCode: "ABCD-1234"
             property string verificationUri: "https://github.com/login/device"
             property string login: ""
             property string lastSyncedAt: ""
             property bool hasPassphrase: false
+            property string webdavServer: ""
+            property string webdavUsername: ""
+            property bool hasWebdavPassword: false
             property string error: ""
             function startLogin() {}
             function cancelLogin() {}
+            function useProvider(provider) {}
+            function setWebdavServer(server) {}
+            function setWebdavUsername(username) {}
+            function setWebdavAppPassword(password) {}
         }
     }
 
@@ -102,6 +110,65 @@ Item {
             verify(named(page, "copyAddressButton"), "a button copies the address");
             verify(named(page, "copyCodeButton"), "a button copies the code");
             verify(named(page, "openBrowserButton"), "a button opens the address");
+        }
+
+        /// The picker reads the stored provider; the note and the WebDAV form split the unconfigured state.
+        function test_webdavUnconfiguredShowsTheForm() {
+            const page = make();
+            page.sync = createTemporaryObject(dutyStub, root, { state: "unconfigured", provider: "webdav" });
+            wait(50);
+
+            compare(named(page, "providerField").currentIndex, 1, "the picker shows the stored choice");
+            compare(named(page, "unconfiguredNote").visible, false, "the GitHub note is not the WebDAV answer");
+            compare(named(page, "webdavFormBlock").visible, true);
+            verify(named(page, "webdavServerInput"), "a field for the server address");
+            verify(named(page, "webdavUsernameInput"), "a field for the username");
+            verify(named(page, "webdavPasswordInput"), "a field for the app password");
+            compare(named(page, "testConnectionButton").opacity, 0.45, "a probe without credentials does nothing");
+        }
+
+        /// With all three credentials the form arms the probe; the GitHub blocks stay out of the way.
+        function test_webdavFormArmsTheProbeOnceTheCredentialsAreThere() {
+            const page = make();
+            page.sync = createTemporaryObject(dutyStub, root, {
+                state: "unconfigured",
+                provider: "webdav",
+                webdavServer: "https://dav.example.com/dav",
+                webdavUsername: "reader",
+                hasWebdavPassword: true
+            });
+            wait(50);
+
+            compare(named(page, "testConnectionButton").opacity, 1, "three credentials are enough to probe");
+            compare(named(page, "linkedBlock").visible, false, "the linked block is the real duty's to show");
+        }
+
+        /// Signed in on WebDAV, the page names the server instead of a GitHub login.
+        function test_webdavLinkedShowsTheServer() {
+            const page = make();
+            page.sync = createTemporaryObject(dutyStub, root, {
+                state: "signedIn",
+                provider: "webdav",
+                webdavServer: "https://dav.example.com/dav"
+            });
+            wait(50);
+
+            compare(named(page, "linkedBlock").visible, true);
+            compare(named(page, "codeBlock").visible, false, "WebDAV has no device code to wait for");
+            compare(named(page, "linkedBlock").children[0].text,
+                    qsTranslate("SettingsPopup", "Server %1").arg("https://dav.example.com/dav"));
+        }
+
+        /// The two provider-flavored error kinds read differently per provider.
+        function test_errorLinesFollowTheProvider() {
+            const page = make();
+            page.sync = createTemporaryObject(dutyStub, root, { provider: "webdav" });
+            compare(page.errorText("proxy"), qsTranslate("SettingsPopup", "The server could not be reached; check the address"));
+            compare(page.errorText("signInExpired"), qsTranslate("SettingsPopup", "The server refused the credentials; check the form"));
+
+            page.sync = createTemporaryObject(dutyStub, root, { provider: "github" });
+            compare(page.errorText("proxy"), qsTranslate("SettingsPopup", "Needs a proxy from mainland China"));
+            compare(page.errorText("signInExpired"), qsTranslate("SettingsPopup", "The GitHub sign-in expired; sign in again"));
         }
     }
 }

@@ -136,10 +136,10 @@
 
 ## 账号与同步
 
-- **账号登录（Account sign-in）**：GitHub 设备码流程，只申请 `gist` 权限；令牌存在 `settings.json` 的 `sync` 对象里。见 `docs/adr/0042`。
+- **账号登录（Account sign-in）**：GitHub 设备码流程，只申请 `gist` 权限；令牌存在 `settings.json` 的 `sync` 对象里。WebDAV 没有设备码：服务器地址、用户名与应用密码存进同一个 `sync` 对象即为登录。见 `docs/adr/0042`、`docs/adr/0157`。
 - **同步（Sync）**：把已会 / 新词标记、查词历史、统计和选定设置加密镜像到云端副本；按墓碑与修改时间合并。缓存与 API key 不同步。
 - **口令（Passphrase）**：读者设置的加密口令，每台设备输入一次；应用只保存派生密钥，忘记口令则云端副本无法恢复。
 - **派生密钥（Derived key）**：由口令派生、用于加解密云端副本的密钥；算法与轮数见 `SECURITY.md`。
 - **墓碑（Tombstone）**：删除标记时留下的带时间记录，合并时让旧数据无法复活已删的词。
 - **设备 ID（Device ID）**：每台设备首次启动生成的随机标识，用于统计分桶，不随同步。
-- **云端副本（Cloud copy）**：读者 GitHub 账号下 `lens-sync` secret gist 里的加密文件；GitHub 只能看到存在、大小与更新时间。
+- **云端副本（Cloud copy）**：同一份加密文件，随存储方式落在读者自己的 GitHub（`lens-sync` secret gist）或 WebDAV 服务器（`Lens/lens-sync.json`）；存储方只能看到存在、大小与更新时间。见 `docs/adr/0157`。

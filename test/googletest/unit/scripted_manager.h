@@ -89,6 +89,7 @@ class ScriptedManager final : public QNetworkAccessManager {
 public:
     /// One request, as the case reads it back.
     struct Sent {
+        QByteArray verb; ///< GET, PUT, PROPFIND, ...; a custom verb rides the request's attribute.
         QString    url;
         QByteArray body; ///< What the request carried; empty for a GET or a DELETE.
     };
@@ -114,11 +115,19 @@ public:
     std::vector<Sent> sent;
 
 protected:
-    QNetworkReply* createRequest(Operation, const QNetworkRequest& request, QIODevice* outgoing) override
+    QNetworkReply* createRequest(Operation operation, const QNetworkRequest& request, QIODevice* outgoing) override
     {
         ++requests;
         redirectPolicy = request.attribute(QNetworkRequest::RedirectPolicyAttribute);
-        Sent record{request.url().toString(), {}};
+        QByteArray verb;
+        switch (operation) {
+            case QNetworkAccessManager::GetOperation: verb = "GET"; break;
+            case QNetworkAccessManager::PostOperation: verb = "POST"; break;
+            case QNetworkAccessManager::PutOperation: verb = "PUT"; break;
+            case QNetworkAccessManager::DeleteOperation: verb = "DELETE"; break;
+            default: verb = request.attribute(QNetworkRequest::CustomVerbAttribute).toByteArray(); break;
+        }
+        Sent record{std::move(verb), request.url().toString(), {}};
         if (outgoing != nullptr) {
             if (not outgoing->isOpen())
                 outgoing->open(QIODevice::ReadOnly);

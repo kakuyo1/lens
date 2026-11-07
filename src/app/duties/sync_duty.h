@@ -18,14 +18,15 @@ class QNetworkAccessManager;
 /**
  * @file sync_duty.h
  * @brief Keeps the encrypted cloud copy in step with this device, over the storage backend the
- *        `sync` section's provider names (docs/adr/0042, 0156).
+ *        `sync` section's provider names (docs/adr/0042, 0156, 0157).
  *
  * The round itself -- the order of the requests, the 401's renewal, the backoff and the run a change
  * during one asks for -- lives in core/domain/sync_round.h, Qt-free and answerable offline. This is
  * the adapter: the QObject the settings page reads, the timers, and the sign-in buttons, which hand
- * to the backend the flow that produces the credentials. Nothing starts on construction: sign-in is
- * a user action, and the first sync waits for a launch or a local change, so a surface test with no
- * token never reaches the network.
+ * to the backend the flow that produces the credentials. The provider the page picks is stored and
+ * the backend is rebuilt around it; each side's credentials stay on this device until a sign-out
+ * forgets them. Nothing starts on construction: sign-in is a user action, and the first sync waits
+ * for a launch or a local change, so a surface test with no token never reaches the network.
  */
 
 namespace lens::app {
@@ -35,11 +36,15 @@ class SyncDuty final : public QObject {
     QML_ANONYMOUS
     QML_UNCREATABLE("Owned by Controller; reached as Controller.syncDuty")
     Q_PROPERTY(QString state READ state NOTIFY stateChanged)
+    Q_PROPERTY(QString provider READ provider NOTIFY providerChanged)
     Q_PROPERTY(QString login READ login NOTIFY stateChanged)
     Q_PROPERTY(QString userCode READ userCode NOTIFY stateChanged)
     Q_PROPERTY(QString verificationUri READ verificationUri NOTIFY stateChanged)
     Q_PROPERTY(QString lastSyncedAt READ lastSyncedAt NOTIFY stateChanged)
     Q_PROPERTY(bool hasPassphrase READ hasPassphrase NOTIFY stateChanged)
+    Q_PROPERTY(QString webdavServer READ webdavServer NOTIFY webdavChanged)
+    Q_PROPERTY(QString webdavUsername READ webdavUsername NOTIFY webdavChanged)
+    Q_PROPERTY(bool hasWebdavPassword READ hasWebdavPassword NOTIFY webdavChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
 
 public:
@@ -53,6 +58,8 @@ public:
 
     /// @return "unconfigured", "signedOut", "codePending", "signedIn" or "syncing".
     QString state() const;
+    /// @return "github" or "webdav"; the provider the page's picker shows.
+    QString provider() const;
     QString login() const;
     /// @return The code the reader types on the backend's site, while sign-in is waiting for it; otherwise empty.
     QString userCode() const;
@@ -61,10 +68,17 @@ public:
     QString lastSyncedAt() const;
     /// @return Whether a derived key is stored on this device.
     bool hasPassphrase() const;
+    /// @return The WebDAV server address and username as stored; the app password only as a flag.
+    QString webdavServer() const;
+    QString webdavUsername() const;
+    bool    hasWebdavPassword() const;
     /// @return "", "proxy", "passphrase", "generic", "expired", "denied", "signInExpired" or "noGist".
     QString error() const;
 
-    /// @brief Start the backend's sign-in flow.
+    /// @brief Store the provider the page picked and rebuild the backend around it. Both providers'
+    ///        credentials stay on this device; a sign-out is what forgets them.
+    Q_INVOKABLE void useProvider(QString provider);
+    /// @brief Start the backend's sign-in flow; for WebDAV this is one reachability check.
     Q_INVOKABLE void startLogin();
     /// @brief Stop waiting for the device code. Nothing is reported.
     Q_INVOKABLE void cancelLogin();
@@ -76,6 +90,11 @@ public:
     Q_INVOKABLE void logOut();
     /// @brief Delete the cloud copy. The token stays, so the reader can sync again.
     Q_INVOKABLE void deleteCloudData();
+
+    /// @brief Store one WebDAV form field. An empty app password clears it.
+    Q_INVOKABLE void setWebdavServer(QString server);
+    Q_INVOKABLE void setWebdavUsername(QString username);
+    Q_INVOKABLE void setWebdavAppPassword(QString appPassword);
 
     /// @brief Run one sync a few seconds after launch, when signed in and a key is stored.
     void startAtLaunch();
@@ -89,12 +108,19 @@ public:
 
 signals:
     void stateChanged();
+    void providerChanged();
+    /// @brief A WebDAV form field was stored; the fields and the filled flag re-read.
+    void webdavChanged();
     void errorChanged();
     /// @brief A sync wrote remote state into this device's stores. Emitted inside the apply, so the
     ///        listeners' save-driven schedule is ignored and the surfaces redraw.
     void remoteApplied();
 
 private:
+    /// @brief Make the backend the partition's provider names, and a round on its transport.
+    void rebuildBackend();
+    /// @brief Bind this adapter to the current backend's signals.
+    void connectBackend();
     /// @brief What the round tells this adapter; every hook is a member so it can reach the surfaces.
     core::sync::Hooks roundHooks();
 
@@ -104,6 +130,9 @@ private:
     /// @brief Set an error code (empty for none) and notify.
     void setError(const QString& code);
 
+    StorageDuty&                           storage_;
+    std::filesystem::path                  dataDir_;
+    QNetworkAccessManager*                 manager_;
     std::unique_ptr<SyncBackend>           backend_;
     std::unique_ptr<core::sync::SyncRound> round_;
     core::sync::SyncPartition              partition_;

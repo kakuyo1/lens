@@ -145,12 +145,80 @@ TEST(SyncDuty, UnknownProviderFallsBackToGithub)
 
     KnownStore    store = KnownStore::load(settingsPath);
     SyncPartition partition(store);
-    store.section("sync").set<std::string>("provider", "webdav");
+    store.section("sync").set<std::string>("provider", "gitee");
 
     lens::test::ScriptedManager manager;
     auto                        backend = lens::app::makeSyncBackend(partition.provider(), dir, &manager, partition);
     EXPECT_EQ(backend->id(), QStringLiteral("github"));
     EXPECT_FALSE(backend->configured()) << "no sync.json in the directory: nothing is configured yet";
+
+    std::filesystem::remove_all(dir);
+}
+
+/// Picking the other storage provider rebuilds the backend around the stored choice, and both
+/// providers' credentials survive the switch on this device.
+TEST(SyncDuty, SwitchingTheProviderRebuildsTheBackendAndKeepsBothCredentials)
+{
+    QtApplication qt;
+    const auto    dir = std::filesystem::temp_directory_path() / "lens-sync-switch-test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    {
+        std::ofstream config(dir / "sync.json");
+        config << R"({"clientId":"client-id"})";
+    }
+    const auto settingsPath = dir / "settings.json";
+    std::filesystem::remove(settingsPath);
+
+    KnownStore             store = KnownStore::load(settingsPath);
+    lens::app::StorageDuty storage(store);
+    SyncPartition          seeded(store);
+    seeded.storeTokens("access-1", "refresh-1"); // GitHub's sign-in, still on this device
+    seeded.setProvider("webdav");
+    seeded.setServer("https://dav.example.com/dav");
+    seeded.setUsername("reader");
+    seeded.setAppPassword("app-pass");
+
+    lens::test::ScriptedManager manager;
+    lens::app::SyncDuty         duty(storage, dir, &manager);
+    EXPECT_EQ(duty.provider(), QStringLiteral("webdav"));
+    EXPECT_EQ(duty.state(), QStringLiteral("signedIn")) << "the WebDAV credentials are the sign-in";
+
+    duty.useProvider(QStringLiteral("github"));
+    EXPECT_EQ(duty.provider(), QStringLiteral("github"));
+    EXPECT_EQ(duty.state(), QStringLiteral("signedIn")) << "GitHub's token pair is still on this device";
+    EXPECT_TRUE(duty.error().isEmpty());
+
+    duty.useProvider(QStringLiteral("webdav"));
+    EXPECT_EQ(duty.provider(), QStringLiteral("webdav"));
+    EXPECT_EQ(duty.state(), QStringLiteral("signedIn"));
+
+    std::filesystem::remove_all(dir);
+}
+
+/// A paste that carries invisible whitespace cannot poison the credentials: every form field trims.
+TEST(SyncDuty, WebdavFormFieldsTrimWhatTheyStore)
+{
+    QtApplication qt;
+    const auto    dir = std::filesystem::temp_directory_path() / "lens-sync-trim-test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    const auto settingsPath = dir / "settings.json";
+    std::filesystem::remove(settingsPath);
+
+    KnownStore             store = KnownStore::load(settingsPath);
+    lens::app::StorageDuty storage(store);
+    SyncPartition          seeded(store);
+
+    lens::test::ScriptedManager manager;
+    lens::app::SyncDuty         duty(storage, dir, &manager);
+    duty.setWebdavAppPassword("\tapp-pass\t");
+    duty.setWebdavUsername(" reader ");
+    duty.setWebdavServer("  https://dav.example.com/dav ");
+
+    EXPECT_EQ(seeded.appPassword(), "app-pass");
+    EXPECT_EQ(seeded.username(), "reader");
+    EXPECT_EQ(seeded.server(), "https://dav.example.com/dav");
 
     std::filesystem::remove_all(dir);
 }
