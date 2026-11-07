@@ -44,6 +44,7 @@ enum class Signal : std::uint8_t {
     Logged,          ///< Stored through the section; settingsChanged(), and a line in the log.
     Glass,           ///< Stored through the section; settingsChanged(), and the backdrop takes the new tier.
     Level,           ///< KnownStore holds it: settingsChanged().
+    CustomWordbook,  ///< Stored through the section; the reader's wordbook reloads and the scan re-judges (settingsChanged()).
     ExplanationLang, ///< KnownStore holds it: settingsChanged() and statsChanged().
     Capture,         ///< CaptureDuty writes it, because the OCR engine or the scan changes with it.
 };
@@ -119,6 +120,9 @@ inline constexpr Row kRows[]{
     // Learning: the difficulty, the language the answer is asked in, the language the held peek
     // answers in, and what comes with it.
     {.key = "level", .kind = Kind::Integer, .signal = Signal::Level, .fallback = 2, .low = 0, .high = 7, .synced = true},
+    // The reader's own wordbook: a path on this machine, so it does not sync -- the other device
+    // has no such file. The words join every level's line (docs/adr/0158).
+    {.key = "customWordlist", .kind = Kind::Text, .signal = Signal::CustomWordbook, .fallback = ""},
     {.key = "explanationLang", .kind = Kind::Text, .signal = Signal::ExplanationLang, .fallback = "en", .synced = true},
     {.key = "motherTongue", .kind = Kind::Choice, .signal = Signal::Settings, .fallback = "zh", .synced = true, .members = kMotherTongues},
     {.key = "multiSense", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = false, .synced = true},

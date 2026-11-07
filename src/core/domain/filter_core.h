@@ -58,6 +58,29 @@ void loadIrregulars(const std::filesystem::path& path);
  */
 void loadWordbooks(const std::filesystem::path& dir);
 
+/// @brief The custom wordbook's load outcome, for the settings page's status line.
+struct CustomWordbookStatus {
+    std::size_t words   = 0;     ///< Headwords the custom wordbook currently holds.
+    bool        missing = false; ///< A path is set but its file could not be read.
+};
+
+/// @return The custom wordbook's current outcome, as the last loadCustomWordbook() left it.
+CustomWordbookStatus customWordbookStatus();
+
+/**
+ * @brief Load the reader's own wordbook into process-wide read-only state.
+ *
+ * @param path Text file of one headword per line, `#` starting a comment, as the wordbooks take
+ *             them; an empty path clears the list. A file that cannot be opened clears the list
+ *             too and answers -1: the file is the only source, so a vanished one masters nothing.
+ * @return The words the list now holds -- distinct lemmas, so inflected lines of one word count once
+ *         -- or -1 when @p path names a file that cannot be opened.
+ * @note The words master at every level, beside the level's own books; they are judged by lemma
+ *       like the wordbooks, and are never written to the known set.
+ * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet, since lemmas need both.
+ */
+long long loadCustomWordbook(const std::filesystem::path& path);
+
 /**
  * @brief Load the informal spellings the scan drops into process-wide read-only state.
  *

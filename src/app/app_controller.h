@@ -107,6 +107,9 @@ public:
     /// @param deviceName The screen's name as QML's Screen.name gives it.
     /// @return That screen's available geometry in DIPs, or an empty rect when no screen has the name.
     Q_INVOKABLE QRect screenWorkArea(QString deviceName) const;
+    /// @param file The reader's wordbook, one headword per line (UI-SPEC.md 4.4); "" clears it.
+    ///        Its words join every level's line (docs/adr/0158).
+    Q_INVOKABLE void setCustomWordlist(QUrl file);
     /// @param executable File the reader picked in the system's dialog; C++ takes the local path.
     Q_INVOKABLE void setTesseractExecutable(QUrl executable);
     /// @param directory Folder the reader picked in the system's dialog; C++ takes the local path.

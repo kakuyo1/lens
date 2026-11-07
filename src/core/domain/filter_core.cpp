@@ -67,6 +67,15 @@ constexpr std::size_t kFloorRank = 3000;
 /// Lemma to the bitmask of wordbooks that list it. Empty means loadWordbooks() has not run.
 std::unordered_map<std::string, std::uint8_t> g_books;
 
+/// The reader's own wordbook (settings key customWordlist), keyed by lemma. Its words master at
+/// every level, beside the level's books, so it is a set of its own rather than a book the level
+/// chooses; empty means none is loaded.
+std::unordered_set<std::string> g_custom;
+
+/// Whether the last loadCustomWordbook() named a file it could not open, which the settings page
+/// says in its status line.
+bool g_customMissing = false;
+
 /// Informal spellings the scan drops, from data/informal-spellings.txt. Empty until loadInformalSpellings() runs.
 std::unordered_set<std::string> g_informal;
 
@@ -300,8 +309,8 @@ bool isKnownForm(const std::string& surface, const std::unordered_set<std::strin
 }
 
 /// @return Whether the level's line puts @p surface on the mastered side: some form of it is inside the frequency
-///         floor, or in one of the books the level includes. A word the list ranks above its base is still mastered
-///         once the base is.
+///         floor, or in one of the books the level includes, or in the reader's own wordbook. A word the list
+///         ranks above its base is still mastered once the base is.
 bool isMastered(const std::string& surface, Difficulty const& difficulty)
 {
     for (auto const& form : formsOf(surface)) {
@@ -309,6 +318,7 @@ bool isMastered(const std::string& surface, Difficulty const& difficulty)
         if (rank != 0 and rank <= difficulty.floorRank) return true;
         const auto it = g_books.find(form);
         if (it != g_books.end() and (it->second & difficulty.bookMask) != 0) return true;
+        if (g_custom.count(form) != 0) return true;
     }
     return false;
 }
@@ -440,6 +450,37 @@ void loadWordbooks(const std::filesystem::path& dir)
         }
     }
     LENS_INFO("wordbooks loaded: {} headword(s) from '{}'", g_books.size(), dir.string());
+}
+
+CustomWordbookStatus customWordbookStatus()
+{
+    return {g_custom.size(), g_customMissing};
+}
+
+long long loadCustomWordbook(const std::filesystem::path& path)
+{
+    g_custom.clear();
+    g_customMissing = false;
+    if (path.empty()) return 0;
+
+    std::ifstream in(path);
+    if (!in) {
+        // The file is the only source, so a vanished one masters nothing; the settings page says
+        // so in its status line, and startup goes on -- a lost wordbook is not a lost word list.
+        g_customMissing = true;
+        LENS_WARN("custom wordbook '{}' cannot be opened; its words are not mastered", path.string());
+        return -1;
+    }
+
+    std::string line;
+    while (std::getline(in, line)) {
+        while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+            line.pop_back();
+        if (line.empty() || line.front() == '#') continue;
+        g_custom.insert(lemmatize(line)); // keyed by lemma, as lookups are
+    }
+    LENS_INFO("custom wordbook loaded: {} headword(s) from '{}'", g_custom.size(), path.string());
+    return static_cast<long long>(g_custom.size());
 }
 
 void loadInformalSpellings(const std::filesystem::path& path)

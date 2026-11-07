@@ -422,6 +422,66 @@ TEST_F(WordbookTest, DefinitionLinksLeaveOutTheWordsTheLevelMasters)
     EXPECT_EQ(links.front().lemma, "ambiguous");
 }
 
+/// @brief Tests for the reader's own wordbook: the small books loaded, the custom list emptied around each test.
+struct CustomWordbookTest : WordbookTest {
+protected:
+    void SetUp() override
+    {
+        WordbookTest::SetUp();
+        lens::core::loadCustomWordbook({});
+    }
+
+    void TearDown() override
+    {
+        lens::core::loadCustomWordbook({});
+        WordbookTest::TearDown();
+    }
+};
+
+TEST_F(CustomWordbookTest, ACustomWordbookJoinsEveryLevel)
+{
+    // "serendipity" is above the floor and in no book, so only the reader's own list can master it -- and it does, at all eight.
+    ASSERT_EQ(lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt"), 2);
+    expectMasteredAtLevels({{"serendipity", {0, 1, 2, 3, 4, 5, 6, 7}}});
+}
+
+TEST_F(CustomWordbookTest, ACustomWordbookEntryCoversItsInflections)
+{
+    // The list holds the base form; "vividly" reduces to it, so the surface masters with it.
+    lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt");
+    EXPECT_TRUE(masteredAt("vividly", 0));
+}
+
+TEST_F(CustomWordbookTest, ReloadingTheCustomWordbookReplacesItsWords)
+{
+    lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt");
+    ASSERT_EQ(lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook-2.txt"), 1);
+    EXPECT_FALSE(masteredAt("serendipity", 0));
+    EXPECT_TRUE(masteredAt("quixotic", 0));
+}
+
+TEST_F(CustomWordbookTest, AnEmptyPathClearsTheCustomWordbook)
+{
+    lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt");
+    ASSERT_EQ(lens::core::loadCustomWordbook({}), 0);
+    EXPECT_FALSE(masteredAt("serendipity", 0));
+    const auto status = lens::core::customWordbookStatus();
+    EXPECT_EQ(status.words, 0u);
+    EXPECT_FALSE(status.missing);
+}
+
+TEST_F(CustomWordbookTest, AMissingCustomWordbookMastersNothingAndSaysSo)
+{
+    // The file was the source, so a vanished one masters nothing: the list empties, the page is
+    // told, and startup goes on -- the loader warns rather than throws.
+    lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt");
+    EXPECT_EQ(lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "no-such-wordbook.txt"), -1);
+    EXPECT_FALSE(masteredAt("serendipity", 0));
+    const auto status = lens::core::customWordbookStatus();
+    EXPECT_EQ(status.words, 0u);
+    EXPECT_TRUE(status.missing);
+}
+
 TEST_F(CoreTest, RealWordbooksMasterEachLevelsOwnBooks)
 {
     lens::core::loadWordbooks(lens::test::sourceDir() / "data" / "wordbooks");

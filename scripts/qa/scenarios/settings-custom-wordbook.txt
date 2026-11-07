@@ -1,0 +1,14 @@
+# The learning page draws the custom wordbook row (docs/adr/0158).
+# Opens settings, routes to the reading & learning category, and reads state on the page. The
+# write path is covered by the qtest
+# (ExplanationSettings::test_theCustomWordlistRowWritesTheSetting); this run answers the real-app
+# boot with the startup load and the row on the real panel.
+# Run against a private settings file so the reader's profile is never touched:
+#   lens.exe --dev-script=scripts/qa/scenarios/settings-custom-wordbook.txt --dev-out=logs/dev-run/answers.jsonl --settings-file=logs/dev-run/settings.json
+version
+surface show settings
+wait visible:settings
+surface route settings learning
+wait painted:settings
+state
+quit

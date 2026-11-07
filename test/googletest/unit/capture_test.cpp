@@ -582,7 +582,7 @@ TEST(CaptureDuty, ALevelChangeClearsTheScanSoItRejudgesTheCandidates)
     bool cleared = false;
     QObject::connect(&duty, &CaptureDuty::scanCleared, [&cleared] { cleared = true; });
     storage.knownStore().setLevel(6);
-    duty.levelChanged();
+    duty.difficultyChanged();
     EXPECT_TRUE(cleared);
 }
 

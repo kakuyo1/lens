@@ -343,7 +343,7 @@ void CaptureDuty::invalidateScan()
     emit scanCleared();
 }
 
-void CaptureDuty::levelChanged()
+void CaptureDuty::difficultyChanged()
 {
     invalidateScan();
 }

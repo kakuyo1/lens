@@ -72,6 +72,47 @@ Item {
             }
         }
 
+        // The reader's own wordbook (docs/adr/0158): its words join every level's line, so it sits
+        // beside the level it completes rather than in a category of its own. No preview rises off
+        // it -- what it changes is which words this reader's pages draw dashed, and a sample of the
+        // reader's own file is not a sample the panel can render (UI-SPEC.md 4.4).
+        Column {
+            width: parent.width
+            spacing: 7
+            Text {
+                text: qsTranslate("SettingsPopup", "Custom word list")
+                color: root.tokens.muted
+                font.pixelSize: 12
+            }
+            PathField {
+                objectName: "customWordlistField"
+                width: parent.width
+                label: qsTranslate("SettingsPopup", "Custom word list")
+                path: root.settings.customWordlist || ""
+                onChosen: (picked) => Controller.setCustomWordlist(picked)
+            }
+            // The file is the source of truth, so a word count the page cannot vouch for is no
+            // count at all: the line says what the last load read, and says so when it read nothing.
+            Text {
+                objectName: "customWordlistState"
+                width: parent.width
+                visible: (root.settings.customWordlist || "").length > 0
+                text: root.settings.customWordlistMissing
+                      ? qsTranslate("SettingsPopup", "The file could not be read.")
+                      : qsTranslate("SettingsPopup", "%1 word(s) loaded.").arg(root.settings.customWordlistCount)
+                color: root.settings.customWordlistMissing ? root.tokens.danger : root.tokens.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
+            Text {
+                width: parent.width
+                text: qsTranslate("SettingsPopup", "One word per line. Words in your list count as mastered at every level.")
+                color: root.tokens.faint
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
+        }
+
         // Above the explanation language, because the peek it feeds only exists under an English
         // explanation: the reader reads this as "the language I fall back to", then chooses what
         // everything is explained in (docs/adr/0112). Its rows raise no preview -- the peek is a

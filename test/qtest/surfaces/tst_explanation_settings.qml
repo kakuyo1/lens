@@ -7,10 +7,10 @@ import "../testutil.js" as Util
 Item {
     id: root
     width: 380
-    // Taller than the real 480 px panel: the level, mother-tongue and language rows, seven switch
-    // rows and the review row make the learning page scroll there, and the snapshot case below has
-    // to see the whole page to review it.
-    height: 760
+    // Taller than the real 480 px panel: the level, custom wordbook, mother-tongue and language
+    // rows, seven switch rows and the review row make the learning page scroll there, and the
+    // snapshot case below has to see the whole page to review it.
+    height: 1360
 
     readonly property var settings: ({
         levels: [{value: 2, label: "CET-4", group: "", note: ""}], level: 2,
@@ -139,6 +139,50 @@ Item {
                 Controller.setSetting("motherTongue", previous);
             }
             compare(Controller.settings.motherTongue, previous);
+        }
+
+        /// The reader's own wordbook sits beside the level it completes: the row takes a path, the
+        /// state line reports what the last load read, and a pick writes the setting (docs/adr/0158).
+        function test_theCustomWordlistRowWritesTheSetting() {
+            const page = createTemporaryObject(learning, host.contentItem);
+            waitForRendering(host.contentItem);
+            verify(page);
+            const field = findChild(page, "customWordlistField");
+            verify(field, "the learning page draws no custom word list row");
+            const levelField = findChild(page, "levelField");
+            verify(levelField);
+            verify(field.mapToItem(page, 0, 0).y > levelField.mapToItem(page, 0, 0).y,
+                   "the custom word list sat above the vocabulary level");
+            // No path, no state line: there is nothing for it to say yet.
+            compare(findChild(page, "customWordlistState").visible, false);
+
+            const loaded = createTemporaryObject(learning, host.contentItem,
+                {settings: Object.assign({}, root.settings, {customWordlist: "C:/words/own.txt", customWordlistCount: 12, customWordlistMissing: false})});
+            waitForRendering(host.contentItem);
+            const state = findChild(loaded, "customWordlistState");
+            verify(state);
+            compare(state.visible, true);
+            compare(state.text, "12 word(s) loaded.");
+            const broken = createTemporaryObject(learning, host.contentItem,
+                {settings: Object.assign({}, root.settings, {customWordlist: "C:/words/own.txt", customWordlistCount: 0, customWordlistMissing: true})});
+            waitForRendering(host.contentItem);
+            const missing = findChild(broken, "customWordlistState");
+            verify(missing);
+            compare(missing.visible, true);
+            compare(missing.text, "The file could not be read.");
+            compare(missing.color, Tokens.danger);
+
+            // A pick travels to the controller, and the projection answers with the load's outcome.
+            const previous = Controller.settings.customWordlist;
+            try {
+                Controller.setCustomWordlist("file:///C:/lens-test-missing-wordbook.txt");
+                tryCompare(Controller.settings, "customWordlistMissing", true);
+                tryCompare(Controller.settings, "customWordlistCount", 0);
+                compare(Controller.settings.customWordlist, "C:/lens-test-missing-wordbook.txt");
+            } finally {
+                Controller.setCustomWordlist(previous ? "file:///" + previous : "");
+            }
+            compare(Controller.settings.customWordlist, previous || "");
         }
 
         /// The etymology switch is a setting, not a view: it reads what the document holds and

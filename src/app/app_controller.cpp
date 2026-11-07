@@ -283,6 +283,14 @@ QRect AppController::screenWorkArea(QString deviceName) const
     return {};
 }
 
+void AppController::setCustomWordlist(QUrl file)
+{
+    // The dialog answers a url; the document stores the local path, and an empty pick clears the row.
+    const auto* const row = core::settings::find("customWordlist");
+    if (row == nullptr) return;
+    writeSetting(*row, file.toLocalFile());
+}
+
 void AppController::setTesseractExecutable(QUrl executable)
 {
     capture_.setTesseractExecutable(executable.toLocalFile());
@@ -362,8 +370,21 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
             const int level = std::clamp(value.toInt(), row.low, row.high);
             storage_.knownStore().setLevel(level);
             storage_.save();
-            capture_.levelChanged();
+            capture_.difficultyChanged();
             LENS_INFO("level set to {}", level);
+            emit settingsChanged();
+            return true;
+        }
+        case Signal::CustomWordbook: {
+            const auto path = value.toString().toStdString();
+            if (not settings::write(storage_.section(), row, value))
+                return false;
+            // The file is the source; an empty pick clears the row and the loaded words with it.
+            // Either way the line moved, so the scan re-judges on the same turn the level's own
+            // write takes.
+            const auto words = core::loadCustomWordbook(path.empty() ? std::filesystem::path{} : std::filesystem::path(path));
+            capture_.difficultyChanged();
+            LENS_INFO("custom wordbook set to '{}' ({})", path, words < 0 ? "the file could not be read" : std::to_string(words) + " headword(s)");
             emit settingsChanged();
             return true;
         }
@@ -694,6 +715,11 @@ QVariantMap AppController::settings()
     result.insert(QStringLiteral("level"), storage_.knownStore().level());
     result.insert(QStringLiteral("explanationLang"), QString::fromStdString(storage_.knownStore().explanationLang()));
     result.insert(QStringLiteral("levels"), StorageDuty::levelOptions());
+    // The custom wordbook's outcome is the loader's state, not a stored key: the page says how
+    // many words it holds and says when its file stopped being readable (docs/adr/0158).
+    const auto customWordbook = core::customWordbookStatus();
+    result.insert(QStringLiteral("customWordlistCount"), static_cast<int>(customWordbook.words));
+    result.insert(QStringLiteral("customWordlistMissing"), customWordbook.missing);
     result.insert(QStringLiteral("reviewFrequency"), static_cast<int>(reviewDuty_.frequency()));
     result.insert(QStringLiteral("reviewFrequencyOptions"), StorageDuty::reviewFrequencyOptions());
     // Pronunciation's three choice rows, labelled for the settings page (UI-SPEC.md 4.4). The values

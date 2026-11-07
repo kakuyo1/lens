@@ -1,0 +1,21 @@
+# 0158 自定义词表并入每一档
+
+- **状态**：accepted
+- **背景**：档位（ADR 0155）只有八档固定词书，读者自己的词——教材词表、Anki 导出、自维护的生词本——没有入口，只能一本一本标已会或看着虚线画在自己已会的词下。TODO.md 用户区挂了 “level 加上自定义词表支持”。
+- **决定**：
+  - **并入每一档**：每档 = 底座 ∪ 档位词书 ∪ 自定义词表（有则）。自定义词表不是第 9 个档位选项，也不是某档的附属：它和档位正交，任何档位下都生效，选 “CET-6 + 自己的教材词表” 无须放弃 IELTS 词书。
+  - **文件即来源**：设置里经系统文件对话框选一个 `.txt`（每行一个词，`#` 注释、空行跳过），settings.json 的 `customWordlist` 键存路径（`Signal::CustomWordbook`，Kind::Text）。路径不随设置同步（本机路径，另一台设备没有这个文件）；词也不拷进 profile，不导入 settings.json——文件是唯一来源，读者在外部改完文件，重选一次或重启即生效。
+  - **按原形判定**：词条经 `lemmatize` 入集合（`loadCustomWordbook`，与 `loadWordbooks` 同语义），变形词经原形命中。
+  - **换表即重扫**：写入路径与档位同一条（`difficultyChanged`，原 `levelChanged` 更名——判定线移动的不止档位一处），扫描立即失效。
+  - **缺失即清空**：路径非空但文件读不到 → 集合清空、状态置 missing、告警不抛；设置页状态行说明 “文件读不到”。空路径（Defaults、清除）同样清空。
+- **后果**：
+  - 不写入已会库、不进模型请求，沿用 ADR 0155 的两条边界：换表可逆，同步不携带词表内容。
+  - 静态词表白名单门在前：词表外（168,205 词条之外）的词在扫描与选区路径仍被硬过滤丢弃，自定义词表救不回；释义链路径上可以挡点线（`isMastered` 直接看集合）。
+  - 设置页在词汇档位下加 “自定义词表” 一行（PathField + 状态行 + 一句说明），不升预览：改动的是这个读者的哪些词画虚线，面板没有可廉价演示的样例。
+  - 词数状态（`customWordbookStatus`）读自加载器状态而非每次重读文件；投影里的计数是最近一次加载的结果，文件被外部修改后要重选或重启才更新。
+  - 被排除的做法：
+    - 第 9 档位选项 “自定义”：只是并入方案的子集——选了它就装不下 “IELTS + 自己的词表”；且档位含义（每档 = 底座 ∪ 自身词书）要多一条特例。
+    - 词条粘贴进设置、存 settings.json：几千词的编辑面板交互差，settings 文档与同步体积膨胀；文件本来就在读者手里。
+    - 导入拷贝进 profile：多一份要管生命周期的副本，与 “文件即来源” 冲突；外部改动无法体现。
+    - 路径随设置同步：另一台设备没有这个文件，同步过去的路径只产出一个 missing 状态。
+- **实现**：`filter_core` 的 `loadCustomWordbook` / `customWordbookStatus` / `isMastered`、settings 表新行、`AppController::setCustomWordlist` 与 `Signal::CustomWordbook` 写路径、启动时在 `KnownStore::load` 之后加载（main.cpp）、设置页新行、gtest（`CustomWordbookTest.*`）与 qtest（`ExplanationSettings::test_theCustomWordlistRowWritesTheSetting`）。

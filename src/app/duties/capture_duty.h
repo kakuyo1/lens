@@ -58,8 +58,9 @@ public:
 
     QVariantMap settings() const;
     QString     ocrStatus() const;
-    /// @brief The reader's level moved: the scan's candidates were judged against the old line, so re-scan.
-    void levelChanged();
+    /// @brief The difficulty line moved -- the level, or the reader's custom wordbook: the scan's
+    ///        candidates were judged against the old line, so re-scan.
+    void difficultyChanged();
     /// @brief The download state of the pinned RapidOCR bundle, derived from disk and from the
     ///        transfer in flight. It moves during a download, so it stays out of settings(), the
     ///        way the local voices' installed state does (SpeechDuty::voiceStates).

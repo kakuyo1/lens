@@ -1,0 +1,3 @@
+# the reader's own words, one per line; a line starting with # is a comment
+serendipity
+vivid

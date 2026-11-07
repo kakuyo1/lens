@@ -290,6 +290,15 @@ int main(int argc, char* argv[])
     LENS_INFO("settings document: {}", narrow(settings));
     KnownStore store = KnownStore::load(settings);
 
+    // The reader's own wordbook (docs/adr/0158) joins the line the wordbooks drew. It is loaded
+    // here rather than beside them because its path lives in the settings document, and a missing
+    // file only warns -- the settings page says so, and startup does not fail over a wordbook.
+    if (const auto* const customRow = lens::core::settings::find("customWordlist")) {
+        const auto customPath = lens::app::settings::read(store.section(), *customRow).toString().toStdString();
+        if (!customPath.empty())
+            lens::core::loadCustomWordbook(customPath);
+    }
+
     const auto pricing = [&] {
         try {
             return lens::llm::Pricing::load(dataDir / "llm" / "pricing.json");
