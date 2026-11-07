@@ -54,7 +54,9 @@ void SyncDuty::rebuildBackend()
     connectBackend();
     round_ = std::make_unique<core::sync::SyncRound>(backend_->transport(), storage_.knownStore(), storage_.statsStore(), partition_, core::sync::SyncRound::Clock{}, roundHooks());
     setError(QString());
+    webdavConnected_ = false;
     emit providerChanged();
+    emit webdavChanged();
     emit stateChanged();
 }
 
@@ -62,10 +64,20 @@ void SyncDuty::connectBackend()
 {
     connect(backend_.get(), &SyncBackend::changed, this, &SyncDuty::stateChanged);
     connect(backend_.get(), &SyncBackend::failed, this, [this](const QString& code) {
+        // A refused probe takes the form's confirmation line back down with it.
+        if (webdavConnected_) {
+            webdavConnected_ = false;
+            emit webdavChanged();
+        }
         setError(code);
         emit stateChanged();
     });
     connect(backend_.get(), &SyncBackend::completed, this, [this] {
+        // The WebDAV probe's success is the form's "Connected" line; GitHub's is the sign-in itself.
+        if (provider() == QStringLiteral("webdav") && !webdavConnected_) {
+            webdavConnected_ = true;
+            emit webdavChanged();
+        }
         emit stateChanged();
         // A change made while the name was read still has to go up; the fingerprint decides that.
         scheduleSync();
@@ -152,6 +164,11 @@ bool SyncDuty::hasWebdavPassword() const
     return not partition_.appPassword().empty();
 }
 
+bool SyncDuty::webdavConnected() const
+{
+    return webdavConnected_;
+}
+
 QString SyncDuty::error() const
 {
     return error_;
@@ -193,6 +210,7 @@ void SyncDuty::logOut()
     round_->forget();
     partition_.forgetAll();
     setError(QString());
+    webdavConnected_ = false;
     emit stateChanged();
     emit webdavChanged();
 }
@@ -212,6 +230,8 @@ void SyncDuty::deleteCloudData()
 void SyncDuty::setWebdavServer(QString server)
 {
     partition_.setServer(server.trimmed().toStdString());
+    // The verdict answered the old credentials; a changed field takes the line back down.
+    webdavConnected_ = false;
     emit webdavChanged();
     emit stateChanged();
 }
@@ -219,6 +239,7 @@ void SyncDuty::setWebdavServer(QString server)
 void SyncDuty::setWebdavUsername(QString username)
 {
     partition_.setUsername(username.trimmed().toStdString());
+    webdavConnected_ = false;
     emit webdavChanged();
     emit stateChanged();
 }
@@ -226,6 +247,7 @@ void SyncDuty::setWebdavUsername(QString username)
 void SyncDuty::setWebdavAppPassword(QString appPassword)
 {
     partition_.setAppPassword(appPassword.trimmed().toStdString());
+    webdavConnected_ = false;
     emit webdavChanged();
     emit stateChanged();
 }

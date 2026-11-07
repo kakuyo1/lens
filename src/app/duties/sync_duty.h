@@ -45,6 +45,7 @@ class SyncDuty final : public QObject {
     Q_PROPERTY(QString webdavServer READ webdavServer NOTIFY webdavChanged)
     Q_PROPERTY(QString webdavUsername READ webdavUsername NOTIFY webdavChanged)
     Q_PROPERTY(bool hasWebdavPassword READ hasWebdavPassword NOTIFY webdavChanged)
+    Q_PROPERTY(bool webdavConnected READ webdavConnected NOTIFY webdavChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
 
 public:
@@ -72,6 +73,8 @@ public:
     QString webdavServer() const;
     QString webdavUsername() const;
     bool    hasWebdavPassword() const;
+    /// @return Whether the last WebDAV reachability check succeeded; any field change clears it.
+    bool webdavConnected() const;
     /// @return "", "proxy", "passphrase", "generic", "expired", "denied", "signInExpired" or "noGist".
     QString error() const;
 
@@ -140,6 +143,9 @@ private:
     QTimer                                 poll_;  ///< Pulls the cloud copy while signed in.
     QTimer                                 retry_; ///< Re-runs a failed automatic sync, with backoff.
     QString                                error_;
+    /// The WebDAV probe's verdict, for the form's confirmation line. Not the sign-in state: the
+    /// credentials being stored is what signs in, and a probe only proves the server took them.
+    bool webdavConnected_ = false;
 };
 
 }

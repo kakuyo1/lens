@@ -147,6 +147,25 @@ TEST(WebdavBackend, TestConnectionProbesTheServerOnce)
     EXPECT_EQ(error, QStringLiteral("signInExpired")) << "the page reads the refusal as credentials to fix";
 }
 
+/// The probe's verdict surfaces as the form's confirmation line, and a changed field takes it down.
+TEST(WebdavBackend, TheProbeVerdictLivesOnTheDutyUntilAFieldChanges)
+{
+    QtApplication          qt;
+    Fixture                fixture("lens-webdav-verdict-test");
+    lens::app::StorageDuty storage(*fixture.store);
+
+    lens::test::ScriptedManager manager;
+    lens::app::SyncDuty         duty(storage, fixture.dir, &manager);
+    EXPECT_FALSE(duty.webdavConnected());
+
+    manager.queue(207);
+    duty.startLogin();
+    ASSERT_TRUE(spinUntil([&] { return duty.webdavConnected(); }));
+
+    duty.setWebdavUsername("other-reader");
+    EXPECT_FALSE(duty.webdavConnected()) << "the verdict answered the old credentials";
+}
+
 /// The full round the settings page's Sync now runs: the listing finds nothing, the write makes the
 /// file, and the id lands in the partition for the next round to read.
 TEST(WebdavBackend, ASyncNowCarriesOneRoundThroughTheScriptedNetwork)

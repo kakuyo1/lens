@@ -1057,7 +1057,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="139"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="241"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="243"/>
         <source>Test connection</source>
         <translation>Probar conexión</translation>
     </message>
@@ -2595,8 +2595,8 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="404"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="99"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="354"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="499"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="366"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="512"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="631"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
@@ -2667,136 +2667,136 @@ One small word at a time, the reading opens.</translation>
         <translation>La sincronización todavía no está disponible en esta versión: el proyecto no ha registrado el inicio de sesión de GitHub.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="75"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="77"/>
         <source>Sync with your own WebDAV server: Nutstore, Alist, a NAS. The cloud copy is encrypted with your passphrase.</source>
         <translation>Sincroniza con tu propio servidor WebDAV: Nutstore, Alist, un NAS. La copia en la nube se cifra con tu contraseña.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="86"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="110"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="88"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="112"/>
         <source>Server address</source>
         <translation>Dirección del servidor</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="138"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="162"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="140"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="164"/>
         <source>Username</source>
         <translation>Nombre de usuario</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="173"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="175"/>
         <source>For Nutstore, the email or phone the account registered with; other servers follow their own rule.</source>
         <translation>Para Nutstore, el correo o teléfono con el que se registró la cuenta; otros servidores siguen su propia regla.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="185"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="210"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="187"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="212"/>
         <source>App password</source>
         <translation>Contraseña de aplicación</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="232"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="234"/>
         <source>An app password created in your server&apos;s settings, not your login password.</source>
         <translation>Una contraseña de aplicación creada en los ajustes de tu servidor, no tu contraseña de inicio de sesión.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="262"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="257"/>
+        <source>Connected. The server accepted the credentials.</source>
+        <translation>Conectado. El servidor aceptó las credenciales.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="274"/>
         <source>Sync your settings and learning data with your GitHub account. The cloud copy is encrypted with your passphrase.</source>
         <translation>Sincroniza tus ajustes y tus datos de aprendizaje con tu cuenta de GitHub. La copia en la nube se cifra con tu contraseña.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="270"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="282"/>
         <source>Sign in with GitHub</source>
         <translation>Iniciar sesión con GitHub</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="286"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="298"/>
         <source>Open this address in a browser, then enter the code:</source>
         <translation>Abre esta dirección en el navegador y luego introduce el código:</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="311"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="323"/>
         <source>Copy address</source>
         <translation>Copiar dirección</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="320"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="332"/>
         <source>Open in browser</source>
         <translation>Abrir en el navegador</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="339"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="351"/>
         <source>Copy code</source>
         <translation>Copiar código</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="347"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="359"/>
         <source>Waiting for GitHub to confirm</source>
         <translation>Esperando la confirmación de GitHub</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="369"/>
-        <source>Server %1</source>
-        <translation>Servidor %1</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="370"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="383"/>
         <source>Signed in as %1</source>
         <translation>Sesión iniciada como %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="379"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="392"/>
         <source>Last synced %1</source>
         <translation>Última sincronización: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="380"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="393"/>
         <source>Not synced yet</source>
         <translation>Todavía no se ha sincronizado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="394"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="419"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="407"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="432"/>
         <source>Passphrase</source>
         <translation>Contraseña</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="425"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="438"/>
         <source>Encrypts the cloud copy. The passphrase is never stored; only a derived key stays on this device.</source>
         <translation>Cifra la copia en la nube. La contraseña nunca se guarda; en este equipo solo queda la clave derivada de ella.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="433"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="446"/>
         <source>Set passphrase</source>
         <translation>Establecer contraseña</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="447"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="460"/>
         <source>Sync now</source>
         <translation>Sincronizar ahora</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="458"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="471"/>
         <source>Log out</source>
         <translation>Cerrar sesión</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="465"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="478"/>
         <source>Log out keeps this device&apos;s data. Delete cloud data removes the copy on your WebDAV server.</source>
         <translation>Cerrar sesión conserva los datos de este dispositivo. Eliminar datos de la nube borra la copia en tu servidor WebDAV.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="466"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="479"/>
         <source>Log out keeps this device&apos;s data. Delete cloud data removes the copy in your GitHub account.</source>
         <translation>Cerrar sesión conserva los datos de este equipo. Eliminar los datos de la nube solo borra la copia de tu cuenta de GitHub.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="478"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="491"/>
         <source>Delete cloud data</source>
         <translation>Eliminar datos de la nube</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="489"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="502"/>
         <source>Confirm delete</source>
         <translation>Confirmar eliminación</translation>
     </message>

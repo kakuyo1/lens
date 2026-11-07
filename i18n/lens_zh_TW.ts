@@ -1689,7 +1689,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="139"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="241"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="243"/>
         <source>Test connection</source>
         <translation>測試連線</translation>
     </message>
@@ -2633,77 +2633,77 @@ One small word at a time, the reading opens.</translation>
         <translation>此版本暫不提供同步：專案尚未註冊 GitHub 登入。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="75"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="77"/>
         <source>Sync with your own WebDAV server: Nutstore, Alist, a NAS. The cloud copy is encrypted with your passphrase.</source>
         <translation>用自己的 WebDAV 伺服器同步：堅果雲、Alist、NAS。雲端副本以通行碼加密。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="86"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="110"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="88"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="112"/>
         <source>Server address</source>
         <translation>伺服器位址</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="138"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="162"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="140"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="164"/>
         <source>Username</source>
         <translation>使用者名稱</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="173"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="175"/>
         <source>For Nutstore, the email or phone the account registered with; other servers follow their own rule.</source>
         <translation>堅果雲填註冊的電子郵件或手機號；其他伺服器依各自要求填。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="185"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="210"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="187"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="212"/>
         <source>App password</source>
         <translation>應用程式密碼</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="232"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="234"/>
         <source>An app password created in your server&apos;s settings, not your login password.</source>
         <translation>在伺服器的設定裡產生的應用程式密碼，不是登入密碼。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="262"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="257"/>
+        <source>Connected. The server accepted the credentials.</source>
+        <translation>已連線，伺服器接受了這份憑證。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="274"/>
         <source>Sync your settings and learning data with your GitHub account. The cloud copy is encrypted with your passphrase.</source>
         <translation>把設定和學習資料同步到你的 GitHub 帳號。雲端副本用通行碼加密。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="270"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="282"/>
         <source>Sign in with GitHub</source>
         <translation>使用 GitHub 登入</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="286"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="298"/>
         <source>Open this address in a browser, then enter the code:</source>
         <translation>在瀏覽器中開啟以下地址，然後輸入驗證碼：</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="311"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="323"/>
         <source>Copy address</source>
         <translation>複製網址</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="320"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="332"/>
         <source>Open in browser</source>
         <translation>在瀏覽器中開啟</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="339"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="351"/>
         <source>Copy code</source>
         <translation>複製驗證碼</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="347"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="359"/>
         <source>Waiting for GitHub to confirm</source>
         <translation>等待 GitHub 確認</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="369"/>
-        <source>Server %1</source>
-        <translation>伺服器 %1</translation>
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="87"/>
@@ -2720,8 +2720,8 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="404"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="99"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="354"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="499"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="366"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="512"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="631"/>
         <source>Cancel</source>
         <translation>取消</translation>
@@ -2732,63 +2732,63 @@ One small word at a time, the reading opens.</translation>
         <translation>啟用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="370"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="383"/>
         <source>Signed in as %1</source>
         <translation>已登入為 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="379"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="392"/>
         <source>Last synced %1</source>
         <translation>上次同步：%1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="380"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="393"/>
         <source>Not synced yet</source>
         <translation>尚未同步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="394"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="419"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="407"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="432"/>
         <source>Passphrase</source>
         <translation>通行碼</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="425"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="438"/>
         <source>Encrypts the cloud copy. The passphrase is never stored; only a derived key stays on this device.</source>
         <translation>用於加密雲端副本。通行碼不會被儲存，本機只保留由它派生的金鑰。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="433"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="446"/>
         <source>Set passphrase</source>
         <translation>設定通行碼</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="447"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="460"/>
         <source>Sync now</source>
         <translation>立即同步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="458"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="471"/>
         <source>Log out</source>
         <translation>登出</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="465"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="478"/>
         <source>Log out keeps this device&apos;s data. Delete cloud data removes the copy on your WebDAV server.</source>
         <translation>登出保留本機資料。刪除雲端資料會刪掉 WebDAV 伺服器上的副本。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="466"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="479"/>
         <source>Log out keeps this device&apos;s data. Delete cloud data removes the copy in your GitHub account.</source>
         <translation>登出會保留本機資料。刪除雲端資料只會移除 GitHub 帳號中的副本。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="478"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="491"/>
         <source>Delete cloud data</source>
         <translation>刪除雲端資料</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="489"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="502"/>
         <source>Confirm delete</source>
         <translation>確認刪除</translation>
     </message>

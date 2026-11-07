@@ -67,7 +67,9 @@ Item {
             objectName: "webdavFormBlock"
             width: parent.width
             spacing: 10
-            visible: page.sync.state === "unconfigured" && page.sync.provider === "webdav"
+            // The form stays while signed in, so a wrong password is fixed in place instead of
+            // costing a log-out; it steps aside only while a round is using the credentials.
+            visible: page.sync.provider === "webdav" && (page.sync.state === "unconfigured" || page.sync.state === "signedIn")
             height: visible ? implicitHeight : 0
 
             Text {
@@ -247,6 +249,16 @@ Item {
                         page.sync.startLogin();
                 }
             }
+
+            Text {
+                objectName: "webdavConnectedNote"
+                width: parent.width
+                visible: page.sync.webdavConnected
+                text: qsTranslate("SettingsPopup", "Connected. The server accepted the credentials.")
+                color: page.tokens.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
         }
 
         Column {
@@ -366,8 +378,9 @@ Item {
 
             Text {
                 width: parent.width
-                text: page.sync.provider === "webdav" ? qsTranslate("SettingsPopup", "Server %1").arg(page.sync.webdavServer)
-                                                      : qsTranslate("SettingsPopup", "Signed in as %1").arg(page.sync.login)
+                // WebDAV's server address sits in the editable form above; the identity line is GitHub's.
+                visible: page.sync.provider !== "webdav"
+                text: qsTranslate("SettingsPopup", "Signed in as %1").arg(page.sync.login)
                 color: page.tokens.text
                 font.pixelSize: 13
                 font.weight: Font.Bold

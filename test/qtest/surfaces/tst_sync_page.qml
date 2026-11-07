@@ -39,6 +39,7 @@ Item {
             property string webdavServer: ""
             property string webdavUsername: ""
             property bool hasWebdavPassword: false
+            property bool webdavConnected: false
             property string error: ""
             function startLogin() {}
             function cancelLogin() {}
@@ -143,20 +144,23 @@ Item {
             compare(named(page, "linkedBlock").visible, false, "the linked block is the real duty's to show");
         }
 
-        /// Signed in on WebDAV, the page names the server instead of a GitHub login.
-        function test_webdavLinkedShowsTheServer() {
+        /// Signed in on WebDAV, the form stays (a wrong password is fixed in place, not by logging
+        /// out) and the probe's confirmation line shows when the verdict is in.
+        function test_webdavLinkedShowsTheFormAndTheVerdict() {
             const page = make();
             page.sync = createTemporaryObject(dutyStub, root, {
                 state: "signedIn",
                 provider: "webdav",
-                webdavServer: "https://dav.example.com/dav"
+                webdavServer: "https://dav.example.com/dav",
+                webdavConnected: true
             });
             wait(50);
 
             compare(named(page, "linkedBlock").visible, true);
             compare(named(page, "codeBlock").visible, false, "WebDAV has no device code to wait for");
-            compare(named(page, "linkedBlock").children[0].text,
-                    qsTranslate("SettingsPopup", "Server %1").arg("https://dav.example.com/dav"));
+            compare(named(page, "webdavFormBlock").visible, true, "the credentials are editable without a log-out");
+            verify(named(page, "webdavServerInput"), "the server address sits in the editable field");
+            compare(named(page, "webdavConnectedNote").visible, true);
         }
 
         /// The two provider-flavored error kinds read differently per provider.
