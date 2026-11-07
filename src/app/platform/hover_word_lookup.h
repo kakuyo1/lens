@@ -18,8 +18,12 @@
 #include <QRect>
 #include <QString>
 
+#include <functional>
+#include <mutex>
 #include <optional>
+#include <stop_token>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace lens::app {
@@ -57,6 +61,60 @@ QPoint hoverCursorPos();
  *         (see warmPageTreeOf()).
  */
 QString pageTextOf(quintptr window);
+
+/// @brief A word a track reports on screen: its id, which holds while the track lives, and its box in physical pixels.
+struct TrackedWord {
+    int   id = 0;
+    QRect box;
+};
+
+/// @brief A word a track read off the page, with the text the scan judges.
+struct ReadWord {
+    int     id = 0;
+    QString text;
+};
+
+/// @brief What one step of a track reports. A step that changes nothing reports nothing.
+struct TrackFrame {
+    std::vector<TrackedWord> visible;      ///< The words inside the band, where they are now. Sent when the page moved or words were read.
+    std::vector<ReadWord>    added;        ///< Words read in this step, with names left out.
+    bool                     lost = false; ///< The track lost its anchor: the words it reported are no longer on screen.
+};
+
+/**
+ * @brief Follows a browser page's words while it scrolls, on a worker thread of its own.
+ *
+ * One word is the anchor: its box is read about every 16 ms, and every other word sits at its offset from
+ * the anchor, so the words move with the page during a scroll. Words are read past the anchor in short steps,
+ * and only once the anchor has held still, so no read straddles a scroll. When the anchor nears an edge of the
+ * band it moves to a word near the middle, so it stays readable. A track that loses its page reports so.
+ *
+ * @note The deliver callback runs on the worker thread; it must only hand the frame to the caller's thread.
+ */
+class PageTrack {
+public:
+    using Deliver = std::function<void(TrackFrame)>;
+
+    /// @brief Starts tracking @p window's page inside @p band, which is in physical screen pixels.
+    PageTrack(quintptr window, QRect band, Deliver deliver);
+    /// @brief Stops the worker; a step in progress finishes first.
+    ~PageTrack();
+
+    PageTrack(PageTrack const&)            = delete;
+    PageTrack& operator=(PageTrack const&) = delete;
+
+    /// @brief The visible area moved or resized; the next step places words inside it.
+    void setBand(QRect band);
+
+private:
+    void run(std::stop_token stop);
+
+    quintptr     window_;
+    Deliver      deliver_;
+    std::mutex   guard_;
+    QRect        band_;
+    std::jthread worker_;
+};
 
 /**
  * @brief Ask a window for its whole UI Automation tree, which makes a browser build its web content.

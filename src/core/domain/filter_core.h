@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <string>
 #include <string_view>
@@ -46,6 +47,27 @@ void loadWordlist(const std::filesystem::path& path);
 void loadIrregulars(const std::filesystem::path& path);
 
 /**
+ * @brief Load the wordbooks under @p dir into process-wide read-only state.
+ *
+ * @param dir Directory of the eight wordbook files (data/wordbooks/), one headword per line.
+ *
+ * @note Each headword is stored as its lemma, so a book entry masters the lemma a reader's selection reduces to.
+ * @note A missing file is a warning, not an error: the words it lists are simply not mastered, so
+ *       startup does not fail over a book.
+ * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet, since lemmas need both.
+ */
+void loadWordbooks(const std::filesystem::path& dir);
+
+/**
+ * @brief Load the informal spellings the scan drops into process-wide read-only state.
+ *
+ * @param path Text file, one lower-case form per line; a line starting with `#` is a comment.
+ *             `data/informal-spellings.txt` is the shipped list, maintained by hand.
+ * @note A missing file is a warning, not an error: the dialect fragments then reach the scan, which is noisy but not wrong.
+ */
+void loadInformalSpellings(const std::filesystem::path& path);
+
+/**
  * @brief Reduce a token to its dictionary form, so "running" and "ran" both become "run".
  *
  * Irregular forms are decided by the loaded table. Everything else is reduced by suffix
@@ -66,7 +88,7 @@ std::string lemmatize(std::string_view token);
 enum class CandidateState {
     New,      ///< Neither marked nor inside the level's band.
     Known,    ///< The reader marked it as known.
-    Mastered, ///< Inside the level's frequency band.
+    Mastered, ///< The level has reached it: inside its frequency floor, or in one of its wordbooks.
 };
 
 /// @brief A word worth explaining, in both the form seen and its dictionary form.
@@ -77,6 +99,27 @@ struct Candidate {
 };
 
 /**
+ * @brief The line a reader's level draws: a word on the mastered side of it is CandidateState::Mastered.
+ *
+ * A word is Mastered when any of its base forms has a frequency rank in 1..floorRank, or a wordbook in bookMask lists it.
+ * Built by difficultyForLevel(), or byRank() for a frequency-only line. See docs/adr/0155.
+ */
+struct Difficulty {
+    std::size_t  floorRank = 0; ///< Frequency rank at or below which a word is Mastered.
+    std::uint8_t bookMask  = 0; ///< One bit per wordbook; a word listed in any of them is Mastered.
+
+    /// @return The line judged by frequency rank alone, with no wordbook.
+    static Difficulty byRank(std::size_t const rank)
+    {
+        return {rank, 0};
+    }
+};
+
+/// @brief The line a reader level implies: the frequency floor every level shares, plus the level's wordbooks.
+/// @param level The reader's level, as KnownStore::level() reports it; out-of-range levels clamp to the nearest.
+Difficulty difficultyForLevel(int level);
+
+/**
  * @brief Filter an excerpt down to the words it is made of.
  *
  * Pure pipeline with no I/O; the known set and the frequency cut-off are injected so the
@@ -84,9 +127,9 @@ struct Candidate {
  * -> skip all-caps -> lemmatise -> whitelist against the word list -> de-duplicate by lemma
  * -> record each survivor's state.
  *
-     * The known set and the frequency cut-off annotate a candidate; they never remove one. What
-     * removes a word is the hard filter: length, case, a vowel, glued punctuation, and membership
-     * of the static word list.
+     * The known set and the difficulty annotate a candidate; they never remove one. What
+     * removes a word is the hard filter: length, case, a vowel, glued punctuation, membership of
+     * the static word list, and informal spellings.
  *
  * One explicit exception: when the whole selection is a single letters-only token of two or
  * more letters, in any case ("QML", "qml", "NASA", "ok", "am"), it is a word the reader picked
@@ -99,9 +142,8 @@ struct Candidate {
  * @param text         Raw excerpt, typically pasted from the clipboard.
  * @param knownLemmas  Lemmas the reader has already marked as known; a hit is recorded as
  *                     CandidateState::Known.
- * @param minFreqRank  Difficulty cut-off: a lemma ranked at or above it is recorded as
- *                     CandidateState::Mastered. The level-to-rank mapping is not settled
- *                     yet; see TODO.md.
+ * @param difficulty   The level's line; a lemma on its mastered side is recorded as
+ *                     CandidateState::Mastered.
  * @param minimumLength Minimum continuous-prose token length, clamped to 2..5. The explicit
  *                      single-token path remains exempt from this floor.
  * @param allowExplicitToken Whether a lone token may use the explicit-selection exemption.
@@ -112,7 +154,7 @@ struct Candidate {
 std::vector<Candidate> filterWords(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t                            minFreqRank,
+    Difficulty const&                      difficulty,
     int                                    minimumLength      = 3,
     bool                                   allowExplicitToken = true);
 
@@ -152,7 +194,7 @@ bool isAcronymToken(std::string_view token);
  *
  * @param text         Raw excerpt, exactly as filterWords takes it.
  * @param knownLemmas  Lemmas the reader has already marked as known.
- * @param minFreqRank  Difficulty cut-off.
+ * @param difficulty   The level's line.
  * @return The kind, and the candidates when there are any.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  *
@@ -169,11 +211,7 @@ bool isAcronymToken(std::string_view token);
 Selection classifySelection(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t                            minFreqRank);
-
-/// @brief The difficulty cut-off a reader level implies: a word ranked above it is one the level has not reached.
-/// @param level The reader's level, as KnownStore::level() reports it; out-of-range levels clamp to the nearest.
-std::size_t rankForLevel(int level);
+    Difficulty const&                      difficulty);
 
 /// @brief One word of an English definition that the chain offers: where it sits and what it stands for.
 struct DefinitionLink {
@@ -185,16 +223,15 @@ struct DefinitionLink {
 /**
  * @brief Find the words of an English definition that the chain should offer.
  *
- * A word is offered when its lemma ranks above @p cutoffRank, or when the word list does not hold it at
- * all -- a rare or misspelt word is as far out of the band as a rare one. Words inside the band stay plain.
- * Only runs of ASCII letters are words here: the caller passes English text, since a Chinese or Spanish
- * definition has no frequency band to judge against.
+ * A word is offered unless the level masters it. A word the word list does not hold is offered too, so a rare
+ * or misspelt word is as far out of the band as a rare one. Only runs of ASCII letters are words here: the
+ * caller passes English text, since a Chinese or Spanish definition has no frequency band to judge against.
  *
  * @param text       English definition, UTF-8.
- * @param cutoffRank Difficulty cut-off, as rankForLevel() gives it.
+ * @param difficulty The level's line, as difficultyForLevel() gives it.
  * @return The offered words, in order of appearance.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  */
-std::vector<DefinitionLink> definitionLinks(std::string_view text, std::size_t cutoffRank);
+std::vector<DefinitionLink> definitionLinks(std::string_view text, Difficulty const& difficulty);
 
 }

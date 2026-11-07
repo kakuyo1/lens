@@ -60,7 +60,7 @@ TEST_F(CoreTest, FilterWordsThroughput)
 
     // Warm up: first touch of the tables, the corpus strings, and the allocator.
     for (const auto& text : texts)
-        lens::core::filterWords(text, known, 0);
+        lens::core::filterWords(text, known, lens::core::Difficulty::byRank(0));
 
     constexpr int       kRounds = 200;
     std::vector<double> roundMs;
@@ -72,7 +72,7 @@ TEST_F(CoreTest, FilterWordsThroughput)
     for (int round = 0; round < kRounds; ++round) {
         const auto startedAt = std::chrono::steady_clock::now();
         for (const auto& text : texts)
-            candidates += lens::core::filterWords(text, known, 0).size();
+            candidates += lens::core::filterWords(text, known, lens::core::Difficulty::byRank(0)).size();
         roundMs.push_back(std::chrono::duration<double, std::milli>(
                               std::chrono::steady_clock::now() - startedAt)
                               .count());

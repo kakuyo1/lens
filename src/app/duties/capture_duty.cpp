@@ -175,7 +175,7 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
     connect(&consentTimer_, &QTimer::timeout, this, &CaptureDuty::onConsentTimeout);
     connect(&uploadTimer_, &QTimer::timeout, this, &CaptureDuty::onUploadTimeout);
 
-    scanTimer_.setInterval(1000);
+    scanTimer_.setInterval(250);
     connect(&scanTimer_, &QTimer::timeout, this, &CaptureDuty::scanTick);
     scanTimer_.start();
     hoverTimer_.setInterval(100);
@@ -191,6 +191,8 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
 
 CaptureDuty::~CaptureDuty()
 {
+    // The track's worker delivers into this object, so it stops before anything else goes.
+    track_.reset();
     scanTimer_.stop();
     hoverTimer_.stop();
     consentTimer_.stop();
@@ -335,9 +337,15 @@ void CaptureDuty::invalidateScan()
 {
     ++generation_;
     scanContext_.clear();
-    scanStableTicks_ = 0;
-    scannedFingerprint_.reset();
+    track_.reset();
+    scanCandidates_.clear();
+    scanJudged_.clear();
     emit scanCleared();
+}
+
+void CaptureDuty::levelChanged()
+{
+    invalidateScan();
 }
 
 bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
@@ -1177,18 +1185,14 @@ std::optional<CaptureRefusal> CaptureDuty::captureRegion(QRect const region)
     return captureScreenshot(image, anchor) ? std::nullopt : std::optional<CaptureRefusal>{CaptureRefusal::Busy};
 }
 
-namespace {
-
-/// The page must hold still for this many one-second ticks before it is read.
-constexpr int kScanStableTicks = 2;
-/// The shortest gap between two reads of a page; a Tesseract run costs about a second of CPU.
-constexpr auto kScanInterval = std::chrono::seconds{3};
-
-}
-
 void CaptureDuty::scanTick()
 {
     if (budgetPaused_ or scanPaused_ or not scanReady_ or not settings().value("autoScan").toBool()) return;
+    // A level moved by any path (the settings page, a sync round) reaches the scan here, so the candidates re-judge.
+    if (storage_.knownStore().level() != scanLevel_) {
+        scanLevel_ = storage_.knownStore().level();
+        invalidateScan();
+    }
     auto const foreground = capture::foregroundWindow();
     // The page text comes through UI Automation, which exposes a browser's page; no other window has text here.
     if (not foreground or foreground->ownProcess or foreground->processName.compare(QStringLiteral("chrome.exe"), Qt::CaseInsensitive) != 0) {
@@ -1198,7 +1202,6 @@ void CaptureDuty::scanTick()
     if (scanContext_ != foreground->context) {
         invalidateScan();
         scanContext_ = foreground->context;
-        scanWindow_  = foreground->window;
         // The first query for a browser window makes it build its page tree, so the query runs ahead of the first read.
         QThreadPool::globalInstance()->start(QRunnable::create([window = foreground->window] { warmPageTreeOf(window); }));
     }
@@ -1210,37 +1213,23 @@ void CaptureDuty::scanTick()
             break;
         }
     if (screen == nullptr) return;
-    // A window's own handle grabs black for a GPU-composited page (Chrome's PDF viewer), so the window
-    // is cut out of the grab of its whole display, which holds what is on screen.
+    // The window is cut to the display it sits on: the words off that display are not on screen to be lined.
     auto const origin = capture::physicalScreenOrigin(foreground->monitor);
-    scanScreen_       = screen->geometry();
-    scanScale_        = screen->devicePixelRatio();
-    scanScreenOrigin_ = origin.value_or(QPoint{});
-    auto const whole  = screen->grabWindow(0).toImage();
-    auto const crop   = origin ? capture::windowCropInGrab(QRect{foreground->anchor, foreground->size}, *origin, whole.size()) : QRect{};
-    if (whole.isNull() or crop.isEmpty()) {
-        invalidateScan();
-        return;
+    if (not origin) return;
+    auto const  display = screen->geometry();
+    auto const  scale   = screen->devicePixelRatio();
+    QRect const monitor{*origin, QSize{static_cast<int>(display.width() * scale), static_cast<int>(display.height() * scale)}};
+    QRect const band = QRect{foreground->anchor, foreground->size}.intersected(monitor);
+    if (band.isEmpty()) return;
+    scanScreen_       = display;
+    scanScreenOrigin_ = *origin;
+    scanScale_        = scale;
+    if (not track_) {
+        startScanTrack(foreground->window, band);
+    } else if (band != scanBand_) {
+        scanBand_ = band;
+        track_->setBand(band);
     }
-    auto const image       = whole.copy(crop);
-    auto const fingerprint = capture::pixelFingerprint(image);
-    if (fingerprint != scanFingerprint_) {
-        scanFingerprint_ = fingerprint;
-        scanStableTicks_ = 0;
-        // The page moved, so the words drawn under the last one no longer sit under their text.
-        emit scanCleared();
-        return;
-    }
-    // A page is read once it has held still, and not again until it changes.
-    if (++scanStableTicks_ < kScanStableTicks or scannedFingerprint_ == fingerprint) return;
-    auto const now = std::chrono::steady_clock::now();
-    if (now - scanLastOcr_ < kScanInterval) return;
-    // The crop is clipped to the grab, so its corner is the window's own corner only when the window is on the display.
-    scanAnchor_         = *origin + crop.topLeft();
-    scannedFingerprint_ = fingerprint;
-    scanLastOcr_        = now;
-    LENS_TRACE("scan: page held still, reading {}x{}", image.width(), image.height());
-    if (not launchOcr(image, scanAnchor_, scanContext_)) scannedFingerprint_.reset();
 }
 
 void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResult result)
@@ -1302,8 +1291,8 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
                                               .scanPaused           = scanPaused_,
                                               .autoScan             = settings().value("autoScan").toBool()});
     if (not context.context.isEmpty())
-        LENS_TRACE("scan result: status={} chars={} fate={}", statusToken(result.status).toStdString(), result.text.size(), fate == capture::OcrResultFate::Current ? "current" : fate == capture::OcrResultFate::Superseded ? "superseded"
-                                                                                                                                                                                                                             : "withdrawn");
+        LENS_INFO("scan result: status={} chars={} took {} ms, fate={}", statusToken(result.status).toStdString(), result.text.size(), result.timing.totalMs, fate == capture::OcrResultFate::Current ? "current" : fate == capture::OcrResultFate::Superseded ? "superseded"
+                                                                                                                                                                                                                                                               : "withdrawn");
     if (fate == capture::OcrResultFate::Superseded) return;
     if (fate == capture::OcrResultFate::Withdrawn) {
         invalidateScan();
@@ -1333,7 +1322,6 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
         classifyText(result.text, context.anchor, true);
         return;
     }
-    placeScanWords(result, context.anchor, scanWindow_);
 }
 
 bool CaptureDuty::chromeScanActive()
@@ -1358,64 +1346,63 @@ void CaptureDuty::rebuildScanOcr()
     if (not scanReady_) LENS_INFO("automatic scan is off: Tesseract or its English data is missing");
 }
 
-void CaptureDuty::placeScanWords(capture::OcrResult const& result, QPoint const anchor, quintptr const window)
+void CaptureDuty::startScanTrack(quintptr const window, QRect const band)
 {
-    // A word without a box has nowhere to draw its line, so it cannot be placed.
-    std::vector<std::string>     norms;
-    std::vector<capture::OcrBox> boxes;
-    for (auto const& line : result.lines)
-        for (auto const& word : line.words) {
-            auto const norm = capture::normalizedWord(word.text.toStdString());
-            if (not word.box or norm.empty()) continue;
-            norms.push_back(norm);
-            boxes.push_back(*word.box);
-        }
-    QThreadPool::globalInstance()->start(QRunnable::create([this, window, anchor, norms = std::move(norms), boxes = std::move(boxes)] {
-        // Off the main thread: the page is a COM read of the whole document, and the alignment walks all of it.
-        auto const                 text  = pageTextOf(window);
-        auto const                 words = capture::pageWords(text.toStdString());
-        capture::PageIndex         page{words};
-        std::vector<ScanPlacement> placed;
-        for (auto const& hit : page.align(norms))
-            placed.push_back({words[hit.pageIndex], boxes[hit.ocrIndex]});
+    scanBand_ = band;
+    track_    = std::make_unique<PageTrack>(window, band, [this, generation = generation_](TrackFrame frame) {
+        // The track's worker hands each frame to this thread; a frame from a track that was since dropped is refused by its generation.
         QMetaObject::invokeMethod(
             this,
-            [this, placed = std::move(placed), anchor, ocrWords = norms.size(), pageReady = not text.isEmpty()]() mutable {
-                onScanPlaced(std::move(placed), anchor, ocrWords, pageReady);
-            },
+            [this, generation, frame = std::move(frame)]() mutable { onTrackFrame(generation, std::move(frame)); },
             Qt::QueuedConnection);
-    }));
+    });
 }
 
-void CaptureDuty::onScanPlaced(std::vector<ScanPlacement> placed, QPoint const anchor, std::size_t const ocrWords, bool const pageReady)
+void CaptureDuty::onTrackFrame(std::uint64_t const generation, TrackFrame const frame)
 {
-    if (not pageReady) {
-        // The page tree was not built yet, or the window shows no document: read again at the next stable frame.
-        scannedFingerprint_.reset();
-        LENS_TRACE("scan: no page text for {} OCR word(s)", ocrWords);
+    // The scan was invalidated after this frame was read (the window, the level or the setting moved): it is stale.
+    if (generation != generation_) return;
+    if (frame.lost) {
+        scanCandidates_.clear();
+        emit scanCleared();
         return;
     }
-    auto const   known  = storage_.knownStore().known();
-    auto const   rank   = minFreqRank();
-    auto const   length = settings().value("minimumWordLength").toInt();
-    QVariantList words;
-    QStringList  listed;
-    for (auto const& item : placed)
-        for (auto const& candidate : core::filterWords(item.surface, known, rank, length, false)) {
-            if (candidate.state != core::CandidateState::New) continue;
-            QString const lemma = QString::fromStdString(candidate.lemma);
-            int const     x     = anchor.x() + static_cast<int>(item.box.x);
-            int const     y     = anchor.y() + static_cast<int>(item.box.y);
-            words.append(QVariantMap{{QStringLiteral("lemma"), lemma},
-                                     {QStringLiteral("surface"), QString::fromStdString(item.surface)},
-                                     {QStringLiteral("x"), x},
-                                     {QStringLiteral("y"), y},
-                                     {QStringLiteral("width"), static_cast<int>(item.box.width)},
-                                     {QStringLiteral("height"), static_cast<int>(item.box.height)}});
-            listed << QStringLiteral("%1@%2,%3").arg(lemma).arg(x).arg(y);
+    if (not frame.added.empty()) {
+        auto const  known  = storage_.knownStore().known();
+        auto const  band   = difficulty();
+        auto const  length = settings().value("minimumWordLength").toInt();
+        QStringList learned;
+        for (auto const& word : frame.added) {
+            auto const surface = word.text.trimmed();
+            auto const key     = surface.toStdString();
+            if (not scanJudged_.contains(key)) {
+                std::vector<std::string> lemmas;
+                for (auto const& candidate : core::filterWords(key, known, band, length, false)) {
+                    if (candidate.state != core::CandidateState::New) continue;
+                    lemmas.push_back(candidate.lemma);
+                    learned << QString::fromStdString(candidate.lemma);
+                }
+                scanJudged_.emplace(key, std::move(lemmas));
+            }
+            // Every occurrence keeps its own box; the judgement is shared by all of them.
+            for (auto const& lemma : scanJudged_.at(key))
+                scanCandidates_[word.id].push_back({QString::fromStdString(lemma), surface});
         }
-    LENS_TRACE("scan: {} OCR word(s), {} placed on the page, {} new candidate(s): {}", ocrWords, placed.size(), listed.size(), listed.join(QLatin1Char(' ')).toStdString());
-    // Sent even when empty: a frame with no new word takes the last one's lines down with it.
+        if (not learned.isEmpty()) LENS_INFO("scan: {} new candidate(s) read on the page: {}", learned.size(), learned.join(QLatin1Char(' ')).toStdString());
+    }
+    QVariantList words;
+    for (auto const& placed : frame.visible) {
+        auto const found = scanCandidates_.find(placed.id);
+        if (found == scanCandidates_.end()) continue;
+        for (auto const& candidate : found->second)
+            words.append(QVariantMap{{QStringLiteral("lemma"), candidate.lemma},
+                                     {QStringLiteral("surface"), candidate.surface},
+                                     {QStringLiteral("x"), placed.box.x()},
+                                     {QStringLiteral("y"), placed.box.y()},
+                                     {QStringLiteral("width"), placed.box.width()},
+                                     {QStringLiteral("height"), placed.box.height()}});
+    }
+    // Sent on every frame, even when empty: a frame with no candidate in view takes the last one's lines down with it.
     emit scanPlaced(words, scanScreen_, scanScreenOrigin_, scanScale_);
 }
 
@@ -1491,7 +1478,7 @@ void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> con
 void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const translateNow)
 {
     if (text.size() > kMaxSelectionChars) text = text.left(kMaxSelectionChars) + QStringLiteral("…");
-    const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), minFreqRank());
+    const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), difficulty());
     PendingSelection      pending{.anchor = anchor, .text = text, .kind = selection.kind};
     if (selection.kind == core::SelectionKind::Word) {
         // Only a word narrows to a candidate: the other kinds have no lemma to pick, and the whole
@@ -1523,9 +1510,9 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const tra
                                            {"grammarable", pending.kind == core::SelectionKind::Sentence and llm::grammarApplies(pending.text)}});
 }
 
-std::size_t CaptureDuty::minFreqRank() const
+core::Difficulty CaptureDuty::difficulty() const
 {
-    return core::rankForLevel(storage_.knownStore().level());
+    return core::difficultyForLevel(storage_.knownStore().level());
 }
 
 }

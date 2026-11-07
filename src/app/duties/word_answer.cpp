@@ -185,10 +185,10 @@ QVariantMap chainEntry(llm::Explanation const& answer, QString const& language, 
 QVariantList spansOf(QString const& text, int const level)
 {
     // The core counts bytes; ChainText draws with UTF-16 indices, so each offset is converted on its own prefix.
-    QByteArray const bytes  = text.toUtf8();
-    const auto       cutoff = core::rankForLevel(level);
+    QByteArray const bytes = text.toUtf8();
+    const auto       band  = core::difficultyForLevel(level);
     QVariantList     spans;
-    for (auto const& link : core::definitionLinks(std::string_view{bytes.constData(), static_cast<std::size_t>(bytes.size())}, cutoff)) {
+    for (auto const& link : core::definitionLinks(std::string_view{bytes.constData(), static_cast<std::size_t>(bytes.size())}, band)) {
         const auto start = QString::fromUtf8(bytes.constData(), static_cast<int>(link.start)).size();
         const auto end   = QString::fromUtf8(bytes.constData(), static_cast<int>(link.end)).size();
         spans.append(QVariantMap{{"start", start}, {"end", end}, {"lemma", QString::fromStdString(link.lemma)}});

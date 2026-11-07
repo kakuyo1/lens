@@ -15,6 +15,7 @@
 #include <limits>
 #include <stdexcept>
 #include <unordered_map>
+#include <utility>
 
 namespace lens::core {
 namespace {
@@ -23,6 +24,51 @@ using Table = std::unordered_map<std::string, std::size_t>;
 
 /// Word to 1-based frequency rank. Empty means the word list has not been loaded.
 Table g_rank;
+
+/// One bit per wordbook file; a level is a union of these, see kLevelBooks.
+enum Book : std::uint8_t {
+    kB1B2  = 1 << 0,
+    kC1C2  = 1 << 1,
+    kCet4  = 1 << 2,
+    kCet6  = 1 << 3,
+    kTem4  = 1 << 4,
+    kTem8  = 1 << 5,
+    kIelts = 1 << 6,
+    kToefl = 1 << 7,
+};
+
+constexpr std::pair<std::string_view, std::uint8_t> kWordbooks[] = {
+    {"b1-b2.txt", kB1B2},
+    {"c1-c2.txt", kC1C2},
+    {"cet4.txt", kCet4},
+    {"cet6.txt", kCet6},
+    {"tem4.txt", kTem4},
+    {"tem8.txt", kTem8},
+    {"ielts.txt", kIelts},
+    {"toefl.txt", kToefl},
+};
+
+/// Each level's own books, in UI-SPEC.md 4.4 order. difficultyForLevel() adds kB1B2 to every level.
+constexpr std::uint8_t kLevelBooks[] = {
+    kB1B2,
+    kC1C2,
+    kCet4,
+    kCet4 | kCet6,
+    kTem4,
+    kTem4 | kTem8,
+    kIelts | kCet4,
+    kToefl | kCet4,
+};
+
+/// The first three thousand words: the particles and spoken forms (gonna, yeah) and the everyday words (older, lay)
+/// that no exam book lists. Every level masters them.
+constexpr std::size_t kFloorRank = 3000;
+
+/// Lemma to the bitmask of wordbooks that list it. Empty means loadWordbooks() has not run.
+std::unordered_map<std::string, std::uint8_t> g_books;
+
+/// Informal spellings the scan drops, from data/informal-spellings.txt. Empty until loadInformalSpellings() runs.
+std::unordered_set<std::string> g_informal;
 
 /// @return Whether @p utf8 holds a Han character anywhere, which is the whole of "this selection
 /// is Chinese".
@@ -172,6 +218,101 @@ bool hasVowel(const std::string& s)
     return false;
 }
 
+/// @return The word-list stems the suffix rules reduce @p t to. The word itself is not among them;
+///         the caller decides whether it counts.
+std::vector<std::string> suffixForms(const std::string& t)
+{
+    std::vector<std::string> cands;
+    const std::size_t        n = t.size();
+
+    if (endsWith(t, "ies") && n > 4) pushIfInTable(cands, t.substr(0, n - 3) + "y");
+    if (endsWith(t, "ied") && n > 4) pushIfInTable(cands, t.substr(0, n - 3) + "y");
+    if (endsWith(t, "ier") && n > 5) pushIfInTable(cands, t.substr(0, n - 3) + "y");
+    if (endsWith(t, "iest") && n > 6) pushIfInTable(cands, t.substr(0, n - 4) + "y");
+    if (endsWith(t, "ily") && n > 5) pushIfInTable(cands, t.substr(0, n - 3) + "y");
+
+    // -ing / -ed: first try restoring a dropped 'e' (making -> make, using -> use), then
+    // the bare stem, then undoing a doubled consonant.
+    // ponytail: only for words of 5+ letters. In 4-letter used/seed/feed the "stem + e"
+    // candidate is usually a false reduction (seed -> see).
+    const auto reduceVerbForm = [&](std::size_t cut) {
+        if (n <= 4) return;
+        const std::string stem = t.substr(0, n - cut);
+        pushIfInTable(cands, stem + "e");
+        pushIfInTable(cands, stem);
+        pushDoubledFixed(cands, stem);
+    };
+    if (endsWith(t, "ing")) reduceVerbForm(3);
+    if (endsWith(t, "ed")) reduceVerbForm(2);
+
+    if (endsWith(t, "es") && n > 3) {
+        pushIfInTable(cands, t.substr(0, n - 1)); // moves -> move
+        pushIfInTable(cands, t.substr(0, n - 2)); // goes -> go
+    } else if (endsWith(t, "s") && n > 3 && !endsWith(t, "ss")) {
+        pushIfInTable(cands, t.substr(0, n - 1));
+    }
+
+    if (endsWith(t, "ly") && n > 5) { // -ily was already tried above, mapping to y
+        const std::string stem = t.substr(0, n - 2);
+        pushIfInTable(cands, stem + "e"); // likely -> like
+        pushIfInTable(cands, stem);       // quickly -> quick
+    }
+
+    // ponytail: comparatives -er/-est only fire at 6/7+ letters; at 5 letters the stems of
+    // offer / under / other are all false reductions.
+    // Cost: short-stem comparatives such as biggest -> big and nicer -> nice go unreduced; the
+    // overlay then explains the inflected form, and the word is not merged with its lemma.
+    if (endsWith(t, "er") && n > 5) {
+        const std::string stem = t.substr(0, n - 2);
+        pushIfInTable(cands, stem + "e"); // larger -> large
+        pushIfInTable(cands, stem);       // faster -> fast
+        pushDoubledFixed(cands, stem);    // bigger -> big
+    }
+    if (endsWith(t, "est") && n > 6) {
+        const std::string stem = t.substr(0, n - 3);
+        pushIfInTable(cands, stem + "e"); // largest -> large
+        pushIfInTable(cands, stem);       // fastest -> fast
+        pushDoubledFixed(cands, stem);
+    }
+    return cands;
+}
+
+/// @return Every word-list form @p surface may stand for: its base forms, then the surface itself.
+///         An irregular form answers with its table bases; a keepAsIs word answers with itself alone.
+std::vector<std::string> formsOf(const std::string& surface)
+{
+    if (keepAsIs().count(surface) != 0) return {surface};
+    std::vector<std::string> forms;
+    if (const auto it = g_irregulars.find(surface); it != g_irregulars.end())
+        forms = it->second;
+    else
+        forms = suffixForms(surface);
+    forms.push_back(surface);
+    return forms;
+}
+
+/// @return Whether the reader's known set holds any form of @p surface, so a base marked known covers its inflections.
+bool isKnownForm(const std::string& surface, const std::unordered_set<std::string>& knownLemmas)
+{
+    for (auto const& form : formsOf(surface))
+        if (knownLemmas.count(form) != 0) return true;
+    return false;
+}
+
+/// @return Whether the level's line puts @p surface on the mastered side: some form of it is inside the frequency
+///         floor, or in one of the books the level includes. A word the list ranks above its base is still mastered
+///         once the base is.
+bool isMastered(const std::string& surface, Difficulty const& difficulty)
+{
+    for (auto const& form : formsOf(surface)) {
+        const std::size_t rank = rankOf(form);
+        if (rank != 0 and rank <= difficulty.floorRank) return true;
+        const auto it = g_books.find(form);
+        if (it != g_books.end() and (it->second & difficulty.bookMask) != 0) return true;
+    }
+    return false;
+}
+
 } // namespace
 
 bool isTitleCaseToken(std::string_view token)
@@ -280,6 +421,46 @@ void loadIrregulars(const std::filesystem::path& path)
     LENS_INFO("irregular table loaded: {} form(s) from '{}' in {} ms", g_irregulars.size(), path.string(), elapsedMs);
 }
 
+void loadWordbooks(const std::filesystem::path& dir)
+{
+    g_books.clear();
+    for (auto const& [name, bit] : kWordbooks) {
+        std::ifstream in(dir / name);
+        if (!in) {
+            LENS_WARN("wordbook '{}' is missing; the words it lists are not mastered", (dir / name).string());
+            continue;
+        }
+
+        std::string line;
+        while (std::getline(in, line)) {
+            while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+                line.pop_back();
+            if (line.empty()) continue;
+            g_books[lemmatize(line)] |= bit; // keyed by lemma, as lookups are
+        }
+    }
+    LENS_INFO("wordbooks loaded: {} headword(s) from '{}'", g_books.size(), dir.string());
+}
+
+void loadInformalSpellings(const std::filesystem::path& path)
+{
+    g_informal.clear();
+    std::ifstream in(path);
+    if (!in) {
+        LENS_WARN("informal spellings '{}' are missing; dialect fragments will reach the scan", path.string());
+        return;
+    }
+
+    std::string line;
+    while (std::getline(in, line)) {
+        while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+            line.pop_back();
+        if (line.empty() || line.front() == '#') continue;
+        g_informal.insert(util::asciiLower(line));
+    }
+    LENS_INFO("informal spellings loaded: {} form(s) from '{}'", g_informal.size(), path.string());
+}
+
 std::string lemmatize(std::string_view token)
 {
     if (!g_irregularsLoaded)
@@ -316,60 +497,8 @@ std::string lemmatize(std::string_view token)
     // holds inflected and base forms alike, so frequency naturally favours the base form
     // (running 555 > run 314, increasing 7246 > increase 3568), while base forms whose
     // "stem" is not the base form (water / under / other) fall back to themselves.
-    std::vector<std::string> cands;
+    std::vector<std::string> cands = suffixForms(t);
     if (inTable(t)) cands.push_back(t);
-
-    const std::size_t n = t.size();
-
-    if (endsWith(t, "ies") && n > 4) pushIfInTable(cands, t.substr(0, n - 3) + "y");
-    if (endsWith(t, "ied") && n > 4) pushIfInTable(cands, t.substr(0, n - 3) + "y");
-    if (endsWith(t, "ier") && n > 5) pushIfInTable(cands, t.substr(0, n - 3) + "y");
-    if (endsWith(t, "iest") && n > 6) pushIfInTable(cands, t.substr(0, n - 4) + "y");
-    if (endsWith(t, "ily") && n > 5) pushIfInTable(cands, t.substr(0, n - 3) + "y");
-
-    // -ing / -ed: first try restoring a dropped 'e' (making -> make, using -> use), then
-    // the bare stem, then undoing a doubled consonant.
-    // ponytail: only for words of 5+ letters. In 4-letter used/seed/feed the "stem + e"
-    // candidate is usually a false reduction (seed -> see).
-    const auto reduceVerbForm = [&](std::size_t cut) {
-        if (n <= 4) return;
-        const std::string stem = t.substr(0, n - cut);
-        pushIfInTable(cands, stem + "e");
-        pushIfInTable(cands, stem);
-        pushDoubledFixed(cands, stem);
-    };
-    if (endsWith(t, "ing")) reduceVerbForm(3);
-    if (endsWith(t, "ed")) reduceVerbForm(2);
-
-    if (endsWith(t, "es") && n > 3) {
-        pushIfInTable(cands, t.substr(0, n - 1)); // moves -> move
-        pushIfInTable(cands, t.substr(0, n - 2)); // goes -> go
-    } else if (endsWith(t, "s") && n > 3 && !endsWith(t, "ss")) {
-        pushIfInTable(cands, t.substr(0, n - 1));
-    }
-
-    if (endsWith(t, "ly") && n > 5) { // -ily was already tried above, mapping to y
-        const std::string stem = t.substr(0, n - 2);
-        pushIfInTable(cands, stem + "e"); // likely -> like
-        pushIfInTable(cands, stem);       // quickly -> quick
-    }
-
-    // ponytail: comparatives -er/-est only fire at 6/7+ letters; at 5 letters the stems of
-    // offer / under / other are all false reductions.
-    // Cost: short-stem comparatives such as biggest -> big and nicer -> nice go unreduced; the
-    // overlay then explains the inflected form, and the word is not merged with its lemma.
-    if (endsWith(t, "er") && n > 5) {
-        const std::string stem = t.substr(0, n - 2);
-        pushIfInTable(cands, stem + "e"); // larger -> large
-        pushIfInTable(cands, stem);       // faster -> fast
-        pushDoubledFixed(cands, stem);    // bigger -> big
-    }
-    if (endsWith(t, "est") && n > 6) {
-        const std::string stem = t.substr(0, n - 3);
-        pushIfInTable(cands, stem + "e"); // largest -> large
-        pushIfInTable(cands, stem);       // fastest -> fast
-        pushDoubledFixed(cands, stem);
-    }
 
     if (cands.empty()) return t; // not in the list; the caller's whitelist stage drops it
 
@@ -390,7 +519,7 @@ std::string lemmatize(std::string_view token)
 std::vector<Candidate> filterWords(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t                            minFreqRank,
+    Difficulty const&                      difficulty,
     int                                    minimumLength,
     bool                                   allowExplicitToken)
 {
@@ -413,9 +542,9 @@ std::vector<Candidate> filterWords(
         if (const std::string_view token = loneToken(text); !token.empty()) {
             const std::string    surface = util::asciiLower(token);
             const std::string    lemma   = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
-            const CandidateState state   = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
-                                           : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
-                                                                                            : CandidateState::New;
+            const CandidateState state   = isKnownForm(surface, knownLemmas)                   ? CandidateState::Known
+                                           : inTable(lemma) && isMastered(surface, difficulty) ? CandidateState::Mastered
+                                                                                               : CandidateState::New;
             LENS_TRACE("filterWords: lone token '{}' -> surface='{}' lemma='{}' state={}",
                        token,
                        surface,
@@ -471,6 +600,7 @@ std::vector<Candidate> filterWords(
 
         const std::string surface = util::asciiLower(tok);
         if (!hasVowel(surface)) continue;
+        if (g_informal.count(surface) != 0) continue;
 
         const std::string lemma = lemmatize(surface);
         if (!inTable(lemma)) continue; // static word list: absent means drop
@@ -481,9 +611,9 @@ std::vector<Candidate> filterWords(
         // word whatever they once marked, and phase 2's automatic scanning is the caller that
         // will skip these states. Known outranks Mastered: the reader's own mark is the more
         // specific statement of the two.
-        const CandidateState state = knownLemmas.count(lemma) != 0  ? CandidateState::Known
-                                     : rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
-                                                                    : CandidateState::New;
+        const CandidateState state = isKnownForm(surface, knownLemmas) ? CandidateState::Known
+                                     : isMastered(surface, difficulty) ? CandidateState::Mastered
+                                                                       : CandidateState::New;
 
         LENS_TRACE("filterWords: candidate surface='{}' lemma='{}' state={}",
                    surface,
@@ -492,14 +622,14 @@ std::vector<Candidate> filterWords(
         out.push_back({surface, lemma, state});
     }
 
-    LENS_TRACE("filterWords: {} chars -> {} candidate(s), minFreqRank={}", size, out.size(), minFreqRank);
+    LENS_TRACE("filterWords: {} chars -> {} candidate(s), floorRank={}", size, out.size(), difficulty.floorRank);
     return out;
 }
 
 Selection classifySelection(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t                            minFreqRank)
+    Difficulty const&                      difficulty)
 {
     Selection selection;
 
@@ -515,7 +645,7 @@ Selection classifySelection(
 
     // Entity recognition runs before the word fallback. It is intentionally narrow so a single
     // capitalized token remains a word or sentence instead of being promoted by typography alone.
-    selection.candidates = filterWords(text, knownLemmas, minFreqRank);
+    selection.candidates = filterWords(text, knownLemmas, difficulty);
     if (isEntitySelection(text)) {
         selection.kind = SelectionKind::Entity;
         selection.candidates.clear();
@@ -544,14 +674,13 @@ Selection classifySelection(
     return selection;
 }
 
-std::size_t rankForLevel(int const level)
+Difficulty difficultyForLevel(int const level)
 {
-    static constexpr std::size_t kRanks[] = {4000, 9000, 5000, 8000, 8000, 12000, 9000, 12000};
-    constexpr int                kLast    = static_cast<int>(std::size(kRanks)) - 1;
-    return kRanks[std::clamp(level, 0, kLast)];
+    constexpr int kLast = static_cast<int>(std::size(kLevelBooks)) - 1;
+    return {kFloorRank, static_cast<std::uint8_t>(kLevelBooks[std::clamp(level, 0, kLast)] | kB1B2)};
 }
 
-std::vector<DefinitionLink> definitionLinks(std::string_view const text, std::size_t const cutoffRank)
+std::vector<DefinitionLink> definitionLinks(std::string_view const text, Difficulty const& difficulty)
 {
     std::vector<DefinitionLink> out;
     std::size_t                 at = 0;
@@ -563,9 +692,9 @@ std::vector<DefinitionLink> definitionLinks(std::string_view const text, std::si
         std::size_t const start = at;
         while (at < text.size() and util::isAsciiLetter(text[at]))
             ++at;
-        std::string const lemma = lemmatize(text.substr(start, at - start));
-        std::size_t const rank  = rankOf(lemma);
-        if (rank == 0 or rank > cutoffRank)
+        std::string const surface = util::asciiLower(text.substr(start, at - start));
+        std::string const lemma   = lemmatize(surface);
+        if (not isMastered(surface, difficulty))
             out.push_back({.start = start, .end = at, .lemma = lemma});
     }
     return out;

@@ -255,6 +255,8 @@ int main(int argc, char* argv[])
     try {
         lens::core::loadWordlist(dataDir / "wordlist.txt");
         lens::core::loadIrregulars(dataDir / "irregulars.tsv");
+        lens::core::loadWordbooks(dataDir / "wordbooks");
+        lens::core::loadInformalSpellings(dataDir / "informal-spellings.txt");
         const std::filesystem::path protocolDir = dataDir / "llm";
         lens::llm::loadLlmProtocol(lens::llm::Channel::Word, protocolDir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Entity, protocolDir);

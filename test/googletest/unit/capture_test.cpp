@@ -28,6 +28,7 @@
 #include "capture/ocr_engine.h"
 #include "capture/page_alignment.h"
 #include "capture/scan_pipeline.h"
+#include "capture/word_track.h"
 #include "ocr/http_transport.h"
 #include "core/document/known_store.h"
 #include "support.h"
@@ -312,6 +313,60 @@ TEST(PageAlignment, WordsSplitOnPunctuationAndNormalizeToLowerCaseAlnum)
     EXPECT_EQ(lens::capture::pageWords("Hello, world-42 end."), (std::vector<std::string>{"hello", "world", "42", "end"}));
 }
 
+TEST(PageAlignment, ANameIsCapitalizedWhereverThePageWritesIt)
+{
+    // "Shoes" opens a sentence, but the page also writes "shoes" in lower case, so it is a common word, not a name.
+    auto const names = lens::capture::nameFlags("Richard met Jeff. Shoes sell; the shoes shine. Rome is far.");
+    EXPECT_EQ(names, (std::vector<bool>{true, false, true, false, false, false, false, false, true, false, false}));
+}
+
+TEST(WordTrack, ASpanFollowsItsAnchorAndIsDrawnOnlyWhileItsCentreIsInTheBand)
+{
+    using lens::capture::Band;
+    using lens::capture::TrackedSpan;
+    // Span 1 sits on the anchor; span 2 lies 300 px below it. With a 400 px band, span 2's centre (y 410) is outside at anchor y 100.
+    std::vector<TrackedSpan> spans{{.id = 1, .dx = 0, .dy = 0, .width = 10, .height = 20}, {.id = 2, .dx = 0, .dy = 300, .width = 10, .height = 20}};
+    Band const               band{.x = 0, .y = 0, .width = 100, .height = 400};
+
+    auto const placed = lens::capture::placeSpans(spans, 50, 100, band);
+    ASSERT_EQ(placed.size(), 1u);
+    EXPECT_EQ(placed.front().id, 1);
+    EXPECT_EQ(placed.front().x, 50);
+    EXPECT_EQ(placed.front().y, 100);
+
+    // The anchor scrolls up to y -15: span 1's centre (y -5) leaves the band's top edge, and span 2 comes into view.
+    auto const scrolled = lens::capture::placeSpans(spans, 50, -15, band);
+    ASSERT_EQ(scrolled.size(), 1u);
+    EXPECT_EQ(scrolled.front().id, 2);
+}
+
+TEST(WordTrack, RebasingOnAnotherAnchorKeepsEveryWordWhereItWas)
+{
+    using lens::capture::Band;
+    using lens::capture::TrackedSpan;
+    std::vector<TrackedSpan> spans{{.id = 1, .dx = 0, .dy = 0, .width = 10, .height = 20}, {.id = 2, .dx = 0, .dy = 300, .width = 10, .height = 20}};
+    Band const               band{.x = 0, .y = 0, .width = 100, .height = 500};
+    auto const               before = lens::capture::placeSpans(spans, 50, 100, band);
+
+    // The new anchor is the old one's word 100 px further down: the old anchor's top-left moves by (0, 100) relative to it.
+    lens::capture::rebaseSpans(spans, 0, 100);
+    auto const after = lens::capture::placeSpans(spans, 50, 200, band);
+
+    ASSERT_EQ(after.size(), before.size());
+    for (std::size_t i = 0; i < after.size(); ++i) {
+        EXPECT_EQ(after[i].id, before[i].id);
+        EXPECT_EQ(after[i].x, before[i].x);
+        EXPECT_EQ(after[i].y, before[i].y);
+    }
+}
+
+TEST(PageAlignment, TheNameSetHoldsEachNameOfThePageOnce)
+{
+    // "Shoes" is not a name: the page also writes "shoes" in lower case. "Richard" repeats and is kept once.
+    auto const names = lens::capture::nameSet("Richard met Jeff. Shoes sell; the shoes shine. Richard again.");
+    EXPECT_EQ(names, (std::unordered_set<std::string>{"richard", "jeff"}));
+}
+
 TEST(PageAlignment, AWordInAUniqueRunAnchorsToItsPlaceOnThePage)
 {
     lens::capture::PageIndex page{lens::capture::pageWords("a b c d e f g")};
@@ -503,6 +558,32 @@ TEST(CaptureDuty, OnlineModeRefusesWithoutAnOnlineServiceWhileScanningStaysLocal
     duty.setOcrMode(QStringLiteral("online"));
     ASSERT_EQ(duty.captureRefusalReason(), CaptureRefusal::OnlineNotConfigured);
     EXPECT_EQ(duty.settings().value("scanAvailability").toString(), QStringLiteral("ready"));
+}
+
+TEST(CaptureDuty, ALevelChangeClearsTheScanSoItRejudgesTheCandidates)
+{
+    using lens::app::CaptureDuty;
+    using lens::app::MouseSelectionHook;
+    using lens::app::StorageDuty;
+
+    int              argc   = 1;
+    char             name[] = "capture_level_clear";
+    char*            argv[] = {name, nullptr};
+    QCoreApplication application{argc, argv};
+
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    auto        store = lens::core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    StorageDuty storage{store};
+
+    MouseSelectionHook hook;
+    CaptureDuty        duty{storage, hook, std::make_unique<FakeOcr>()};
+    // scanCleared is the signal PencilDuty clears the dashed lines on; connect before the change so it is not missed.
+    bool cleared = false;
+    QObject::connect(&duty, &CaptureDuty::scanCleared, [&cleared] { cleared = true; });
+    storage.knownStore().setLevel(6);
+    duty.levelChanged();
+    EXPECT_TRUE(cleared);
 }
 
 void configureOnline(lens::app::StorageDuty& storage)
