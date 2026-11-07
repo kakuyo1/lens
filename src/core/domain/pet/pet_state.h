@@ -46,7 +46,7 @@ inline constexpr int kStrollSteps{2};
 /// @brief The chance a step that ends on a screen edge becomes a hide.
 inline constexpr double kHideChance{0.7};
 /// @brief The chance a stroll's wait becomes a trip to a fixed taskbar instead of an ordinary stroll.
-inline constexpr double kTaskbarChance{0.05};
+inline constexpr double kTaskbarChance{0.01};
 /// @}
 
 /**
