@@ -36,19 +36,44 @@ Item {
             return panel.tokens;
         }
 
+        /// WCAG AA contrast of a foreground over a background, both composited onto the underlay
+        /// when one is given: the check the built-in text roles must survive on their own tables.
+        function relativeLuminance(value) {
+            const color = Qt.color(value);
+            function linear(component) {
+                return component <= 0.04045 ? component / 12.92
+                                             : Math.pow((component + 0.055) / 1.055, 2.4);
+            }
+            return 0.2126 * linear(color.r) + 0.7152 * linear(color.g) + 0.0722 * linear(color.b);
+        }
+
+        function opaqueColor(value, background) {
+            const foreground = Qt.color(value);
+            const underlay = Qt.color(background);
+            return Qt.rgba(foreground.r * foreground.a + underlay.r * (1 - foreground.a),
+                           foreground.g * foreground.a + underlay.g * (1 - foreground.a),
+                           foreground.b * foreground.a + underlay.b * (1 - foreground.a), 1);
+        }
+
+        function contrastRatio(foreground, background, underlay) {
+            const base = underlay === undefined ? Qt.color(background) : opaqueColor(background, underlay);
+            const face = opaqueColor(foreground, base);
+            const first = relativeLuminance(face);
+            const second = relativeLuminance(base);
+            return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+        }
+
         function test_twoBuiltInThemesHaveIndependentTables() {
             compare(Tokens.themeName(0), "light");
             compare(Tokens.themeName(1), "dark");
             verify(Tokens.lightTheme.bg !== Tokens.darkTheme.bg);
-            verify(Tokens.validateCustomTheme(Tokens.colorsForTheme("light")).valid);
-            verify(Tokens.validateCustomTheme(Tokens.colorsForTheme("dark")).valid);
         }
 
         function test_glassThemesHaveTheirOwnIndexAndName() {
-            compare(Tokens.themeIndex("frosted"), 3);
-            compare(Tokens.themeIndex("liquid"), 4);
-            compare(Tokens.themeName(3), "frosted");
-            compare(Tokens.themeName(4), "liquid");
+            compare(Tokens.themeIndex("frosted"), 2);
+            compare(Tokens.themeIndex("liquid"), 3);
+            compare(Tokens.themeName(2), "frosted");
+            compare(Tokens.themeName(3), "liquid");
             const settings = settingsTokens();
             Tokens.theme = "frosted";
             compare(settings.radiusCard, 18);
@@ -64,9 +89,9 @@ Item {
             compare(Tokens.glassMode, "");
             compare(Tokens.panel.a, 1);
             compare(Tokens.popup.a, 1);
-            verify(Tokens.contrastRatio(Tokens.text, Tokens.panel) >= 4.5);
-            verify(Tokens.contrastRatio(Tokens.muted, Tokens.panel) >= 4.5);
-            verify(Tokens.contrastRatio(Tokens.faint, Tokens.panel) >= 4.5);
+            verify(contrastRatio(Tokens.text, Tokens.panel) >= 4.5);
+            verify(contrastRatio(Tokens.muted, Tokens.panel) >= 4.5);
+            verify(contrastRatio(Tokens.faint, Tokens.panel) >= 4.5);
             compare(settings.glassMode, "frosted");
             verify(Math.abs(settings.panel.a - 0.4) < 0.01);
 
@@ -360,82 +385,11 @@ Item {
         }
 
         function test_colorConversionKeepsAlphaForThemeValues() {
-            const light = Tokens.colorsForTheme("light");
-            verify(light.bubbleBg.length === 9, "light bubble alpha was dropped");
-
-            const encoded = Tokens.customThemeValue(light);
-            const decoded = Tokens.colorsForTheme(encoded);
-            compare(decoded.bubbleBg, light.bubbleBg);
-            compare(decoded.bubbleBorder, light.bubbleBorder);
+            verify(Tokens.hex(Tokens.lightTheme.bubbleBg).length === 9, "light bubble alpha was dropped");
+            verify(Tokens.hex(Tokens.lightTheme.bubbleBorder).length === 9, "light bubble border alpha was dropped");
         }
 
-        function test_customTextRolesMustEachPassAa() {
-            const colors = Tokens.colorsForTheme("light");
-            colors.panel = "#ffffff";
-            colors.text = "#ffffff";
-            colors.muted = "#777777";
-            colors.faint = "#999999";
-            verify(!Tokens.validateCustomTheme(colors).valid);
-
-            colors.panel = "#202020";
-            colors.text = "#ffffff";
-            colors.muted = "#d0d0d0";
-            colors.faint = "#aaaaaa";
-            const result = Tokens.validateCustomTheme(colors);
-            verify(result.valid);
-            verify(result.bodyRatio >= 4.5);
-            verify(result.mutedRatio >= 4.5);
-            verify(result.faintRatio >= 4.5);
-        }
-
-        function test_alphaTextIsValidatedAfterCompositing() {
-            const colors = Tokens.colorsForTheme("light");
-            colors.panel = "#202020";
-            colors.text = "#20ffffff";
-            colors.muted = "#20ffffff";
-            colors.faint = "#20ffffff";
-            verify(!Tokens.validateCustomTheme(colors).valid,
-                   "transparent text must not pass AA using its uncomposited RGB values");
-        }
-
-        function test_customThemeRoundTripsThroughTheThemeSettingValue() {
-            const colors = Tokens.colorsForTheme("dark");
-            colors.panel = "#202020";
-            colors.text = "#ffffff";
-            colors.muted = "#d0d0d0";
-            colors.faint = "#aaaaaa";
-            const encoded = Tokens.customThemeValue(colors);
-            const decoded = Tokens.colorsForTheme(encoded);
-
-            compare(Tokens.themeIndex(encoded), 2);
-            compare(decoded.panel, "#202020");
-            compare(decoded.text, "#ffffff");
-            compare(decoded.muted, "#d0d0d0");
-            compare(decoded.faint, "#aaaaaa");
-            compare(decoded.bubbleBg, colors.bubbleBg);
-        }
-
-        function test_customThemeIsReadBackAfterBeingPersisted() {
-            makeMain();
-            const previous = Controller.settings.theme;
-            const colors = Tokens.colorsForTheme("dark");
-            colors.panel = "#202020";
-            colors.text = "#ffffff";
-            colors.muted = "#d0d0d0";
-            colors.faint = "#aaaaaa";
-            const encoded = Tokens.customThemeValue(colors);
-
-            Controller.setSetting("theme", encoded);
-            wait(25);
-            compare(Controller.settings.theme, encoded);
-            compare(Tokens.theme, encoded);
-
-            verify(makeMain());
-            compare(Tokens.theme, Controller.settings.theme);
-            Controller.setSetting("theme", previous);
-        }
-
-        function test_generalSettingsExposeBuiltInAndCustomChoices() {
+        function test_generalSettingsExposeTheBuiltInChoices() {
             const main = makeMain();
             const panel = Util.ofType(main, "SettingsPopup");
             verify(panel);
@@ -449,13 +403,11 @@ Item {
                 return o.objectName === "themeField";
             });
             verify(themes.length === 1, "the General page has no theme control");
-            compare(themes[0].options.length, 5);
+            compare(themes[0].options.length, 4);
             compare(themes[0].options[2].label, "Frosted glass");
-            compare(themes[0].options[2].value, 3);
+            compare(themes[0].options[2].value, 2);
             compare(themes[0].options[3].label, "Liquid glass");
-            compare(themes[0].options[3].value, 4);
-            compare(themes[0].options[4].label, "Custom");
-            compare(themes[0].options[4].value, 2);
+            compare(themes[0].options[3].value, 3);
         }
 
         function test_transientPlacementReadsBubbleSizeAfterContentChanges() {

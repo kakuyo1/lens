@@ -1230,144 +1230,88 @@ One small word at a time, the reading opens.</translation>
         <translation>這塊螢幕無法即時讀取，背景每秒重新整理約 15 次。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="112"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="86"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="94"/>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="123"/>
         <source>Theme</source>
         <translation>主題</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="124"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="96"/>
         <source>Light</source>
         <translation>晴朗白晝</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="98"/>
         <source>Dark</source>
         <translation>靜謐暗夜</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="128"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="100"/>
         <source>Frosted glass</source>
         <translation>霧面玻璃</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="130"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="102"/>
         <source>Liquid glass</source>
         <translation>流光玻璃</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="134"/>
-        <source>Custom</source>
-        <translation>自訂</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="158"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="167"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="135"/>
         <source>Backdrop refresh</source>
         <translation>背景重新整理</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="193"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="161"/>
         <source>Frosted glass parameters</source>
         <translation>霧面玻璃參數</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="200"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="246"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="168"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="214"/>
         <source>Blur</source>
         <translation>模糊程度</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="208"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="176"/>
         <source>Saturation</source>
         <translation>飽和度</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="216"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="254"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="222"/>
         <source>Rim highlight</source>
         <translation>描邊高光</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="231"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="199"/>
         <source>Liquid glass parameters</source>
         <translation>流光玻璃參數</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="238"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="206"/>
         <source>Refraction</source>
         <translation>折射強度</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="269"/>
-        <source>Custom semantic colors</source>
-        <translation>自訂語意顏色</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="278"/>
-        <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
-        <translation>使用六位十六進位制顏色。正文、次要和弱文字在面板上都必須通過 WCAG AA。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="285"/>
-        <source>Background</source>
-        <translation>背景</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="286"/>
-        <source>Panel</source>
-        <translation>面板</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="287"/>
-        <source>Body text</source>
-        <translation>正文文字</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="288"/>
-        <source>Muted text</source>
-        <translation>次要文字</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="289"/>
-        <source>Faint text</source>
-        <translation>弱文字</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="276"/>
         <source>Accent</source>
         <translation>強調色</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="349"/>
-        <source>AA contrast passes: body %1, muted %2, faint %3</source>
-        <translation>AA 對比度通過：正文 %1，次要文字 %2，弱文字 %3</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="353"/>
-        <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
-        <translation>AA 對比度要求顏色有效，且正文、次要和弱文字的對比度均須達 4.5:1。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="390"/>
-        <source>Apply custom colors</source>
-        <translation>套用自訂色彩</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="406"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="232"/>
         <source>Launch at startup</source>
         <translation>開機時啟動</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="413"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="239"/>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="170"/>
         <source>Animations</source>
         <translation>動畫效果</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="426"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="252"/>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="201"/>
         <source>Typing speed</source>
         <translation>打字速度</translation>
@@ -1378,7 +1322,7 @@ One small word at a time, the reading opens.</translation>
         <translation>檢查更新</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="438"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="264"/>
         <source>Check for updates at startup</source>
         <translation>啟動時檢查更新</translation>
     </message>
@@ -1389,7 +1333,7 @@ One small word at a time, the reading opens.</translation>
         <translation>帳號與同步</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="452"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="278"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>Windows 協助工具設定已關閉動畫效果。</translation>
     </message>
@@ -2800,7 +2744,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="445"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="271"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="83"/>
         <source>Font</source>
         <translation>字型</translation>

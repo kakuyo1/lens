@@ -18,6 +18,10 @@
 
 - The first-run wizard's step body scrolls inside its fixed 380×480 card. Longer translations, English and Spanish among them, no longer run under the footer; the header and buttons stay put, the wheel scrolls from anywhere on the card, and keyboard focus brings the control into view.
 
+### Removed
+
+- The **Custom** theme and its colour editor: the theme dropdown now offers the four built-in themes only. A settings document that still carries a packed `custom:` value falls back to the light theme until a theme is picked; nothing else about the theme setting changes.
+
 ## 1.0.0-alpha - 2026-11-05
 
 This is an early alpha of Lens, and the version numbering starts over at 1.0.0-alpha. It may have many problems, including crashes, wrong results and rough edges on every surface. Please report what you find as an issue at https://github.com/kakuyo1/lens/issues, with the steps that led to it and your Lens version.

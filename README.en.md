@@ -134,7 +134,7 @@ Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Cl
 - **Sync when you want it.** Word marks, lookup history, statistics, and selected settings are encrypted with your passphrase and kept in a secret gist in your own GitHub account. The API key stays on this device.
 - **Word lists in and out.** Import or export `.txt` and `.json`; delete a word with one confirmation.
 - **Pictures when they help.** A sense the model thinks a photo explains better can open three Wikimedia Commons pictures. They are cached locally, and About shows the cache size and clears it in place.
-- **Make it yours.** Five action-bar shapes; Light, Dark, Frosted glass, Liquid glass, and Custom themes; and an English typeface with 12–18 px bubble text.
+- **Make it yours.** Five action-bar shapes; Light, Dark, Frosted glass, and Liquid glass themes; and an English typeface with 12–18 px bubble text.
 - **Five languages.** Interface and explanations each offer English, Chinese, Traditional Chinese, Spanish, and Japanese. The Traditional Chinese, Spanish, and Japanese translations are machine-generated and have not been reviewed by a native speaker.
 
 ## Themes
@@ -143,7 +143,6 @@ Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Cl
 
 - **Light and Dark** are solid.
 - **Frosted glass and Liquid glass** draw every card over a blurred copy of the desktop, and keep Lens out of screenshots and screen sharing while they are on.
-- **Custom** lets you choose the colours and checks them against WCAG AA.
 - **Animations** follow the Windows reduced-motion setting.
 
 ## Download

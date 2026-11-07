@@ -1119,54 +1119,49 @@ One small word at a time, the reading opens.</translation>
         <translation>Compilado el %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="112"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="86"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="94"/>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="123"/>
         <source>Theme</source>
         <translation>Tema</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="124"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="96"/>
         <source>Light</source>
         <translation>Claro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="98"/>
         <source>Dark</source>
         <translation>Oscuro</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="134"/>
-        <source>Custom</source>
-        <translation>Personalizado</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="128"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="100"/>
         <source>Frosted glass</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Vidrio mate</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="130"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="102"/>
         <source>Liquid glass</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Vidrio líquido</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="193"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="161"/>
         <source>Frosted glass parameters</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Parámetros del vidrio mate</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="208"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="176"/>
         <source>Saturation</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Saturación</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="200"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="246"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="168"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="214"/>
         <source>Blur</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Desenfoque</translation>
@@ -1182,20 +1177,20 @@ One small word at a time, the reading opens.</translation>
         <translation>Esta pantalla no se puede leer en directo, así que el fondo se actualiza unas 15 veces por segundo.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="231"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="199"/>
         <source>Liquid glass parameters</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Parámetros del vidrio líquido</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="238"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="206"/>
         <source>Refraction</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Refracción</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="216"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="254"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="222"/>
         <source>Rim highlight</source>
         <translatorcomment>待译者核对</translatorcomment>
         <translation>Brillo del borde</translation>
@@ -1237,80 +1232,29 @@ One small word at a time, the reading opens.</translation>
         <translation>Fluido</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="158"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="167"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="135"/>
         <source>Backdrop refresh</source>
         <translation>Actualización del fondo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="269"/>
-        <source>Custom semantic colors</source>
-        <translation>Colores semánticos personalizados</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="278"/>
-        <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
-        <translation>Usa colores hexadecimales de seis dígitos. El texto principal, el secundario y el tenue deben superar WCAG AA sobre el panel.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="285"/>
-        <source>Background</source>
-        <translation>Fondo</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="286"/>
-        <source>Panel</source>
-        <translation>Panel</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="287"/>
-        <source>Body text</source>
-        <translation>Texto principal</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="288"/>
-        <source>Muted text</source>
-        <translation>Texto secundario</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="289"/>
-        <source>Faint text</source>
-        <translation>Texto tenue</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="276"/>
         <source>Accent</source>
         <translation>Acento</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="349"/>
-        <source>AA contrast passes: body %1, muted %2, faint %3</source>
-        <translation>Contraste AA correcto: principal %1, secundario %2, tenue %3</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="353"/>
-        <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
-        <translation>El contraste AA exige colores válidos y una proporción de 4.5:1 para el texto principal, el secundario y el tenue.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="390"/>
-        <source>Apply custom colors</source>
-        <translation>Aplicar colores personalizados</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="406"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="232"/>
         <source>Launch at startup</source>
         <translation>Iniciar con el sistema</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="413"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="239"/>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="170"/>
         <source>Animations</source>
         <translation>Animaciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="426"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="252"/>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="201"/>
         <source>Typing speed</source>
         <translation>Velocidad de escritura</translation>
@@ -1321,7 +1265,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Buscar actualizaciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="438"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="264"/>
         <source>Check for updates at startup</source>
         <translation>Buscar actualizaciones al iniciar</translation>
     </message>
@@ -1332,7 +1276,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Cuenta y sincronización</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="452"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="278"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>La configuración de accesibilidad de Windows ha desactivado las animaciones.</translation>
     </message>
@@ -2808,7 +2752,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="445"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="271"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="83"/>
         <source>Font</source>
         <translation>Fuente</translation>

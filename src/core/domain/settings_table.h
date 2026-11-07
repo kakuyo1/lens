@@ -32,7 +32,7 @@ enum class Kind : std::uint8_t {
     Toggle,
     Integer, ///< A whole number in a closed range; an enumerated setting's range is its enum's.
     Choice,  ///< One of a fixed set of strings; the members are the row's.
-    Text,    ///< Free text: a language code, or a theme's packed value.
+    Text,    ///< Free text: a language code, or a theme name.
     Font,    ///< A family this machine has, or empty for the face the application installed.
 };
 
@@ -150,7 +150,6 @@ inline constexpr Row kRows[]{
     {.key = "uiLanguage", .kind = Kind::Text, .signal = Signal::Language, .fallback = "zh", .synced = true, .restorable = false},
 
     // Appearance: the theme, the face, the pace, and the glass under the cards (DESIGN.md 3.1c, 3.1d).
-    // A custom theme's colours are packed into this one value, so they travel with it.
     {.key = "theme", .kind = Kind::Text, .signal = Signal::Settings, .fallback = "light", .synced = true},
     {.key = "font", .kind = Kind::Font, .signal = Signal::Settings, .fallback = ""},
     {.key = "animationsEnabled", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = true, .synced = true},

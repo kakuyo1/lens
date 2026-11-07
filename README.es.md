@@ -134,7 +134,7 @@ Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del reposi
 - **Sincronización cuando la quieras.** Las marcas Conocida/Nueva, el historial, las estadísticas y los ajustes seleccionados se cifran con tu frase de contraseña y se guardan en un gist secreto de tu propia cuenta de GitHub. La clave de API se queda en este dispositivo.
 - **Listas de palabras de ida y vuelta.** Importa o exporta `.txt` y `.json`; borra una palabra con una confirmación.
 - **Fotos cuando ayudan.** Si el modelo cree que una foto explica mejor un sentido, la tarjeta puede abrir tres imágenes de Wikimedia Commons. Se guardan en caché local y «Acerca de» muestra su tamaño y permite borrarla.
-- **Hazlo tuyo.** Cinco formas de barra de acciones; temas Claro, Oscuro, Vidrio mate, Vidrio líquido y Personalizado; y una tipografía inglesa con texto de burbuja de 12–18 px.
+- **Hazlo tuyo.** Cinco formas de barra de acciones; temas Claro, Oscuro, Vidrio mate y Vidrio líquido; y una tipografía inglesa con texto de burbuja de 12–18 px.
 - **Cinco idiomas.** La interfaz y las explicaciones ofrecen inglés, chino, chino tradicional, español y japonés. Las traducciones al chino tradicional, al español y al japonés están generadas por máquina y no han sido revisadas por un hablante nativo.
 
 ## Temas
@@ -143,7 +143,6 @@ Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del reposi
 
 - **Claro y Oscuro** son sólidos.
 - **Vidrio mate y Vidrio líquido** dibujan cada tarjeta sobre una copia desenfocada del escritorio y mantienen a Lens fuera de las capturas de pantalla y del uso compartido mientras están activos.
-- **Personalizado** te deja elegir los colores y comprueba el contraste con WCAG AA.
 - **Las animaciones** siguen la configuración de animaciones de Windows.
 
 ## Descargar

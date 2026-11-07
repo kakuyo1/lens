@@ -23,7 +23,7 @@ Window {
     /// The dropdown option under the pointer: {value, label, previewTheme}.
     property var option: null
 
-    /// The theme to draw: "light", "dark", "frosted", "liquid", or a custom: JSON value.
+    /// The theme to draw: "light", "dark", "frosted" or "liquid".
     readonly property string themeValue: root.option && root.option.previewTheme
         ? String(root.option.previewTheme) : "light"
     /// The label the mock field shows: the row's own, so the box and the row say the same thing.

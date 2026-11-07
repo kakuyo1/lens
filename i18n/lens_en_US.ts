@@ -1230,144 +1230,88 @@ One small word at a time, the reading opens.</translation>
         <translation>This screen cannot be read live, so the backdrop refreshes about 15 times a second.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="112"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="86"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="94"/>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="123"/>
         <source>Theme</source>
         <translation>Theme</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="124"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="96"/>
         <source>Light</source>
         <translation>Light</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="98"/>
         <source>Dark</source>
         <translation>Dark</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="128"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="100"/>
         <source>Frosted glass</source>
         <translation>Frosted glass</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="130"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="102"/>
         <source>Liquid glass</source>
         <translation>Liquid glass</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="134"/>
-        <source>Custom</source>
-        <translation>Custom</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="158"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="167"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="135"/>
         <source>Backdrop refresh</source>
         <translation>Backdrop refresh</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="193"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="161"/>
         <source>Frosted glass parameters</source>
         <translation>Frosted glass parameters</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="200"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="246"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="168"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="214"/>
         <source>Blur</source>
         <translation>Blur</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="208"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="176"/>
         <source>Saturation</source>
         <translation>Saturation</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="216"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="254"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="222"/>
         <source>Rim highlight</source>
         <translation>Rim highlight</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="231"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="199"/>
         <source>Liquid glass parameters</source>
         <translation>Liquid glass parameters</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="238"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="206"/>
         <source>Refraction</source>
         <translation>Refraction</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="269"/>
-        <source>Custom semantic colors</source>
-        <translation>Custom semantic colors</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="278"/>
-        <source>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</source>
-        <translation>Use six-digit hex colors. Body, muted, and faint text must each pass WCAG AA on the panel.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="285"/>
-        <source>Background</source>
-        <translation>Background</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="286"/>
-        <source>Panel</source>
-        <translation>Panel</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="287"/>
-        <source>Body text</source>
-        <translation>Body text</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="288"/>
-        <source>Muted text</source>
-        <translation>Muted text</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="289"/>
-        <source>Faint text</source>
-        <translation>Faint text</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="290"/>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="276"/>
         <source>Accent</source>
         <translation>Accent</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="349"/>
-        <source>AA contrast passes: body %1, muted %2, faint %3</source>
-        <translation>AA contrast passes: body %1, muted %2, faint %3</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="353"/>
-        <source>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</source>
-        <translation>AA contrast requires valid colors and a 4.5:1 ratio for body, muted, and faint text.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="390"/>
-        <source>Apply custom colors</source>
-        <translation>Apply custom colors</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="406"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="232"/>
         <source>Launch at startup</source>
         <translation>Launch at startup</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="413"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="239"/>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="170"/>
         <source>Animations</source>
         <translation>Animations</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="426"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="252"/>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="201"/>
         <source>Typing speed</source>
         <translation>Typing speed</translation>
@@ -1378,7 +1322,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Check for updates</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="438"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="264"/>
         <source>Check for updates at startup</source>
         <translation>Check for updates at startup</translation>
     </message>
@@ -1389,7 +1333,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Account &amp; sync</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="452"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="278"/>
         <source>Animations are disabled by Windows accessibility settings.</source>
         <translation>Animations are disabled by Windows accessibility settings.</translation>
     </message>
@@ -2800,7 +2744,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
-        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="445"/>
+        <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="271"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="83"/>
         <source>Font</source>
         <translation>Font</translation>
