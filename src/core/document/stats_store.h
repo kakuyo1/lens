@@ -62,10 +62,11 @@ struct DailyUsage {
 inline constexpr const char* kLegacyUsageModel = "__legacy__";
 
 /// @brief Which rows a words export covers.
-/// @note The three values are the words popup's own filter (UI-SPEC.md section 4.8), so what a
+/// @note The four values are the words popup's own filter (UI-SPEC.md section 4.8), so what a
 ///       reader exports is what they were looking at.
 enum class ExportScope : std::uint8_t { All,
                                         Known,
+                                        Mastered,
                                         New };
 
 /// @brief The file a learning-card export writes.
@@ -85,20 +86,23 @@ enum class CardFormat : std::uint8_t { Csv,
  * which is what keeps the text itself assertable without Qt.
  *
  * @param history     The history, newest first.
- * @param scope       Every lemma, or only the known / new ones.
+ * @param scope       Every lemma, or only the known / mastered / new ones.
  * @param knownLemmas The lemmas currently marked known; the known() view KnownStore derives.
+ * @param masteredLemmas The lemmas currently marked mastered; the mastered() view derives (docs/adr/0159).
  * @return The lemmas joined by '\n', ending with one; empty when no row matches @p scope.
  */
 std::string exportLemmas(const std::vector<HistoryEntry>&       history,
                          ExportScope                            scope,
-                         const std::unordered_set<std::string>& knownLemmas);
+                         const std::unordered_set<std::string>& knownLemmas,
+                         const std::unordered_set<std::string>& masteredLemmas);
 
 /**
  * @brief Render the history as a JSON array of lemmas, one entry per row.
  */
 std::string exportLemmasJson(const std::vector<HistoryEntry>&       history,
                              ExportScope                            scope,
-                             const std::unordered_set<std::string>& knownLemmas);
+                             const std::unordered_set<std::string>& knownLemmas,
+                             const std::unordered_set<std::string>& masteredLemmas);
 
 /**
  * @brief Render the history as learning cards: the words export's rows, each with the cached
@@ -109,8 +113,8 @@ std::string exportLemmasJson(const std::vector<HistoryEntry>&       history,
  * break, with the quotes inside it doubled.
  *
  * @param history The history, newest first.
- * @param scope   Every lemma, or only the known / new ones, as exportLemmas() reads them.
- * @param store   The known set and the explanation cache for the current explanation language.
+ * @param scope   Every lemma, or only the known / mastered / new ones, as exportLemmas() reads them.
+ * @param store   The verdict sets and the explanation cache for the current explanation language.
  * @param format  The file the rows are written for.
  * @return The file's text, LF-terminated. The header row or directive line leads it even when no
  *         row matches.

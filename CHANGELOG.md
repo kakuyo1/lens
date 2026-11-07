@@ -12,6 +12,9 @@
 
 ### Changed
 
+- Words carry **two reader verdicts** now. The known verdict means "seen, still learning": the auto-scan layer keeps drawing its line, restyled into a firmer ink dash, and the pet may still ask about the word. The new **mastered** verdict retires a word: no dashed line, no signposts, no review questions and no definition-chain dots; a hand-made selection still explains it either way. The verdict store holds one verdict per word (`known` on disk beside a new `mastered` key), syncs through the same newest-wins merge, and an older build reads a mastered word as known (docs/adr/0159, superseding docs/adr/0147's binary verdict and docs/adr/0158's file-as-source wordbook).
+- The custom word list becomes a **one-time import**: the learning page's row is now "Mastered words" with an **Import a word list** button; the file's words are read once, lemmatised, de-duplicated and marked mastered, and the file is never watched afterwards, so a lost or edited one retires nothing. A path left over from an earlier build is imported once at startup and its key is dropped.
+- The bubble's verdict row and the words popup's rows carry **three pills** (Known / Mastered / New), the popup gains a **Mastered** segment, and the plain, JSON and card exports follow it. A verdict made anywhere moves the scan's judgement and the pencil layer's lines at once, with no full re-scan. On the pencil layer, resting the pointer on a dashed word raises a single **Mastered** button over it; one click retires the word. The popup lists a marked word even when the history never saw it -- a word the pencil button marked takes a row with no time and a zero pop count, and the exports follow the same rows.
 - The weekly report's AI observations now follow the **interface language**, not the explanation language, so they read in the same language as the panel that shows them.
 
 ### Fixed

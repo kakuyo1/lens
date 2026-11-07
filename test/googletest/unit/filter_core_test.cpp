@@ -84,8 +84,8 @@ protected:
     void writeSeededStore()
     {
         auto store = KnownStore::load(path);
-        store.mark("ubiquitous", true);
-        store.mark("resilience", false);
+        store.mark("ubiquitous", lens::core::WordVerdict::Known);
+        store.mark("resilience", lens::core::WordVerdict::None);
         store.setLevel(4);
         store.setExplanationLang("zh");
         // A real Chinese definition, kept non-ASCII on purpose: this is what proves the JSON
@@ -98,10 +98,11 @@ protected:
     std::filesystem::path path;
 };
 
-/// @return The state @p word gets when selected on its own at @p level is Mastered.
-bool masteredAt(const char* word, int level)
+/// @return Whether @p word masters at @p level, judged beside @p mastered -- the reader's own
+/// verdict set, which the filter takes beside the band (docs/adr/0159).
+bool masteredAt(const char* word, int level, std::unordered_set<std::string> const& mastered = {})
 {
-    const auto words = lens::core::filterWords(word, {}, lens::core::difficultyForLevel(level));
+    const auto words = lens::core::filterWords(word, {}, mastered, lens::core::difficultyForLevel(level));
     return !words.empty() && words.front().state == lens::core::CandidateState::Mastered;
 }
 
@@ -112,12 +113,12 @@ struct LevelRow {
 };
 
 /// @brief Expect each word to be Mastered at exactly the levels its row lists, across all eight levels.
-void expectMasteredAtLevels(const std::vector<LevelRow>& rows)
+void expectMasteredAtLevels(const std::vector<LevelRow>& rows, std::unordered_set<std::string> const& mastered = {})
 {
     for (int level = 0; level < 8; ++level)
         for (const auto& row : rows) {
             const bool want = std::find(row.levels.begin(), row.levels.end(), level) != row.levels.end();
-            EXPECT_EQ(masteredAt(row.word, level), want) << row.word << " at level " << level;
+            EXPECT_EQ(masteredAt(row.word, level, mastered), want) << row.word << " at level " << level;
         }
 }
 
@@ -163,7 +164,7 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
         // The candidate list comes from filterWords directly, because a sentence now rides the
         // sentence channel while still exercising the word pipeline that fills `expect`.
         lens::core::Selection got;
-        ASSERT_NO_THROW(got = lens::core::classifySelection(text, known, Difficulty::byRank(minFreqRank)))
+        ASSERT_NO_THROW(got = lens::core::classifySelection(text, known, {}, Difficulty::byRank(minFreqRank)))
             << "text: " << text;
         const std::string kind = [&] {
             switch (got.kind) {
@@ -185,7 +186,7 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
         }
 
         std::vector<Candidate> words;
-        ASSERT_NO_THROW(words = lens::core::filterWords(text, known, Difficulty::byRank(minFreqRank))) << "text: " << text;
+        ASSERT_NO_THROW(words = lens::core::filterWords(text, known, {}, Difficulty::byRank(minFreqRank))) << "text: " << text;
         EXPECT_EQ(surfaces(words), expect) << "text: " << text;
         ok = ok && surfaces(words) == expect;
         if (item.contains("expectLemmas")) {
@@ -218,12 +219,12 @@ TEST_F(CoreTest, RoutesASentenceToTheSentenceChannelButStillFiltersItsWords)
 
     // The channel is the shape of the selection: a sentence is a sentence, so the action bar
     // translates or explains it whole instead of explaining one word.
-    EXPECT_EQ(lens::core::classifySelection(text, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
+    EXPECT_EQ(lens::core::classifySelection(text, {}, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
 
     // filterWords still produces the candidate list the corpus pins, in first-appearance order,
     // with the in-band article marked rather than dropped (TODO.md item 0) -- which is why the
     // list opens with the article.
-    const auto words = lens::core::filterWords(text, {}, Difficulty::byRank(3000));
+    const auto words = lens::core::filterWords(text, {}, {}, Difficulty::byRank(3000));
     ASSERT_FALSE(words.empty());
     EXPECT_EQ(words.front().surface, "the");
     EXPECT_EQ(words.front().state, lens::core::CandidateState::Mastered);
@@ -245,7 +246,7 @@ TEST_F(CoreTest, RoutesASelectionHoldingHanToTheTranslationChannelWhateverItsSha
     // mixed excerpt is not a lookup, it is part of the text being translated.
     for (const char* text : {"猫", "苹果", "中文文本", "日本語", "混合mixed文本", "这一段话里有好几个词。"}) {
         SCOPED_TRACE(text);
-        const auto selection = lens::core::classifySelection(text, {}, Difficulty::byRank(3000));
+        const auto selection = lens::core::classifySelection(text, {}, {}, Difficulty::byRank(3000));
         EXPECT_EQ(selection.kind, lens::core::SelectionKind::Translation);
         EXPECT_TRUE(selection.candidates.empty());
     }
@@ -254,13 +255,13 @@ TEST_F(CoreTest, RoutesASelectionHoldingHanToTheTranslationChannelWhateverItsSha
     // Han at all, and a run of full-width punctuation has no letter in it to read.
     for (const char* text : {"한국어", "。", "！？"}) {
         SCOPED_TRACE(text);
-        EXPECT_EQ(lens::core::classifySelection(text, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
+        EXPECT_EQ(lens::core::classifySelection(text, {}, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
     }
 
     // The English shapes are untouched, Han or no Han.
-    EXPECT_EQ(lens::core::classifySelection("resilience", {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Word);
-    EXPECT_EQ(lens::core::classifySelection("Kubernetes", {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Entity);
-    EXPECT_EQ(lens::core::classifySelection("New York", {}, Difficulty::byRank(0)).kind, lens::core::SelectionKind::Entity);
+    EXPECT_EQ(lens::core::classifySelection("resilience", {}, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Word);
+    EXPECT_EQ(lens::core::classifySelection("Kubernetes", {}, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Entity);
+    EXPECT_EQ(lens::core::classifySelection("New York", {}, {}, Difficulty::byRank(0)).kind, lens::core::SelectionKind::Entity);
 }
 
 TEST_F(CoreTest, RoutesALoneTokenByItsPresenceInTheWordList)
@@ -272,7 +273,7 @@ TEST_F(CoreTest, RoutesALoneTokenByItsPresenceInTheWordList)
     } words[] = {{"am", "am"}, {"NASA", "nasa"}, {"the", "the"}, {"resilience", "resilience"}};
     for (const auto& item : words) {
         SCOPED_TRACE(item.text);
-        const auto selection = lens::core::classifySelection(item.text, {}, Difficulty::byRank(3000));
+        const auto selection = lens::core::classifySelection(item.text, {}, {}, Difficulty::byRank(3000));
         EXPECT_EQ(selection.kind, lens::core::SelectionKind::Word);
         ASSERT_EQ(selection.candidates.size(), 1u);
         EXPECT_EQ(selection.candidates.front().surface, item.surface);
@@ -281,25 +282,25 @@ TEST_F(CoreTest, RoutesALoneTokenByItsPresenceInTheWordList)
     // A lone token the dictionary does not know is a name, not a word: QML, Kubernetes.
     for (const char* text : {"QML", "qml", "kubernetes"}) {
         SCOPED_TRACE(text);
-        const auto selection = lens::core::classifySelection(text, {}, Difficulty::byRank(3000));
+        const auto selection = lens::core::classifySelection(text, {}, {}, Difficulty::byRank(3000));
         EXPECT_EQ(selection.kind, lens::core::SelectionKind::Entity);
         EXPECT_TRUE(selection.candidates.empty());
     }
 
     // A lone dictionary word still reduces to its lemma.
-    const auto reduced = lens::core::classifySelection("RUNNING", {}, Difficulty::byRank(0));
+    const auto reduced = lens::core::classifySelection("RUNNING", {}, {}, Difficulty::byRank(0));
     EXPECT_EQ(reduced.kind, lens::core::SelectionKind::Word);
     ASSERT_EQ(reduced.candidates.size(), 1u);
     EXPECT_EQ(reduced.candidates.front().lemma, "run");
 
     // One letter is under the floor, and a digit inside disqualifies (MP3).
-    EXPECT_EQ(lens::core::classifySelection("a", {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
-    EXPECT_EQ(lens::core::classifySelection("MP3", {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
+    EXPECT_EQ(lens::core::classifySelection("a", {}, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
+    EXPECT_EQ(lens::core::classifySelection("MP3", {}, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
 
     // The same term inside continuous prose makes the selection a sentence, and the gates still
     // keep it out of the candidate list.
-    EXPECT_EQ(lens::core::classifySelection("the qml source", {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
-    for (const auto& candidate : lens::core::filterWords("the qml source", {}, Difficulty::byRank(3000)))
+    EXPECT_EQ(lens::core::classifySelection("the qml source", {}, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
+    for (const auto& candidate : lens::core::filterWords("the qml source", {}, {}, Difficulty::byRank(3000)))
         EXPECT_NE(candidate.surface, "qml") << "a lone-selection token inside prose must stay skipped";
 }
 
@@ -307,19 +308,19 @@ TEST_F(CoreTest, ClassifiesJunkAsASentence)
 {
     // Glued junk and a stray number: nothing in it survives the filter, so the word channel
     // has nothing to send.
-    EXPECT_EQ(lens::core::classifySelection("https://example.com/k8s report_final.txt 42 version2", {}, Difficulty::byRank(0)).kind,
+    EXPECT_EQ(lens::core::classifySelection("https://example.com/k8s report_final.txt 42 version2", {}, {}, Difficulty::byRank(0)).kind,
               lens::core::SelectionKind::Sentence);
     // Nothing was selected at all.
-    EXPECT_EQ(lens::core::classifySelection("", {}, Difficulty::byRank(0)).kind, lens::core::SelectionKind::Sentence);
+    EXPECT_EQ(lens::core::classifySelection("", {}, {}, Difficulty::byRank(0)).kind, lens::core::SelectionKind::Sentence);
     // A lone word the reader already knows is still a word: the mark annotates the candidate,
     // it does not take it away, because an explicit selection is a request to explain it --
     // the reader cannot be assumed to remember a word they marked (TODO.md item 0).
-    const auto known = lens::core::classifySelection("ubiquitous", {"ubiquitous"}, Difficulty::byRank(3000));
+    const auto known = lens::core::classifySelection("ubiquitous", {"ubiquitous"}, {}, Difficulty::byRank(3000));
     EXPECT_EQ(known.kind, lens::core::SelectionKind::Word);
     ASSERT_EQ(known.candidates.size(), 1u);
     EXPECT_EQ(known.candidates.front().state, lens::core::CandidateState::Known);
     // A lone word inside the level's band is the same story from the other side.
-    const auto mastered = lens::core::classifySelection("nature", {}, Difficulty::byRank(3000));
+    const auto mastered = lens::core::classifySelection("nature", {}, {}, Difficulty::byRank(3000));
     EXPECT_EQ(mastered.kind, lens::core::SelectionKind::Word);
     ASSERT_EQ(mastered.candidates.size(), 1u);
     EXPECT_EQ(mastered.candidates.front().state, lens::core::CandidateState::Mastered);
@@ -327,48 +328,48 @@ TEST_F(CoreTest, ClassifiesJunkAsASentence)
 
 TEST_F(CoreTest, ClassifiesTitleCaseAndAcronymPhrasesAsEntities)
 {
-    const auto entity = lens::core::classifySelection("New York", {}, Difficulty::byRank(0));
+    const auto entity = lens::core::classifySelection("New York", {}, {}, Difficulty::byRank(0));
     EXPECT_EQ(entity.kind, lens::core::SelectionKind::Entity);
     EXPECT_TRUE(entity.candidates.empty());
 
-    const auto anotherEntity = lens::core::classifySelection("United States", {}, Difficulty::byRank(0));
+    const auto anotherEntity = lens::core::classifySelection("United States", {}, {}, Difficulty::byRank(0));
     EXPECT_EQ(anotherEntity.kind, lens::core::SelectionKind::Entity);
 
     // An all-caps acronym phrase is a name too: QML API is an entity, not a two-word sentence.
-    const auto acronym = lens::core::classifySelection("QML API", {}, Difficulty::byRank(0));
+    const auto acronym = lens::core::classifySelection("QML API", {}, {}, Difficulty::byRank(0));
     EXPECT_EQ(acronym.kind, lens::core::SelectionKind::Entity);
     EXPECT_TRUE(acronym.candidates.empty());
-    EXPECT_EQ(lens::core::classifySelection("the QML API", {}, Difficulty::byRank(0)).kind, lens::core::SelectionKind::Entity);
+    EXPECT_EQ(lens::core::classifySelection("the QML API", {}, {}, Difficulty::byRank(0)).kind, lens::core::SelectionKind::Entity);
 
     // A lowercase word that is not a connector keeps it a sentence.
-    EXPECT_EQ(lens::core::classifySelection("QML API server", {}, Difficulty::byRank(0)).kind, lens::core::SelectionKind::Sentence);
+    EXPECT_EQ(lens::core::classifySelection("QML API server", {}, {}, Difficulty::byRank(0)).kind, lens::core::SelectionKind::Sentence);
 
-    const auto singleToken = lens::core::classifySelection("London", {}, Difficulty::byRank(0));
+    const auto singleToken = lens::core::classifySelection("London", {}, {}, Difficulty::byRank(0));
     EXPECT_NE(singleToken.kind, lens::core::SelectionKind::Entity);
 
-    const auto mixedSentence = lens::core::classifySelection("I visited New York", {}, Difficulty::byRank(0));
+    const auto mixedSentence = lens::core::classifySelection("I visited New York", {}, {}, Difficulty::byRank(0));
     EXPECT_NE(mixedSentence.kind, lens::core::SelectionKind::Entity);
 }
 
 TEST_F(CoreTest, DefinitionLinksOfferWordsAboveTheBandAndUnlistedOnes)
 {
     // "knack" ranks far above the cut-off; "a", "for" and "others" sit inside it and stay plain.
-    const auto above = lens::core::definitionLinks("a knack for noticing what others miss", Difficulty::byRank(4000));
+    const auto above = lens::core::definitionLinks("a knack for noticing what others miss", {}, Difficulty::byRank(4000));
     ASSERT_EQ(above.size(), 1u);
     EXPECT_EQ(above.front().lemma, "knack");
     EXPECT_EQ(above.front().start, 2u);
     EXPECT_EQ(above.front().end, 7u);
 
     // Offsets are bytes: the em dash is three of them. The word is not in the list, so it is offered.
-    const auto unlisted = lens::core::definitionLinks("\xe2\x80\x94 tintinnabulate", Difficulty::byRank(4000));
+    const auto unlisted = lens::core::definitionLinks("\xe2\x80\x94 tintinnabulate", {}, Difficulty::byRank(4000));
     ASSERT_EQ(unlisted.size(), 1u);
     EXPECT_EQ(unlisted.front().lemma, "tintinnabulate");
     EXPECT_EQ(unlisted.front().start, 4u);
     EXPECT_EQ(unlisted.front().end, 18u);
 
     // The cut-off is inclusive: a word ranked exactly at it is inside the band. "miss" is its own lemma (rank 274).
-    EXPECT_TRUE(lens::core::definitionLinks("miss", Difficulty::byRank(274)).empty());
-    EXPECT_EQ(lens::core::definitionLinks("miss", Difficulty::byRank(273)).size(), 1u);
+    EXPECT_TRUE(lens::core::definitionLinks("miss", {}, Difficulty::byRank(274)).empty());
+    EXPECT_EQ(lens::core::definitionLinks("miss", {}, Difficulty::byRank(273)).size(), 1u);
 }
 
 TEST_F(CoreTest, DifficultyForLevelClampsToTheTable)
@@ -398,7 +399,7 @@ TEST_F(WordbookTest, EachLevelMastersItsOwnBooksTheBaseAndTheFloor)
 
 TEST_F(WordbookTest, KnownOutranksAWordTheLevelMasters)
 {
-    const auto words = lens::core::filterWords("journey", {"journey"}, lens::core::difficultyForLevel(2));
+    const auto words = lens::core::filterWords("journey", {"journey"}, {}, lens::core::difficultyForLevel(2));
     ASSERT_EQ(words.size(), 1u);
     EXPECT_EQ(words.front().state, lens::core::CandidateState::Known);
 }
@@ -415,71 +416,52 @@ TEST_F(WordbookTest, AMissingWordbookLeavesOnlyTheFloor)
 TEST_F(WordbookTest, DefinitionLinksLeaveOutTheWordsTheLevelMasters)
 {
     const auto difficulty = lens::core::difficultyForLevel(2);
-    EXPECT_TRUE(lens::core::definitionLinks("journey garden", difficulty).empty());
+    EXPECT_TRUE(lens::core::definitionLinks("journey garden", {}, difficulty).empty());
 
-    const auto links = lens::core::definitionLinks("ambiguous", difficulty);
+    const auto links = lens::core::definitionLinks("ambiguous", {}, difficulty);
     ASSERT_EQ(links.size(), 1u);
     EXPECT_EQ(links.front().lemma, "ambiguous");
 }
 
-/// @brief Tests for the reader's own wordbook: the small books loaded, the custom list emptied around each test.
-struct CustomWordbookTest : WordbookTest {
-protected:
-    void SetUp() override
-    {
-        WordbookTest::SetUp();
-        lens::core::loadCustomWordbook({});
-    }
-
-    void TearDown() override
-    {
-        lens::core::loadCustomWordbook({});
-        WordbookTest::TearDown();
-    }
-};
-
-TEST_F(CustomWordbookTest, ACustomWordbookJoinsEveryLevel)
+TEST_F(WordbookTest, AReaderMasteredVerdictJoinsEveryLevel)
 {
-    // "serendipity" is above the floor and in no book, so only the reader's own list can master it -- and it does, at all eight.
-    ASSERT_EQ(lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt"), 2);
-    expectMasteredAtLevels({{"serendipity", {0, 1, 2, 3, 4, 5, 6, 7}}});
+    // "serendipity" is above the floor and in no book, so only the reader's verdict can master it
+    // -- and it does, at all eight (docs/adr/0159).
+    expectMasteredAtLevels({{"serendipity", {0, 1, 2, 3, 4, 5, 6, 7}}}, {"serendipity"});
 }
 
-TEST_F(CustomWordbookTest, ACustomWordbookEntryCoversItsInflections)
+TEST_F(WordbookTest, AReaderMasteredVerdictCoversItsInflections)
 {
-    // The list holds the base form; "vividly" reduces to it, so the surface masters with it.
-    lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt");
-    EXPECT_TRUE(masteredAt("vividly", 0));
+    // The verdict holds the base form; "vividly" reduces to it, so the surface masters with it.
+    EXPECT_TRUE(masteredAt("vividly", 0, {"vivid"}));
 }
 
-TEST_F(CustomWordbookTest, ReloadingTheCustomWordbookReplacesItsWords)
+TEST_F(WordbookTest, TheReaderMasteredVerdictOutranksTheKnownOne)
 {
-    lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt");
-    ASSERT_EQ(lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook-2.txt"), 1);
-    EXPECT_FALSE(masteredAt("serendipity", 0));
-    EXPECT_TRUE(masteredAt("quixotic", 0));
+    // The store holds one verdict per word, but the filter takes the two sets apart: the retire
+    // verdict is the stronger statement, so a lemma in both reads mastered (docs/adr/0159).
+    const auto words = lens::core::filterWords("journey", {"journey"}, {"journey"}, lens::core::difficultyForLevel(2));
+    ASSERT_EQ(words.size(), 1u);
+    EXPECT_EQ(words.front().state, lens::core::CandidateState::Mastered);
 }
 
-TEST_F(CustomWordbookTest, AnEmptyPathClearsTheCustomWordbook)
+TEST_F(WordbookTest, AReaderMasteredVerdictHidesTheChainDotsButAKnownOneKeepsThem)
 {
-    lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt");
-    ASSERT_EQ(lens::core::loadCustomWordbook({}), 0);
-    EXPECT_FALSE(masteredAt("serendipity", 0));
-    const auto status = lens::core::customWordbookStatus();
-    EXPECT_EQ(status.words, 0u);
-    EXPECT_FALSE(status.missing);
+    const auto difficulty = lens::core::difficultyForLevel(2);
+    // A retired word is not one the chain needs to offer (docs/adr/0159).
+    EXPECT_TRUE(lens::core::definitionLinks("ambiguous", {"ambiguous"}, difficulty).empty());
+    // Still learning is still worth offering: a known word keeps its dots.
+    EXPECT_EQ(lens::core::definitionLinks("ambiguous", {"journey"}, difficulty).size(), 1u);
 }
 
-TEST_F(CustomWordbookTest, AMissingCustomWordbookMastersNothingAndSaysSo)
+TEST_F(CoreTest, ParseWordlistFileReadsLemmasAndSkipsComments)
 {
-    // The file was the source, so a vanished one masters nothing: the list empties, the page is
-    // told, and startup goes on -- the loader warns rather than throws.
-    lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt");
-    EXPECT_EQ(lens::core::loadCustomWordbook(lens::test::sourceDir() / "test" / "fixtures" / "no-such-wordbook.txt"), -1);
-    EXPECT_FALSE(masteredAt("serendipity", 0));
-    const auto status = lens::core::customWordbookStatus();
-    EXPECT_EQ(status.words, 0u);
-    EXPECT_TRUE(status.missing);
+    // The import seed's parser: comments and blank lines drop, entries reduce to distinct lemmas
+    // in file order (docs/adr/0159).
+    const auto lemmas = lens::core::parseWordlistFile(lens::test::sourceDir() / "test" / "fixtures" / "custom-wordbook.txt");
+    ASSERT_EQ(lemmas.size(), 2u);
+    EXPECT_EQ(lemmas.front(), "serendipity");
+    EXPECT_EQ(lemmas.back(), "vivid");
 }
 
 TEST_F(CoreTest, RealWordbooksMasterEachLevelsOwnBooks)
@@ -523,27 +505,27 @@ TEST_F(CoreTest, EverydayWordsInTheFirstThreeThousandAreMasteredAtEveryLevel)
 TEST_F(CoreTest, InformalSpellingsAreNotVocabularyOnTheScanPath)
 {
     // The scan path takes a single page word with no explicit-selection exemption, so the dialect spellings drop out.
-    const auto words = lens::core::filterWords("runnin the fer movin", {}, lens::core::Difficulty::byRank(0), 3, false);
+    const auto words = lens::core::filterWords("runnin the fer movin", {}, {}, lens::core::Difficulty::byRank(0), 3, false);
     EXPECT_EQ(surfaces(words), std::vector<std::string>{"the"});
 }
 
 TEST_F(CoreTest, TheDialectFormsSeenOnTheScanDropOut)
 {
     // Forms the scan log showed as candidates in the Crawdads reading session: -in verbs and dialect spellings.
-    const auto words = lens::core::filterWords("mornin askin brung wif drinkin wanta the", {}, lens::core::Difficulty::byRank(0), 3, false);
+    const auto words = lens::core::filterWords("mornin askin brung wif drinkin wanta the", {}, {}, lens::core::Difficulty::byRank(0), 3, false);
     EXPECT_EQ(surfaces(words), std::vector<std::string>{"the"});
 }
 
 TEST_F(CoreTest, CommentLinesOfTheInformalFileAreNotSpellings)
 {
     // "maintained" appears only in the file's header comment; a comment line must not reach the list.
-    const auto words = lens::core::filterWords("maintained the", {}, lens::core::Difficulty::byRank(0), 3, false);
+    const auto words = lens::core::filterWords("maintained the", {}, {}, lens::core::Difficulty::byRank(0), 3, false);
     EXPECT_EQ(surfaces(words), (std::vector<std::string>{"maintained", "the"}));
 }
 
 TEST_F(CoreTest, AKnownBaseCoversItsInflectedForms)
 {
-    const auto words = lens::core::filterWords("shoes", {"shoe"}, lens::core::difficultyForLevel(2));
+    const auto words = lens::core::filterWords("shoes", {"shoe"}, {}, lens::core::difficultyForLevel(2));
     ASSERT_EQ(words.size(), 1u);
     EXPECT_EQ(words.front().state, lens::core::CandidateState::Known);
 }
@@ -559,8 +541,8 @@ TEST_F(KnownStoreTest, FreshStoreHoldsTheDocumentedDefaults)
 TEST_F(KnownStoreTest, MarkSeparatesKnownFromNewWords)
 {
     auto store = KnownStore::load(path);
-    store.mark("ubiquitous", true);
-    store.mark("resilience", false);
+    store.mark("ubiquitous", lens::core::WordVerdict::Known);
+    store.mark("resilience", lens::core::WordVerdict::None);
 
     EXPECT_TRUE(store.isKnown("ubiquitous"));
     EXPECT_FALSE(store.isKnown("resilience"));
@@ -569,10 +551,63 @@ TEST_F(KnownStoreTest, MarkSeparatesKnownFromNewWords)
     EXPECT_EQ(store.known().count("resilience"), 0);
 }
 
+TEST_F(KnownStoreTest, AMasteredVerdictStandsBesideKnownAndExcludesIt)
+{
+    auto store = KnownStore::load(path);
+    store.mark("ubiquitous", lens::core::WordVerdict::Mastered);
+    store.mark("resilience", lens::core::WordVerdict::Known);
+
+    EXPECT_TRUE(store.isMasteredVerdict("ubiquitous"));
+    EXPECT_FALSE(store.isKnown("ubiquitous")); // one verdict per word: mastering replaced the known mark
+    EXPECT_TRUE(store.isKnown("resilience"));
+    EXPECT_EQ(store.mastered().count("ubiquitous"), 1);
+    EXPECT_EQ(store.known().count("resilience"), 1);
+    EXPECT_EQ(store.known().count("ubiquitous"), 0);
+}
+
+TEST_F(KnownStoreTest, AMasteredVerdictSurvivesASaveAndReload)
+{
+    {
+        auto store = KnownStore::load(path);
+        store.mark("ubiquitous", lens::core::WordVerdict::Mastered);
+        store.save();
+    }
+    const auto store = KnownStore::load(path);
+    EXPECT_TRUE(store.isMasteredVerdict("ubiquitous"));
+    EXPECT_FALSE(store.isKnown("ubiquitous"));
+}
+
+TEST_F(KnownStoreTest, AClearVoteTakesAMasteredVerdictBackAndRidesSync)
+{
+    auto store = KnownStore::load(path);
+    store.mark("ubiquitous", lens::core::WordVerdict::Mastered);
+    store.mark("ubiquitous", lens::core::WordVerdict::None);
+    EXPECT_FALSE(store.isMasteredVerdict("ubiquitous"));
+    EXPECT_FALSE(store.isKnown("ubiquitous"));
+    // The clear vote rides sync as learned=false, so it can retire another device's older verdict
+    // (docs/adr/0147's newest-wins, now over two verdicts).
+    const auto marks = store.syncMarks();
+    EXPECT_FALSE(marks["known"]["ubiquitous"]["learned"]);
+    EXPECT_FALSE(marks["known"]["ubiquitous"]["mastered"]);
+}
+
+TEST_F(KnownStoreTest, AMarkWithoutTheMasteredFieldReadsAsKnown)
+{
+    auto store = KnownStore::load(path);
+    // The shape an old client syncs: learned alone. The downgrade read of a mastered word is
+    // exactly known -- that is the compatibility the wire shape buys (docs/adr/0159).
+    store.applySyncMarks(nlohmann::json::parse(R"({"w": {"learned": true, "at": 5}})"), nlohmann::json::object());
+    EXPECT_TRUE(store.isKnown("w"));
+    EXPECT_FALSE(store.isMasteredVerdict("w"));
+    store.applySyncMarks(nlohmann::json::parse(R"({"w": {"learned": true, "mastered": true, "at": 6}})"), nlohmann::json::object());
+    EXPECT_TRUE(store.isMasteredVerdict("w"));
+    EXPECT_FALSE(store.isKnown("w"));
+}
+
 TEST_F(KnownStoreTest, ChangingTheLevelLeavesTheKnownSetAlone)
 {
     auto store = KnownStore::load(path);
-    store.mark("ubiquitous", true);
+    store.mark("ubiquitous", lens::core::WordVerdict::Known);
     const auto before = store.known();
     store.setLevel(6);
     EXPECT_EQ(store.known(), before);

@@ -3,19 +3,23 @@
 /**
  * @file pencil_duty.h
  * @brief The pencil layer's state: the dashed line under each word the page holds, the signpost shown
- *        beside it while Alt is held, and the bubble of the word under the pointer.
+ *        beside it while Alt is held, the bubble of the word under the pointer, and the floating mark
+ *        button a resting pointer raises over a dashed word.
  *
  * The words come from CaptureDuty's page scan, placed on the page by the OCR and the page's text. Nothing
- * here reads the screen. Positions are kept in physical pixels until they reach QML, where the layer
- * window's device-independent coordinates are the ones the view uses.
+ * here reads the screen beyond the pointer's position, polled on a timer -- the layer itself takes no
+ * input, so hover is geometry, not events (docs/adr/0160). Positions are kept in physical pixels until
+ * they reach QML, where the layer window's device-independent coordinates are the ones the view uses.
  */
 
 #include <QObject>
 #include <QPoint>
 #include <QRect>
+#include <QSize>
 #include <QString>
 #include <QTimer>
 #include <QVariantList>
+#include <QVariantMap>
 #include <QVector>
 
 #include <QtQml/qqmlregistration.h>
@@ -39,6 +43,10 @@ class PencilDuty final : public QObject {
     Q_PROPERTY(bool altHeld READ altHeld NOTIFY changed)
     Q_PROPERTY(QRect screen READ screen NOTIFY changed)
     Q_PROPERTY(QVariantList marks READ marks NOTIFY changed)
+    /// The floating mark button, when one stands: {lemma, x, y, width} -- the anchor word's top-left
+    /// in device-independent screen coordinates and the word's width, which the button centres on.
+    /// Empty when no button stands (docs/adr/0160).
+    Q_PROPERTY(QVariantMap markButton READ markButton NOTIFY changed)
 
 public:
     PencilDuty(CaptureDuty& capture, ExplanationDuty& explanation, QObject* parent = nullptr);
@@ -49,12 +57,15 @@ public:
     bool altHeld() const;
     /// @return The device-independent geometry of the monitor the layer covers.
     QRect screen() const;
-    /// @return One entry per word: {lemma, x, y, width, height, signpost, hovered}, in device-independent
-    ///         pixels relative to the layer. The signpost is empty unless Alt is held and one is stored.
+    /// @return One entry per word: {lemma, verdict, x, y, width, height, signpost, hovered}, in
+    ///         device-independent pixels relative to the layer. Verdict is "new" or "known" -- the
+    ///         line the word draws. The signpost is empty unless Alt is held and one is stored.
     QVariantList marks() const;
+    QVariantMap  markButton() const;
 
 public slots:
-    /// @brief The scan placed words on the page; @p words are {lemma, surface, x, y, width, height} in physical pixels.
+    /// @brief The scan placed words on the page; @p words are {lemma, surface, verdict, x, y, width, height}
+    ///        in physical pixels.
     /// @param screen       The monitor's geometry in device-independent pixels.
     /// @param screenOrigin The monitor's top-left in physical pixels.
     /// @param scale        The monitor's device pixels per device-independent pixel.
@@ -65,10 +76,19 @@ public slots:
     void altDown();
     /// @brief The Alt key came up: the signposts and the bubble go with it.
     void altUp();
+    /// @brief The reader changed @p lemma's verdict: its occurrences take the new line, and a
+    ///        mastered one leaves the layer at once -- the scan no longer places it.
+    void verdictChanged(QString lemma, QString verdict);
 
 public:
-    /// @brief Keep the layer window out of screen captures each time it shows, so the scan never reads its own lines.
-    Q_INVOKABLE void keepOutOfCapture(QObject* window);
+    /// @brief Keep @p window out of screen captures each time it shows, so the scan never reads the
+    ///        layer's own lines. @p passthrough also makes clicks fall through; the mark button's
+    ///        window must take clicks, so it passes false (docs/adr/0160).
+    Q_INVOKABLE void keepOutOfCapture(QObject* window, bool passthrough = true);
+    /// @brief The button window reports its own geometry, so the keep-alive rectangle is the one
+    ///        actually drawn -- placeX clamps at the screen edge, and a recomputed rectangle would
+    ///        drift from the real window there (docs/adr/0160).
+    Q_INVOKABLE void reportMarkButtonGeometry(QPointF pos, QSizeF size);
 
 signals:
     void changed();
@@ -77,22 +97,36 @@ private:
     struct Word {
         QString lemma;
         QString surface;
-        QRect   box; ///< Physical screen pixels.
+        QString verdict = QStringLiteral("new"); ///< "new" or "known": which line the word draws.
+        QRect   box;                             ///< Physical screen pixels.
     };
 
     /// @return The index of the word under @p at, a little generous about its edges; -1 when none.
     int wordAt(QPoint at) const;
     /// @brief Recompute the marks from the current words, the Alt state and the pointer, and say so when they changed.
     void refresh();
+    /// @brief The non-Alt half of refresh(): a pointer resting on a word raises the mark button,
+    ///        one that leaves the word and the button takes it back down (docs/adr/0160).
+    void updateMarkHover();
+    /// @brief Take the mark button down, when one stands.
+    void hideMarkButton();
+    /// @return The pointer in device-independent screen coordinates, the frame the mark button's
+    ///         keep-alive rectangle lives in.
+    QPointF cursorDip() const;
 
     CaptureDuty&     capture_;
     ExplanationDuty& explanation_;
     QVector<Word>    words_;
     QRect            screen_;
     QPoint           screenOrigin_;
-    double           scale_    = 1.0;
-    bool             altHeld_  = false;
-    int              lookedUp_ = -1; ///< The word whose bubble was last asked for while Alt is held.
+    double           scale_      = 1.0;
+    bool             altHeld_    = false;
+    int              lookedUp_   = -1; ///< The word whose bubble was last asked for while Alt is held.
+    int              markStreak_ = 0;  ///< Ticks the pointer has rested on markLemma_'s word.
+    QString          markLemma_;       ///< The word the pointer's dwell is anchored to; a standing button follows it across the line.
+    QVariantMap      markButton_;
+    QPointF          markButtonPos_;          ///< The button window's own report of its position.
+    QSizeF           markButtonSize_{96, 26}; ///< The button window's own report of its size, for the keep-alive rectangle.
     QVariantList     marks_;
     QTimer           timer_;
 };

@@ -142,10 +142,9 @@ Item {
             }
         }
 
-        // The bubble's two verdict pills, in the same two shapes, with this word's verdict filled
-        // instead of both being actions. The verdict is binary (docs/adr/0147): a word not marked
-        // known is a new word, so New is filled unless Known is -- an unmarked row carries its
-        // state, and Known is the one move that changes it.
+        // The bubble's three verdict pills, in the same shapes, with this word's verdict filled
+        // instead of all being actions. The verdict is one of three (docs/adr/0159): the pill the
+        // word stands in is filled, and pressing any pill is the move to that verdict.
         Row {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 6
@@ -193,13 +192,60 @@ Item {
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler {
                     id: knownTap
-                    onTapped: Controller.explanationDuty.mark(entry.word, true)
+                    onTapped: Controller.explanationDuty.mark(entry.word, "known")
+                }
+            }
+
+            Rectangle {
+                id: masteredPill
+                readonly property bool current: entry.verdict === "mastered"
+                anchors.verticalCenter: parent.verticalCenter
+                width: masteredLabel.width + 13
+                height: 20
+                radius: entry.host.tokens.radiusPill
+                color: current ? entry.host.tokens.ink : entry.host.tokens.panel2
+                border.width: 1
+                border.color: current ? entry.host.tokens.ink : entry.host.tokens.line
+                scale: masteredTap.pressed ? 0.97 : 1.0
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: entry.host.tokens.motion.press
+                        easing.type: entry.host.tokens.motion.easing
+                    }
+                }
+
+                activeFocusOnTab: true
+                Accessible.role: Accessible.Button
+                Accessible.name: masteredLabel.text
+                Accessible.onPressAction: masteredTap.tapped()
+                Keys.onPressed: (event) => {
+                    if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return
+                         || event.key === Qt.Key_Space) && !event.isAutoRepeat) {
+                        event.accepted = true;
+                        masteredTap.tapped();
+                    }
+                }
+                FocusRing { radius: entry.host.tokens.radiusPill }
+
+                Text {
+                    id: masteredLabel
+                    anchors.centerIn: parent
+                    text: qsTr("Mastered")
+                    color: masteredPill.current ? entry.host.tokens.on : entry.host.tokens.muted
+                    font.pixelSize: 11
+                    font.weight: Font.Bold
+                }
+
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler {
+                    id: masteredTap
+                    onTapped: Controller.explanationDuty.mark(entry.word, "mastered")
                 }
             }
 
             Rectangle {
                 id: newPill
-                readonly property bool current: entry.verdict !== "known"
+                readonly property bool current: entry.verdict === "new"
                 anchors.verticalCenter: parent.verticalCenter
                 width: newLabel.width + 13
                 height: 20
@@ -240,7 +286,7 @@ Item {
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler {
                     id: newTap
-                    onTapped: Controller.explanationDuty.mark(entry.word, false)
+                    onTapped: Controller.explanationDuty.mark(entry.word, "new")
                 }
             }
         }

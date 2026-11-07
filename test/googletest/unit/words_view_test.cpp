@@ -31,6 +31,7 @@ TEST(WordsView, ScopeVocabularyIsTheExportsOwn)
 {
     EXPECT_EQ(parseScope(QStringLiteral("all")), lens::core::ExportScope::All);
     EXPECT_EQ(parseScope(QStringLiteral("known")), lens::core::ExportScope::Known);
+    EXPECT_EQ(parseScope(QStringLiteral("mastered")), lens::core::ExportScope::Mastered);
     EXPECT_EQ(parseScope(QStringLiteral("new")), lens::core::ExportScope::New);
     EXPECT_FALSE(parseScope(QStringLiteral("nonsense")).has_value());
     EXPECT_FALSE(parseScope(QString{}).has_value());
@@ -64,7 +65,7 @@ TEST(WordsView, RowsKeepTheNewestEntryPerLemmaAndCountEveryPop)
         {"ghost", "not a time", ""},
     };
 
-    const auto rows = wordRows(QDate(2026, 10, 18), history, known);
+    const auto rows = wordRows(QDate(2026, 10, 18), history, known, {});
     ASSERT_EQ(rows.size(), 3);
 
     const auto bank = rows.at(0).toMap();
@@ -95,23 +96,68 @@ TEST(WordsView, AnUnmarkedWordCarriesTheNewVerdict)
         {"river", "2026-10-17 10:00", ""},
     };
 
-    const auto rows = wordRows(QDate(2026, 10, 18), history, known);
+    const auto rows = wordRows(QDate(2026, 10, 18), history, known, {});
     ASSERT_EQ(rows.size(), 2);
     EXPECT_EQ(rows.at(0).toMap().value("verdict").toString(), QStringLiteral("new"));
     EXPECT_EQ(rows.at(1).toMap().value("verdict").toString(), QStringLiteral("known"));
+}
+
+/// The verdict is one of three: a word in the mastered set reads mastered before the known set is
+/// asked, and one in neither set stays new (docs/adr/0159).
+TEST(WordsView, AMasteredWordCarriesTheMasteredVerdict)
+{
+    const std::unordered_set<std::string>       known{"river"};
+    const std::unordered_set<std::string>       mastered{"bank"};
+    const std::vector<lens::core::HistoryEntry> history{
+        {"bank", "2026-10-18 09:00", ""},
+        {"river", "2026-10-17 10:00", ""},
+    };
+
+    const auto rows = wordRows(QDate(2026, 10, 18), history, known, mastered);
+    ASSERT_EQ(rows.size(), 2);
+    EXPECT_EQ(rows.at(0).toMap().value("verdict").toString(), QStringLiteral("mastered"));
+    EXPECT_EQ(rows.at(1).toMap().value("verdict").toString(), QStringLiteral("known"));
+}
+
+/// The verdict store's own words are rows too, even without a history entry: the pencil layer's
+/// mark button, an import or a sync can mark a word that was never popped (docs/adr/0159). They
+/// follow the history's rows in lemma order, with no time and a zero pop count.
+TEST(WordsView, AVerdictWordTheHistoryNeverSawStillTakesARow)
+{
+    const std::unordered_set<std::string>       known{"river"};
+    const std::unordered_set<std::string>       mastered{"bank", "auntie"};
+    const std::vector<lens::core::HistoryEntry> history{
+        {"river", "2026-10-17 10:00", "known"},
+    };
+
+    const auto rows = wordRows(QDate(2026, 10, 18), history, known, mastered);
+    ASSERT_EQ(rows.size(), 3);
+    EXPECT_EQ(rows.at(0).toMap().value("word").toString(), QStringLiteral("river"));
+    EXPECT_EQ(rows.at(1).toMap().value("word").toString(), QStringLiteral("auntie"));
+    EXPECT_EQ(rows.at(1).toMap().value("verdict").toString(), QStringLiteral("mastered"));
+    EXPECT_EQ(rows.at(1).toMap().value("day").toString(), QString());
+    EXPECT_EQ(rows.at(1).toMap().value("pops").toInt(), 0);
+    EXPECT_EQ(rows.at(2).toMap().value("word").toString(), QStringLiteral("bank"));
+    EXPECT_EQ(rows.at(2).toMap().value("verdict").toString(), QStringLiteral("mastered"));
 }
 
 TEST(WordsView, TheFilterAndAnExportShareTheScopeRule)
 {
     const lens::app::WordRow known{"bank", "today", "10-20", "09:00", "known", 2};
     const lens::app::WordRow fresh{"river", "today", "10-20", "10:00", "new", 1};
+    const lens::app::WordRow retired{"ghost", "today", "10-20", "11:00", "mastered", 1};
 
     EXPECT_TRUE(rowInScope(known, lens::core::ExportScope::All));
     EXPECT_TRUE(rowInScope(fresh, lens::core::ExportScope::All));
+    EXPECT_TRUE(rowInScope(retired, lens::core::ExportScope::All));
     EXPECT_TRUE(rowInScope(known, lens::core::ExportScope::Known));
     EXPECT_FALSE(rowInScope(fresh, lens::core::ExportScope::Known));
+    EXPECT_FALSE(rowInScope(retired, lens::core::ExportScope::Known));
+    EXPECT_TRUE(rowInScope(retired, lens::core::ExportScope::Mastered));
+    EXPECT_FALSE(rowInScope(known, lens::core::ExportScope::Mastered));
     EXPECT_TRUE(rowInScope(fresh, lens::core::ExportScope::New));
     EXPECT_FALSE(rowInScope(known, lens::core::ExportScope::New));
+    EXPECT_FALSE(rowInScope(retired, lens::core::ExportScope::New));
 }
 
 TEST(WordsView, ImportReadsTextAndTheTwoJsonShapes)

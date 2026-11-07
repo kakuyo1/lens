@@ -284,7 +284,7 @@ TEST(SyncRound, TheFingerprintIsTakenAfterTheMergedDocumentIsApplied)
     EXPECT_TRUE(json::parse(*plaintext).at("known").contains("river"));
 
     // A mark made afterwards is new again, which is what schedules the next run.
-    fixture.store.mark("lemon", true);
+    fixture.store.mark("lemon", lens::core::WordVerdict::Known);
     EXPECT_TRUE(fixture.round.carriesNewContent());
 }
 

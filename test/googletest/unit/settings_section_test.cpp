@@ -270,6 +270,7 @@ const StampedKey kStampedKeys[] = {
     {"level", "KnownStore"},
     {"explanationLang", "KnownStore"},
     {"known", "KnownStore"},
+    {"mastered", "KnownStore"},
     {"cache", "KnownStore"},
     {"markTimes", "KnownStore"},
     {"history", "StatsStore"},

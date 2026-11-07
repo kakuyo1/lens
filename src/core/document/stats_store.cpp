@@ -251,13 +251,16 @@ namespace {
 /// @return The lemmas @p scope covers, one per lemma and newest first: the rows every words export shares.
 std::vector<std::string> scopedLemmas(const std::vector<HistoryEntry>&       history,
                                       ExportScope                            scope,
-                                      const std::unordered_set<std::string>& knownLemmas)
+                                      const std::unordered_set<std::string>& knownLemmas,
+                                      const std::unordered_set<std::string>& masteredLemmas)
 {
-    // The scope follows the known set, the way the words popup's verdicts do: a lemma is known
-    // when the set holds it and new when it does not, whatever its newest entry's own stamp says.
-    const auto wanted = [scope, &knownLemmas](const std::string& lemma) {
+    // The scope follows the verdict sets, the way the words popup's verdicts do: a lemma is
+    // mastered or known when its set holds it and new when neither does, whatever its newest
+    // entry's own stamp says. Mastered is checked first, as the stronger verdict.
+    const auto wanted = [scope, &knownLemmas, &masteredLemmas](const std::string& lemma) {
         if (scope == ExportScope::Known) return knownLemmas.count(lemma) > 0;
-        if (scope == ExportScope::New) return knownLemmas.count(lemma) == 0;
+        if (scope == ExportScope::Mastered) return masteredLemmas.count(lemma) > 0;
+        if (scope == ExportScope::New) return knownLemmas.count(lemma) == 0 && masteredLemmas.count(lemma) == 0;
         return true;
     };
 
@@ -269,6 +272,21 @@ std::vector<std::string> scopedLemmas(const std::vector<HistoryEntry>&       his
         if (seen.insert(entry.lemma).second && wanted(entry.lemma))
             lemmas.push_back(entry.lemma);
     }
+
+    // The verdict store's words the history never saw -- the pencil layer's mark button, an import,
+    // another device's sync -- are the reader's vocabulary too: they export after the history's
+    // own, in lemma order, the same rows the popup lists (docs/adr/0159).
+    std::vector<std::string> extra;
+    for (const std::string& lemma : masteredLemmas)
+        if (wanted(lemma))
+            extra.push_back(lemma);
+    for (const std::string& lemma : knownLemmas)
+        if (wanted(lemma))
+            extra.push_back(lemma);
+    std::sort(extra.begin(), extra.end());
+    for (const std::string& lemma : extra)
+        if (seen.insert(lemma).second)
+            lemmas.push_back(lemma);
     return lemmas;
 }
 
@@ -302,10 +320,11 @@ std::string cardRow(const std::vector<std::string>& fields, char delimiter)
 
 std::string exportLemmas(const std::vector<HistoryEntry>&       history,
                          ExportScope                            scope,
-                         const std::unordered_set<std::string>& knownLemmas)
+                         const std::unordered_set<std::string>& knownLemmas,
+                         const std::unordered_set<std::string>& masteredLemmas)
 {
     std::string text;
-    for (const std::string& lemma : scopedLemmas(history, scope, knownLemmas)) {
+    for (const std::string& lemma : scopedLemmas(history, scope, knownLemmas, masteredLemmas)) {
         text += lemma;
         text += '\n';
     }
@@ -314,10 +333,11 @@ std::string exportLemmas(const std::vector<HistoryEntry>&       history,
 
 std::string exportLemmasJson(const std::vector<HistoryEntry>&       history,
                              ExportScope                            scope,
-                             const std::unordered_set<std::string>& knownLemmas)
+                             const std::unordered_set<std::string>& knownLemmas,
+                             const std::unordered_set<std::string>& masteredLemmas)
 {
     nlohmann::json out = nlohmann::json::array();
-    for (const std::string& lemma : scopedLemmas(history, scope, knownLemmas))
+    for (const std::string& lemma : scopedLemmas(history, scope, knownLemmas, masteredLemmas))
         out.push_back(lemma);
     return out.dump();
 }
@@ -331,7 +351,7 @@ std::string exportCards(const std::vector<HistoryEntry>& history, ExportScope sc
     else
         text = "#separator:tab\n";
 
-    for (const std::string& lemma : scopedLemmas(history, scope, store.known())) {
+    for (const std::string& lemma : scopedLemmas(history, scope, store.known(), store.mastered())) {
         // A word explained only with multiple senses is stored under that context; its top-level fields are the first sense's.
         auto cached = store.cacheGet(lemma);
         if (!cached)

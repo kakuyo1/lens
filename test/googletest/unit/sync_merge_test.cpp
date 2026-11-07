@@ -40,10 +40,10 @@ TEST(SyncMerge, NewerMarkBeatsOlderMark)
     const json remote = json{{"known", json{{"panel", json{{"learned", false}, {"at", 200}}}}}};
 
     const json merged = merge(local, remote, kThisDevice);
-    EXPECT_EQ(merged["known"]["panel"], (json{{"learned", false}, {"at", 200}}));
+    EXPECT_EQ(merged["known"]["panel"], (json{{"learned", false}, {"mastered", false}, {"at", 200}}));
 
     const json swapped = merge(remote, local, kThisDevice);
-    EXPECT_EQ(swapped["known"]["panel"], (json{{"learned", false}, {"at", 200}}));
+    EXPECT_EQ(swapped["known"]["panel"], (json{{"learned", false}, {"mastered", false}, {"at", 200}}));
 }
 
 TEST(SyncMerge, NewerTombstoneBeatsOlderMark)
@@ -62,7 +62,7 @@ TEST(SyncMerge, MarkingAfterADeleteRestoresTheWord)
     const json remote = json{{"known", json{{"panel", json{{"learned", true}, {"at", 400}}}}}};
 
     const json merged = merge(local, remote, kThisDevice);
-    EXPECT_EQ(merged["known"]["panel"], (json{{"learned", true}, {"at", 400}}));
+    EXPECT_EQ(merged["known"]["panel"], (json{{"learned", true}, {"mastered", false}, {"at", 400}}));
     EXPECT_FALSE(merged["deleted"].contains("panel"));
 }
 
@@ -70,7 +70,7 @@ TEST(SyncMerge, TieKeepsTheLocalMarkAndTheTombstoneWins)
 {
     const json mark  = json{{"known", json{{"panel", json{{"learned", true}, {"at", 100}}}}}};
     const json other = json{{"known", json{{"panel", json{{"learned", false}, {"at", 100}}}}}};
-    EXPECT_EQ(merge(mark, other, kThisDevice)["known"]["panel"], (json{{"learned", true}, {"at", 100}}));
+    EXPECT_EQ(merge(mark, other, kThisDevice)["known"]["panel"], (json{{"learned", true}, {"mastered", false}, {"at", 100}}));
 
     const json tomb   = json{{"deleted", json{{"panel", 100}}}};
     const json merged = merge(mark, tomb, kThisDevice);
@@ -83,7 +83,30 @@ TEST(SyncMerge, MissingTimestampCountsAsZero)
     const json unstamped = json{{"known", json{{"panel", json{{"learned", true}}}}}};
     const json stamped   = json{{"known", json{{"panel", json{{"learned", false}, {"at", 1}}}}}};
 
-    EXPECT_EQ(merge(unstamped, stamped, kThisDevice)["known"]["panel"], (json{{"learned", false}, {"at", 1}}));
+    EXPECT_EQ(merge(unstamped, stamped, kThisDevice)["known"]["panel"], (json{{"learned", false}, {"mastered", false}, {"at", 1}}));
+}
+
+TEST(SyncMerge, AMasteredMarkBeatsAnOlderKnownOne)
+{
+    const json local  = json{{"known", json{{"panel", json{{"learned", true}, {"at", 100}}}}}};
+    const json remote = json{{"known", json{{"panel", json{{"learned", true}, {"mastered", true}, {"at", 200}}}}}};
+
+    const json merged = merge(local, remote, kThisDevice);
+    EXPECT_EQ(merged["known"]["panel"], (json{{"learned", true}, {"mastered", true}, {"at", 200}}));
+
+    const json swapped = merge(remote, local, kThisDevice);
+    EXPECT_EQ(swapped["known"]["panel"], (json{{"learned", true}, {"mastered", true}, {"at", 200}}));
+}
+
+TEST(SyncMerge, AClearVoteRetiresAnOlderMasteredVerdict)
+{
+    // The reader cleared the word on one device ("new"): the newer learned=false outvotes the
+    // older mastered mark, whatever the other device still holds (docs/adr/0159).
+    const json local  = json{{"known", json{{"panel", json{{"learned", true}, {"mastered", true}, {"at", 100}}}}}};
+    const json remote = json{{"known", json{{"panel", json{{"learned", false}, {"at", 200}}}}}};
+
+    const json merged = merge(local, remote, kThisDevice);
+    EXPECT_EQ(merged["known"]["panel"], (json{{"learned", false}, {"mastered", false}, {"at", 200}}));
 }
 
 TEST(SyncMerge, HistoryUnionDedupesAndSortsNewestFirst)
@@ -193,7 +216,7 @@ TEST(SyncMerge, MergeIsIdempotentAndSymmetricWithoutTies)
         {"settings", json{{"level", json{{"value", 3}, {"at", 20}}}}}};
 
     const json merged = merge(local, remote, kThisDevice);
-    EXPECT_EQ(merged["known"], (json{{"panel", json{{"learned", true}, {"at", 100}}}, {"alpha", json{{"learned", false}, {"at", 200}}}}));
+    EXPECT_EQ(merged["known"], (json{{"panel", json{{"learned", true}, {"mastered", false}, {"at", 100}}}, {"alpha", json{{"learned", false}, {"mastered", false}, {"at", 200}}}}));
     EXPECT_EQ(merged["deleted"], (json{{"beta", 90}}));
     EXPECT_EQ(merged["history"].size(), 2u);
 

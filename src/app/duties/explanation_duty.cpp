@@ -310,7 +310,7 @@ QVariantMap ExplanationDuty::chainEntry(llm::Explanation const& explanation, cor
     const word_answer::Switches switches{.ipa          = showsCardBlock("ipa"),
                                          .signpost     = showsCardBlock("signpost"),
                                          .collocations = showsCardBlock("collocations")};
-    return word_answer::chainEntry(explanation, QString::fromStdString(context.language), switches, storage_.knownStore().level());
+    return word_answer::chainEntry(explanation, QString::fromStdString(context.language), switches, storage_.knownStore().level(), storage_.knownStore().mastered());
 }
 
 void ExplanationDuty::requestPeek()
@@ -404,7 +404,7 @@ void ExplanationDuty::emitSenseSwapped(CardSession::CycleView const& view, QStri
 {
     const bool  showSignpost = showsCardBlock("signpost");
     const bool  showPictures = showsCardBlock("pictures");
-    QVariantMap row          = word_answer::senseRow(view.sense, language, showPictures, storage_.knownStore().level());
+    QVariantMap row          = word_answer::senseRow(view.sense, language, showPictures, storage_.knownStore().level(), storage_.knownStore().mastered());
     // The payload keeps agreeing with the card, so a refresh of the same card -- a verdict, a
     // replay -- draws the sense the reader moved to, not the answer's own first one.
     bubble_.insert(QStringLiteral("senses"), QVariantList{row});
@@ -570,9 +570,10 @@ void ExplanationDuty::send(llm::ExplainRequest request, ExplanationBatch const& 
 {
     for (auto const& item : batch.items) {
         if (isWordKind(item.kind))
+            // The daily tally keeps two columns, so a mastered word's pop reads into the known one.
             storage_.statsStore().recordPop(item.lemma.toStdString(),
                                             nowMinute().toStdString(),
-                                            storage_.knownStore().isKnown(item.lemma.toStdString()),
+                                            storage_.knownStore().isKnown(item.lemma.toStdString()) || storage_.knownStore().isMasteredVerdict(item.lemma.toStdString()),
                                             storage_.knownStore().explanationLang());
     }
     // The request goes out with nothing previewed yet: the first preview of this one is the line
@@ -650,7 +651,7 @@ void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card, bool
                                              .etymology    = etymologyEnabled(),
                                              .example      = exampleEnabled()};
         const QString               language = QString::fromStdString(context.language);
-        const QVariantMap           fields   = word_answer::cardFields(explanation, language, switches, storage_.knownStore().level());
+        const QVariantMap           fields   = word_answer::cardFields(explanation, language, switches, storage_.knownStore().level(), storage_.knownStore().mastered());
         for (auto it = fields.cbegin(); it != fields.cend(); ++it)
             payload.insert(it.key(), it.value());
         QVariantList senses;
@@ -663,7 +664,7 @@ void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card, bool
             for (const auto& sense : entries) {
                 if (senses.size() >= llm::kMaxSenses)
                     break;
-                senses.append(word_answer::senseRow(sense, language, switches.pictures, storage_.knownStore().level()));
+                senses.append(word_answer::senseRow(sense, language, switches.pictures, storage_.knownStore().level(), storage_.knownStore().mastered()));
             }
             payload.insert(QStringLiteral("senseCycle"), false);
             payload.insert(QStringLiteral("senseIndex"), 0);
@@ -674,14 +675,17 @@ void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card, bool
             // the session keeps the senses bought for the word, the answer's own first, and the
             // card draws the one at the cycle's index.
             auto const& cycle = *card.cycle;
-            senses.append(word_answer::senseRow(cycle.sense, language, switches.pictures, storage_.knownStore().level()));
+            senses.append(word_answer::senseRow(cycle.sense, language, switches.pictures, storage_.knownStore().level(), storage_.knownStore().mastered()));
             payload.insert(QStringLiteral("senseCycle"), cycle.offered);
             payload.insert(QStringLiteral("senseIndex"), cycle.index);
             payload.insert(QStringLiteral("senseHint"), cycle.hint);
             payload.insert(QStringLiteral("senseExhausted"), cycle.exhausted);
         }
         payload.insert(QStringLiteral("senses"), senses);
-        payload.insert(QStringLiteral("status"), storage_.knownStore().isKnown(explanation.title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
+        payload.insert(QStringLiteral("status"),
+                       storage_.knownStore().isMasteredVerdict(explanation.title.toStdString()) ? QStringLiteral("mastered")
+                       : storage_.knownStore().isKnown(explanation.title.toStdString())         ? QStringLiteral("known")
+                                                                                                : QStringLiteral("new"));
     }
     // The exchange raised this card a step earlier, which is what settled its identity and reset
     // the review life: a scan bubble must not be taken down by the pointer leaving a word the
@@ -740,9 +744,12 @@ void ExplanationDuty::showWaiting(ExplanationExchange::CardView const& card)
                         {"x", selection.anchor.x()},
                         {"y", selection.anchor.y()}};
     if (isWordKind(selection.kind)) {
-        // The badge is the store's rather than the model's: the word is already a known one or a new
-        // one at the moment of the click, and nothing in the answer changes which.
-        payload.insert(QStringLiteral("status"), storage_.knownStore().isKnown(card.answer.title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
+        // The badge is the store's rather than the model's: the word already stands in a verdict at
+        // the moment of the click, and nothing in the answer changes which.
+        payload.insert(QStringLiteral("status"),
+                       storage_.knownStore().isMasteredVerdict(card.answer.title.toStdString()) ? QStringLiteral("mastered")
+                       : storage_.knownStore().isKnown(card.answer.title.toStdString())         ? QStringLiteral("known")
+                                                                                                : QStringLiteral("new"));
     }
     bubble_ = payload;
     clearNotice();
@@ -757,9 +764,10 @@ ExchangeFacts ExplanationDuty::facts() const
 void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool const save)
 {
     if (not outcome.popLemma.isEmpty()) {
+        // The daily tally keeps two columns, so a mastered word's pop reads into the known one.
         storage_.statsStore().recordPop(outcome.popLemma.toStdString(),
                                         nowMinute().toStdString(),
-                                        storage_.knownStore().isKnown(outcome.popLemma.toStdString()),
+                                        storage_.knownStore().isKnown(outcome.popLemma.toStdString()) || storage_.knownStore().isMasteredVerdict(outcome.popLemma.toStdString()),
                                         storage_.knownStore().explanationLang());
         if (save) {
             storage_.save();
@@ -850,23 +858,32 @@ void ExplanationDuty::clearBubble()
     emit petEvent(core::pet::PetEvent::ExplanationHidden);
 }
 
-void ExplanationDuty::mark(QString lemma, bool learned)
+void ExplanationDuty::mark(QString lemma, QString verdict)
 {
-    // "Known" is the verdict the reader gives; "new" is the state every unmarked word already
-    // carries, so pressing it on an unmarked word confirms the stamp it got at pop time
-    // (docs/adr/0147). The false mark still reaches the sync merge, where it can outvote an
-    // older "known" from another device.
+    // The verdict is the reader's own; "new" is the state every unmarked word already carries, so
+    // pressing it on an unmarked word confirms the stamp it got at pop time (docs/adr/0147). The
+    // clear vote still reaches the sync merge, where it can outvote an older verdict from another
+    // device, and "mastered" retires the word from the scan, the review pool and the chain
+    // (docs/adr/0159). The statistics keep two columns, so a mastered verdict stamps "known".
     auto const* card = exchange_.card().subject();
     if (not bubble_.isEmpty() and card != nullptr and card->kind != core::SelectionKind::Word and bubble_.value("title").toString() == lemma)
         return;
-    const std::string key = lemma.toStdString();
-    storage_.knownStore().mark(key, learned);
-    storage_.statsStore().recordVerdict(key, nowMinute().toStdString(), learned ? "known" : "new");
+    const auto        state = verdict == QStringLiteral("mastered") ? core::WordVerdict::Mastered
+                              : verdict == QStringLiteral("known")  ? core::WordVerdict::Known
+                                                                    : core::WordVerdict::None;
+    const std::string key   = lemma.toStdString();
+    LENS_INFO("verdict marked: '{}' -> {}", key, verdict.toStdString());
+    storage_.knownStore().mark(key, state);
+    storage_.statsStore().recordVerdict(key, nowMinute().toStdString(), state == core::WordVerdict::None ? "new" : "known");
     storage_.save();
-    if (bubble_.value("title").toString() == lemma) bubble_["status"] = learned ? QStringLiteral("known") : QStringLiteral("new");
+    if (bubble_.value("title").toString() == lemma)
+        bubble_["status"] = state == core::WordVerdict::Mastered ? QStringLiteral("mastered")
+                            : state == core::WordVerdict::Known  ? QStringLiteral("known")
+                                                                 : QStringLiteral("new");
     emit bubbleChanged();
     emit statsChanged();
-    emit petEvent(learned ? core::pet::PetEvent::KnownMarked : core::pet::PetEvent::NewWordMarked);
+    emit verdictChanged(lemma, verdict);
+    emit petEvent(state == core::WordVerdict::None ? core::pet::PetEvent::NewWordMarked : core::pet::PetEvent::KnownMarked);
 }
 
 void ExplanationDuty::dismissBubble()

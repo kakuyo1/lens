@@ -201,7 +201,7 @@ TEST_F(WordAnswerTest, EveryFieldSurvivesTheStoreAndTheCard)
     wa::Switches switches;
     switches.etymology = true;
     switches.example   = true;
-    const auto payload = wa::cardFields(answer, QStringLiteral("en"), switches, 2);
+    const auto payload = wa::cardFields(answer, QStringLiteral("en"), switches, 2, {});
     EXPECT_EQ(payload.value("ipa").toString(), answer.ipa);
     EXPECT_EQ(payload.value("pos").toString(), answer.pos);
     EXPECT_EQ(payload.value("signpost").toString(), answer.signpost);
@@ -239,7 +239,7 @@ TEST_F(WordAnswerTest, EachSwitchClearsOnlyItsOwnBlock)
     all.etymology = true;
     all.example   = true;
 
-    const auto on = wa::cardFields(answer, QStringLiteral("en"), all, 2);
+    const auto on = wa::cardFields(answer, QStringLiteral("en"), all, 2, {});
     EXPECT_EQ(on.value("ipa").toString(), answer.ipa);
     EXPECT_EQ(on.value("pos").toString(), answer.pos);
     EXPECT_EQ(on.value("signpost").toString(), answer.signpost);
@@ -249,45 +249,45 @@ TEST_F(WordAnswerTest, EachSwitchClearsOnlyItsOwnBlock)
 
     auto off     = all;
     off.ipa      = false;
-    auto payload = wa::cardFields(answer, QStringLiteral("en"), off, 2);
+    auto payload = wa::cardFields(answer, QStringLiteral("en"), off, 2, {});
     EXPECT_TRUE(payload.value("ipa").toString().isEmpty());
     EXPECT_EQ(payload.value("pos").toString(), answer.pos) << "another block was cleared with the pronunciation";
 
     off     = all;
     off.pos = false;
-    payload = wa::cardFields(answer, QStringLiteral("en"), off, 2);
+    payload = wa::cardFields(answer, QStringLiteral("en"), off, 2, {});
     EXPECT_TRUE(payload.value("pos").toString().isEmpty());
     EXPECT_EQ(payload.value("ipa").toString(), answer.ipa);
 
     off          = all;
     off.signpost = false;
-    payload      = wa::cardFields(answer, QStringLiteral("en"), off, 2);
+    payload      = wa::cardFields(answer, QStringLiteral("en"), off, 2, {});
     EXPECT_TRUE(payload.value("signpost").toString().isEmpty());
     EXPECT_EQ(collocationsOf(payload), answer.collocations);
 
     off              = all;
     off.collocations = false;
-    payload          = wa::cardFields(answer, QStringLiteral("en"), off, 2);
+    payload          = wa::cardFields(answer, QStringLiteral("en"), off, 2, {});
     EXPECT_TRUE(collocationsOf(payload).isEmpty());
     EXPECT_EQ(payload.value("signpost").toString(), answer.signpost);
 
     off           = all;
     off.etymology = false;
-    payload       = wa::cardFields(answer, QStringLiteral("en"), off, 2);
+    payload       = wa::cardFields(answer, QStringLiteral("en"), off, 2, {});
     EXPECT_FALSE(payload.contains(QStringLiteral("etymology"))) << "a bought setting was turned into an empty block";
     EXPECT_EQ(payload.value("example").toString(), answer.example);
 
     off         = all;
     off.example = false;
-    payload     = wa::cardFields(answer, QStringLiteral("en"), off, 2);
+    payload     = wa::cardFields(answer, QStringLiteral("en"), off, 2, {});
     EXPECT_FALSE(payload.contains(QStringLiteral("example")));
     EXPECT_EQ(payload.value("etymology").toString(), answer.etymology);
 
     const auto& sense = answer.senses.front();
-    const auto  shown = wa::senseRow(sense, QStringLiteral("en"), true, 2);
+    const auto  shown = wa::senseRow(sense, QStringLiteral("en"), true, 2, {});
     EXPECT_TRUE(shown.value("imageable").toBool());
     EXPECT_EQ(shown.value("imageQuery").toString(), sense.imageQuery);
-    const auto hidden = wa::senseRow(sense, QStringLiteral("en"), false, 2);
+    const auto hidden = wa::senseRow(sense, QStringLiteral("en"), false, 2, {});
     EXPECT_FALSE(hidden.value("imageable").toBool());
     EXPECT_TRUE(hidden.value("imageQuery").toString().isEmpty());
 }
@@ -301,17 +301,17 @@ TEST_F(WordAnswerTest, TheCardDrawsTheLanguageTheAnswerWasBoughtIn)
     EXPECT_EQ(wa::answerText(answer, QStringLiteral("es")), answer.translation);
 
     const auto& sense = answer.senses.front();
-    const auto  en    = wa::senseRow(sense, QStringLiteral("en"), true, 2);
+    const auto  en    = wa::senseRow(sense, QStringLiteral("en"), true, 2, {});
     EXPECT_EQ(en.value("en").toString(), sense.en);
     EXPECT_TRUE(en.value("text").toString().isEmpty());
-    const auto zh = wa::senseRow(sense, QStringLiteral("zh"), true, 2);
+    const auto zh = wa::senseRow(sense, QStringLiteral("zh"), true, 2, {});
     EXPECT_TRUE(zh.value("en").toString().isEmpty());
     EXPECT_EQ(zh.value("text").toString(), sense.zh);
-    const auto es = wa::senseRow(sense, QStringLiteral("es"), true, 2);
+    const auto es = wa::senseRow(sense, QStringLiteral("es"), true, 2, {});
     EXPECT_EQ(es.value("text").toString(), sense.translation);
 
     wa::Switches switches;
-    const auto   entry = wa::chainEntry(answer, QStringLiteral("en"), switches, 2);
+    const auto   entry = wa::chainEntry(answer, QStringLiteral("en"), switches, 2, {});
     EXPECT_EQ(entry.value("title").toString(), answer.title);
     EXPECT_EQ(entry.value("ipa").toString(), answer.ipa);
     EXPECT_EQ(entry.value("text").toString(), answer.en);

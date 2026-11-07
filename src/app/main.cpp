@@ -290,13 +290,27 @@ int main(int argc, char* argv[])
     LENS_INFO("settings document: {}", narrow(settings));
     KnownStore store = KnownStore::load(settings);
 
-    // The reader's own wordbook (docs/adr/0158) joins the line the wordbooks drew. It is loaded
-    // here rather than beside them because its path lives in the settings document, and a missing
-    // file only warns -- the settings page says so, and startup does not fail over a wordbook.
-    if (const auto* const customRow = lens::core::settings::find("customWordlist")) {
-        const auto customPath = lens::app::settings::read(store.section(), *customRow).toString().toStdString();
-        if (!customPath.empty())
-            lens::core::loadCustomWordbook(customPath);
+    // The custom wordbook (docs/adr/0158) retired into a one-time import (docs/adr/0159): a path
+    // left over from an earlier build is read once, its words are written into the verdict store
+    // as mastered, and the key is dropped -- the file is never watched afterwards, so a lost one
+    // retires nothing.
+    if (store.document().contains("customWordlist")) {
+        const auto held = store.document().at("customWordlist");
+        if (held.is_string()) {
+            const auto customPath = held.get<std::string>();
+            if (!customPath.empty()) {
+                auto const lemmas = lens::core::parseWordlistFile(customPath);
+                if (!lemmas.empty()) {
+                    for (auto const& lemma : lemmas)
+                        store.mark(lemma, lens::core::WordVerdict::Mastered);
+                    LENS_INFO("the old custom wordbook was imported once: {} mastered verdict(s) from '{}'", lemmas.size(), customPath);
+                } else {
+                    LENS_WARN("the old custom wordbook '{}' could not be read; nothing was imported", customPath);
+                }
+            }
+        }
+        store.document().erase("customWordlist");
+        store.save();
     }
 
     const auto pricing = [&] {

@@ -201,7 +201,7 @@ TEST_F(StatsStoreTest, SaveKeepsBothStoresKeys)
 {
     {
         auto store = KnownStore::load(path);
-        store.mark("ubiquitous", true);
+        store.mark("ubiquitous", lens::core::WordVerdict::Known);
         store.setLevel(3);
         StatsStore stats(store.document());
         stats.recordPop("resilience", "2026-10-03 14:20", false);
@@ -219,7 +219,7 @@ TEST_F(StatsStoreTest, SaveKeepsBothStoresKeys)
 TEST_F(StatsStoreTest, RemovingWordClearsMarksCachesAndHistoryButKeepsUsage)
 {
     auto store = KnownStore::load(path);
-    store.mark("apple", true);
+    store.mark("apple", lens::core::WordVerdict::Known);
     store.cachePut("apple", {"/a/", "apple", "苹果"}, {"en", false});
     // Named rather than positional: five of the six fields are strings, and the one carrying the
     // senses is the one this case is about.
@@ -282,7 +282,7 @@ TEST(WordExport, AllScopeIsEveryLemmaOnceNewestFirst)
 
     // One lemma per line, newest first, ending with a newline -- the shape data/wordlist.txt
     // has, which is what the reader's importer will be reading.
-    EXPECT_EQ(exportLemmas(history, ExportScope::All, none), "second\nfirst\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::All, none, {}), "second\nfirst\n");
 }
 
 /// The scope follows the known set, not the stamps: a word marked known exports as known even
@@ -297,16 +297,44 @@ TEST(WordExport, KnownAndNewFollowTheKnownSet)
               {"third", "2026-10-02 20:00", "new"},
     };
 
-    EXPECT_EQ(exportLemmas(history, ExportScope::Known, known), "second\nfirst\n");
-    EXPECT_EQ(exportLemmas(history, ExportScope::New, known), "third\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::Known, known, {}), "second\nfirst\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::New, known, {}), "third\n");
+}
+
+TEST(WordExport, MasteredFollowsTheMasteredSetAndLeavesTheOtherBuckets)
+{
+    const std::unordered_set<std::string> known{"first"};
+    const std::unordered_set<std::string> mastered{"second"};
+    const std::vector<HistoryEntry>       history{
+              {"second", "2026-10-03 21:00", "new"},
+              {"first", "2026-10-03 09:01", "known"},
+              {"third", "2026-10-02 20:00", "new"},
+    };
+
+    EXPECT_EQ(exportLemmas(history, ExportScope::Mastered, known, mastered), "second\n");
+    // Mastered is the stronger verdict: the word leaves the known and new buckets (docs/adr/0159).
+    EXPECT_EQ(exportLemmas(history, ExportScope::Known, known, mastered), "first\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::New, known, mastered), "third\n");
+}
+
+TEST(WordExport, AVerdictWordTheHistoryNeverSawExportsToo)
+{
+    const std::unordered_set<std::string> known{"first"};
+    const std::unordered_set<std::string> mastered{"vivid", "quiet"};
+    const std::vector<HistoryEntry>       history{{"first", "2026-10-03 09:01", "known"}};
+
+    EXPECT_EQ(exportLemmas(history, ExportScope::Mastered, known, mastered), "quiet\nvivid\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::All, known, mastered), "first\nquiet\nvivid\n");
+    // A verdict word left the new bucket when it was marked: the new scope never sees it.
+    EXPECT_TRUE(exportLemmas(history, ExportScope::New, known, mastered).empty());
 }
 
 TEST(WordExport, NothingMatchingIsAnEmptyString)
 {
     const std::unordered_set<std::string> known{"first"};
     const std::vector<HistoryEntry>       history{{"first", "2026-10-03 09:01", "known"}};
-    EXPECT_TRUE(exportLemmas(history, ExportScope::New, known).empty());
-    EXPECT_TRUE(exportLemmas({}, ExportScope::All, {}).empty());
+    EXPECT_TRUE(exportLemmas(history, ExportScope::New, known, {}).empty());
+    EXPECT_TRUE(exportLemmas({}, ExportScope::All, {}, {}).empty());
 }
 
 TEST(WordExport, ALemmaIsWrittenThroughAsItIs)
@@ -315,7 +343,7 @@ TEST(WordExport, ALemmaIsWrittenThroughAsItIs)
     // conversion and the reader's file carries a different word. Non-ASCII is where that shows.
     const std::unordered_set<std::string> none;
     const std::vector<HistoryEntry>       history{{"naïve", "2026-10-03 09:01", "new"}, {"café", "2026-10-03 09:00", "new"}};
-    EXPECT_EQ(exportLemmas(history, ExportScope::All, none), "naïve\ncafé\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::All, none, {}), "naïve\ncafé\n");
 }
 
 /// The cards are the export's rows, each with the cached explanation for its word. A word explained

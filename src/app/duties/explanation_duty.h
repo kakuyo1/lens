@@ -48,7 +48,10 @@ public:
     /// @brief Invalidate queued or in-flight results for a word deleted locally.
     void             invalidateWord(QString const& lemma);
     Q_INVOKABLE void runSelectionAction(QString action, QString text);
-    Q_INVOKABLE void mark(QString lemma, bool learned);
+    /// @brief Record the reader's verdict on a word: "known", "mastered", or "new" -- the explicit
+    ///        clear vote (docs/adr/0159). "Mastered" retires the word from the scan, the review pool
+    ///        and the chain; selection keeps explaining it either way.
+    Q_INVOKABLE void mark(QString lemma, QString verdict);
     /**
      * @brief Show what is already stored for a word the reader pointed at, and nothing else.
      *
@@ -162,6 +165,9 @@ signals:
     void wordHintChanged();
     void busyChanged();
     void statsChanged();
+    /// @brief A verdict was recorded: @p lemma now stands as @p verdict ("known", "mastered" or
+    ///        "new"). The scan's judgement and the pencil layer's lines follow from here.
+    void verdictChanged(QString lemma, QString verdict);
     /// @brief What the desktop pet should react to: a request, a bubble coming or going, a verdict. Carries no text.
     void petEvent(lens::core::pet::PetEvent event);
     /// @brief One step of the definition chain is ready. Carries the entry the card's chain draws.

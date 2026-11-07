@@ -1,8 +1,8 @@
 import QtQuick
 
 /**
- * The verdict buttons a bubble opens under the pointer: Known and New, and the hairline above them
- * (UI-SPEC.md 4.3).
+ * The verdict buttons a bubble opens under the pointer: Known, Mastered and New, and the hairline
+ * above them (UI-SPEC.md 4.3).
  *
  * Only a real explanation has a verdict to give -- a notice's title is not a word, so a press there
  * would write a sentence into the word store -- and the row is drawn shut rather than left out, so
@@ -115,7 +115,45 @@ Item {
             HoverHandler { cursorShape: Qt.PointingHandCursor }
             TapHandler {
                 id: knownTap
-                onTapped: Controller.explanationDuty.mark(root.lemma, true)
+                onTapped: Controller.explanationDuty.mark(root.lemma, "known")
+            }
+        }
+
+        Rectangle {
+            width: masteredLabel.width + 26
+            height: masteredLabel.height + 12
+            radius: root.tokens.radiusPill
+            color: root.tokens.panel2
+            border.width: 1
+            border.color: root.tokens.line
+            scale: masteredTap.pressed ? 0.97 : 1.0
+            Behavior on scale {
+                NumberAnimation {
+                    duration: root.tokens.motion.press
+                    easing.type: root.tokens.motion.easing
+                }
+            }
+
+            Accessible.role: Accessible.Button
+            Accessible.name: masteredLabel.text
+            Accessible.description: root.showHint ? hintText.text : ""
+            Accessible.onPressAction: {
+                root.bubbleWindow.readerActed();
+                masteredTap.tapped();
+            }
+
+            Text {
+                id: masteredLabel
+                anchors.centerIn: parent
+                text: qsTr("Mastered")
+                color: root.tokens.text
+                font.pixelSize: 12
+                font.weight: Font.Bold
+            }
+            HoverHandler { cursorShape: Qt.PointingHandCursor }
+            TapHandler {
+                id: masteredTap
+                onTapped: Controller.explanationDuty.mark(root.lemma, "mastered")
             }
         }
 
@@ -151,14 +189,14 @@ Item {
             HoverHandler { cursorShape: Qt.PointingHandCursor }
             TapHandler {
                 id: newTap
-                onTapped: Controller.explanationDuty.mark(root.lemma, false)
+                onTapped: Controller.explanationDuty.mark(root.lemma, "new")
             }
         }
     }
 
-    // The first verdict row explains the two choices once. It sits under the pills rather than
+    // The first verdict row explains the choices once. It sits under the pills rather than
     // beside them, so the choice stays the loudest thing on the row; after this opening the
-    // sentence is gone and the row returns to its two-button height.
+    // sentence is gone and the row returns to its three-button height.
     Text {
         id: hintText
         objectName: "verdictHint"
@@ -166,7 +204,7 @@ Item {
         anchors.topMargin: 8
         width: parent.width
         visible: root.showHint
-        text: qsTr("Known stops automatic scans; New keeps it in practice.")
+        text: qsTr("Mastered retires a word from scans and review; New keeps it in practice.")
         color: root.tokens.faint
         font.pixelSize: 11
         lineHeight: 1.3

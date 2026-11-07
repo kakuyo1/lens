@@ -21,6 +21,8 @@
 #include <optional>
 #include <string_view>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "capture/ocr_engine.h"
 #include "capture/ocr_executor.h"
@@ -158,6 +160,10 @@ public:
     /// @brief Show the bubble of @p surface, a word the reader's pointer is on while Alt is held; @p anchor is
     ///        its bottom-left in physical pixels, where the bubble goes.
     void lookUpWord(QString surface, QPoint anchor);
+    /// @brief The reader changed @p lemma's verdict: every surface it was judged under is re-judged
+    ///        now, against the verdict store as it stands, so the next emission draws it right -- a
+    ///        retired lemma's lines drop, a known one's restyle -- with no full scan invalidation.
+    void verdictChanged(QString lemma);
     /// @brief True while the automatic scan is on and a Chrome window is in front, the only time a lone Alt tap
     ///        is turned into a cancelled tap for the menu bar.
     bool chromeScanActive();
@@ -172,8 +178,9 @@ signals:
     void selectionReady(PendingSelection selection);
     void pointerPressed(QPoint at);
     void settingsChanged();
-    /// @brief The scan's new words, each as {lemma, surface, x, y, width, height} in physical screen pixels, and
-    ///        the monitor they sit on: its device-independent geometry, its physical origin and its scale.
+    /// @brief The scan's candidates in view, each as {lemma, surface, verdict, x, y, width, height} in
+    ///        physical screen pixels -- verdict is "new" or "known" -- and the monitor they sit on: its
+    ///        device-independent geometry, its physical origin and its scale.
     void scanPlaced(QVariantList words, QRect screen, QPoint screenOrigin, double scale);
     /// @brief The placed words no longer describe the page: the scan stopped or the window changed. A page that
     ///        moves is read again rather than cleared.
@@ -194,10 +201,12 @@ signals:
     void rapidOcrBundleChanged();
 
 private:
-    /// @brief A candidate the scan shows on a word of the page: its lemma, and the word as the page spells it.
+    /// @brief A candidate the scan shows on a word of the page. New draws the faint line, Known the
+    ///        firmer one; a Mastered candidate is not carried at all (docs/adr/0159).
     struct ScanCandidate {
-        QString lemma;
-        QString surface;
+        QString              lemma;
+        QString              surface;
+        core::CandidateState state = core::CandidateState::New;
     };
 
     struct OcrJob {
@@ -306,14 +315,15 @@ private:
     bool                                                scanPaused_ = false;
     std::unique_ptr<PageTrack>                          track_;          ///< Follows the page on screen; null while the scan is not reading one.
     std::unordered_map<int, std::vector<ScanCandidate>> scanCandidates_; ///< The candidates, by the track's word id.
-    /// The lemmas each surface was judged to be, for this scan generation. A word the track loses and reads again is not judged again.
-    std::unordered_map<std::string, std::vector<std::string>> scanJudged_;
-    QRect                                                     scanScreen_;
-    QPoint                                                    scanScreenOrigin_;
-    double                                                    scanScale_ = 1.0;
-    QRect                                                     scanBand_;
-    bool                                                      budgetPaused_ = false;
-    QString                                                   ocrTestState_ = QStringLiteral("idle");
+    /// What each surface was judged to -- lemma and state -- for this scan generation. A word the
+    /// track loses and reads again is not judged again.
+    std::unordered_map<std::string, std::vector<std::pair<std::string, core::CandidateState>>> scanJudged_;
+    QRect                                                                                      scanScreen_;
+    QPoint                                                                                     scanScreenOrigin_;
+    double                                                                                     scanScale_ = 1.0;
+    QRect                                                                                      scanBand_;
+    bool                                                                                       budgetPaused_ = false;
+    QString                                                                                    ocrTestState_ = QStringLiteral("idle");
     /// Why the last test failed, in the vocabulary the settings page explains; `none` otherwise.
     QString                     ocrTestReason_ = QStringLiteral("none");
     QString                     ocrTestEngine_;

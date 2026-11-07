@@ -136,7 +136,7 @@ QString answerText(llm::Explanation const& answer, QString const& language)
                                              : answer.translation;
 }
 
-QVariantMap cardFields(llm::Explanation const& answer, QString const& language, Switches const& switches, int const level)
+QVariantMap cardFields(llm::Explanation const& answer, QString const& language, Switches const& switches, int const level, std::unordered_set<std::string> const& masteredLemmas)
 {
     QVariantMap payload;
     for (auto const& ref : kAnswerRefs) {
@@ -152,26 +152,26 @@ QVariantMap cardFields(llm::Explanation const& answer, QString const& language, 
     }
     // The links are an English reading: another language has no frequency band to judge against,
     // so its block carries no spans and the card draws the text plain.
-    payload.insert(QStringLiteral("spans"), language == QLatin1String("en") ? spansOf(answer.en, level) : QVariantList{});
+    payload.insert(QStringLiteral("spans"), language == QLatin1String("en") ? spansOf(answer.en, level, masteredLemmas) : QVariantList{});
     return payload;
 }
 
-QVariantMap senseRow(llm::Sense const& sense, QString const& language, bool const pictures, int const level)
+QVariantMap senseRow(llm::Sense const& sense, QString const& language, bool const pictures, int const level, std::unordered_set<std::string> const& masteredLemmas)
 {
     const QString english = language == QLatin1String("en") ? sense.en : QString{};
     return {{"en", english},
-            {"spans", spansOf(english, level)},
+            {"spans", spansOf(english, level, masteredLemmas)},
             {"text", language == QLatin1String("en") ? QString{} : senseText(sense, language)},
             {"imageable", pictures and sense.imageable},
             {"imageQuery", pictures ? sense.imageQuery : QString{}}};
 }
 
-QVariantMap chainEntry(llm::Explanation const& answer, QString const& language, Switches const& switches, int const level)
+QVariantMap chainEntry(llm::Explanation const& answer, QString const& language, Switches const& switches, int const level, std::unordered_set<std::string> const& masteredLemmas)
 {
     const QString text = answerText(answer, language);
     QVariantMap   entry{{"title", answer.title},
                         {"text", text},
-                        {"spans", language == QLatin1String("en") ? spansOf(text, level) : QVariantList{}}};
+                        {"spans", language == QLatin1String("en") ? spansOf(text, level, masteredLemmas) : QVariantList{}}};
     for (auto const& ref : kAnswerRefs) {
         auto const& field = *ref.field;
         if (field.block != Block::Ipa and field.block != Block::Signpost and field.block != Block::Collocations)
@@ -182,13 +182,13 @@ QVariantMap chainEntry(llm::Explanation const& answer, QString const& language, 
     return entry;
 }
 
-QVariantList spansOf(QString const& text, int const level)
+QVariantList spansOf(QString const& text, int const level, std::unordered_set<std::string> const& masteredLemmas)
 {
     // The core counts bytes; ChainText draws with UTF-16 indices, so each offset is converted on its own prefix.
     QByteArray const bytes = text.toUtf8();
     const auto       band  = core::difficultyForLevel(level);
     QVariantList     spans;
-    for (auto const& link : core::definitionLinks(std::string_view{bytes.constData(), static_cast<std::size_t>(bytes.size())}, band)) {
+    for (auto const& link : core::definitionLinks(std::string_view{bytes.constData(), static_cast<std::size_t>(bytes.size())}, masteredLemmas, band)) {
         const auto start = QString::fromUtf8(bytes.constData(), static_cast<int>(link.start)).size();
         const auto end   = QString::fromUtf8(bytes.constData(), static_cast<int>(link.end)).size();
         spans.append(QVariantMap{{"start", start}, {"end", end}, {"lemma", QString::fromStdString(link.lemma)}});

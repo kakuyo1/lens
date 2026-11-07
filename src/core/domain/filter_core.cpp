@@ -67,15 +67,6 @@ constexpr std::size_t kFloorRank = 3000;
 /// Lemma to the bitmask of wordbooks that list it. Empty means loadWordbooks() has not run.
 std::unordered_map<std::string, std::uint8_t> g_books;
 
-/// The reader's own wordbook (settings key customWordlist), keyed by lemma. Its words master at
-/// every level, beside the level's books, so it is a set of its own rather than a book the level
-/// chooses; empty means none is loaded.
-std::unordered_set<std::string> g_custom;
-
-/// Whether the last loadCustomWordbook() named a file it could not open, which the settings page
-/// says in its status line.
-bool g_customMissing = false;
-
 /// Informal spellings the scan drops, from data/informal-spellings.txt. Empty until loadInformalSpellings() runs.
 std::unordered_set<std::string> g_informal;
 
@@ -308,9 +299,18 @@ bool isKnownForm(const std::string& surface, const std::unordered_set<std::strin
     return false;
 }
 
+/// @return Whether the reader's mastered verdicts hold any form of @p surface. A base marked
+///         mastered covers its inflections, exactly as isKnownForm does for Known.
+bool isMasteredByReader(const std::string& surface, const std::unordered_set<std::string>& masteredLemmas)
+{
+    for (auto const& form : formsOf(surface))
+        if (masteredLemmas.count(form) != 0) return true;
+    return false;
+}
+
 /// @return Whether the level's line puts @p surface on the mastered side: some form of it is inside the frequency
-///         floor, or in one of the books the level includes, or in the reader's own wordbook. A word the list
-///         ranks above its base is still mastered once the base is.
+///         floor, or in one of the books the level includes. A word the list ranks above its base is still
+///         mastered once the base is.
 bool isMastered(const std::string& surface, Difficulty const& difficulty)
 {
     for (auto const& form : formsOf(surface)) {
@@ -318,7 +318,6 @@ bool isMastered(const std::string& surface, Difficulty const& difficulty)
         if (rank != 0 and rank <= difficulty.floorRank) return true;
         const auto it = g_books.find(form);
         if (it != g_books.end() and (it->second & difficulty.bookMask) != 0) return true;
-        if (g_custom.count(form) != 0) return true;
     }
     return false;
 }
@@ -452,35 +451,23 @@ void loadWordbooks(const std::filesystem::path& dir)
     LENS_INFO("wordbooks loaded: {} headword(s) from '{}'", g_books.size(), dir.string());
 }
 
-CustomWordbookStatus customWordbookStatus()
+std::vector<std::string> parseWordlistFile(const std::filesystem::path& path)
 {
-    return {g_custom.size(), g_customMissing};
-}
-
-long long loadCustomWordbook(const std::filesystem::path& path)
-{
-    g_custom.clear();
-    g_customMissing = false;
-    if (path.empty()) return 0;
-
     std::ifstream in(path);
-    if (!in) {
-        // The file is the only source, so a vanished one masters nothing; the settings page says
-        // so in its status line, and startup goes on -- a lost wordbook is not a lost word list.
-        g_customMissing = true;
-        LENS_WARN("custom wordbook '{}' cannot be opened; its words are not mastered", path.string());
-        return -1;
-    }
+    if (!in) return {};
 
-    std::string line;
+    std::unordered_set<std::string> seen;
+    std::vector<std::string>        lemmas;
+    std::string                     line;
     while (std::getline(in, line)) {
         while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
             line.pop_back();
         if (line.empty() || line.front() == '#') continue;
-        g_custom.insert(lemmatize(line)); // keyed by lemma, as lookups are
+        auto lemma = lemmatize(line); // keyed by lemma, as the verdicts are
+        if (seen.insert(lemma).second)
+            lemmas.push_back(std::move(lemma));
     }
-    LENS_INFO("custom wordbook loaded: {} headword(s) from '{}'", g_custom.size(), path.string());
-    return static_cast<long long>(g_custom.size());
+    return lemmas;
 }
 
 void loadInformalSpellings(const std::filesystem::path& path)
@@ -560,6 +547,7 @@ std::string lemmatize(std::string_view token)
 std::vector<Candidate> filterWords(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
+    const std::unordered_set<std::string>& masteredLemmas,
     Difficulty const&                      difficulty,
     int                                    minimumLength,
     bool                                   allowExplicitToken)
@@ -583,7 +571,8 @@ std::vector<Candidate> filterWords(
         if (const std::string_view token = loneToken(text); !token.empty()) {
             const std::string    surface = util::asciiLower(token);
             const std::string    lemma   = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
-            const CandidateState state   = isKnownForm(surface, knownLemmas)                   ? CandidateState::Known
+            const CandidateState state   = isMasteredByReader(surface, masteredLemmas)         ? CandidateState::Mastered
+                                           : isKnownForm(surface, knownLemmas)                 ? CandidateState::Known
                                            : inTable(lemma) && isMastered(surface, difficulty) ? CandidateState::Mastered
                                                                                                : CandidateState::New;
             LENS_TRACE("filterWords: lone token '{}' -> surface='{}' lemma='{}' state={}",
@@ -650,11 +639,12 @@ std::vector<Candidate> filterWords(
         // What the reader has already said about the word annotates it; it does not take the
         // candidate away (TODO.md item 0). An explicit selection is a request to explain the
         // word whatever they once marked, and phase 2's automatic scanning is the caller that
-        // will skip these states. Known outranks Mastered: the reader's own mark is the more
-        // specific statement of the two.
-        const CandidateState state = isKnownForm(surface, knownLemmas) ? CandidateState::Known
-                                     : isMastered(surface, difficulty) ? CandidateState::Mastered
-                                                                       : CandidateState::New;
+        // acts on these states. Mastered outranks Known -- the retire verdict is the stronger
+        // statement -- and the reader's own verdicts outrank the level's band.
+        const CandidateState state = isMasteredByReader(surface, masteredLemmas) ? CandidateState::Mastered
+                                     : isKnownForm(surface, knownLemmas)         ? CandidateState::Known
+                                     : isMastered(surface, difficulty)           ? CandidateState::Mastered
+                                                                                 : CandidateState::New;
 
         LENS_TRACE("filterWords: candidate surface='{}' lemma='{}' state={}",
                    surface,
@@ -670,6 +660,7 @@ std::vector<Candidate> filterWords(
 Selection classifySelection(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
+    const std::unordered_set<std::string>& masteredLemmas,
     Difficulty const&                      difficulty)
 {
     Selection selection;
@@ -686,7 +677,7 @@ Selection classifySelection(
 
     // Entity recognition runs before the word fallback. It is intentionally narrow so a single
     // capitalized token remains a word or sentence instead of being promoted by typography alone.
-    selection.candidates = filterWords(text, knownLemmas, difficulty);
+    selection.candidates = filterWords(text, knownLemmas, masteredLemmas, difficulty);
     if (isEntitySelection(text)) {
         selection.kind = SelectionKind::Entity;
         selection.candidates.clear();
@@ -721,7 +712,10 @@ Difficulty difficultyForLevel(int const level)
     return {kFloorRank, static_cast<std::uint8_t>(kLevelBooks[std::clamp(level, 0, kLast)] | kB1B2)};
 }
 
-std::vector<DefinitionLink> definitionLinks(std::string_view const text, Difficulty const& difficulty)
+std::vector<DefinitionLink> definitionLinks(
+    std::string_view const                 text,
+    const std::unordered_set<std::string>& masteredLemmas,
+    Difficulty const&                      difficulty)
 {
     std::vector<DefinitionLink> out;
     std::size_t                 at = 0;
@@ -735,7 +729,9 @@ std::vector<DefinitionLink> definitionLinks(std::string_view const text, Difficu
             ++at;
         std::string const surface = util::asciiLower(text.substr(start, at - start));
         std::string const lemma   = lemmatize(surface);
-        if (not isMastered(surface, difficulty))
+        // The reader's own retire verdict hides the dots too: a word mastered at the band or by
+        // verdict is not one the chain needs to offer (docs/adr/0159).
+        if (not isMastered(surface, difficulty) and masteredLemmas.count(lemma) == 0)
             out.push_back({.start = start, .end = at, .lemma = lemma});
     }
     return out;

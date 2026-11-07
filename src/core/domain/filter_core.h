@@ -58,28 +58,16 @@ void loadIrregulars(const std::filesystem::path& path);
  */
 void loadWordbooks(const std::filesystem::path& dir);
 
-/// @brief The custom wordbook's load outcome, for the settings page's status line.
-struct CustomWordbookStatus {
-    std::size_t words   = 0;     ///< Headwords the custom wordbook currently holds.
-    bool        missing = false; ///< A path is set but its file could not be read.
-};
-
-/// @return The custom wordbook's current outcome, as the last loadCustomWordbook() left it.
-CustomWordbookStatus customWordbookStatus();
-
 /**
- * @brief Load the reader's own wordbook into process-wide read-only state.
+ * @brief Read a reader-picked wordlist file into distinct lemmas, ready to be marked mastered.
  *
  * @param path Text file of one headword per line, `#` starting a comment, as the wordbooks take
- *             them; an empty path clears the list. A file that cannot be opened clears the list
- *             too and answers -1: the file is the only source, so a vanished one masters nothing.
- * @return The words the list now holds -- distinct lemmas, so inflected lines of one word count once
- *         -- or -1 when @p path names a file that cannot be opened.
- * @note The words master at every level, beside the level's own books; they are judged by lemma
- *       like the wordbooks, and are never written to the known set.
+ *             them.
+ * @return The distinct lemmas in file order -- inflected lines of one word count once -- or an
+ *         empty vector when @p path names a file that cannot be opened.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet, since lemmas need both.
  */
-long long loadCustomWordbook(const std::filesystem::path& path);
+std::vector<std::string> parseWordlistFile(const std::filesystem::path& path);
 
 /**
  * @brief Load the informal spellings the scan drops into process-wide read-only state.
@@ -105,13 +93,14 @@ std::string lemmatize(std::string_view token);
 
 /// @brief Where a candidate stands with the reader. The module records it; the caller acts.
 ///
-/// Known is the reader's own mark, Mastered the level's frequency band. Either way the word
-/// stays a candidate: a hand-made selection is a request to explain it whatever they once
-/// marked (TODO.md item 0), and phase 2's automatic scanning is the caller that will skip them.
+/// Known is the reader's lighter verdict ("seen, still learning"), Mastered the stronger one --
+/// the reader's retire verdict or the level's frequency band. Either way the word stays a
+/// candidate: a hand-made selection is a request to explain it whatever they once marked
+/// (TODO.md item 0), and phase 2's automatic scanning is the caller that acts on the states.
 enum class CandidateState {
-    New,      ///< Neither marked nor inside the level's band.
-    Known,    ///< The reader marked it as known.
-    Mastered, ///< The level has reached it: inside its frequency floor, or in one of its wordbooks.
+    New,      ///< Neither verdict holds and the level's band does not reach it.
+    Known,    ///< The reader marked it known; the scan still draws its line, restyled.
+    Mastered, ///< The reader retired it, or the level has reached it: inside its frequency floor, or in one of its wordbooks.
 };
 
 /// @brief A word worth explaining, in both the form seen and its dictionary form.
@@ -165,6 +154,8 @@ Difficulty difficultyForLevel(int level);
  * @param text         Raw excerpt, typically pasted from the clipboard.
  * @param knownLemmas  Lemmas the reader has already marked as known; a hit is recorded as
  *                     CandidateState::Known.
+ * @param masteredLemmas Lemmas the reader has marked mastered (docs/adr/0159); a hit is recorded
+ *                     as CandidateState::Mastered, before the known and band checks run.
  * @param difficulty   The level's line; a lemma on its mastered side is recorded as
  *                     CandidateState::Mastered.
  * @param minimumLength Minimum continuous-prose token length, clamped to 2..5. The explicit
@@ -177,6 +168,7 @@ Difficulty difficultyForLevel(int level);
 std::vector<Candidate> filterWords(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
+    const std::unordered_set<std::string>& masteredLemmas,
     Difficulty const&                      difficulty,
     int                                    minimumLength      = 3,
     bool                                   allowExplicitToken = true);
@@ -217,6 +209,7 @@ bool isAcronymToken(std::string_view token);
  *
  * @param text         Raw excerpt, exactly as filterWords takes it.
  * @param knownLemmas  Lemmas the reader has already marked as known.
+ * @param masteredLemmas Lemmas the reader has marked mastered (docs/adr/0159).
  * @param difficulty   The level's line.
  * @return The kind, and the candidates when there are any.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
@@ -234,6 +227,7 @@ bool isAcronymToken(std::string_view token);
 Selection classifySelection(
     std::string_view                       text,
     const std::unordered_set<std::string>& knownLemmas,
+    const std::unordered_set<std::string>& masteredLemmas,
     Difficulty const&                      difficulty);
 
 /// @brief One word of an English definition that the chain offers: where it sits and what it stands for.
@@ -246,15 +240,20 @@ struct DefinitionLink {
 /**
  * @brief Find the words of an English definition that the chain should offer.
  *
- * A word is offered unless the level masters it. A word the word list does not hold is offered too, so a rare
+ * A word is offered unless the level masters it or the reader marked it mastered (docs/adr/0159).
+ * A word the word list does not hold is offered too, so a rare
  * or misspelt word is as far out of the band as a rare one. Only runs of ASCII letters are words here: the
  * caller passes English text, since a Chinese or Spanish definition has no frequency band to judge against.
  *
  * @param text       English definition, UTF-8.
+ * @param masteredLemmas Lemmas the reader has marked mastered (docs/adr/0159).
  * @param difficulty The level's line, as difficultyForLevel() gives it.
  * @return The offered words, in order of appearance.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  */
-std::vector<DefinitionLink> definitionLinks(std::string_view text, Difficulty const& difficulty);
+std::vector<DefinitionLink> definitionLinks(
+    std::string_view                       text,
+    const std::unordered_set<std::string>& masteredLemmas,
+    Difficulty const&                      difficulty);
 
 }

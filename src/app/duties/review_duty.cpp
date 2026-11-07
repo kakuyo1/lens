@@ -118,6 +118,10 @@ std::vector<core::ReviewCandidate> ReviewDuty::askable()
         if (not seen.insert(entry.lemma).second)
             continue;
         auto const lastLookup = epochOf(entry.minute);
+        // A word the reader retired from circulation is not asked about, whatever its curve says:
+        // mastered means no more practice (docs/adr/0159).
+        if (storage_.knownStore().isMasteredVerdict(entry.lemma))
+            continue;
         // Only a word with a stored explanation in the current language is asked about: a question must not spend money.
         if (not lastLookup or cache_.look(entry.lemma, context).state == core::ExplanationCache::State::Missing)
             continue;

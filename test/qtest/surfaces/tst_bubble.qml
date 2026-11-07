@@ -260,9 +260,9 @@ Item {
             Tokens.theme = previous;
         }
 
-        /// The verdict row says what its two choices do once, on the first opening. The sentence
+        /// The verdict row says what its three choices do once, on the first opening. The sentence
         /// is latched for that opening even though the document flag flips at once, and the next
-        /// bubble's row carries the two pills alone.
+        /// bubble's row carries the pills alone.
         function test_theVerdictRowExplainsItselfOnce() {
             Controller.setSetting("verdictHintSeen", false);
             const first = opened();
@@ -277,6 +277,11 @@ Item {
                        && o.Accessible.name === qsTr("Known");
             })[0];
             verify(known, "the Known pill is missing");
+            const mastered = Util.findAll(first, function (o) {
+                return o.Accessible !== undefined && o.Accessible.role === Accessible.Button
+                       && o.Accessible.name === qsTr("Mastered");
+            })[0];
+            verify(mastered, "the Mastered pill is missing");
             compare(known.Accessible.description, hint.text,
                     "the screen reader does not hear the one-time hint");
             compare(Controller.settings.verdictHintSeen, false,
@@ -638,6 +643,7 @@ Item {
             verify((bubble.flags & Qt.WindowDoesNotAcceptFocus) !== 0,
                    "the bubble dropped the flag that keeps it from taking focus");
             verify(names.indexOf("Known") >= 0, "the Known verdict is unnamed: " + names);
+            verify(names.indexOf("Mastered") >= 0, "the Mastered verdict is unnamed: " + names);
             verify(names.indexOf("New") >= 0, "the New verdict is unnamed: " + names);
             verify(names.indexOf("Close") >= 0, "the close cross is unnamed: " + names);
             verify(names.every(function (n) { return n !== ""; }),

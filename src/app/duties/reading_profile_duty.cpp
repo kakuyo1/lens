@@ -41,7 +41,11 @@ core::ReadingProfile ReadingProfileDuty::weekProfile() const
         const auto cached = known.cacheGet(lemma);
         return cached ? cached->pos : std::string{};
     };
-    return core::buildReadingProfile(storage_.statsStore().history(), known.known(), partOfSpeech, fromDate, toDate, storage_.statsStore().daily());
+    // The profile's new/known split is about learning, not about the verdict's strength: a
+    // mastered word is as little a new word as a known one (docs/adr/0159).
+    std::unordered_set<std::string> notNew = known.known();
+    notNew.insert(known.mastered().begin(), known.mastered().end());
+    return core::buildReadingProfile(storage_.statsStore().history(), notNew, partOfSpeech, fromDate, toDate, storage_.statsStore().daily());
 }
 
 QVariantMap ReadingProfileDuty::facts() const

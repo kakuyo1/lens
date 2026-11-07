@@ -1334,6 +1334,49 @@ void CaptureDuty::lookUpWord(QString const surface, QPoint const anchor)
     classifyText(surface, anchor, true);
 }
 
+void CaptureDuty::verdictChanged(QString const lemma)
+{
+    const std::string key      = lemma.toStdString();
+    auto const        known    = storage_.knownStore().known();
+    auto const        mastered = storage_.knownStore().mastered();
+    auto const        band     = difficulty();
+    auto const        length   = settings().value("minimumWordLength").toInt();
+
+    // Re-judge every surface the changed lemma was judged under, right now: the verdict store
+    // already holds the new verdict, and the track's frames carry words only as they are added,
+    // so waiting for a re-read would leave the stale lines standing all page long.
+    std::unordered_map<std::string, core::CandidateState> fresh;
+    for (auto it = scanJudged_.begin(); it != scanJudged_.end();) {
+        const bool touched = std::any_of(it->second.begin(), it->second.end(), [&key](auto const& entry) { return entry.first == key; });
+        if (not touched) {
+            ++it;
+            continue;
+        }
+        std::vector<std::pair<std::string, core::CandidateState>> judged;
+        for (auto const& candidate : core::filterWords(it->first, known, mastered, band, length, false))
+            if (candidate.state != core::CandidateState::Mastered)
+                judged.emplace_back(candidate.lemma, candidate.state);
+        if (judged.empty())
+            it = scanJudged_.erase(it);
+        else {
+            for (auto const& [judgedLemma, judgedState] : judged)
+                if (judgedLemma == key) fresh.emplace(it->first, judgedState);
+            it->second = std::move(judged);
+            ++it;
+        }
+    }
+
+    // The occurrences follow the judgement: a retired lemma's boxes stop being emitted, a restyled
+    // one carry their new state on the next frame.
+    for (auto& [id, candidates] : scanCandidates_) {
+        for (auto& candidate : candidates) {
+            if (candidate.lemma.toStdString() != key) continue;
+            const auto state = fresh.find(candidate.surface.toStdString());
+            candidate.state  = state == fresh.end() ? core::CandidateState::Mastered : state->second;
+        }
+    }
+}
+
 void CaptureDuty::rebuildScanOcr()
 {
     // The scan always reads with Tesseract, whatever engine the reader picked for screenshots: only
@@ -1368,39 +1411,45 @@ void CaptureDuty::onTrackFrame(std::uint64_t const generation, TrackFrame const 
         return;
     }
     if (not frame.added.empty()) {
-        auto const  known  = storage_.knownStore().known();
-        auto const  band   = difficulty();
-        auto const  length = settings().value("minimumWordLength").toInt();
-        QStringList learned;
+        auto const  known    = storage_.knownStore().known();
+        auto const  mastered = storage_.knownStore().mastered();
+        auto const  band     = difficulty();
+        auto const  length   = settings().value("minimumWordLength").toInt();
+        QStringList drawn;
         for (auto const& word : frame.added) {
             auto const surface = word.text.trimmed();
             auto const key     = surface.toStdString();
             if (not scanJudged_.contains(key)) {
-                std::vector<std::string> lemmas;
-                for (auto const& candidate : core::filterWords(key, known, band, length, false)) {
-                    if (candidate.state != core::CandidateState::New) continue;
-                    lemmas.push_back(candidate.lemma);
-                    learned << QString::fromStdString(candidate.lemma);
+                // New and Known both draw a line (restyled for Known); a Mastered candidate, the
+                // reader's retire verdict or the band's, draws none (docs/adr/0159).
+                std::vector<std::pair<std::string, core::CandidateState>> judged;
+                for (auto const& candidate : core::filterWords(key, known, mastered, band, length, false)) {
+                    if (candidate.state == core::CandidateState::Mastered) continue;
+                    judged.emplace_back(candidate.lemma, candidate.state);
+                    drawn << QString::fromStdString(candidate.lemma);
                 }
-                scanJudged_.emplace(key, std::move(lemmas));
+                scanJudged_.emplace(key, std::move(judged));
             }
             // Every occurrence keeps its own box; the judgement is shared by all of them.
-            for (auto const& lemma : scanJudged_.at(key))
-                scanCandidates_[word.id].push_back({QString::fromStdString(lemma), surface});
+            for (auto const& [lemma, state] : scanJudged_.at(key))
+                scanCandidates_[word.id].push_back({QString::fromStdString(lemma), surface, state});
         }
-        if (not learned.isEmpty()) LENS_INFO("scan: {} new candidate(s) read on the page: {}", learned.size(), learned.join(QLatin1Char(' ')).toStdString());
+        if (not drawn.isEmpty()) LENS_INFO("scan: {} candidate(s) read on the page: {}", drawn.size(), drawn.join(QLatin1Char(' ')).toStdString());
     }
     QVariantList words;
     for (auto const& placed : frame.visible) {
         auto const found = scanCandidates_.find(placed.id);
         if (found == scanCandidates_.end()) continue;
-        for (auto const& candidate : found->second)
+        for (auto const& candidate : found->second) {
+            if (candidate.state == core::CandidateState::Mastered) continue;
             words.append(QVariantMap{{QStringLiteral("lemma"), candidate.lemma},
                                      {QStringLiteral("surface"), candidate.surface},
+                                     {QStringLiteral("verdict"), candidate.state == core::CandidateState::Known ? QStringLiteral("known") : QStringLiteral("new")},
                                      {QStringLiteral("x"), placed.box.x()},
                                      {QStringLiteral("y"), placed.box.y()},
                                      {QStringLiteral("width"), placed.box.width()},
                                      {QStringLiteral("height"), placed.box.height()}});
+        }
     }
     // Sent on every frame, even when empty: a frame with no candidate in view takes the last one's lines down with it.
     emit scanPlaced(words, scanScreen_, scanScreenOrigin_, scanScale_);
@@ -1478,7 +1527,7 @@ void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> con
 void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const translateNow)
 {
     if (text.size() > kMaxSelectionChars) text = text.left(kMaxSelectionChars) + QStringLiteral("…");
-    const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), difficulty());
+    const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), storage_.knownStore().mastered(), difficulty());
     PendingSelection      pending{.anchor = anchor, .text = text, .kind = selection.kind};
     if (selection.kind == core::SelectionKind::Word) {
         // Only a word narrows to a candidate: the other kinds have no lemma to pick, and the whole

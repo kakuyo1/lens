@@ -4,6 +4,8 @@
 #include <QVariantList>
 #include <QVariantMap>
 
+#include <unordered_set>
+
 #include "core/document/known_store.h"
 #include "llm/llm_client.h"
 
@@ -40,19 +42,20 @@ QString answerText(llm::Explanation const& answer, QString const& language);
 
 /// @brief The answer blocks the card draws, with the switches applied.
 /// @param level The reader's difficulty, which picks the definition links drawn in `spans`.
+/// @param masteredLemmas The reader's retire verdicts, which hide links beside the band (docs/adr/0159).
 /// @return `ipa`, `pos`, `signpost`, `collocations`, `spans`, and `etymology` / `example` only
 ///         when their setting is on. The sense rows are the caller's: the card's cycle or its
 ///         multiple-sense selector decides which ones stand.
-QVariantMap cardFields(llm::Explanation const& answer, QString const& language, Switches const& switches, int level);
+QVariantMap cardFields(llm::Explanation const& answer, QString const& language, Switches const& switches, int level, std::unordered_set<std::string> const& masteredLemmas);
 
 /// @brief One sense as the card's selector row draws it: the language's text and its links.
-QVariantMap senseRow(llm::Sense const& sense, QString const& language, bool pictures, int level);
+QVariantMap senseRow(llm::Sense const& sense, QString const& language, bool pictures, int level, std::unordered_set<std::string> const& masteredLemmas);
 
 /// @brief One step of the definition chain, as the panel under the card draws it.
-QVariantMap chainEntry(llm::Explanation const& answer, QString const& language, Switches const& switches, int level);
+QVariantMap chainEntry(llm::Explanation const& answer, QString const& language, Switches const& switches, int level, std::unordered_set<std::string> const& masteredLemmas);
 
 /// @brief The words of an English definition the chain offers, as the UTF-16 spans ChainText draws.
-QVariantList spansOf(QString const& text, int level);
+QVariantList spansOf(QString const& text, int level, std::unordered_set<std::string> const& masteredLemmas);
 
 /// @brief Put a paid-for answer into the stored shape.
 /// @param exampleAsked Whether the batch asked for an example (docs/adr/0033): an answer bought

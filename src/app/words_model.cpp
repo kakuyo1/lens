@@ -115,11 +115,12 @@ void WordsModel::finishSwitch()
 
 void WordsModel::update(QDate const&                           today,
                         std::vector<core::HistoryEntry> const& history,
-                        std::unordered_set<std::string> const& knownLemmas)
+                        std::unordered_set<std::string> const& knownLemmas,
+                        std::unordered_set<std::string> const& masteredLemmas)
 {
     if (hasPending_)
         finishSwitch(); // a row cannot arrive under a statistics change meant for the set before it
-    std::vector<WordRow> nextAll     = wordRowList(today, history, knownLemmas);
+    std::vector<WordRow> nextAll     = wordRowList(today, history, knownLemmas, masteredLemmas);
     std::vector<WordRow> nextVisible = filtered(nextAll, filter_);
     const int            oldCount    = allCount();
 
@@ -157,10 +158,11 @@ void WordsModel::update(QDate const&                           today,
 
 bool WordsModel::matches(WordRow const& row, int filter)
 {
-    // The popup's three segments are the export's three scopes, and the rule is spelt once in
+    // The popup's four segments are the export's four scopes, and the rule is spelt once in
     // words_view.h. The values are the same order as core::ExportScope's.
     static_assert(All == static_cast<int>(core::ExportScope::All));
     static_assert(Known == static_cast<int>(core::ExportScope::Known));
+    static_assert(Mastered == static_cast<int>(core::ExportScope::Mastered));
     static_assert(New == static_cast<int>(core::ExportScope::New));
     return rowInScope(row, static_cast<core::ExportScope>(filter));
 }

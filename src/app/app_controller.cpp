@@ -132,6 +132,12 @@ AppController::AppController(core::KnownStore&            store,
     connect(&capture_, &CaptureDuty::scanCleared, &pencil_, &PencilDuty::clear);
     connect(&altHook, &AltKeyHook::altPressed, &pencil_, &PencilDuty::altDown);
     connect(&altHook, &AltKeyHook::altReleased, &pencil_, &PencilDuty::altUp);
+    // A verdict made anywhere -- bubble, word list, the pencil layer's mark button -- moves the
+    // scan's judgement and the pencil layer's lines with it, without a full scan invalidation.
+    connect(&explanation_, &ExplanationDuty::verdictChanged, this, [this](QString const& lemma, QString const& verdict) {
+        capture_.verdictChanged(lemma);
+        pencil_.verdictChanged(lemma, verdict);
+    });
     // A lone Alt tap never opens Chrome's menu bar while Chrome is the page being scanned (see AltKeyHook).
     altHook.setMenuGuard([this] { return capture_.chromeScanActive(); });
     connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
@@ -209,9 +215,9 @@ AppController::AppController(core::KnownStore&            store,
     // a sync -- through one diff in the model, so the view keeps the delegates whose rows did
     // not change (docs/adr/0122). The first update also fills it before QML is built.
     connect(this, &AppController::statsChanged, this, [this] {
-        wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known());
+        wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known(), storage_.knownStore().mastered());
     });
-    wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known());
+    wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known(), storage_.knownStore().mastered());
     LENS_INFO("AppController ready: level={} explanation language '{}'", store.level(), store.explanationLang());
 }
 
@@ -283,12 +289,30 @@ QRect AppController::screenWorkArea(QString deviceName) const
     return {};
 }
 
-void AppController::setCustomWordlist(QUrl file)
+void AppController::importWordlist(QUrl file)
 {
-    // The dialog answers a url; the document stores the local path, and an empty pick clears the row.
-    const auto* const row = core::settings::find("customWordlist");
-    if (row == nullptr) return;
-    writeSetting(*row, file.toLocalFile());
+    // The file is a one-time seed (docs/adr/0159): its words are read once, lemmatised and
+    // de-duplicated, and written into the verdict store as mastered. The file is never watched
+    // again, so a lost one retires nothing.
+    const auto path = file.toLocalFile();
+    if (path.isEmpty()) return;
+    auto const lemmas = core::parseWordlistFile(path.toStdString());
+    if (lemmas.empty()) {
+        importStatus_ = QCoreApplication::translate("lens::app::AppController", "The file could not be read.");
+        LENS_WARN("wordlist import from '{}': nothing was read", path.toStdString());
+        emit settingsChanged();
+        return;
+    }
+    auto& store = storage_.knownStore();
+    for (auto const& lemma : lemmas)
+        store.mark(lemma, core::WordVerdict::Mastered);
+    storage_.save();
+    // A bulk import moves the line wholesale, so the scan is invalidated whole, as a level change is.
+    capture_.difficultyChanged();
+    importStatus_ = QCoreApplication::translate("lens::app::AppController", "Imported %1 word(s).").arg(static_cast<int>(lemmas.size()));
+    LENS_INFO("wordlist imported from '{}': {} mastered verdict(s)", path.toStdString(), lemmas.size());
+    emit statsChanged();
+    emit settingsChanged();
 }
 
 void AppController::setTesseractExecutable(QUrl executable)
@@ -372,19 +396,6 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
             storage_.save();
             capture_.difficultyChanged();
             LENS_INFO("level set to {}", level);
-            emit settingsChanged();
-            return true;
-        }
-        case Signal::CustomWordbook: {
-            const auto path = value.toString().toStdString();
-            if (not settings::write(storage_.section(), row, value))
-                return false;
-            // The file is the source; an empty pick clears the row and the loaded words with it.
-            // Either way the line moved, so the scan re-judges on the same turn the level's own
-            // write takes.
-            const auto words = core::loadCustomWordbook(path.empty() ? std::filesystem::path{} : std::filesystem::path(path));
-            capture_.difficultyChanged();
-            LENS_INFO("custom wordbook set to '{}' ({})", path, words < 0 ? "the file could not be read" : std::to_string(words) + " headword(s)");
             emit settingsChanged();
             return true;
         }
@@ -715,11 +726,8 @@ QVariantMap AppController::settings()
     result.insert(QStringLiteral("level"), storage_.knownStore().level());
     result.insert(QStringLiteral("explanationLang"), QString::fromStdString(storage_.knownStore().explanationLang()));
     result.insert(QStringLiteral("levels"), StorageDuty::levelOptions());
-    // The custom wordbook's outcome is the loader's state, not a stored key: the page says how
-    // many words it holds and says when its file stopped being readable (docs/adr/0158).
-    const auto customWordbook = core::customWordbookStatus();
-    result.insert(QStringLiteral("customWordlistCount"), static_cast<int>(customWordbook.words));
-    result.insert(QStringLiteral("customWordlistMissing"), customWordbook.missing);
+    // The wordlist import's outcome is the last run's result, not a stored key (docs/adr/0159).
+    result.insert(QStringLiteral("importWordlistStatus"), importStatus_);
     result.insert(QStringLiteral("reviewFrequency"), static_cast<int>(reviewDuty_.frequency()));
     result.insert(QStringLiteral("reviewFrequencyOptions"), StorageDuty::reviewFrequencyOptions());
     // Pronunciation's three choice rows, labelled for the settings page (UI-SPEC.md 4.4). The values
@@ -826,12 +834,14 @@ QVariantList AppController::yearDays() const
 
 QString AppController::exportFor(core::ExportScope const scope) const
 {
-    return QString::fromStdString(core::exportLemmas(storage_.statsStore().history(), scope, storage_.knownStore().known()));
+    return QString::fromStdString(
+        core::exportLemmas(storage_.statsStore().history(), scope, storage_.knownStore().known(), storage_.knownStore().mastered()));
 }
 
 QString AppController::exportJsonFor(core::ExportScope const scope) const
 {
-    return QString::fromStdString(core::exportLemmasJson(storage_.statsStore().history(), scope, storage_.knownStore().known()));
+    return QString::fromStdString(
+        core::exportLemmasJson(storage_.statsStore().history(), scope, storage_.knownStore().known(), storage_.knownStore().mastered()));
 }
 
 QString AppController::exportCardsFor(core::ExportScope const scope, core::CardFormat const format) const

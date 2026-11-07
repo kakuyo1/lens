@@ -210,7 +210,7 @@ Window {
 
     /// The filter above, spelled the way exportWords() and saveWords() take it. The list and
     /// an export are the same rows seen twice, so an export follows whatever is on screen.
-    readonly property var scopes: ["all", "known", "new"]
+    readonly property var scopes: ["all", "known", "mastered", "new"]
     readonly property string scope: scopes[filter]
 
     /// The reader asked for the panel this one was opened from.
@@ -421,7 +421,7 @@ Window {
             Segment {
                 width: parent.width
                 height: 28
-                labels: [qsTr("All"), qsTr("Known"), qsTr("New")]
+                labels: [qsTr("All"), qsTr("Known"), qsTr("Mastered"), qsTr("New")]
                 currentIndex: words.filter
                 onPicked: (index) => Controller.wordsModel.filter = index
             }

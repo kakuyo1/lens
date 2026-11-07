@@ -146,12 +146,13 @@ Item {
             compare(popup.whenLabel("", "", ""), "");
         }
 
-        /// Known and New are the verdict pills' own labels, so each row draws one of each. The
-        /// filter segment repeats both words once more, which is the one extra in each count.
+        /// Known, Mastered and New are the verdict pills' own labels, so each row draws all three.
+        /// The filter segment repeats each word once more, which is the one extra in each count.
         function test_theWordsPanelLabelsTheVerdictsKnownAndNew() {
             const popup = make(wordsComponent);
             const texts = Util.textsUnder(popup).map(function (o) { return o.text; });
             compare(texts.filter(function (t) { return t === "Known"; }).length, Controller.wordsModel.allRows().length + 1);
+            compare(texts.filter(function (t) { return t === "Mastered"; }).length, Controller.wordsModel.allRows().length + 1);
             compare(texts.filter(function (t) { return t === "New"; }).length, Controller.wordsModel.allRows().length + 1);
         }
 

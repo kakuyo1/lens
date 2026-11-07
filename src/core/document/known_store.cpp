@@ -327,8 +327,21 @@ KnownStore KnownStore::load(std::filesystem::path path)
         for (auto it = doc["known"].begin(); it != doc["known"].end(); ++it) {
             if (!it.value().is_boolean()) continue;
             const bool learned     = it.value().get<bool>();
-            store.marks_[it.key()] = learned;
+            store.marks_[it.key()] = learned ? WordVerdict::Known : WordVerdict::None;
             if (learned) store.known_.insert(it.key());
+        }
+    }
+    if (doc.contains("mastered") && doc["mastered"].is_object()) {
+        for (auto it = doc["mastered"].begin(); it != doc["mastered"].end(); ++it) {
+            if (!it.value().is_boolean() || !it.value().get<bool>()) continue;
+            // A mastered entry rides a true "known" bool beside it; a false one is a stale
+            // overlay an older build's write-back can leave behind, and the bool wins.
+            const auto knownIt = doc["known"].find(it.key());
+            if (knownIt == doc["known"].end() || !knownIt->is_boolean() || !knownIt->get<bool>())
+                continue;
+            store.marks_[it.key()] = WordVerdict::Mastered;
+            store.known_.erase(it.key());
+            store.mastered_.insert(it.key());
         }
     }
     if (doc.contains("markTimes") && doc["markTimes"].is_object()) {
@@ -353,7 +366,7 @@ KnownStore KnownStore::load(std::filesystem::path path)
         }
     }
 
-    LENS_INFO("settings loaded: level={} lang={} known={} cached={}", store.level_, store.lang_, store.known_.size(), store.cache_.size());
+    LENS_INFO("settings loaded: level={} lang={} known={} mastered={} cached={}", store.level_, store.lang_, store.known_.size(), store.mastered_.size(), store.cache_.size());
     return store;
 }
 
@@ -362,16 +375,32 @@ bool KnownStore::isKnown(const std::string& lemma) const
     return known_.count(lemma) != 0;
 }
 
-void KnownStore::mark(const std::string& lemma, bool learned)
+bool KnownStore::isMasteredVerdict(const std::string& lemma) const
 {
-    marks_[lemma]    = learned;
+    return mastered_.count(lemma) != 0;
+}
+
+void KnownStore::mark(const std::string& lemma, const WordVerdict verdict)
+{
+    marks_[lemma]    = verdict;
     markedAt_[lemma] = nowMs();
     deletedAt_.erase(lemma); // a fresh mark outranks the tombstone it replaces
-    if (learned)
-        known_.insert(lemma);
-    else
-        known_.erase(lemma);
-    LENS_TRACE("KnownStore::mark: '{}' -> {}", lemma, learned ? "known" : "new word");
+    switch (verdict) {
+        case WordVerdict::None:
+            known_.erase(lemma);
+            mastered_.erase(lemma);
+            break;
+        case WordVerdict::Known:
+            known_.insert(lemma);
+            mastered_.erase(lemma);
+            break;
+        case WordVerdict::Mastered:
+            known_.erase(lemma);
+            mastered_.insert(lemma);
+            break;
+    }
+    LENS_TRACE("KnownStore::mark: '{}' -> {}", lemma, verdict == WordVerdict::Mastered ? "mastered" : verdict == WordVerdict::Known ? "known"
+                                                                                                                                    : "new word");
 }
 
 const std::unordered_set<std::string>& KnownStore::known() const
@@ -379,12 +408,19 @@ const std::unordered_set<std::string>& KnownStore::known() const
     return known_;
 }
 
+const std::unordered_set<std::string>& KnownStore::mastered() const
+{
+    return mastered_;
+}
+
 nlohmann::json KnownStore::syncMarks() const
 {
     nlohmann::json known = nlohmann::json::object();
-    for (const auto& [lemma, learned] : marks_) {
+    for (const auto& [lemma, verdict] : marks_) {
         const auto at = markedAt_.find(lemma);
-        known[lemma]  = {{"learned", learned}, {"at", at == markedAt_.end() ? 0LL : at->second}};
+        known[lemma]  = {{"learned", verdict != WordVerdict::None},
+                         {"mastered", verdict == WordVerdict::Mastered},
+                         {"at", at == markedAt_.end() ? 0LL : at->second}};
     }
     nlohmann::json deleted = nlohmann::json::object();
     for (const auto& [lemma, at] : deletedAt_)
@@ -398,15 +434,25 @@ void KnownStore::applySyncMarks(const nlohmann::json& known, const nlohmann::jso
     markedAt_.clear();
     deletedAt_.clear();
     known_.clear();
+    mastered_.clear();
     if (known.is_object()) {
         for (auto it = known.begin(); it != known.end(); ++it) {
             const nlohmann::json& entry = it.value();
             if (!entry.is_object() || !entry.contains("learned") || !entry["learned"].is_boolean())
                 continue;
-            const bool learned  = entry["learned"].get<bool>();
-            marks_[it.key()]    = learned;
-            markedAt_[it.key()] = timeOf(entry.value("at", nlohmann::json()));
-            if (learned) known_.insert(it.key());
+            const bool learned = entry["learned"].get<bool>();
+            // Absent or false "mastered" on a learned mark reads as Known: an old client's copy
+            // of a mastered word carries learned alone, and the downgrade read is the point.
+            const bool isMastered = learned && entry.contains("mastered") && entry["mastered"].is_boolean() && entry["mastered"].get<bool>();
+            const auto verdict    = !learned     ? WordVerdict::None
+                                    : isMastered ? WordVerdict::Mastered
+                                                 : WordVerdict::Known;
+            marks_[it.key()]      = verdict;
+            markedAt_[it.key()]   = timeOf(entry.value("at", nlohmann::json()));
+            if (verdict == WordVerdict::Known)
+                known_.insert(it.key());
+            else if (verdict == WordVerdict::Mastered)
+                mastered_.insert(it.key());
         }
     }
     if (deleted.is_object()) {
@@ -480,6 +526,7 @@ bool KnownStore::removeLemma(std::string const& lemma)
     markedAt_.erase(lemma);
     bool removed = hadMark;
     removed      = known_.erase(lemma) != 0 || removed;
+    removed      = mastered_.erase(lemma) != 0 || removed;
 
     for (auto it = cache_.begin(); it != cache_.end();) {
         if (it->first.lemma == lemma) {
@@ -515,10 +562,15 @@ void KnownStore::save() const
     doc["level"]           = level_;
     doc["explanationLang"] = lang_;
 
-    nlohmann::json known = nlohmann::json::object();
-    for (const auto& [lemma, learned] : marks_)
-        known[lemma] = learned; // true: known
-    doc["known"] = std::move(known);
+    nlohmann::json known    = nlohmann::json::object();
+    nlohmann::json mastered = nlohmann::json::object();
+    for (const auto& [lemma, verdict] : marks_) {
+        known[lemma] = verdict != WordVerdict::None;
+        if (verdict == WordVerdict::Mastered)
+            mastered[lemma] = true;
+    }
+    doc["known"]    = std::move(known);
+    doc["mastered"] = std::move(mastered);
 
     nlohmann::json times = {{"marked", nlohmann::json::object()}, {"deleted", nlohmann::json::object()}};
     for (const auto& [lemma, at] : markedAt_)

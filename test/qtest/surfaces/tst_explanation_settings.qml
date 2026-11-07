@@ -141,48 +141,34 @@ Item {
             compare(Controller.settings.motherTongue, previous);
         }
 
-        /// The reader's own wordbook sits beside the level it completes: the row takes a path, the
-        /// state line reports what the last load read, and a pick writes the setting (docs/adr/0158).
-        function test_theCustomWordlistRowWritesTheSetting() {
-            const page = createTemporaryObject(learning, host.contentItem);
+        /// The verdict store's import row (docs/adr/0159): the button sits under the vocabulary
+        /// level, the state line reports the last import, and a file that reads as nothing says so.
+        function test_theImportRowReportsItsOutcome() {
+            // The live settings binding, or the page would keep the map it was born with and the
+            // import's outcome would never reach the state line.
+            const page = createTemporaryObject(learning, host.contentItem,
+                                               {settings: Qt.binding(function() { return Controller.settings; })});
             waitForRendering(host.contentItem);
             verify(page);
-            const field = findChild(page, "customWordlistField");
-            verify(field, "the learning page draws no custom word list row");
+            const button = findChild(page, "importWordlistButton");
+            verify(button, "the learning page draws no import row");
             const levelField = findChild(page, "levelField");
             verify(levelField);
-            verify(field.mapToItem(page, 0, 0).y > levelField.mapToItem(page, 0, 0).y,
-                   "the custom word list sat above the vocabulary level");
-            // No path, no state line: there is nothing for it to say yet.
-            compare(findChild(page, "customWordlistState").visible, false);
+            verify(button.mapToItem(page, 0, 0).y > levelField.mapToItem(page, 0, 0).y,
+                   "the import row sat above the vocabulary level");
+            // No import has run, so the state line has nothing to say yet.
+            compare(findChild(page, "importWordlistState").visible, false);
 
-            const loaded = createTemporaryObject(learning, host.contentItem,
-                {settings: Object.assign({}, root.settings, {customWordlist: "C:/words/own.txt", customWordlistCount: 12, customWordlistMissing: false})});
-            waitForRendering(host.contentItem);
-            const state = findChild(loaded, "customWordlistState");
+            // An import through the controller: a file that reads as nothing answers in the line.
+            // Both sides go through the same translate call, so the compare holds under any UI
+            // language the test translator carries.
+            Controller.importWordlist("file:///C:/lens-test-no-such-wordlist.txt");
+            tryCompare(Controller.settings, "importWordlistStatus",
+                       qsTranslate("lens::app::AppController", "The file could not be read."));
+            const state = findChild(page, "importWordlistState");
             verify(state);
             compare(state.visible, true);
-            compare(state.text, "12 word(s) loaded.");
-            const broken = createTemporaryObject(learning, host.contentItem,
-                {settings: Object.assign({}, root.settings, {customWordlist: "C:/words/own.txt", customWordlistCount: 0, customWordlistMissing: true})});
-            waitForRendering(host.contentItem);
-            const missing = findChild(broken, "customWordlistState");
-            verify(missing);
-            compare(missing.visible, true);
-            compare(missing.text, "The file could not be read.");
-            compare(missing.color, Tokens.danger);
-
-            // A pick travels to the controller, and the projection answers with the load's outcome.
-            const previous = Controller.settings.customWordlist;
-            try {
-                Controller.setCustomWordlist("file:///C:/lens-test-missing-wordbook.txt");
-                tryCompare(Controller.settings, "customWordlistMissing", true);
-                tryCompare(Controller.settings, "customWordlistCount", 0);
-                compare(Controller.settings.customWordlist, "C:/lens-test-missing-wordbook.txt");
-            } finally {
-                Controller.setCustomWordlist(previous ? "file:///" + previous : "");
-            }
-            compare(Controller.settings.customWordlist, previous || "");
+            compare(state.text, qsTranslate("lens::app::AppController", "The file could not be read."));
         }
 
         /// The etymology switch is a setting, not a view: it reads what the document holds and

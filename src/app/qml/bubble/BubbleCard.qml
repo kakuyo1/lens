@@ -270,7 +270,7 @@ Item {
                          : root.bubble.correction === "grammar" ? qsTr("Grammar")
                          : root.bubble.breakdown !== "" ? qsTr("Breakdown")
                          : root.bubble.type === "sentence" ? qsTr("Sentence")
-                         : root.bubble.type === "word" ? (root.bubble.status === "known" ? qsTr("Known") : qsTr("New"))
+                         : root.bubble.type === "word" ? (root.bubble.status === "known" ? qsTr("Known") : root.bubble.status === "mastered" ? qsTr("Mastered") : qsTr("New"))
                          : ""
                     color: root.bubble.preview ? root.bubble.tokens.body
                          : root.bubble.type === "sentence" || root.bubble.annotated ? root.bubble.tokens.body

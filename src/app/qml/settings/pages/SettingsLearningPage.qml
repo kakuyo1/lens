@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Dialogs
 
 Item {
     id: root
@@ -72,41 +73,65 @@ Item {
             }
         }
 
-        // The reader's own wordbook (docs/adr/0158): its words join every level's line, so it sits
-        // beside the level it completes rather than in a category of its own. No preview rises off
-        // it -- what it changes is which words this reader's pages draw dashed, and a sample of the
-        // reader's own file is not a sample the panel can render (UI-SPEC.md 4.4).
+        // The verdict store's bulk seed (docs/adr/0159): the file is read once, its words marked
+        // mastered, and it is never watched afterwards. No preview rises off it -- what it changes
+        // is which words this reader's pages draw dashed, and a sample of the reader's own file is
+        // not a sample the panel can render (UI-SPEC.md 4.4).
         Column {
             width: parent.width
             spacing: 7
             Text {
-                text: qsTranslate("SettingsPopup", "Custom word list")
+                text: qsTranslate("SettingsPopup", "Mastered words")
                 color: root.tokens.muted
                 font.pixelSize: 12
             }
-            PathField {
-                objectName: "customWordlistField"
-                width: parent.width
-                label: qsTranslate("SettingsPopup", "Custom word list")
-                path: root.settings.customWordlist || ""
-                onChosen: (picked) => Controller.setCustomWordlist(picked)
+            Rectangle {
+                id: importButton
+                objectName: "importWordlistButton"
+                width: importLabel.width + 26
+                height: 30
+                radius: root.tokens.radiusPill
+                color: root.tokens.panel2
+                border.width: 1
+                border.color: root.tokens.line
+                scale: importTap.pressed ? 0.97 : 1.0
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: root.tokens.motion.press
+                        easing.type: root.tokens.motion.easing
+                    }
+                }
+
+                Accessible.role: Accessible.Button
+                Accessible.name: importLabel.text
+
+                Text {
+                    id: importLabel
+                    anchors.centerIn: parent
+                    text: qsTranslate("SettingsPopup", "Import a word list…")
+                    color: root.tokens.text
+                    font.pixelSize: 12
+                    font.weight: Font.Bold
+                }
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler {
+                    id: importTap
+                    onTapped: importDialog.open()
+                }
             }
-            // The file is the source of truth, so a word count the page cannot vouch for is no
-            // count at all: the line says what the last load read, and says so when it read nothing.
+            // The last import's outcome: how many words it marked, or that its file read as nothing.
             Text {
-                objectName: "customWordlistState"
+                objectName: "importWordlistState"
                 width: parent.width
-                visible: (root.settings.customWordlist || "").length > 0
-                text: root.settings.customWordlistMissing
-                      ? qsTranslate("SettingsPopup", "The file could not be read.")
-                      : qsTranslate("SettingsPopup", "%1 word(s) loaded.").arg(root.settings.customWordlistCount)
-                color: root.settings.customWordlistMissing ? root.tokens.danger : root.tokens.muted
+                visible: (root.settings.importWordlistStatus || "").length > 0
+                text: root.settings.importWordlistStatus || ""
+                color: root.tokens.muted
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap
             }
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "One word per line. Words in your list count as mastered at every level.")
+                text: qsTranslate("SettingsPopup", "One word per line. Importing marks every word mastered, once; the file is not watched afterwards.")
                 color: root.tokens.faint
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap
@@ -503,5 +528,14 @@ Item {
                 wrapMode: Text.WordWrap
             }
         }
+    }
+
+    FileDialog {
+        id: importDialog
+        objectName: "importWordlistDialog"
+        title: qsTranslate("SettingsPopup", "Import a word list…")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [qsTranslate("SettingsPopup", "Text files (*.txt)")]
+        onAccepted: Controller.importWordlist(selectedFile)
     }
 }

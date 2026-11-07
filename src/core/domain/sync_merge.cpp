@@ -35,8 +35,9 @@ std::int64_t stampOf(const json& node)
 
 /// One lemma's mark in the known set.
 struct Mark {
-    bool         learned = false;
-    std::int64_t at      = 0;
+    bool         learned  = false;
+    bool         mastered = false; ///< learned && mastered is the reader's retire verdict (docs/adr/0159).
+    std::int64_t at       = 0;
 };
 
 /// One setting's value and when it last changed.
@@ -58,8 +59,14 @@ Marks readMarks(const json& document)
         return marks;
     for (auto it = known.begin(); it != known.end(); ++it) {
         const json& learned = field(it.value(), "learned");
-        if (learned.is_boolean())
-            marks[it.key()] = Mark{learned.get<bool>(), stampOf(field(it.value(), "at"))};
+        if (!learned.is_boolean())
+            continue;
+        // "mastered" is optional: a mark an old client synced carries learned alone, and the
+        // downgrade read of a mastered word is exactly known (docs/adr/0159).
+        const json& mastered = field(it.value(), "mastered");
+        marks[it.key()]      = Mark{learned.get<bool>(),
+                               mastered.is_boolean() && mastered.get<bool>(),
+                               stampOf(field(it.value(), "at"))};
     }
     return marks;
 }
@@ -178,7 +185,7 @@ json merge(const json& local, const json& remote, const std::string& localDevice
         const auto tomb = tombs.find(lemma);
         if (tomb != tombs.end() && tomb->second >= mark.at)
             continue;
-        known[lemma] = json{{"learned", mark.learned}, {"at", mark.at}};
+        known[lemma] = json{{"learned", mark.learned}, {"mastered", mark.mastered}, {"at", mark.at}};
     }
     for (const auto& [lemma, at] : tombs) {
         const auto mark = marks.find(lemma);

@@ -87,10 +87,11 @@ public:
 
     /// @brief Replace the rows with those @p history describes, emitting the difference.
     /// @param knownLemmas The lemmas currently marked known; the verdict each row carries is
-    ///                    derived from this set, the same way an export's scope is.
+    ///                    derived from these sets, the same way an export's scope is.
     void update(QDate const&                           today,
                 std::vector<core::HistoryEntry> const& history,
-                std::unordered_set<std::string> const& knownLemmas);
+                std::unordered_set<std::string> const& knownLemmas,
+                std::unordered_set<std::string> const& masteredLemmas);
 
 signals:
     void filterChanged();
@@ -99,9 +100,10 @@ signals:
     void filterSwitchingChanged();
 
 private:
-    enum Filter { All   = 0,
-                  Known = 1,
-                  New   = 2 };
+    enum Filter { All      = 0,
+                  Known    = 1,
+                  Mastered = 2,
+                  New      = 3 };
 
     static bool                 matches(WordRow const& row, int filter);
     static std::vector<WordRow> filtered(std::vector<WordRow> const& rows, int filter);

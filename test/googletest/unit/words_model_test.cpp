@@ -32,10 +32,10 @@ HistoryEntry entry(std::string lemma, std::string minute, std::string verdict = 
     return HistoryEntry{std::move(lemma), std::move(minute), std::move(verdict)};
 }
 
-/// @brief The model's update with the known set a caller of the real controller hands in.
-void update(WordsModel& model, std::vector<HistoryEntry> history, std::unordered_set<std::string> known = {})
+/// @brief The model's update with the sets a caller of the real controller hands in.
+void update(WordsModel& model, std::vector<HistoryEntry> history, std::unordered_set<std::string> known = {}, std::unordered_set<std::string> mastered = {})
 {
-    model.update(kToday, std::move(history), std::move(known));
+    model.update(kToday, std::move(history), std::move(known), std::move(mastered));
 }
 
 QString wordAt(WordsModel const& model, int row)
@@ -199,7 +199,7 @@ TEST(WordsModel, AFilterSwitchDiffsBothSetsAndADeletionStillRemovesRows)
 
     removed = 0;
     reset   = 0;
-    update(model, {entry("bank", "2026-10-20 09:00", "known")}, {"bank"});
+    update(model, {entry("bank", "2026-10-20 09:00", "known")}, {"bank"}, {});
     EXPECT_EQ(removed, 2);
     EXPECT_EQ(reset, 0);
     EXPECT_EQ(model.rowCount(), 1);
@@ -267,7 +267,7 @@ TEST(WordsModel, AReorderIsTheDocumentedReset)
 TEST(WordsModel, AllRowsCarriesTheRawFieldsAndIgnoresTheFilter)
 {
     WordsModel model;
-    update(model, {entry("bank", "2026-10-20 09:00", "known"), entry("river", "2026-10-19 10:00", "new")}, {"bank"});
+    update(model, {entry("bank", "2026-10-20 09:00", "known"), entry("river", "2026-10-19 10:00", "new")}, {"bank"}, {});
     model.setFilter(static_cast<int>(ExportScope::Known));
 
     const QVariantList rows = model.allRows();

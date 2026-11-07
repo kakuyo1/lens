@@ -1,6 +1,7 @@
 #pragma once
 
 #include <compare>
+#include <cstdint>
 #include <filesystem>
 #include <map>
 #include <optional>
@@ -16,8 +17,8 @@
 
 /**
  * @file known_store.h
- * @brief Local state that survives restarts: which words the reader knows, how they were
- *        marked, at what difficulty level, and the cached explanations.
+ * @brief Local state that survives restarts: the reader's per-word verdicts, at what difficulty
+ *        level, and the cached explanations.
  *
  * Everything lives in one JSON document -- settings.json in the reader's profile, the path
  * main.cpp works out -- that also carries the LLM API configuration. The file is loaded once
@@ -26,6 +27,14 @@
  */
 
 namespace lens::core {
+
+/// @brief The reader's verdict on a word. None is the explicit "back to new" vote: display reads
+/// absent and None the same, but the vote still rides sync so it can retire an older mark from
+/// another device (docs/adr/0147). One word holds at most one of the two real verdicts, and
+/// Mastered is the stronger one (docs/adr/0159).
+enum class WordVerdict : uint8_t { None,
+                                   Known,
+                                   Mastered };
 
 /// @brief One cached sense, with an optional additional-language translation.
 /// @note `imageable` and `imageQuery` are the picture advice, carried with the sense the way the
@@ -85,7 +94,7 @@ struct WordCache {
 };
 
 /**
- * @brief Word marks, difficulty level, explanation language, and the explanation cache.
+ * @brief Word verdicts, difficulty level, explanation language, and the explanation cache.
  *
  * @note Deliberately Qt-free: it parses JSON with nlohmann/json, so the core test targets can link it
  *       into an offline self-check with no Qt and no network.
@@ -111,20 +120,29 @@ public:
     /// @return Whether the reader has marked this lemma as known.
     bool isKnown(const std::string& lemma) const;
 
+    /// @return Whether the reader has marked this lemma as mastered -- the stronger verdict that
+    /// takes the word out of the scan's dashes, the review pool and the chain dots.
+    bool isMasteredVerdict(const std::string& lemma) const;
+
     /// @brief Record a reader's verdict on a word.
     /// @param lemma   Dictionary form of the word.
-    /// @param learned true for "already known" (never pop again), false for "new word"
-    ///                (kept in the list and popped first next time).
-    void mark(const std::string& lemma, bool learned);
+    /// @param verdict Known or Mastered; None is the explicit "back to new" vote, not a mere
+    ///                absence -- it rides sync so it can retire another device's older mark.
+    void mark(const std::string& lemma, WordVerdict verdict);
 
-    /// @return The known set to hand to FilterCore::filterWords, derived from the marks.
+    /// @return The words marked Known -- not the mastered ones, which mastered() holds -- to hand
+    ///         to FilterCore::filterWords and the export's known bucket.
     const std::unordered_set<std::string>& known() const;
+
+    /// @return The words the reader marked Mastered, beside the level's own band.
+    const std::unordered_set<std::string>& mastered() const;
 
     /**
      * @brief The marks in the shape the sync merge reads (docs/adr/0042).
      *
-     * @return `{"known": {lemma: {"learned": bool, "at": ms}}, "deleted": {lemma: ms}}`. A mark
-     *         that was never stamped reads as at 0.
+     * @return `{"known": {lemma: {"learned": bool, "mastered": bool, "at": ms}}, "deleted":
+     *         {lemma: ms}}`. A mark that was never stamped reads as at 0; a reader without the
+     *         mastered field reads the pair as known, which is the old clients' downgrade read.
      */
     nlohmann::json syncMarks() const;
 
@@ -207,17 +225,19 @@ public:
 private:
     std::filesystem::path path_;
     nlohmann::json        doc_; ///< The document as loaded; the base for save().
-    /// lemma -> known(true) / the false vote that un-knows it (docs/adr/0147). Absent means
-    /// never marked; display reads this set binary, so false and absent show the same.
-    std::unordered_map<std::string, bool> marks_;
+    /// lemma -> the reader's verdict: None is the explicit clear vote, Known the lighter "still
+    /// learning" one, Mastered the retire-from-circulation one (docs/adr/0159). Absent means
+    /// never marked; display reads None and absent the same.
+    std::unordered_map<std::string, WordVerdict> marks_;
     /// lemma -> when its mark was last set, in ms since the epoch; written to "markTimes" as
     /// "marked". Absent for a mark that predates the field, which reads as 0.
     std::unordered_map<std::string, long long> markedAt_;
     /// lemma -> when its mark was removed, in ms; a tombstone for the sync merge, written to
     /// "markTimes" as "deleted". Cleared again when the word is marked afresh.
     std::unordered_map<std::string, long long> deletedAt_;
-    /// Derived view of marks_ holding only the true entries; feeds filterWords.
+    /// Derived views of marks_: known_ holds the Known entries, mastered_ the Mastered ones.
     std::unordered_set<std::string> known_;
+    std::unordered_set<std::string> mastered_;
     /// Keyed by explanation language + sense mode + lemma.
     std::map<CacheKey, WordCache> cache_;
     int                           level_ = kDefaultLevel;

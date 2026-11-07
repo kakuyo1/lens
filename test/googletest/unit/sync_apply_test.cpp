@@ -46,7 +46,7 @@ TEST(SyncApply, AKnownMarkRoundTripsThroughBuildAndApply)
     const auto from   = scratchPath("lens-sync-apply-from.json");
     const auto to     = scratchPath("lens-sync-apply-to.json");
     KnownStore source = KnownStore::load(from);
-    source.mark("panel", true);
+    source.mark("panel", lens::core::WordVerdict::Known);
     StatsStore sourceStats{source.document()};
 
     const json local = buildLocalDocument(source, sourceStats, json::object(), "device-a", 1000);
@@ -63,7 +63,7 @@ TEST(SyncApply, ADeletedLemmaStaysDeletedAfterApply)
 {
     const auto path  = scratchPath("lens-sync-apply-deleted.json");
     KnownStore store = KnownStore::load(path);
-    store.mark("panel", true);
+    store.mark("panel", lens::core::WordVerdict::Known);
 
     json deleted      = json::object();
     deleted["panel"]  = 9000000000000LL;
@@ -240,13 +240,13 @@ TEST(SyncFingerprint, TheTimeAMarkWasSetDoesNotChangeIt)
     KnownStore store = KnownStore::load(path);
     StatsStore stats{store.document()};
 
-    store.mark("panel", true);
+    store.mark("panel", lens::core::WordVerdict::Known);
     const std::string first = lens::core::sync::contentFingerprint(store, stats);
 
     // Setting the same verdict again stamps it with a later time. The value is unchanged, so the
     // fingerprint must be too, or every re-mark would look like a change worth uploading.
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
-    store.mark("panel", true);
+    store.mark("panel", lens::core::WordVerdict::Known);
 
     EXPECT_EQ(lens::core::sync::contentFingerprint(store, stats), first)
         << "a re-mark with the same verdict is not a change a sync needs to send";

@@ -23,6 +23,7 @@
 #include <QVariantMap>
 
 #include <optional>
+#include <algorithm>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -37,6 +38,7 @@ inline std::optional<core::ExportScope> parseScope(QString const& scope)
 {
     if (scope == QLatin1String("all")) return core::ExportScope::All;
     if (scope == QLatin1String("known")) return core::ExportScope::Known;
+    if (scope == QLatin1String("mastered")) return core::ExportScope::Mastered;
     if (scope == QLatin1String("new")) return core::ExportScope::New;
     return std::nullopt;
 }
@@ -76,8 +78,9 @@ struct WordRow {
     QString day;  ///< "today", "yesterday", "earlier", or empty for an unreadable time.
     QString date; ///< "MM-dd", empty for an unreadable time.
     QString time; ///< "HH:mm", empty for an unreadable time.
-    /// Derived from the known set, not stored: "known" when the lemma is marked known,
-    /// "new" otherwise -- the binary the bubble badge already speaks (docs/adr/0147).
+    /// Derived from the verdict sets, not stored: "mastered" when the lemma is marked mastered,
+    /// "known" when it is marked known, "new" otherwise -- the words the bubble badge already
+    /// speaks (docs/adr/0159).
     QString verdict;
     int     pops = 0;
 
@@ -85,15 +88,22 @@ struct WordRow {
 };
 
 /**
- * @brief The words popup's rows: each lemma once, the known set deciding the verdict.
+ * @brief The words popup's rows: each lemma once, the verdict sets deciding the verdict.
+ *
+ * The rows are the history's words first, newest entry first; the verdict store's own words -- one
+ * marked without ever being popped, by the pencil layer's mark button, a wordlist import or another
+ * device's sync -- follow in lemma order, with no time and a zero pop count (docs/adr/0159).
+ *
  * @param today The day the labels are relative to; the caller reads the clock.
  * @param history The statistics history, newest first.
  * @param knownLemmas The lemmas currently marked known; the known() view KnownStore derives.
- * @return One row per distinct lemma, in the history's order.
+ * @param masteredLemmas The lemmas currently marked mastered; the mastered() view derives (docs/adr/0159).
+ * @return One row per distinct lemma.
  */
 inline std::vector<WordRow> wordRowList(QDate const&                           today,
                                         std::vector<core::HistoryEntry> const& history,
-                                        std::unordered_set<std::string> const& knownLemmas)
+                                        std::unordered_set<std::string> const& knownLemmas,
+                                        std::unordered_set<std::string> const& masteredLemmas)
 {
     QSet<QString>       seen;
     QHash<QString, int> pops;
@@ -113,8 +123,31 @@ inline std::vector<WordRow> wordRowList(QDate const&                           t
                                dayLabel(moment, today),
                                moment.isValid() ? moment.toString(QStringLiteral("MM-dd")) : QString{},
                                moment.isValid() ? moment.toString(QStringLiteral("HH:mm")) : QString{},
-                               knownLemmas.count(entry.lemma) > 0 ? QStringLiteral("known") : QStringLiteral("new"),
+                               masteredLemmas.count(entry.lemma) > 0 ? QStringLiteral("mastered")
+                               : knownLemmas.count(entry.lemma) > 0  ? QStringLiteral("known")
+                                                                     : QStringLiteral("new"),
                                pops.value(shown)});
+    }
+
+    // The verdict store's own words, the history never saw. Lemma order keeps the rows stable --
+    // the sets behind them are unordered hashes, and the list must not shuffle between updates.
+    std::vector<std::string> extra;
+    for (const std::string& lemma : masteredLemmas)
+        if (not seen.contains(QString::fromStdString(lemma)))
+            extra.push_back(lemma);
+    for (const std::string& lemma : knownLemmas)
+        if (not seen.contains(QString::fromStdString(lemma)))
+            extra.push_back(lemma);
+    std::sort(extra.begin(), extra.end());
+    for (const std::string& lemma : extra) {
+        const QString shown = QString::fromStdString(lemma);
+        seen.insert(shown);
+        rows.push_back(WordRow{shown,
+                               QString{},
+                               QString{},
+                               QString{},
+                               masteredLemmas.count(lemma) > 0 ? QStringLiteral("mastered") : QStringLiteral("known"),
+                               0});
     }
     return rows;
 }
@@ -127,6 +160,8 @@ inline bool rowInScope(WordRow const& row, core::ExportScope const scope)
             return true;
         case core::ExportScope::Known:
             return row.verdict == QLatin1String("known");
+        case core::ExportScope::Mastered:
+            return row.verdict == QLatin1String("mastered");
         case core::ExportScope::New:
             return row.verdict == QLatin1String("new");
     }
@@ -142,10 +177,11 @@ inline bool rowInScope(WordRow const& row, core::ExportScope const scope)
  */
 inline QVariantList wordRows(QDate const&                           today,
                              std::vector<core::HistoryEntry> const& history,
-                             std::unordered_set<std::string> const& knownLemmas)
+                             std::unordered_set<std::string> const& knownLemmas,
+                             std::unordered_set<std::string> const& masteredLemmas)
 {
     QVariantList rows;
-    const auto   typed = wordRowList(today, history, knownLemmas);
+    const auto   typed = wordRowList(today, history, knownLemmas, masteredLemmas);
     rows.reserve(static_cast<qsizetype>(typed.size()));
     for (const WordRow& row : typed)
         rows.append(QVariantMap{{"word", row.word},
