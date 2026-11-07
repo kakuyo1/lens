@@ -122,6 +122,18 @@ Item {
                             font.pixelSize: 13
                             font.weight: Font.Bold
                         }
+
+                        // The arrow says the copy text opens a drawer; it stands only when one applies,
+                        // in the row after the label so the item grows around it instead of the arrow
+                        // sitting in the item's padding, one pixel from the text.
+                        Icon {
+                            visible: item.modelData.action === "copy" && root.drawerItems.length > 0
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 9
+                            height: 9
+                            source: "qrc:/icons/ui-chevron-down.svg"
+                            color: root.tokens.muted
+                        }
                     }
 
                     HoverHandler {
@@ -131,18 +143,6 @@ Item {
                     TapHandler {
                         id: press
                         onTapped: root.activate(item.modelData.action)
-                    }
-
-                    // The arrow says the copy text opens a drawer; it stands only when one applies.
-                    Icon {
-                        visible: item.modelData.action === "copy" && root.drawerItems.length > 0
-                        anchors.right: parent.right
-                        anchors.rightMargin: 1
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 9
-                        height: 9
-                        source: "qrc:/icons/ui-chevron-down.svg"
-                        color: root.tokens.muted
                     }
 
                     CopyDrawer {
