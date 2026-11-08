@@ -1406,7 +1406,7 @@ void CaptureDuty::rebuildScanOcr()
 void CaptureDuty::startScanTrack(quintptr const window, QRect const band)
 {
     scanBand_ = band;
-    track_    = std::make_unique<PageTrack>(window, band, [this, generation = generation_](TrackFrame frame) {
+    track_    = std::make_unique<PageTrack>(window, band, [this, generation = generation_](capture::TrackFrame frame) {
         // The track's worker hands each frame to this thread; a frame from a track that was since dropped is refused by its generation.
         QMetaObject::invokeMethod(
             this,
@@ -1415,7 +1415,7 @@ void CaptureDuty::startScanTrack(quintptr const window, QRect const band)
     });
 }
 
-void CaptureDuty::onTrackFrame(std::uint64_t const generation, TrackFrame const frame)
+void CaptureDuty::onTrackFrame(std::uint64_t const generation, capture::TrackFrame const frame)
 {
     // The scan was invalidated after this frame was read (the window, the level or the setting moved): it is stale.
     if (generation != generation_) return;
@@ -1431,7 +1431,7 @@ void CaptureDuty::onTrackFrame(std::uint64_t const generation, TrackFrame const 
         auto const  length   = settings().value("minimumWordLength").toInt();
         QStringList drawn;
         for (auto const& word : frame.added) {
-            auto const surface = word.text.trimmed();
+            auto const surface = QString::fromStdString(word.text).trimmed();
             auto const key     = surface.toStdString();
             if (not scanJudged_.contains(key)) {
                 // New and Known both draw a line (restyled for Known); a Mastered candidate, the
@@ -1459,10 +1459,10 @@ void CaptureDuty::onTrackFrame(std::uint64_t const generation, TrackFrame const 
             words.append(QVariantMap{{QStringLiteral("lemma"), candidate.lemma},
                                      {QStringLiteral("surface"), candidate.surface},
                                      {QStringLiteral("verdict"), candidate.state == core::CandidateState::Known ? QStringLiteral("known") : QStringLiteral("new")},
-                                     {QStringLiteral("x"), placed.box.x()},
-                                     {QStringLiteral("y"), placed.box.y()},
-                                     {QStringLiteral("width"), placed.box.width()},
-                                     {QStringLiteral("height"), placed.box.height()}});
+                                     {QStringLiteral("x"), placed.x},
+                                     {QStringLiteral("y"), placed.y},
+                                     {QStringLiteral("width"), placed.width},
+                                     {QStringLiteral("height"), placed.height}});
         }
     }
     // Sent on every frame, even when empty: a frame with no candidate in view takes the last one's lines down with it.

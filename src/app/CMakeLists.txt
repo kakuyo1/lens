@@ -83,6 +83,9 @@ add_library(lens_app STATIC
   platform/global_hotkey.cpp
   platform/hover_word_lookup.h
   platform/hover_word_lookup.cpp
+  platform/page_reader_uia.h
+  platform/page_reader_uia.cpp
+  platform/uia_text_range_read.h
   platform/local_voice.h
   platform/local_voice.cpp
   platform/mouse_selection_hook.h
@@ -196,7 +199,8 @@ target_link_libraries(lens_app PRIVATE sherpa_onnx_c_api)
 # (src/app/glass/glass_capture.h). shell32 is the appbar state the pet's taskbar trip reads (platform/taskbar.cpp).
 # Not guarded by if(WIN32): this module *is* the Win32 one, and the product has no other
 # platform. The clipboard's OLE round trip is deliberately not used -- ClipboardSnapshot records why. UIAutomationCore and
-# the COM base (ole32, oleaut32) are for the hover lookup's read of the text under the pointer (platform/hover_word_lookup.cpp).
+# the COM base (ole32, oleaut32) are for the hover lookup's read of the text under the pointer and the scan's page reader
+# (platform/hover_word_lookup.cpp, platform/page_reader_uia.cpp).
 target_link_libraries(lens_app PRIVATE user32 gdi32 shell32 dxgi d3d11 windowsapp runtimeobject UIAutomationCore ole32 oleaut32)
 
 # The C++/WinRT projection headers ship beside the SDK's ABI headers, not on the include path vcvars sets. The

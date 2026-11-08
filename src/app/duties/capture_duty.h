@@ -286,7 +286,7 @@ private:
     /// @brief Start following the page in @p window's band; its frames come back to onTrackFrame().
     void startScanTrack(quintptr window, QRect band);
     /// @brief One frame of the scan's track: judge the words it read, and emit the candidates it has in view.
-    void             onTrackFrame(std::uint64_t generation, TrackFrame frame);
+    void             onTrackFrame(std::uint64_t generation, capture::TrackFrame frame);
     core::Difficulty difficulty() const;
 
     StorageDuty&                          storage_;

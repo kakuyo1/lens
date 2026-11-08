@@ -383,6 +383,96 @@ TEST(WordTrack, ThePageTheTrackKeepsFillsTheBand)
     EXPECT_FALSE(lens::capture::fillsTheBand(Band{.x = 0, .y = 166, .width = 0, .height = 854}, band));
 }
 
+TEST(WordTrack, TrailingPunctCountsWhatAWordUnitKeeps)
+{
+    using lens::capture::trailingPunctOf;
+    EXPECT_EQ(trailingPunctOf("cat"), 0);
+    EXPECT_EQ(trailingPunctOf("cat,"), 1);
+    EXPECT_EQ(trailingPunctOf("cat. "), 2); // the stop and the space it trails off with
+    EXPECT_EQ(trailingPunctOf("cat---"), 3);
+    EXPECT_EQ(trailingPunctOf("word\t\n"), 2);
+    // The em dash a novel keeps against its words: two code points, three bytes.
+    EXPECT_EQ(trailingPunctOf("cat\xE2\x80\x94"), 1);
+    EXPECT_EQ(trailingPunctOf("cat \xE2\x80\x94"), 2);
+}
+
+TEST(WordTrack, TrailingPunctStopsAtALetterOrDigit)
+{
+    using lens::capture::trailingPunctOf;
+    EXPECT_EQ(trailingPunctOf("can't"), 0); // the apostrophe trails, the letters after it stop the count
+    EXPECT_EQ(trailingPunctOf("word -5"), 0);
+    // The symbol characters are not punctuation: a word unit that ends in one keeps it.
+    EXPECT_EQ(trailingPunctOf("5$"), 0);
+    EXPECT_EQ(trailingPunctOf("5+"), 0);
+    EXPECT_EQ(trailingPunctOf("5="), 0);
+    EXPECT_EQ(trailingPunctOf("word_"), 1); // an underscore is a punctuation mark and is counted
+    EXPECT_EQ(trailingPunctOf("word_ "), 2);
+}
+
+TEST(WordTrack, TrailingPunctCountsTheFullWidthAndCJKStops)
+{
+    using lens::capture::trailingPunctOf;
+    // Full-width exclamation, the ideographic full stop and comma.
+    EXPECT_EQ(trailingPunctOf("\xE7\x8C\xAB\xEF\xBC\x81"), 1);
+    EXPECT_EQ(trailingPunctOf("\xE7\x8C\xAB\xE3\x80\x82"), 1);
+    EXPECT_EQ(trailingPunctOf("\xE7\x8C\xAB\xE3\x80\x81"), 1);
+    EXPECT_EQ(trailingPunctOf("\xE7\x8C\xAB"), 0); // a letter alone stops the count at once
+}
+
+TEST(WordTrack, AWordEndingInPunctuationIsCutToItsLetters)
+{
+    using lens::capture::Band;
+    using lens::capture::trimmedWord;
+    // "cat," fills a 60 px box; the comma occupies the last 10, so the letters end at x 150.
+    auto const word = trimmedWord("cat,", Band{.x = 100, .y = 200, .width = 60, .height = 20}, Band{.x = 150, .y = 200, .width = 0, .height = 20});
+    ASSERT_TRUE(word);
+    EXPECT_EQ(word->text, "cat");
+    EXPECT_EQ(word->box.width, 50);
+    EXPECT_EQ(word->box.x, 100);
+    EXPECT_EQ(word->box.y, 200);
+    EXPECT_EQ(word->box.height, 20);
+}
+
+TEST(WordTrack, AWordTheReaderCannotMeasureKeepsItsPunctuation)
+{
+    using lens::capture::Band;
+    using lens::capture::trimmedWord;
+    auto const word = trimmedWord("cat,", Band{.x = 100, .y = 200, .width = 60, .height = 20}, std::nullopt);
+    ASSERT_TRUE(word);
+    EXPECT_EQ(word->text, "cat,");
+    EXPECT_EQ(word->box.width, 60);
+}
+
+TEST(WordTrack, AWordOfNothingButPunctuationLeavesTheScan)
+{
+    using lens::capture::Band;
+    using lens::capture::trimmedWord;
+    // The reader stepped to the first trailing character and the letters range read no box at all.
+    EXPECT_FALSE(trimmedWord(", ;", Band{.x = 100, .y = 200, .width = 60, .height = 20}, Band{}));
+}
+
+TEST(WordTrack, AWordWhoseLettersFillItsBoxKeepsIt)
+{
+    using lens::capture::Band;
+    using lens::capture::trimmedWord;
+    // A letters-end box outside the word's own box would cut nothing sensible: the word keeps its box.
+    auto const word = trimmedWord("cat,", Band{.x = 100, .y = 200, .width = 60, .height = 20}, Band{.x = 160, .y = 200, .width = 0, .height = 20});
+    ASSERT_TRUE(word);
+    EXPECT_EQ(word->text, "cat,");
+    EXPECT_EQ(word->box.width, 60);
+}
+
+TEST(WordTrack, AWordWithoutATrailKeepsItsWholeBox)
+{
+    using lens::capture::Band;
+    using lens::capture::trimmedWord;
+    auto const word = trimmedWord("cat", Band{.x = 100, .y = 200, .width = 60, .height = 20}, std::nullopt);
+    ASSERT_TRUE(word);
+    EXPECT_EQ(word->text, "cat");
+    EXPECT_EQ(word->box.width, 60);
+    EXPECT_FALSE(trimmedWord("cat", Band{.x = 100, .y = 200, .width = 0, .height = 20}, std::nullopt));
+}
+
 TEST(PageAlignment, TheNameSetHoldsEachNameOfThePageOnce)
 {
     // "Shoes" is not a name: the page also writes "shoes" in lower case. "Richard" repeats and is kept once.

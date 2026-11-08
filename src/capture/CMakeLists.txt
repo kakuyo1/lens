@@ -4,6 +4,9 @@ add_library(lens_capture STATIC
   scan_pipeline.cpp
   page_alignment.h
   page_alignment.cpp
+  page_reader.h
+  track_core.h
+  track_core.cpp
   word_track.h
   word_track.cpp
   ocr_engine.h

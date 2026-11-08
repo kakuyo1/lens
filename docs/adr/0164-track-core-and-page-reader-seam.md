@@ -1,0 +1,18 @@
+# 0164 扫描采集策略进 TrackCore，UIA 读词降为 PageReader 适配器
+
+- **状态**：accepted
+- **背景**：扫描的采集策略（页验收、锚点、走词节奏、名字集、去重、id、诊断计数）约 350 行全部住在 `src/app/platform/hover_word_lookup.cpp` 的 `TrackState` 里，与 UIA/COM 机制（页树搜索、PageCache、词游标、Chrome 拒缩端点的字符游走）同文件同函数地缠在一起。ADR 0163 结尾自认 “UIA 盒子塌缩无法在 CI 里复现；规则本身由 WordTrack 的纯函数用例钉住”：自愈矩阵（空锚点 ×3、missed ×6、settle ×3、500ms 周检）只有逐秒日志可诊断，每条策略都只能开真 Chrome 手测。
+- **决定**：
+  - **深模块** `capture::TrackCore`（`src/capture/track_core.{h,cpp}`，纯 std：无 Qt、无 COM、无钟、无日志）。调用面只有 `TrackOutput step(Band band, steady_clock::time_point now)` 一个方法；`TrackOutput{frame, report}`，`TrackFrame{visible(PlacedSpan), added(ReadWord), lost}`。三态合同：frame 为空 = 无事发生；空 frame = 收线；`lost = true` = id 纪元结束，duty 据此清 `scanCandidates_`。全部节奏常量数值逐字未动（kTrackChunkWords=12、kStillSteps=8、kSettleSteps=3、kMissedSteps=6、kPageCheckPeriod=500ms、kPageSearchPeriod=250ms、kNameRefresh=5s、kNameRetry=1s、kEmptyAnchors=3、kEdgeShare=5、kTrackPeriod=16ms 留在 PageTrack 壳）。
+  - **缝** `capture::PageReader`/`Page`/`Word`（`src/capture/page_reader.h`，纯 std，对象句柄式）：`acquire(Band)/drop()/anyText()` + 页上的 `present()/box()/text()/wordAt(x,y)/box(Word)/read(Word)/step(Word,±1)`。几何复用 `word_track.h` 的 `Band`，不造平行矩形类型。窗口身份由生产适配器构造时持有，TrackCore 永远见不到窗口句柄与进程名；chrome.exe 前台闸留在 duty。
+  - **归属表**（政策 vs 机制，逐项过缝）：页树搜索两遍选页、documentClip、virtual-document 规则、PageCache、Clone/Move/Expand、字符游走 → 适配器 `page_reader_uia`；fillsTheBand 验收（acquire + 500ms 周检两处）、锚点搬移与 kEdgeShare、分块前后向走词、settle/missed/空锚自愈、名字集 5s/1s 节奏与 “读自被跟踪的文档”（ADR 0161，由 `Page::text()` 只存在于被跟踪页的接口形状保证）、逐词去重、id 分配、诊断计数 → TrackCore；`scanJudged_`/`scanCandidates_`/`verdictChanged`/`invalidateScan`/代际 → duty，明确留在缝外，TrackCore 判定盲。`warmPageTreeOf` 的 duty 调用原样。
+  - **尾标点裁剪拆两半**（D7）：`WordRead{text 不裁、fullBox、lettersEnd}`——适配器只供框（retraction 优先、Chrome 拒缩走字符游走，答案 = 第一个尾字符的框，其左缘即字母的终点）；裁剪算术（`trailingPunctOf` 计数、按 lettersEnd 切框带宽度护栏、纯标点词离场）提为 `capture::word_track` 纯函数 `trailingPunctOf`/`trimmedWord`，gtest 钉住，由 TrackCore 调用。假适配器因此不实现裁剪。
+  - **两个适配器 = 一条真缝**：生产 `src/app/platform/page_reader_uia.{h,cpp}`（页发现机制整体平移，语义零改动；PageCache 保持进程级按窗口缓存，跨 track 重建存活）；测试假适配器（脚本化词格 + 盒子时间线 + 行为开关）住在 `test/googletest/unit/track_core_test.cpp`，7 条用例经 `step` + 16ms 虚拟步进驱动：0163 acquire 窄条拒收、站立页塌缩周检丢弃、标签切换 lost、滚动中块读整体丢弃、滚动重锚 + rebase、名字闸门与 1s/5s 节奏、空锚/missed 自愈。0163 的 “UIA 盒子塌缩无法在 CI 里复现” 作废。
+  - **OCR 不进缝**。休眠证据（本次逐行核对）：`launchOcr` 全仓唯一调用点是 `capture_duty.cpp` 的 `captureScreenshot`（context 恒空）；`scanOcr_` 只剩 `rebuildScanOcr` 的构建与 `scanReady_` 就绪闸（scanTick 首行）；track 从不调 OCR，生产读词只有 UIA TextPattern 一条路。ADR 0154 的 Tesseract TSV + `capture::PageIndex` 对齐机保持为已测纯函数，不被 track 引用；若 TSV 读者归来，它是第三个 PageReader 适配器，其 1s CPU / 3s 冷却节拍属于它自己的适配器内部。
+  - **诊断日志出壳**：TrackReport（moves/refusals/losses/missedReads/framesSent/nameReads/pageSearches/spanCount/visibleTop/visibleBottom）每秒由 TrackCore 聚合、PageTrack 壳逐字打印原日志行；0163 的两条覆盖度日志（refused/dropped + 覆盖率）随 `TrackReport::note` 在当步出壳，行文案不变。
+- **后果**：
+  - `hover_word_lookup.cpp` 从 1005 行缩到 225 行，只剩 hover 查词与 PageTrack 壳；TrackState 与页发现机制整体删除，无转发壳。共享的 COM 小件（Com/ComApartment/boxesOf/kMaxLevels/bandOf）提到 `src/app/platform/uia_text_range_read.h` 内部头，两侧共用。
+  - 生产适配器的 `read()` 把 retraction 成功路径的结果统一成 “lettersEnd 框” 交给 TrackCore 裁剪算术：单行词与旧 `trimmedWordOf` 逐像素一致（旧 retraction 路径的框原样使用）；Chrome 拒缩时的字符游走路径逐行为一致——生产读者只有 Chrome，行为不变。假适配器只供框。
+  - 搜索的 250ms 慢时钟留在 TrackCore：以 “读者是否被托付过页”（cacheWarm）为界，冷则上钟、暖则每步直问 `acquire`（缓存命中廉价，空锚自愈依赖它逐步重试）——与旧 `cachedPageOf`/`pageOfWindow` 的节奏逐路径等价；searches 计数随冷态询问累加。
+  - 页死（周检 `present()` 为假）与塌缩丢弃时，新代码把持有的页句柄当场复位，旧代码把失效的 `PageDocument` 留在成员里直到下一次 acquire 覆盖：无页窗口的名字兜底因此改走 `PageReader::anyText()` 的现搜（受既有的 5s/1s 名字钟限频，不再读失效 pattern），判定缓存按 surface 键复用，不受影响。
+  - 采集策略的下一处改动（调阈值、改名字钟）改常量即改行为，一条 TrackCore 用例验证；换读者只写适配器。UIA/COM 怪招集中一个文件。
