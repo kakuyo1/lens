@@ -56,11 +56,12 @@ TEST_F(CoreTest, FilterWordsThroughput)
     const auto texts = corpusTexts();
     ASSERT_FALSE(texts.empty()) << "the corpus gave no excerpts to measure";
 
-    const std::unordered_set<std::string> known; // an empty known set: worst case
+    const std::unordered_set<std::string> known;    // an empty known set: worst case
+    const std::unordered_set<std::string> mastered; // verdict lookups on an empty set: worst case
 
     // Warm up: first touch of the tables, the corpus strings, and the allocator.
     for (const auto& text : texts)
-        lens::core::filterWords(text, known, lens::core::Difficulty::byRank(0));
+        lens::core::filterWords(text, known, mastered, lens::core::Difficulty::byRank(0));
 
     constexpr int       kRounds = 200;
     std::vector<double> roundMs;
@@ -72,7 +73,8 @@ TEST_F(CoreTest, FilterWordsThroughput)
     for (int round = 0; round < kRounds; ++round) {
         const auto startedAt = std::chrono::steady_clock::now();
         for (const auto& text : texts)
-            candidates += lens::core::filterWords(text, known, lens::core::Difficulty::byRank(0)).size();
+            candidates +=
+                lens::core::filterWords(text, known, mastered, lens::core::Difficulty::byRank(0)).size();
         roundMs.push_back(std::chrono::duration<double, std::milli>(
                               std::chrono::steady_clock::now() - startedAt)
                               .count());
