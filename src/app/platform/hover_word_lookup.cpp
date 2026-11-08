@@ -520,6 +520,65 @@ Com<IUIAutomationTextRange> cloneOf(IUIAutomationTextRange& range)
     return Com<IUIAutomationTextRange>{raw};
 }
 
+/// A word as the track draws and judges it: its letters' box, and the text they spell.
+struct WordRead {
+    QRect   box;
+    QString text;
+};
+
+/// @return How many trailing characters stand between @p text's last letter or digit and the range's
+///         end: the punctuation a word unit keeps -- the comma, the em dash a novel keeps against its
+///         words, the full-width stop -- and the space it trails off with. Counted the way a range's
+///         end is retracted, one per character; a letter or digit stops the count.
+int trailingPunctOf(QString const& text)
+{
+    int count = 0;
+    while (count < text.size()) {
+        QChar const c = text.at(text.size() - 1 - count);
+        if (not c.isSpace() and not c.isPunct()) break;
+        ++count;
+    }
+    return count;
+}
+
+/// @return The word @p range holds with its trailing punctuation left out -- @p full is the range's
+///         own first box, which the caller has already read -- or nothing when the word has no boxes
+///         at all. UIA's word unit keeps what follows the word, the comma and the period with it, and
+///         the line would draw over them; a range that will not be cut keeps its punctuation.
+std::optional<WordRead> trimmedWordOf(IUIAutomationTextRange& word, QRect const& full)
+{
+    QString const text = wordTextOf(word);
+    int const     cut  = trailingPunctOf(text);
+    if (cut == 0) return full.isEmpty() ? std::nullopt : std::optional<WordRead>{{full, text}};
+
+    auto const cutBox = [&full, &text, cut](QRect const& junk) {
+        // The junk's own left edge is where the letters end, and it must sit inside the word's box:
+        // a character stepped past the range's end lands on the next line's first glyph.
+        QRect const trimmed{full.left(), full.top(), junk.left() - full.left(), full.height()};
+        return trimmed.width() > 0 and trimmed.width() < full.width()
+                   ? std::optional<WordRead>{{trimmed, text.left(text.size() - cut)}}
+                   : std::optional<WordRead>{{full, text}};
+    };
+
+    // First try the direct retraction; Chrome refuses it (it answers moved=-count), so the walk that
+    // the word iteration itself uses stands in: a one-character range stepped to the first trailing
+    // character says where the letters end.
+    auto const range = cloneOf(word);
+    int        moved = 0;
+    if (SUCCEEDED(range->MoveEndpointByUnit(TextPatternRangeEndpoint_End, TextUnit_Character, -cut, &moved)) and moved == cut) {
+        auto const boxes = boxesOf(*range);
+        if (boxes.empty()) return std::nullopt; // nothing but punctuation: the token leaves the scan
+        return WordRead{boxes.front(), text.left(text.size() - cut)};
+    }
+    auto const cursor = cloneOf(word);
+    int const  junkAt = text.size() - cut;
+    if (FAILED(cursor->Move(TextUnit_Character, junkAt, &moved)) or moved != junkAt) return WordRead{full, text};
+    cursor->ExpandToEnclosingUnit(TextUnit_Character);
+    auto const boxes = boxesOf(*cursor);
+    if (boxes.empty()) return WordRead{full, text};
+    return cutBox(boxes.front());
+}
+
 /// @return The band in the form the placement arithmetic takes.
 capture::Band bandOf(QRect const band)
 {
@@ -558,8 +617,8 @@ private:
     /// @return Whether words past the first one read backward were added.
     bool extendBackward(QRect band, TrackFrame& frame);
     void refreshNamesIfDue();
-    /// Names are not words to learn: the page writes them capitalized throughout.
-    bool isName(QString const& text) const;
+    /// @brief Send a word the track has not sent before: names and repeats draw no line of their own.
+    void rememberWord(int id, QString const& text, std::vector<ReadWord>& added);
 
     quintptr                              window_;
     Com<IUIAutomation>                    automation_;
@@ -572,6 +631,7 @@ private:
     bool                                  forwardDone_  = false;
     bool                                  backwardDone_ = false;
     std::unordered_set<std::string>       names_;
+    std::unordered_set<std::string>       wordsSeen_; ///< The words a line already stands for, once each.
     bool                                  namesLoaded_ = false;
     std::chrono::steady_clock::time_point namesAt_{};
     int                                   stillSteps_ = 0;
@@ -726,18 +786,23 @@ std::optional<TrackFrame> TrackState::acquire(QRect const band)
     }
     emptyAnchors_ = 0;
 
-    anchor_       = std::move(anchor);
-    anchorBox_    = box;
-    forward_      = cloneOf(*anchor_);
-    backward_     = cloneOf(*anchor_);
-    forwardDone_  = false;
-    backwardDone_ = false;
-    stillSteps_   = 0;
-    spans_.assign(1, {.id = nextId_++, .dx = 0, .dy = 0, .width = box.width(), .height = box.height()});
+    anchor_         = std::move(anchor);
+    anchorBox_      = box;
+    forward_        = cloneOf(*anchor_);
+    backward_       = cloneOf(*anchor_);
+    forwardDone_    = false;
+    backwardDone_   = false;
+    stillSteps_     = 0;
+    auto const word = trimmedWordOf(*anchor_, box);
+    spans_.assign(1,
+                  {.id     = nextId_++,
+                   .dx     = 0,
+                   .dy     = 0,
+                   .width  = word ? word->box.width() : box.width(),
+                   .height = word ? word->box.height() : box.height()});
 
-    TrackFrame    frame;
-    QString const text = wordTextOf(*anchor_);
-    if (not isName(text)) frame.added.push_back({.id = spans_.front().id, .text = text});
+    TrackFrame frame;
+    if (word) rememberWord(spans_.front().id, word->text, frame.added);
     lines_ = false;
     return frame;
 }
@@ -754,6 +819,8 @@ std::optional<TrackFrame> TrackState::lose()
     backwardDone_ = false;
     stillSteps_   = 0;
     lines_        = false;
+    // The words it sent belonged to the reading it lost; a new reading starts its first occurrences over.
+    wordsSeen_.clear();
     TrackFrame frame;
     frame.lost = true;
     return frame;
@@ -805,9 +872,10 @@ bool TrackState::extendForward(QRect const band, TrackFrame& frame)
         QRect const box = firstBoxOf(*next);
         if (not box.isEmpty()) {
             if (box.top() > band.bottom()) break;
-            QString const text = wordTextOf(*next);
-            fresh.push_back({.id = nextId_++, .dx = box.x() - anchorBox_.x(), .dy = box.y() - anchorBox_.y(), .width = box.width(), .height = box.height()});
-            if (not isName(text)) words.push_back({.id = fresh.back().id, .text = text});
+            if (auto const word = trimmedWordOf(*next, box)) {
+                fresh.push_back({.id = nextId_++, .dx = box.x() - anchorBox_.x(), .dy = box.y() - anchorBox_.y(), .width = word->box.width(), .height = word->box.height()});
+                rememberWord(fresh.back().id, word->text, words);
+            }
         }
         cursor = std::move(next);
     }
@@ -841,9 +909,10 @@ bool TrackState::extendBackward(QRect const band, TrackFrame& frame)
         QRect const box = firstBoxOf(*next);
         if (not box.isEmpty()) {
             if (box.bottom() < band.top()) break;
-            QString const text = wordTextOf(*next);
-            fresh.push_back({.id = nextId_++, .dx = box.x() - anchorBox_.x(), .dy = box.y() - anchorBox_.y(), .width = box.width(), .height = box.height()});
-            if (not isName(text)) words.push_back({.id = fresh.back().id, .text = text});
+            if (auto const word = trimmedWordOf(*next, box)) {
+                fresh.push_back({.id = nextId_++, .dx = box.x() - anchorBox_.x(), .dy = box.y() - anchorBox_.y(), .width = word->box.width(), .height = word->box.height()});
+                rememberWord(fresh.back().id, word->text, words);
+            }
         }
         cursor = std::move(next);
     }
@@ -869,9 +938,15 @@ void TrackState::refreshNamesIfDue()
     namesLoaded_ = true;
 }
 
-bool TrackState::isName(QString const& text) const
+void TrackState::rememberWord(int const id, QString const& text, std::vector<ReadWord>& added)
 {
-    return names_.contains(capture::normalizedWord(text.trimmed().toStdString()));
+    // Names are not words to learn: the page writes them capitalized throughout. And a word the
+    // track has already sent keeps the one line it won -- the reader asked for the first
+    // occurrence, not for every one the page holds (docs/adr/0161 keeps the name rule).
+    std::string const key = capture::normalizedWord(text.trimmed().toStdString());
+    if (key.empty() or names_.contains(key)) return;
+    if (not wordsSeen_.insert(key).second) return;
+    added.push_back({.id = id, .text = text});
 }
 
 }
