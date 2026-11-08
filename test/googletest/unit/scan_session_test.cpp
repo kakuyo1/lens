@@ -78,6 +78,8 @@ struct Harness {
     int                started = 0; ///< Tracks the factory built.
     std::vector<QRect> bands;       ///< Every setBand the live track took.
     TrackSink          deliver;     ///< The live track's frame sink; empty while no track runs.
+    /// Every step the marshaled frame path routed; the regression the frame route once dropped.
+    std::vector<ScanStep> routed;
 
     ScanSession session{store,
                         [](std::function<void()> work) { work(); },
@@ -85,7 +87,8 @@ struct Harness {
                             ++started;
                             deliver = std::move(sink);
                             return std::make_unique<FakeTrack>([this](QRect const band) { bands.push_back(band); });
-                        }};
+                        },
+                        [this](ScanStep const& step) { routed.push_back(step); }};
 
     /// @brief Facts with a Chrome window in front, placed on a monitor; the one foreground the scan reads.
     ScanFacts chrome(QRect const band = QRect{0, 0, 1920, 400}) const
@@ -238,6 +241,30 @@ TEST(ScanSession, AJobInFlightBlocksTheTrackButNotTheWarm)
     facts.jobOrUploadInFlight = false;
     h.session.tick(facts);
     EXPECT_EQ(h.started, 1);
+}
+
+TEST(ScanSession, AFrameThroughTheTrackSinkRoutesItsStepToTheOwner)
+{
+    Harness h;
+    h.session.tick(h.chrome());
+    ASSERT_EQ(h.started, 1);
+    ASSERT_TRUE(h.deliver);
+
+    // The production track's worker hands frames to the sink; each one's step must reach the
+    // owner's route, or the placed words never reach the surface (the regression the frame path
+    // once carried: onFrame ran and judged, but its answer was dropped on the floor).
+    h.deliver(frameWithAdded(1, "ubiquitous"));
+    ASSERT_EQ(h.routed.size(), 1);
+    ASSERT_TRUE(h.routed.front().placed);
+    EXPECT_EQ(h.routed.front().placed->words.size(), 1);
+    EXPECT_EQ(h.routed.front().placed->words.front().lemma, QString::fromStdString("ubiquitous"));
+
+    // A lost frame routes its clear the same way.
+    lens::capture::TrackFrame lost;
+    lost.lost = true;
+    h.deliver(lost);
+    ASSERT_EQ(h.routed.size(), 2);
+    EXPECT_TRUE(h.routed.back().cleared);
 }
 
 TEST(ScanSession, TheBandIsFollowedOnTheLiveTrack)

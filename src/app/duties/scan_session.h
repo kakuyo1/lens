@@ -134,6 +134,10 @@ public:
 using TrackSink = std::function<void(capture::TrackFrame frame)>;
 /// @brief Queues a call onto the owner's thread; the duty injects the QObject marshal.
 using Marshal = std::function<void(std::function<void()> work)>;
+/// @brief Hands a step the session produced on the owner's thread back to its owner. The frame
+///        path reaches the owner only through this: the marshaled lambda runs on the owner's
+///        thread, where the owner can execute what the step asks (emit scanPlaced, scanCleared).
+using StepRoute = std::function<void(ScanStep const& step)>;
 /// @brief Builds the platform track for @p window inside @p band; the session owns what it returns.
 using TrackFactory = std::function<std::unique_ptr<ScanTrack>(quintptr window, QRect band, TrackSink deliver)>;
 
@@ -142,7 +146,11 @@ public:
     /// @param store The verdict store the judgement reads; outlives *this.
     /// @param marshal Queues a call onto the owner's thread; frames from the track cross it.
     /// @param makeTrack Builds the platform track; production wraps PageTrack, a test scripts one.
-    ScanSession(core::KnownStore& store, Marshal marshal, TrackFactory makeTrack);
+    /// @param route Receives every step the track's frames produce, on the owner's thread. The
+    ///              tick's step goes out through tick()'s return instead, so direct onFrame()
+    ///              callers -- the tests, the debug surface -- route their own returns and this
+    ///              callback stays silent for them.
+    ScanSession(core::KnownStore& store, Marshal marshal, TrackFactory makeTrack, StepRoute route);
     ~ScanSession();
 
     ScanSession(ScanSession const&)            = delete;
@@ -206,6 +214,7 @@ private:
     core::KnownStore& store_;
     Marshal           marshal_;
     TrackFactory      makeTrack_;
+    StepRoute         route_; ///< The owner's step sink; the marshaled frame path routes through it.
 
     std::uint64_t                                       generation_ = 0;
     QString                                             scanContext_;

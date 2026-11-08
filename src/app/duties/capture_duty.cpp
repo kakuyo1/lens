@@ -147,7 +147,8 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
       lifecycle_{storage_, [this] { executor_->cancel(); jobContext_.reset(); }},
       session_{storage_.knownStore(),
                [this](std::function<void()> work) { QMetaObject::invokeMethod(this, std::move(work), Qt::QueuedConnection); },
-               [](quintptr window, QRect band, TrackSink deliver) { return std::make_unique<PageTrackScanTrack>(window, band, std::move(deliver)); }},
+               [](quintptr window, QRect band, TrackSink deliver) { return std::make_unique<PageTrackScanTrack>(window, band, std::move(deliver)); },
+               [this](ScanStep const& step) { routeScanStep(step); }},
       selection_{storage_.knownStore(), storage_, std::make_unique<SelectionTextGrabber>()}
 {
     if (not onlineTransport_) onlineTransport_ = std::make_shared<ocr::QtHttpTransport>();

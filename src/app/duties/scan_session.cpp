@@ -13,8 +13,8 @@
 
 namespace lens::app {
 
-ScanSession::ScanSession(core::KnownStore& store, Marshal marshal, TrackFactory makeTrack)
-    : store_(store), marshal_(std::move(marshal)), makeTrack_(std::move(makeTrack))
+ScanSession::ScanSession(core::KnownStore& store, Marshal marshal, TrackFactory makeTrack, StepRoute route)
+    : store_(store), marshal_(std::move(marshal)), makeTrack_(std::move(makeTrack)), route_(std::move(route))
 {}
 
 ScanSession::~ScanSession() = default;
@@ -116,7 +116,9 @@ void ScanSession::startTrack(quintptr const window, QRect const& band)
     const auto generation = generation_;
     track_                = makeTrack_(window, band, [this, generation](capture::TrackFrame frame) {
         // The track's worker hands each frame to the owner's thread; a frame from a track that was since dropped is refused by its generation.
-        marshal_([this, generation, frame = std::move(frame)]() mutable { onFrame(generation, std::move(frame)); });
+        // The step the frame answers routes to the owner here, on the owner's thread -- the placed
+        // words and the cleared flag are the owner's to emit (docs/adr/0165).
+        marshal_([this, generation, frame = std::move(frame)]() mutable { route_(onFrame(generation, std::move(frame))); });
     });
 }
 
