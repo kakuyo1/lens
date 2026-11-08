@@ -57,4 +57,15 @@ std::intptr_t passthroughStyle(std::intptr_t style, bool on);
  */
 void setPassthrough(QWindow const& window, bool on);
 
+/**
+ * @brief Keeps a click from giving the window the foreground, by ORing WS_EX_NOACTIVATE onto the
+ *        extended style.
+ * @param window A window that has been shown.
+ * @note Qt's `WindowDoesNotAcceptFocus` alone does not hold: a click on the mark button still took
+ *       the foreground from the page, and hiding that window then left the system with no
+ *       foreground window at all -- the scan's own gate read Chrome as gone. The style bit is the
+ *       piece Qt does not set.
+ */
+void setNoActivate(QWindow const& window);
+
 } // namespace lens::app

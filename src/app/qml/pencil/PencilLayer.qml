@@ -143,7 +143,14 @@ Window {
             HoverHandler { id: markHover; cursorShape: Qt.PointingHandCursor }
             TapHandler {
                 id: markTap
-                onTapped: Controller.explanationDuty.mark(markButtonWindow.spec.lemma, "mastered")
+                property string pressedLemma: ""
+                onPressedChanged: {
+                    // The lemma is read at press: the scan can tear the layer down mid-press, and
+                    // a tap that outlives its word still aims at the word the reader pressed on.
+                    pressedLemma = markButtonWindow.spec.lemma || ""
+                    Controller.pencil.setMarkPressHold(markTap.pressed)
+                }
+                onTapped: Controller.explanationDuty.mark(pressedLemma, "mastered")
             }
         }
     }

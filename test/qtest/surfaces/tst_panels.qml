@@ -31,6 +31,7 @@ Item {
         id: wordsComponent
         WordsPopup {}
     }
+
     TestCase {
         id: testCase
         name: "Panels"

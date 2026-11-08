@@ -3,12 +3,14 @@
 #include <compare>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <nlohmann/json.hpp>
@@ -129,6 +131,14 @@ public:
     /// @param verdict Known or Mastered; None is the explicit "back to new" vote, not a mere
     ///                absence -- it rides sync so it can retire another device's older mark.
     void mark(const std::string& lemma, WordVerdict verdict);
+
+    /// @brief Re-key every mark through @p normalize, so marks written under their surface form
+    ///        join the base form the store keys by (docs/adr/0162).
+    /// @param normalize Maps a stored key to its base form; identity for most keys.
+    /// @return Whether anything moved; the caller saves only then. A base the reader deleted
+    ///         stays deleted, a collision keeps the stronger verdict, and the old key takes a
+    ///         tombstone so a sync cannot bring it back on top of the base one.
+    bool rebaseMarks(std::function<std::string(std::string const&)> const& normalize);
 
     /// @return The words marked Known -- not the mastered ones, which mastered() holds -- to hand
     ///         to FilterCore::filterWords and the export's known bucket.

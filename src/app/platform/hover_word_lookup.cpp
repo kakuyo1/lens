@@ -413,6 +413,15 @@ void forgetPageOf(quintptr const window)
     if (cache.window == window) cache.document.reset();
 }
 
+/// @return The page cached for @p window, without searching; null when the cache holds nothing or another window.
+std::shared_ptr<PageDocument> cachedPageOf(quintptr const window)
+{
+    auto&                 cache = pageCache();
+    std::lock_guard const lock{cache.guard};
+    if (cache.window != window) return nullptr;
+    return cache.document;
+}
+
 /// @return The page's box as it stands now, in physical screen pixels; empty when the element cannot say.
 QRect currentBoxOf(PageDocument const& page)
 {
@@ -443,6 +452,19 @@ Com<IUIAutomationTextRange> middleWordOf(IUIAutomationTextPattern& page, QRect c
     return word;
 }
 
+/// @return The whole text of @p pattern's document range; empty when it cannot be read.
+QString textOfPattern(IUIAutomationTextPattern& pattern)
+{
+    IUIAutomationTextRange* rangeRaw = nullptr;
+    if (FAILED(pattern.get_DocumentRange(&rangeRaw)) or not rangeRaw) return {};
+    Com<IUIAutomationTextRange> range{rangeRaw};
+    BSTR                        body = nullptr;
+    if (FAILED(range->GetText(-1, &body))) return {};
+    QString const text = QString::fromWCharArray(body, static_cast<int>(SysStringLen(body)));
+    SysFreeString(body);
+    return text;
+}
+
 }
 
 QString pageTextOf(quintptr const window)
@@ -454,15 +476,7 @@ QString pageTextOf(quintptr const window)
     if (not root) return {};
     auto const page = pageOf(*automation, *root, QRect{});
     if (not page.pattern) return {};
-
-    IUIAutomationTextRange* rangeRaw = nullptr;
-    if (FAILED(page.pattern->get_DocumentRange(&rangeRaw)) or not rangeRaw) return {};
-    Com<IUIAutomationTextRange> range{rangeRaw};
-    BSTR                        body = nullptr;
-    if (FAILED(range->GetText(-1, &body))) return {};
-    QString const text = QString::fromWCharArray(body, static_cast<int>(SysStringLen(body)));
-    SysFreeString(body);
-    return text;
+    return textOfPattern(*page.pattern);
 }
 
 namespace {
@@ -484,6 +498,10 @@ constexpr int kSettleSteps = 3;
 /// How often a settled page is checked to still be a document of its window: a tab switch takes it out of the tree,
 /// and its last box can keep reading as in view.
 constexpr auto kPageCheckPeriod = std::chrono::milliseconds{500};
+/// The wait between fresh page searches while the window answers with none; a search walks the window's whole tree.
+constexpr auto kPageSearchPeriod = std::chrono::milliseconds{250};
+/// Empty anchor words read in a row before the page is dropped and searched for anew.
+constexpr int kEmptyAnchors = 3;
 /// The anchor moves once it comes within this share of the band's height of the band's top or bottom edge.
 constexpr int kEdgeShare = 5;
 
@@ -558,15 +576,20 @@ private:
     std::chrono::steady_clock::time_point namesAt_{};
     int                                   stillSteps_ = 0;
     int                                   nextId_     = 0;
-    // Diagnostic counters for the scroll test, one summary line a second. TEMPORARY: remove with the probe.
+    // Diagnostic counters for the track, one summary line a second: a track that has stopped drawing
+    // its lines shows which of its reads stopped, instead of going silent.
     int                                   moves_    = 0;
     int                                   refusals_ = 0;
     int                                   losses_   = 0;
     int                                   missed_   = 0;
+    int                                   reads_    = 0; ///< Name reads the page answered in the last second.
+    int                                   searches_ = 0; ///< Page searches walked over the window's tree.
     std::chrono::steady_clock::time_point reportedAt_{};
-    int                                   missedSteps_ = 0;     ///< Steps in a row the anchor has read empty or outside the band.
-    int                                   framesSent_  = 0;     ///< TEMPORARY diagnostic: frames returned in the last second.
-    bool                                  lines_       = false; ///< Whether the last frame sent drew its words.
+    int                                   missedSteps_  = 0; ///< Steps in a row the anchor has read empty or outside the band.
+    int                                   framesSent_   = 0; ///< Frames returned in the last second.
+    int                                   emptyAnchors_ = 0; ///< Anchor words read empty in a row.
+    std::chrono::steady_clock::time_point pageSearchAt_{};   ///< When the page was last searched for.
+    bool                                  lines_ = false;    ///< Whether the last frame sent drew its words.
     std::chrono::steady_clock::time_point pageCheckAt_{};
 };
 
@@ -574,18 +597,20 @@ std::optional<TrackFrame> TrackState::step(QRect const band)
 {
     if (not automation_) automation_ = newAutomation();
     if (not automation_) return std::nullopt;
-    if (not anchor_) return acquire(band);
     // The window's box takes in the browser's tabs, address bar and bookmarks, which are not the page: the page's own box clips.
     QRect const visible = page_ ? band.intersected(currentBoxOf(*page_)) : band;
 
+    // The summary prints while the anchor is down too: a track stuck in acquire is exactly the one
+    // that stops drawing its lines, and its name reads and page searches are the only sign of it.
     auto const now = std::chrono::steady_clock::now();
     if (reportedAt_ == std::chrono::steady_clock::time_point{}) reportedAt_ = now;
     if (now - reportedAt_ >= std::chrono::seconds{1}) {
-        if (moves_ + refusals_ + losses_ + missed_ + framesSent_ > 0)
-            LENS_INFO("scan track, last second: {} anchor move(s), {} refused, {} missed read(s), {} lost, {} span(s) held, {} frame(s) sent, visible y {}..{}", moves_, refusals_, missed_, losses_, spans_.size(), framesSent_, visible.top(), visible.bottom());
-        moves_ = refusals_ = losses_ = missed_ = framesSent_ = 0;
-        reportedAt_                                          = now;
+        if (moves_ + refusals_ + losses_ + missed_ + framesSent_ + reads_ + searches_ > 0)
+            LENS_INFO("scan track, last second: {} anchor move(s), {} refused, {} missed read(s), {} lost, {} span(s) held, {} frame(s) sent, {} name read(s), {} page search(es), visible y {}..{}", moves_, refusals_, missed_, losses_, spans_.size(), framesSent_, reads_, searches_, visible.top(), visible.bottom());
+        moves_ = refusals_ = losses_ = missed_ = framesSent_ = reads_ = searches_ = 0;
+        reportedAt_                                                               = now;
     }
+    if (not anchor_) return acquire(band);
 
     QRect const box = firstBoxOf(*anchor_);
     if (box.isEmpty() or not visible.contains(box.center())) {
@@ -653,10 +678,24 @@ std::optional<TrackFrame> TrackState::acquire(QRect const band)
     refreshNamesIfDue();
     // The names decide which words are words to learn, so nothing is read before they are known.
     if (not namesLoaded_) return std::nullopt;
-    page_ = pageOfWindow(*automation_, window_, band);
+    page_ = cachedPageOf(window_);
+    if (not page_) {
+        // A search walks the window's whole tree, so a window that answers with none is asked again on a slow clock.
+        auto const now = std::chrono::steady_clock::now();
+        if (now - pageSearchAt_ < kPageSearchPeriod) return std::nullopt;
+        pageSearchAt_ = now;
+        ++searches_;
+        page_ = pageOfWindow(*automation_, window_, band);
+    }
     if (not page_) return std::nullopt;
     QRect const visible = band.intersected(currentBoxOf(*page_));
-    if (visible.isEmpty()) return std::nullopt;
+    if (visible.isEmpty()) {
+        // The browser rebuilds its document on a navigation, a discarded tab or a renderer swap, and
+        // the cached page then answers nothing forever: drop it, so the next step searches anew.
+        forgetPageOf(window_);
+        page_.reset();
+        return std::nullopt;
+    }
     auto anchor = middleWordOf(*page_->pattern, visible);
     if (not anchor) {
         forgetPageOf(window_);
@@ -664,7 +703,15 @@ std::optional<TrackFrame> TrackState::acquire(QRect const band)
         return std::nullopt;
     }
     QRect const box = firstBoxOf(*anchor);
-    if (box.isEmpty()) return std::nullopt;
+    if (box.isEmpty()) {
+        // A point over the page's blank ground reads no word; a few in a row mean the cached page is
+        // not the one on screen, so it is dropped for a fresh search too.
+        if (++emptyAnchors_ < kEmptyAnchors) return std::nullopt;
+        forgetPageOf(window_);
+        page_.reset();
+        return std::nullopt;
+    }
+    emptyAnchors_ = 0;
 
     anchor_       = std::move(anchor);
     anchorBox_    = box;
@@ -799,8 +846,11 @@ void TrackState::refreshNamesIfDue()
 {
     auto const now = std::chrono::steady_clock::now();
     if (now - namesAt_ < (namesLoaded_ ? kNameRefresh : kNameRetry)) return;
-    namesAt_        = now;
-    auto const text = pageTextOf(window_).toStdString();
+    namesAt_ = now;
+    // The names come from the page the track reads, not a fresh search: on a page of frames the
+    // search can pick another document, whose names would gate the tracked page's words.
+    auto const text = (page_ ? textOfPattern(*page_->pattern) : pageTextOf(window_)).toStdString();
+    ++reads_;
     if (text.empty()) return;
     names_       = capture::nameSet(text);
     namesLoaded_ = true;

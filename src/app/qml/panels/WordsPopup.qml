@@ -433,7 +433,7 @@ Window {
             Item {
                 id: listBox
                 width: parent.width
-                // UI-SPEC.md 4.8 gives the list a *maximum* of 306px: a handful of words leaves a
+                // UI-SPEC.md 4.8 gives the list a *maximum* of nine rows: a handful of words leaves a
                 // panel sized to those words, not a panel with a hole under them; an empty list,
                 // and a filter with no rows, keep one line of room for the line that fills it.
                 //
@@ -441,12 +441,17 @@ Window {
                 // contentHeight -- a lazily-filled view estimates that from the rows it holds, and
                 // a viewport bound to it feeds the revisions back. A decrease waits for the remove
                 // transition below, so a short list does not cut the folding row out of its view.
+                //
+                // The cap is a whole number of rows: the spec's 306 px was nine 34 px rows, and a
+                // raw cap against the 31 px row cuts the row that straddles it -- the row a mark
+                // just appended at the list's end, every time (docs/adr/0161's list work).
+                readonly property int maxViewport: Math.floor(306 / words.rowHeight) * words.rowHeight
                 property int viewportRows: 0
                 property bool holding: false
 
                 height: words.showEmpty ? emptyText.implicitHeight + 6
                       : words.filterEmpty ? filteredEmptyText.implicitHeight + 6
-                      : Math.min(306, viewportRows * words.rowHeight)
+                      : Math.min(maxViewport, viewportRows * words.rowHeight)
 
                 Component.onCompleted: viewportRows = list.count
 

@@ -502,6 +502,66 @@ TEST_F(CoreTest, EverydayWordsInTheFirstThreeThousandAreMasteredAtEveryLevel)
     });
 }
 
+TEST_F(CoreTest, TheShortComparativesMasterWithTheirBase)
+{
+    // The -er/-est rules reach down to five and six letters: each surface below outranks its base
+    // in the word list, and the base is under the shared floor, so every level masters it. They
+    // leaked as candidates before the length guards moved (docs/adr/0161).
+    expectMasteredAtLevels({
+        {"nicer", {0, 1, 2, 3, 4, 5, 6, 7}},
+        {"nicest", {0, 1, 2, 3, 4, 5, 6, 7}},
+        {"safer", {0, 1, 2, 3, 4, 5, 6, 7}},
+        {"oldest", {0, 1, 2, 3, 4, 5, 6, 7}},
+    });
+}
+
+TEST_F(CoreTest, TheBandReadsTheBasePastTheGuardsTheLemmaKeeps)
+{
+    // The band and the verdicts judge a word beside its base through the relaxed rules, while the
+    // lemma keeps the strict ones: "nicer" stays "nicer" when selected alone, and still masters
+    // with "nice" on the scan path. The own-base traps stay their own words (docs/adr/0161).
+    const auto masteredBy = [](char const* surface, char const* base) {
+        const auto words = lens::core::filterWords(surface, {}, {base}, lens::core::Difficulty::byRank(0), 3, false);
+        return !words.empty() && words.front().state == lens::core::CandidateState::Mastered;
+    };
+    EXPECT_TRUE(masteredBy("died", "die"));
+    EXPECT_TRUE(masteredBy("used", "use"));
+    EXPECT_TRUE(masteredBy("nicer", "nice"));
+    EXPECT_TRUE(masteredBy("nicest", "nice"));
+    EXPECT_TRUE(masteredBy("safer", "safe"));
+    EXPECT_TRUE(masteredBy("oldest", "old"));
+    EXPECT_FALSE(masteredBy("seed", "see"));
+    EXPECT_FALSE(masteredBy("feed", "fee"));
+    EXPECT_FALSE(masteredBy("shed", "she"));
+    EXPECT_FALSE(masteredBy("liver", "live"));
+    EXPECT_FALSE(masteredBy("forest", "for"));
+    // The lemma itself keeps the strict guards: the corpus pins the selected form.
+    const auto words = lens::core::filterWords("used died seed", {}, {}, lens::core::Difficulty::byRank(0), 3, false);
+    EXPECT_EQ(lemmas(words), (std::vector<std::string>{"used", "died", "seed"}));
+}
+
+TEST_F(CoreTest, BaseFormOfAnswersTheMorphologicalBase)
+{
+    // The key a verdict stores: the base the relaxed morphology gives, without the frequency
+    // tie-break lemmatize() runs -- the list ranks "crumpled" above "crumple", and the key wants
+    // crumple (docs/adr/0162).
+    EXPECT_EQ(lens::core::baseFormOf("crumpled"), "crumple");
+    EXPECT_EQ(lens::core::baseFormOf("walked"), "walk");
+    EXPECT_EQ(lens::core::baseFormOf("sitting"), "sit");
+    EXPECT_EQ(lens::core::baseFormOf("books"), "book");
+    EXPECT_EQ(lens::core::baseFormOf("making"), "make");
+    EXPECT_EQ(lens::core::baseFormOf("used"), "use");
+    EXPECT_EQ(lens::core::baseFormOf("nicer"), "nice");
+    // The irregular table answers, ties and all.
+    EXPECT_EQ(lens::core::baseFormOf("better"), "well");
+    // Words no rule reaches past, and the own-base traps, answer themselves.
+    EXPECT_EQ(lens::core::baseFormOf("crumple"), "crumple");
+    EXPECT_EQ(lens::core::baseFormOf("seed"), "seed");
+    EXPECT_EQ(lens::core::baseFormOf("king"), "king");
+    EXPECT_EQ(lens::core::baseFormOf("water"), "water");
+    EXPECT_EQ(lens::core::baseFormOf("forest"), "forest");
+}
+
 TEST_F(CoreTest, InformalSpellingsAreNotVocabularyOnTheScanPath)
 {
     // The scan path takes a single page word with no explicit-selection exemption, so the dialect spellings drop out.
@@ -536,6 +596,38 @@ TEST_F(KnownStoreTest, FreshStoreHoldsTheDocumentedDefaults)
     EXPECT_FALSE(store.isKnown("ubiquitous"));
     EXPECT_EQ(store.level(), 2); // CET-4
     EXPECT_EQ(store.explanationLang(), "en");
+}
+
+TEST_F(KnownStoreTest, RebaseMarksMovesSurfaceKeysToTheirBaseForm)
+{
+    {
+        auto store = KnownStore::load(path);
+        store.mark("crumpled", lens::core::WordVerdict::Mastered);
+        store.mark("crumple", lens::core::WordVerdict::Known);
+        store.save();
+    }
+    {
+        auto store = KnownStore::load(path);
+        // The normalizer the startup migration passes, spelled out here so the mechanics test
+        // does not depend on the word list the real one reads (docs/adr/0162).
+        EXPECT_TRUE(store.rebaseMarks([](std::string const& key) { return key == "crumpled" ? std::string{"crumple"} : key; }));
+        store.save();
+    }
+    auto const store = KnownStore::load(path);
+    // The stronger verdict won the collision, the surface key retired, and the tombstone rides
+    // the sync so another device's copy cannot bring it back on top of the base form.
+    EXPECT_TRUE(store.isMasteredVerdict("crumple"));
+    EXPECT_FALSE(store.isKnown("crumple"));
+    EXPECT_FALSE(store.isMasteredVerdict("crumpled"));
+    EXPECT_FALSE(store.isKnown("crumpled"));
+    EXPECT_TRUE(store.syncMarks()["deleted"].contains("crumpled"));
+}
+
+TEST_F(KnownStoreTest, RebaseMarksWithoutSurfaceKeysSaysSo)
+{
+    auto store = KnownStore::load(path);
+    store.mark("crumple", lens::core::WordVerdict::Known);
+    EXPECT_FALSE(store.rebaseMarks([](std::string const& key) { return key == "crumpled" ? std::string{"crumple"} : key; }));
 }
 
 TEST_F(KnownStoreTest, MarkSeparatesKnownFromNewWords)

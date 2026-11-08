@@ -27,6 +27,7 @@
 #include <utility>
 
 #include "app/platform/autostart.h"
+#include "core/domain/filter_core.h"
 #include "glass_settings.h"
 #include "notice.h"
 #include "paths.h"
@@ -103,6 +104,21 @@ AppController::AppController(core::KnownStore&            store,
       cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), pencil_(capture_, explanation_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
+    // Marks written before the keys were base forms join their lemma once (docs/adr/0162); the
+    // store saves only when something moved. main() loads the word list before this runs; a
+    // harness that builds the controller without the tables holds no marks worth rebasing.
+    if (core::vocabularyLoaded() and storage_.knownStore().rebaseMarks([](std::string const& key) { return core::baseFormOf(key); }))
+        storage_.save();
+    // A verdict on an empty key is debris of the same race: it reads as a blank row the reader
+    // cannot delete, and no word is ever spelled "".
+    std::vector<std::string> blank;
+    for (auto const& key : storage_.knownStore().mastered())
+        if (QString::fromStdString(key).trimmed().isEmpty()) blank.push_back(key);
+    for (auto const& key : storage_.knownStore().known())
+        if (QString::fromStdString(key).trimmed().isEmpty()) blank.push_back(key);
+    for (auto const& key : blank)
+        storage_.knownStore().removeLemma(key);
+    if (not blank.empty()) storage_.save();
     // The review and answer cards read the word's curve for their next-ask line; the duties build
     // in an order that cannot pass the review duty at construction, so the wiring lands here.
     explanation_.setReviewSource(&reviewDuty_);

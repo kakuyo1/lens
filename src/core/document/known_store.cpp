@@ -461,6 +461,38 @@ void KnownStore::applySyncMarks(const nlohmann::json& known, const nlohmann::jso
     }
 }
 
+bool KnownStore::rebaseMarks(const std::function<std::string(const std::string&)>& normalize)
+{
+    std::vector<std::pair<std::string, WordVerdict>> moved; // (base, verdict) per re-keyed mark
+    std::vector<std::string>                         retired;
+    for (const auto& [lemma, verdict] : marks_) {
+        std::string base = normalize(lemma);
+        if (!base.empty() && base != lemma) {
+            moved.emplace_back(std::move(base), verdict);
+            retired.push_back(lemma);
+        }
+    }
+    if (moved.empty()) return false;
+    for (const auto& [base, verdict] : moved) {
+        // A base the reader deleted stays deleted, and a collision keeps the stronger verdict:
+        // mark() would overwrite, so a base already mastered is left alone.
+        if (deletedAt_.count(base) != 0) continue;
+        const auto existing = marks_.find(base);
+        if (existing != marks_.end() && existing->second == WordVerdict::Mastered) continue;
+        mark(base, verdict);
+    }
+    for (const auto& lemma : retired) {
+        // The surface key retires with a tombstone, so another device's copy of it cannot come
+        // back on top of the base form the verdict now holds.
+        marks_.erase(lemma);
+        known_.erase(lemma);
+        mastered_.erase(lemma);
+        markedAt_.erase(lemma);
+        deletedAt_[lemma] = nowMs();
+    }
+    return true;
+}
+
 int KnownStore::level() const
 {
     return level_;

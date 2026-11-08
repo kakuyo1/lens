@@ -820,6 +820,11 @@ void CaptureDuty::restoreDefaults()
             setSetting(row.key, settings::defaultValue(row));
 }
 
+void CaptureDuty::setMarkButtonHeld(bool const held)
+{
+    markButtonHeld_ = held;
+}
+
 void CaptureDuty::setScanPaused(bool const paused)
 {
     if (scanPaused_ == paused) return;
@@ -1195,8 +1200,17 @@ void CaptureDuty::scanTick()
     }
     auto const foreground = capture::foregroundWindow();
     // The page text comes through UI Automation, which exposes a browser's page; no other window has text here.
+    // The scan is torn down once on leaving the page, not on every tick away from it: a lens card
+    // over the browser, or a momentary foreground blip, would otherwise keep rebuilding the track
+    // and take the mark button down under the reader's pointer (docs/adr/0161). invalidateScan
+    // clears scanContext_, so the next tick away is a no-op and the return re-scans.
     if (not foreground or foreground->ownProcess or foreground->processName.compare(QStringLiteral("chrome.exe"), Qt::CaseInsensitive) != 0) {
-        invalidateScan();
+        // The reader's press on the mark button takes Chrome out of the foreground for the click's
+        // length, and the button hiding on a verdict can leave the system with no foreground at
+        // all -- neither is the page leaving, and a teardown here kills the click's own word list
+        // (docs/adr/0161). The hold keeps the gate open; the first tick after the release settles.
+        if (markButtonHeld_ and (not foreground or foreground->ownProcess)) return;
+        if (not scanContext_.isEmpty()) invalidateScan();
         return;
     }
     if (scanContext_ != foreground->context) {

@@ -24,6 +24,8 @@
 
 #include <QtQml/qqmlregistration.h>
 
+#include <chrono>
+
 namespace lens::app {
 
 class CaptureDuty;
@@ -79,6 +81,10 @@ public slots:
     /// @brief The reader changed @p lemma's verdict: its occurrences take the new line, and a
     ///        mastered one leaves the layer at once -- the scan no longer places it.
     void verdictChanged(QString lemma, QString verdict);
+    /// @brief The reader is holding the mark button's pill down: nothing may move or take the
+    ///        button while that lasts, so a scan frame arriving mid-press cannot swallow the click
+    ///        (docs/adr/0161). The QML pill reports both edges of the hold.
+    void setMarkPressHold(bool held);
 
 public:
     /// @brief Keep @p window out of screen captures each time it shows, so the scan never reads the
@@ -89,6 +95,10 @@ public:
     ///        actually drawn -- placeX clamps at the screen edge, and a recomputed rectangle would
     ///        drift from the real window there (docs/adr/0160).
     Q_INVOKABLE void reportMarkButtonGeometry(QPointF pos, QSizeF size);
+    /// @brief Test hook: pin the pointer the hover reads to @p physical, so a qtest can raise the
+    ///        mark button without moving the reader's mouse. The pin holds until the next call;
+    ///        tests pin elsewhere to simulate the pointer leaving.
+    Q_INVOKABLE void pinCursorForTest(QPoint physical);
 
 signals:
     void changed();
@@ -110,6 +120,8 @@ private:
     void updateMarkHover();
     /// @brief Take the mark button down, when one stands.
     void hideMarkButton();
+    /// @return The pointer the hover reads: the pinned one when a test pinned it, else the real cursor.
+    QPoint cursorPos() const;
     /// @return The pointer in device-independent screen coordinates, the frame the mark button's
     ///         keep-alive rectangle lives in.
     QPointF cursorDip() const;
@@ -127,8 +139,18 @@ private:
     QVariantMap      markButton_;
     QPointF          markButtonPos_;          ///< The button window's own report of its position.
     QSizeF           markButtonSize_{96, 26}; ///< The button window's own report of its size, for the keep-alive rectangle.
-    QVariantList     marks_;
-    QTimer           timer_;
+    /// The standing button's word box, in device-independent pixels: the keep-alive's second half
+    /// while the word is missing from the placed words (docs/adr/0161).
+    QRectF markWordRect_{};
+    /// When the button's word last went missing from the placed words; the grace runs from here,
+    /// and a frame with the word back clears it (docs/adr/0161).
+    std::chrono::steady_clock::time_point markMissingAt_ = {};
+    bool                                  markPressHold_ = false; ///< The pill is held down: the button neither moves nor goes.
+    /// The pinned pointer a test set, read instead of the real cursor while cursorPinned_ holds.
+    bool         cursorPinned_ = false;
+    QPoint       pinnedCursor_{};
+    QVariantList marks_;
+    QTimer       timer_;
 };
 
 }

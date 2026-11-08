@@ -367,6 +367,23 @@ TEST(PageAlignment, TheNameSetHoldsEachNameOfThePageOnce)
     EXPECT_EQ(names, (std::unordered_set<std::string>{"richard", "jeff"}));
 }
 
+TEST(PageAlignment, AWordCapitalizedMidSentenceIsANameEvenWhenThePageWritesItLowercase)
+{
+    // "Maga" sits mid-sentence once and the page also spells "maga" lower-case in a slug; the
+    // lower-case occurrence used to disarm the name, and both occurrences read as the name now
+    // (docs/adr/0161).
+    auto const names = lens::capture::nameFlags("he wore a Maga hat, and the slug says maga twice here.");
+    EXPECT_EQ(names, (std::vector<bool>{false, false, false, true, false, false, false, false, false, false, false, false}));
+}
+
+TEST(PageAlignment, NewlineSeparatedItemsAreNotNamesForTheirCapitals)
+{
+    // A list bounds its items like sentences do: the bullets' capitals are not mid-sentence
+    // evidence, so an apple the page also writes lower-case keeps its flag (docs/adr/0161).
+    auto const names = lens::capture::nameFlags("an apple a day\nApple\nBanana\nbanana split");
+    EXPECT_EQ(names, (std::vector<bool>{false, false, false, false, false, false, false, false}));
+}
+
 TEST(PageAlignment, AWordInAUniqueRunAnchorsToItsPlaceOnThePage)
 {
     lens::capture::PageIndex page{lens::capture::pageWords("a b c d e f g")};

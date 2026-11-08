@@ -132,6 +132,10 @@ public:
     void setScanPaused(bool paused);
     /// @brief Pause every acquisition path when the daily budget is exhausted.
     void setBudgetPaused(bool paused);
+    /// @brief Whether the reader's finger is down on the mark button: while it holds, the scan's
+    ///        foreground gate does not tear the page down — the click takes Chrome out of the
+    ///        foreground for its own length, and the button's word list is what the click lives on.
+    void setMarkButtonHeld(bool held);
     /// @return False when OCR is disabled, unavailable, busy, or budget-paused.
     bool captureScreenshot(QImage image, QPoint anchor);
     /// @brief Capture a reader-selected logical region wholly inside one screen.
@@ -311,10 +315,11 @@ private:
     std::uint64_t                                       screenshotGeneration_ = 0;
     std::uint64_t                                       nextRequestId_        = 0;
     QString                                             scanContext_;
-    int                                                 scanLevel_  = -1; ///< The level the scan's candidates were judged at; a change invalidates them.
-    bool                                                scanPaused_ = false;
-    std::unique_ptr<PageTrack>                          track_;          ///< Follows the page on screen; null while the scan is not reading one.
-    std::unordered_map<int, std::vector<ScanCandidate>> scanCandidates_; ///< The candidates, by the track's word id.
+    int                                                 scanLevel_      = -1; ///< The level the scan's candidates were judged at; a change invalidates them.
+    bool                                                scanPaused_     = false;
+    bool                                                markButtonHeld_ = false; ///< The reader's finger is down on the mark button; the foreground gate holds.
+    std::unique_ptr<PageTrack>                          track_;                  ///< Follows the page on screen; null while the scan is not reading one.
+    std::unordered_map<int, std::vector<ScanCandidate>> scanCandidates_;         ///< The candidates, by the track's word id.
     /// What each surface was judged to -- lemma and state -- for this scan generation. A word the
     /// track loses and reads again is not judged again.
     std::unordered_map<std::string, std::vector<std::pair<std::string, core::CandidateState>>> scanJudged_;

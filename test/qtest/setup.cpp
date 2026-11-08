@@ -20,6 +20,7 @@
 #include <QStringList>
 #include <QTranslator>
 
+#include "core/domain/filter_core.h"
 #include "core/domain/surface_table.h"
 
 namespace {
@@ -234,6 +235,10 @@ Singletons& singletons()
         built.pricing = std::make_unique<lens::llm::Pricing>(lens::llm::Pricing::load(std::filesystem::path(LENS_DATA_DIR) / "llm" / "pricing.json"));
         for (auto const channel : {lens::llm::Channel::Word, lens::llm::Channel::Entity, lens::llm::Channel::Sentence, lens::llm::Channel::Translation, lens::llm::Channel::Breakdown, lens::llm::Channel::Spell, lens::llm::Channel::Grammar, lens::llm::Channel::Profile, lens::llm::Channel::Story})
             lens::llm::loadLlmProtocol(channel, std::filesystem::path(LENS_DATA_DIR) / "llm");
+        // The word list and the irregular table the verdicts and the scan reduce words with, as
+        // main() loads them: a mark made here is keyed by its base form, which needs both.
+        lens::core::loadWordlist(std::filesystem::path(LENS_DATA_DIR) / "wordlist.txt");
+        lens::core::loadIrregulars(std::filesystem::path(LENS_DATA_DIR) / "irregulars.tsv");
         built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.altHook, *built.hotkey, *built.pricing, std::filesystem::path(LENS_DATA_DIR));
         built.tray       = std::make_unique<Tray>([controller = built.controller.get()] { return controller->trayReadout(); });
         // The pet as main() builds it: a refused data directory leaves it off, and the QML still gets a singleton. The

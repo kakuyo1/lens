@@ -161,6 +161,12 @@ Item {
             })[0];
         }
 
+        /// @return The viewport's tallest measure: whole rows only, so no row straddles the edge
+        ///        the list clips at (UI-SPEC.md 4.8).
+        function viewportCap(popup) {
+            return Math.floor(306 / popup.rowHeight) * popup.rowHeight;
+        }
+
         /// @brief Import @p words into the store through the reader's own import, so the list has
         ///        rows enough to scroll. The words are removed again by the case that seeded them.
         /// @return The seeded words, or an empty list when the import did not land.
@@ -173,7 +179,7 @@ Item {
 
         /// Scrolling the list stays inside the words: the content it reports is the rows it holds
         /// and the bounds stop past the last row, at the bottom itself and back. The rows are
-        /// seeded past the viewport's 306 px first -- a list shorter than that cannot scroll at
+        /// seeded past the viewport's cap first -- a list shorter than that cannot scroll at
         /// all, and a case that never scrolls verifies nothing. The position is pinned rather
         /// than wheeled: this platform's synthetic wheel does not reach the Flickable, and a
         /// gesture the case cannot make is not one it can assert (the real gesture is driven on
@@ -204,7 +210,7 @@ Item {
                     verify(list.contentY >= -1, "the list was left above its first row");
                 }
                 // And the viewport holds its own measure wherever the content stands.
-                compare(list.height, Math.min(306, list.count * popup.rowHeight),
+                compare(list.height, Math.min(viewportCap(popup), list.count * popup.rowHeight),
                         "the viewport left the row count's measure");
             } finally {
                 for (const word of words)
@@ -256,13 +262,13 @@ Item {
                 // (measured: contentHeight swinging 279..2666 with the viewport collapsing along,
                 // the reader looking at blank).
                 Controller.wordsModel.filter = 0;
-                tryCompare(list, "height", Math.min(306, list.count * popup.rowHeight), 1000,
+                tryCompare(list, "height", Math.min(viewportCap(popup), list.count * popup.rowHeight), 1000,
                            "the viewport followed the fold instead of the row count");
                 wait(900);
                 verify(list.contentY <= Math.max(0, list.contentHeight - list.height) + 1,
                        "after the filter came back the viewport stands past the last word: contentY "
                        + list.contentY + " against content " + list.contentHeight);
-                compare(list.height, Math.min(306, list.count * popup.rowHeight),
+                compare(list.height, Math.min(viewportCap(popup), list.count * popup.rowHeight),
                         "the settled viewport left the row count's measure");
             } finally {
                 Controller.wordsModel.filter = 0;

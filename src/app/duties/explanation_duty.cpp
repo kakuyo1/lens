@@ -860,6 +860,13 @@ void ExplanationDuty::clearBubble()
 
 void ExplanationDuty::mark(QString lemma, QString verdict)
 {
+    // An empty lemma is never a word: the mark button's tap can outlive the word it aimed at,
+    // because the scan tears its layer down mid-press. A verdict on "" would sit in the store as
+    // a row that reads blank and deletes like nothing.
+    if (lemma.trimmed().isEmpty()) {
+        LENS_WARN("verdict refused: the word is empty");
+        return;
+    }
     // The verdict is the reader's own; "new" is the state every unmarked word already carries, so
     // pressing it on an unmarked word confirms the stamp it got at pop time (docs/adr/0147). The
     // clear vote still reaches the sync merge, where it can outvote an older verdict from another
@@ -868,10 +875,13 @@ void ExplanationDuty::mark(QString lemma, QString verdict)
     auto const* card = exchange_.card().subject();
     if (not bubble_.isEmpty() and card != nullptr and card->kind != core::SelectionKind::Word and bubble_.value("title").toString() == lemma)
         return;
-    const auto        state = verdict == QStringLiteral("mastered") ? core::WordVerdict::Mastered
-                              : verdict == QStringLiteral("known")  ? core::WordVerdict::Known
-                                                                    : core::WordVerdict::None;
-    const std::string key   = lemma.toStdString();
+    const auto state = verdict == QStringLiteral("mastered") ? core::WordVerdict::Mastered
+                       : verdict == QStringLiteral("known")  ? core::WordVerdict::Known
+                                                             : core::WordVerdict::None;
+    // The store is keyed by the base form (docs/adr/0162): a verdict made on "crumpled" holds
+    // "crumple", and every inflection reads it through formsOf. The surfaces still speak the
+    // scan's lemma -- verdictChanged takes it, and the bubble's title matches it.
+    const std::string key = core::baseFormOf(lemma.toStdString());
     LENS_INFO("verdict marked: '{}' -> {}", key, verdict.toStdString());
     storage_.knownStore().mark(key, state);
     storage_.statsStore().recordVerdict(key, nowMinute().toStdString(), state == core::WordVerdict::None ? "new" : "known");

@@ -181,11 +181,24 @@ bool endsWith(std::string_view s, std::string_view suffix)
 }
 
 /// Words that look inflected but are their own base form, and whose "stem" happens to be
-/// another word in the list. Intercepted before any suffix rule can fire.
-/// Only these two so far; add more when the sample set catches another.
+/// another word in the list. Intercepted before any suffix rule can fire: the four-letter
+/// verb traps (seed -> see) and the short own-words the relaxed band rules would absorb
+/// (water -> wate, forest -> for, liver -> live) sit here beside the originals.
+/// Add more when the sample set catches another.
 const std::unordered_set<std::string>& keepAsIs()
 {
-    static const std::unordered_set<std::string> words = {"news", "means"};
+    static const std::unordered_set<std::string> words = {
+        "news", "means", "seed", "feed", "weed", // seed -> see, once -ed reaches four letters
+        "shed",
+        "liver",
+        "sheer",
+        "meter",
+        "digest", // absorbed by she/live/she/met/dig
+        "offer",
+        "peter",
+        "water",  // absorbed by off/pete/wate at five letters
+        "forest", // absorbed by for at six letters
+    };
     return words;
 }
 
@@ -219,8 +232,11 @@ bool hasVowel(const std::string& s)
 }
 
 /// @return The word-list stems the suffix rules reduce @p t to. The word itself is not among them;
-///         the caller decides whether it counts.
-std::vector<std::string> suffixForms(const std::string& t)
+///         the caller decides whether it counts. @p relaxed reaches four letters down for the verb
+///         rules and five/six for the comparatives: the band and the verdict coverage judge a word
+///         beside its base (nicer beside nice), while the lemma keeps the strict guards, because a
+///         word the reader selected alone is explained as the form they picked (docs/adr/0161).
+std::vector<std::string> suffixForms(const std::string& t, bool const relaxed)
 {
     std::vector<std::string> cands;
     const std::size_t        n = t.size();
@@ -232,11 +248,10 @@ std::vector<std::string> suffixForms(const std::string& t)
     if (endsWith(t, "ily") && n > 5) pushIfInTable(cands, t.substr(0, n - 3) + "y");
 
     // -ing / -ed: first try restoring a dropped 'e' (making -> make, using -> use), then
-    // the bare stem, then undoing a doubled consonant.
-    // ponytail: only for words of 5+ letters. In 4-letter used/seed/feed the "stem + e"
-    // candidate is usually a false reduction (seed -> see).
+    // the bare stem, then undoing a doubled consonant. Relaxed, four-letter words take the
+    // rules too (used -> use, died -> die); their own-base traps (seed -> see) sit in keepAsIs.
     const auto reduceVerbForm = [&](std::size_t cut) {
-        if (n <= 4) return;
+        if (n <= (relaxed ? 3u : 4u)) return;
         const std::string stem = t.substr(0, n - cut);
         pushIfInTable(cands, stem + "e");
         pushIfInTable(cands, stem);
@@ -258,17 +273,17 @@ std::vector<std::string> suffixForms(const std::string& t)
         pushIfInTable(cands, stem);       // quickly -> quick
     }
 
-    // ponytail: comparatives -er/-est only fire at 6/7+ letters; at 5 letters the stems of
-    // offer / under / other are all false reductions.
-    // Cost: short-stem comparatives such as biggest -> big and nicer -> nice go unreduced; the
-    // overlay then explains the inflected form, and the word is not merged with its lemma.
-    if (endsWith(t, "er") && n > 5) {
+    // ponytail: the comparatives' guards sit one letter apart. Strict, -er/-est fire at 6/7+
+    // letters; relaxed, at 5/6 (nicer -> nice, oldest -> old), which the band reads past the
+    // guards the lemma keeps. The five/six-letter own words the relaxed stems absorb
+    // (offer -> off, forest -> for) are keepAsIs's to catch.
+    if (endsWith(t, "er") && n > (relaxed ? 4u : 5u)) {
         const std::string stem = t.substr(0, n - 2);
         pushIfInTable(cands, stem + "e"); // larger -> large
         pushIfInTable(cands, stem);       // faster -> fast
         pushDoubledFixed(cands, stem);    // bigger -> big
     }
-    if (endsWith(t, "est") && n > 6) {
+    if (endsWith(t, "est") && n > (relaxed ? 5u : 6u)) {
         const std::string stem = t.substr(0, n - 3);
         pushIfInTable(cands, stem + "e"); // largest -> large
         pushIfInTable(cands, stem);       // fastest -> fast
@@ -279,6 +294,8 @@ std::vector<std::string> suffixForms(const std::string& t)
 
 /// @return Every word-list form @p surface may stand for: its base forms, then the surface itself.
 ///         An irregular form answers with its table bases; a keepAsIs word answers with itself alone.
+///         The relaxed rules run here: the band and the verdict coverage judge a word beside its
+///         base, whatever guards the lemma keeps (docs/adr/0161).
 std::vector<std::string> formsOf(const std::string& surface)
 {
     if (keepAsIs().count(surface) != 0) return {surface};
@@ -286,7 +303,7 @@ std::vector<std::string> formsOf(const std::string& surface)
     if (const auto it = g_irregulars.find(surface); it != g_irregulars.end())
         forms = it->second;
     else
-        forms = suffixForms(surface);
+        forms = suffixForms(surface, true);
     forms.push_back(surface);
     return forms;
 }
@@ -463,7 +480,7 @@ std::vector<std::string> parseWordlistFile(const std::filesystem::path& path)
         while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
             line.pop_back();
         if (line.empty() || line.front() == '#') continue;
-        auto lemma = lemmatize(line); // keyed by lemma, as the verdicts are
+        auto lemma = baseFormOf(line); // keyed by the base form, as the verdicts are (docs/adr/0162)
         if (seen.insert(lemma).second)
             lemmas.push_back(std::move(lemma));
     }
@@ -524,8 +541,10 @@ std::string lemmatize(std::string_view token)
     // is whichever is most common in the word list (smallest frequency rank). The list
     // holds inflected and base forms alike, so frequency naturally favours the base form
     // (running 555 > run 314, increasing 7246 > increase 3568), while base forms whose
-    // "stem" is not the base form (water / under / other) fall back to themselves.
-    std::vector<std::string> cands = suffixForms(t);
+    // "stem" is not the base form (water / under / other) fall back to themselves. The
+    // strict guards run here: a word the reader selected alone is explained as the form
+    // they picked, and the corpus pins that (docs/adr/0161).
+    std::vector<std::string> cands = suffixForms(t, false);
     if (inTable(t)) cands.push_back(t);
 
     if (cands.empty()) return t; // not in the list; the caller's whitelist stage drops it
@@ -542,6 +561,47 @@ std::string lemmatize(std::string_view token)
 
     if (*best != t) LENS_TRACE("lemmatize: '{}' -> '{}' (rank {})", t, *best, bestRank);
     return *best;
+}
+
+std::string baseFormOf(std::string_view token)
+{
+    if (!g_irregularsLoaded)
+        throw std::logic_error("lens::core::baseFormOf: loadIrregulars() must run first");
+    if (g_rank.empty())
+        throw std::logic_error("lens::core::baseFormOf: loadWordlist() must run first");
+
+    const std::string t = util::asciiLower(token);
+    if (keepAsIs().count(t) != 0) return t;
+
+    // The irregular table is morphology, not fashion: better is good's form whatever the list
+    // ranks. Several bases (good / well) settle by the same tie-break as lemmatize(), for one
+    // canonical key.
+    if (const auto it = g_irregulars.find(t); it != g_irregulars.end()) {
+        const std::vector<std::string>& bases    = it->second;
+        const std::string*              best     = &bases.front();
+        std::size_t                     bestRank = std::numeric_limits<std::size_t>::max();
+        for (const auto& base : bases) {
+            const std::size_t rank = rankOf(base);
+            if (rank != 0 && rank < bestRank) {
+                bestRank = rank;
+                best     = &base;
+            }
+        }
+        return *best;
+    }
+
+    // The suffix rules list their stems most-likely-first, so the first one is the base the
+    // morphology gives: crumpled -> crumple, making -> make, sitting -> sit. The relaxed rules
+    // run here, beside the coverage the verdict key rides on. No frequency tie-break -- a
+    // verdict key wants the form the word is built from, not the form the corpus favours
+    // (docs/adr/0162).
+    std::vector<std::string> const stems = suffixForms(t, true);
+    return stems.empty() ? t : stems.front();
+}
+
+bool vocabularyLoaded()
+{
+    return !g_rank.empty() && g_irregularsLoaded;
 }
 
 std::vector<Candidate> filterWords(

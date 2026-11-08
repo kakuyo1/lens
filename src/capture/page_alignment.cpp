@@ -33,23 +33,33 @@ std::string normalizedWord(std::string_view const text)
 
 namespace {
 
-/// One word of page text: lower-cased, and whether the page wrote its first letter in capitals.
+/// One word of page text: lower-cased, whether the page wrote its first letter in capitals, and
+/// whether it wrote the word where a sentence had begun.
 struct PageToken {
     std::string text;
-    bool        capitalized = false;
+    bool        capitalized   = false;
+    bool        sentenceStart = true;
 };
 
 std::vector<PageToken> pageTokens(std::string_view const text)
 {
     std::vector<PageToken> tokens;
     PageToken              current;
+    // A sentence begins the page and resumes after a terminator; a newline bounds list items and
+    // headings the same way, so a bullet's capital does not read as mid-sentence.
+    bool atBoundary = true;
     for (char const c : text) {
         if (util::isAsciiAlnum(c)) {
-            if (current.text.empty()) current.capitalized = util::isAsciiUpper(c);
+            if (current.text.empty()) {
+                current.capitalized   = util::isAsciiUpper(c);
+                current.sentenceStart = atBoundary;
+            }
             current.text.push_back(util::asciiLower(c));
+            atBoundary = false;
             continue;
         }
         if (not current.text.empty()) tokens.push_back(std::exchange(current, {}));
+        if (c == '.' || c == '!' || c == '?' || c == '\n' || c == '\r') atBoundary = true;
     }
     if (not current.text.empty()) tokens.push_back(std::move(current));
     return tokens;
@@ -68,15 +78,23 @@ std::vector<std::string> pageWords(std::string_view const text)
 std::vector<bool> nameFlags(std::string_view const text)
 {
     auto const tokens = pageTokens(text);
-    // A word the page also writes with a lower-case first letter is a common word, capitalized only where it opens a sentence.
+    // A word the page also writes with a lower-case first letter is a common word, capitalized
+    // only where it opens a sentence -- unless the page also capitalizes it mid-sentence, which
+    // is a name the page spells lower-case somewhere: a URL, a byline, a tag (docs/adr/0161).
     std::unordered_set<std::string> lowerOnPage;
-    for (auto const& token : tokens)
-        if (not token.capitalized) lowerOnPage.insert(token.text);
+    std::unordered_set<std::string> midSentence;
+    for (auto const& token : tokens) {
+        if (not token.capitalized)
+            lowerOnPage.insert(token.text);
+        else if (not token.sentenceStart)
+            midSentence.insert(token.text);
+    }
 
     std::vector<bool> names;
     names.reserve(tokens.size());
     for (auto const& token : tokens)
-        names.push_back(token.capitalized and lowerOnPage.count(token.text) == 0);
+        names.push_back(token.capitalized and
+                        (lowerOnPage.count(token.text) == 0 or midSentence.count(token.text) != 0));
     return names;
 }
 

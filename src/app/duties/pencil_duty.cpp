@@ -24,6 +24,10 @@ namespace {
 constexpr int kPencilTickMs = 120;
 /// How long the pointer must rest on a word before its mark button rises (docs/adr/0160).
 constexpr int kMarkHoverMs = 400;
+/// How long a standing button rides out frames that have lost its word: a single missed read
+/// recovers within a step or two, and the grace keeps a hiccup from taking the button down under
+/// the pointer. clear() does not wait -- the page itself left (docs/adr/0161).
+constexpr int kMarkGraceMs = 400;
 
 }
 
@@ -35,6 +39,10 @@ void PencilDuty::keepOutOfCapture(QObject* const object, bool const passthrough)
         if (not excludeFromCapture(shown)) LENS_WARN("the pencil layer can appear in screen captures: Windows refused the exclusion");
         // Clicks pass through by the Win32 style: Qt.WindowTransparentForInput painted this full-screen layer black.
         setPassthrough(shown, passthrough);
+        // A click on the mark button must not hand it the foreground: the activated window hides
+        // with the word's verdict, and the system is then left with no foreground at all, which
+        // the scan's own gate reads as the page being gone (docs/adr/0161).
+        if (not passthrough) setNoActivate(shown);
         LENS_INFO("pencil window shown: passthrough={}", passthrough);
     };
     connect(window, &QWindow::visibleChanged, window, [window, rule](bool const on) {
@@ -98,11 +106,18 @@ void PencilDuty::placeWords(QVariantList const words, QRect const screen, QPoint
     scale_        = scale > 0 ? scale : 1.0;
     lookedUp_     = -1;
     // The frames keep coming while the button stands: it is re-anchored on the fresh boxes by the
-    // refresh below, and only taken down when its word is no longer on the page at all.
-    if (not markButton_.isEmpty()) {
-        const QString lemma = markButton_.value(QStringLiteral("lemma")).toString();
-        const bool    gone  = std::none_of(words_.cbegin(), words_.cend(), [&lemma](Word const& word) { return word.lemma == lemma; });
-        if (gone) {
+    // refresh below, and only taken down when its word is no longer on the page at all. A frame
+    // that lost the word earns the same grace a single missed read does -- the track's next step
+    // usually brings it back -- so a hiccup does not take the button down under the pointer; a
+    // held press freezes it outright (docs/adr/0161).
+    if (not markButton_.isEmpty() and not markPressHold_) {
+        const QString lemma   = markButton_.value(QStringLiteral("lemma")).toString();
+        const bool    present = std::any_of(words_.cbegin(), words_.cend(), [&lemma](Word const& word) { return word.lemma == lemma; });
+        if (present) {
+            markMissingAt_ = {};
+        } else if (markMissingAt_ == std::chrono::steady_clock::time_point{}) {
+            markMissingAt_ = std::chrono::steady_clock::now();
+        } else if (std::chrono::steady_clock::now() - markMissingAt_ > std::chrono::milliseconds{kMarkGraceMs}) {
             markLemma_.clear();
             markStreak_ = 0;
             hideMarkButton();
@@ -114,7 +129,9 @@ void PencilDuty::placeWords(QVariantList const words, QRect const screen, QPoint
             lemmas << word.lemma;
         explanation_.prefetchSignposts(lemmas);
     }
-    if (words_.isEmpty())
+    // The polling also feeds the standing button's grace, so it runs while the button stands
+    // even though no word is left to draw.
+    if (words_.isEmpty() and markButton_.isEmpty())
         timer_.stop();
     else
         timer_.start();
@@ -125,6 +142,11 @@ void PencilDuty::clear()
 {
     words_.clear();
     lookedUp_ = -1;
+    // The page is gone, and the spec takes the button down at once on a scroll or a switch: a
+    // press held has nothing left to hold onto (UI-SPEC.md 4.20). The capture side's hold lifts
+    // with it, so the scan's gate cannot stay open on a press that no longer exists.
+    markPressHold_ = false;
+    capture_.setMarkButtonHeld(false);
     markLemma_.clear();
     markStreak_ = 0;
     hideMarkButton();
@@ -180,6 +202,18 @@ void PencilDuty::verdictChanged(QString const lemma, QString const verdict)
     refresh();
 }
 
+void PencilDuty::setMarkPressHold(bool const held)
+{
+    markPressHold_ = held;
+    capture_.setMarkButtonHeld(held);
+}
+
+void PencilDuty::pinCursorForTest(QPoint const physical)
+{
+    cursorPinned_ = true;
+    pinnedCursor_ = physical;
+}
+
 int PencilDuty::wordAt(QPoint const at) const
 {
     // The scan's boxes are the glyphs' own; the hit area takes a little of the line above and below.
@@ -188,23 +222,32 @@ int PencilDuty::wordAt(QPoint const at) const
     return -1;
 }
 
+QPoint PencilDuty::cursorPos() const
+{
+    return cursorPinned_ ? pinnedCursor_ : hoverCursorPos();
+}
+
 QPointF PencilDuty::cursorDip() const
 {
-    const QPoint physical = hoverCursorPos();
+    const QPoint physical = cursorPos();
     return QPointF{(physical.x() - screenOrigin_.x()) / scale_ + screen_.x(),
                    (physical.y() - screenOrigin_.y()) / scale_ + screen_.y()};
 }
 
 void PencilDuty::hideMarkButton()
 {
-    if (markButton_.isEmpty()) return;
+    markMissingAt_ = {}; // a fresh raise starts its grace over
+    markWordRect_  = {};
+    // A held pill does not go: the press lives on this window, and hiding it mid-press swallows
+    // the click (docs/adr/0161). clear() resets the hold before it calls.
+    if (markButton_.isEmpty() or markPressHold_) return;
     markButton_.clear();
     emit changed();
 }
 
 void PencilDuty::updateMarkHover()
 {
-    const int     hovered = wordAt(hoverCursorPos());
+    const int     hovered = wordAt(cursorPos());
     const QPointF at      = cursorDip();
 
     // The button's own rectangle, while it stands: the geometry the window itself reports, so the
@@ -215,10 +258,17 @@ void PencilDuty::updateMarkHover()
     QRectF buttonRect;
     if (not markButton_.isEmpty() and markButtonSize_.width() > 0)
         buttonRect = QRectF{markButtonPos_, markButtonSize_};
-    if (hovered < 0 and not buttonRect.contains(at)) {
-        markLemma_.clear();
-        markStreak_ = 0;
-        hideMarkButton();
+    // The keep-alive is the button plus its word's own box, as the spec draws it; the word's box
+    // is the last one the button anchored to, so a frame that lost the word -- a missed read --
+    // does not take the button from a pointer resting on where the word was (docs/adr/0161).
+    QRectF alive = buttonRect;
+    if (not markButton_.isEmpty()) alive = alive.united(markWordRect_);
+    if (hovered < 0 and not alive.contains(at)) {
+        if (not markPressHold_) {
+            markLemma_.clear();
+            markStreak_ = 0;
+            hideMarkButton();
+        }
         return;
     }
     if (hovered < 0) return; // the pointer is on the button: it stays exactly where it is
@@ -242,15 +292,21 @@ void PencilDuty::updateMarkHover()
                      {QStringLiteral("x"), screen_.x() + (word.box.x() - screenOrigin_.x()) / scale_},
                      {QStringLiteral("y"), screen_.y() + (word.box.y() - screenOrigin_.y()) / scale_},
                      {QStringLiteral("width"), word.box.width() / scale_}};
-    if (next != markButton_) {
-        markButton_ = std::move(next);
+    // A held pill does not move either: the press was made where the button stood, and the word
+    // box the keep-alive holds moves with it, not with a box the press refused.
+    if (not markPressHold_ and next != markButton_) {
+        markWordRect_ = QRectF{screen_.x() + (word.box.x() - screenOrigin_.x()) / scale_,
+                               screen_.y() + (word.box.y() - screenOrigin_.y()) / scale_,
+                               word.box.width() / scale_,
+                               word.box.height() / scale_};
+        markButton_   = std::move(next);
         emit changed();
     }
 }
 
 void PencilDuty::refresh()
 {
-    int const hovered = altHeld_ ? wordAt(hoverCursorPos()) : -1;
+    int const hovered = altHeld_ ? wordAt(cursorPos()) : -1;
     if (altHeld_)
         hideMarkButton(); // the signposts and the bubble own the pointer while Alt is held
     else

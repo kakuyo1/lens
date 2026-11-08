@@ -79,4 +79,11 @@ void setPassthrough(QWindow const& window, bool on)
     SetWindowLongPtrW(hwnd, GWL_EXSTYLE, static_cast<LONG_PTR>(passthroughStyle(style, on)));
 }
 
+void setNoActivate(QWindow const& window)
+{
+    auto const hwnd  = handleOf(window);
+    auto const style = static_cast<std::intptr_t>(GetWindowLongPtrW(hwnd, GWL_EXSTYLE));
+    SetWindowLongPtrW(hwnd, GWL_EXSTYLE, static_cast<LONG_PTR>(style | WS_EX_NOACTIVATE));
+}
+
 } // namespace lens::app

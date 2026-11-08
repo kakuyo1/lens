@@ -63,7 +63,7 @@ void loadWordbooks(const std::filesystem::path& dir);
  *
  * @param path Text file of one headword per line, `#` starting a comment, as the wordbooks take
  *             them.
- * @return The distinct lemmas in file order -- inflected lines of one word count once -- or an
+ * @return The distinct base forms in file order -- inflected lines of one word count once -- or an
  *         empty vector when @p path names a file that cannot be opened.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet, since lemmas need both.
  */
@@ -90,6 +90,26 @@ void loadInformalSpellings(const std::filesystem::path& path);
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  */
 std::string lemmatize(std::string_view token);
+
+/**
+ * @brief The word's morphological base, for keys that must hold one form per word.
+ *
+ * Irregular forms answer the table's base (several settle by frequency, as lemmatize()
+ * does); everything else takes the first stem the suffix rules reduce it to, with no
+ * frequency tie-break -- "crumpled" answers "crumple" even though the word list ranks the
+ * participle higher, because a verdict key wants the form the word is built from, not the
+ * form the corpus favours (docs/adr/0162).
+ *
+ * @param token Word to reduce, case-insensitive.
+ * @return The base form; the word itself when no rule reaches past it.
+ * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
+ */
+std::string baseFormOf(std::string_view token);
+
+/// @brief Whether the word list and the irregular table are both loaded.
+/// @note A caller that reduces words without them throws; one that only wants to know whether it
+///       may -- a migration beside a controller built without the tables -- calls this.
+bool vocabularyLoaded();
 
 /// @brief Where a candidate stands with the reader. The module records it; the caller acts.
 ///
