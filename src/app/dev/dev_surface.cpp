@@ -300,6 +300,8 @@ nlohmann::json DevSurface::execute(core::dev::Command const& command)
             return success();
         case core::dev::Verb::Selection:
             return injectSelection(command);
+        case core::dev::Verb::Scan:
+            return injectScan(command);
         case core::dev::Verb::SettingSet:
             return setSetting(command);
         case core::dev::Verb::Wait:
@@ -465,6 +467,34 @@ nlohmann::json DevSurface::injectSelection(core::dev::Command const& command)
     return success();
 }
 
+nlohmann::json DevSurface::injectScan(core::dev::Command const& command)
+{
+    auto* const duty = controller_->captureDuty();
+    if (duty == nullptr)
+        return failure("scan: the capture duty is not present");
+    switch (command.scan) {
+        case core::dev::ScanWhat::Arm: {
+            auto const& region = command.region;
+            duty->debugScanArm(QRect{region.x, region.y, region.width, region.height});
+            return success();
+        }
+        case core::dev::ScanWhat::Frame: {
+            capture::TrackFrame frame;
+            frame.lost = command.scanFrame.lost;
+            for (auto const& span : command.scanFrame.visible)
+                frame.visible.push_back({.id = span.id, .x = span.x, .y = span.y, .width = span.width, .height = span.height});
+            for (auto const& word : command.scanFrame.added)
+                frame.added.push_back({.id = word.id, .text = word.text});
+            duty->debugScanFrame(std::move(frame));
+            return success();
+        }
+        case core::dev::ScanWhat::Clear:
+            duty->debugScanClear();
+            return success();
+    }
+    return failure("scan: unknown action");
+}
+
 nlohmann::json DevSurface::setSetting(core::dev::Command const& command)
 {
     // The pet's switch and choice live in the PET section, not the settings table, so they go through the controller
@@ -513,6 +543,13 @@ nlohmann::json DevSurface::state() const
             .shown   = pet_->shown(),
             .action  = pet_->action().toStdString(),
         };
+    if (auto* const duty = controller_->captureDuty()) {
+        auto const scan = duty->debugScanState();
+        input.scan      = core::dev::ScanState{.autoScan   = scan.autoScan,
+                                               .tracking   = scan.tracking,
+                                               .generation = scan.generation,
+                                               .candidates = scan.candidates};
+    }
 
     auto windows = root_->findChildren<QWindow*>();
     if (auto* const self = qobject_cast<QWindow*>(root_))

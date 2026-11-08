@@ -39,7 +39,7 @@ test/
 
 | 目标 | 内容 | 何时跑 |
 | --- | --- | --- |
-| `lens_gtest_unit` | 样例集 / KnownStore 与 StatsStore 往返 / LLM 纯函数 / 词汇导入导出与日期标签 / app 接缝的纯部分 / 选区手势阈值 / 桌面宠物的状态机、数据解析与配饰 | 每次改动，可进 CI |
+| `lens_gtest_unit` | 样例集 / KnownStore 与 StatsStore 往返 / LLM 纯函数 / 词汇导入导出与日期标签 / app 接缝的纯部分 / 选区手势阈值 / 扫描会话与上传事务（`ScanSession.*` 走脚本化 ScanTrack） / 桌面宠物的状态机、数据解析与配饰 | 每次改动，可进 CI |
 | `lens_gtest_integration` | 选区捕获：终端排除 / 钩子与剪贴板的真机往返；玻璃幕布：读屏的紧循环与按节奏对照 / 桌面复制的裁剪与旋转 | 动选区入口或玻璃采集时，人工执行 |
 | `lens_gtest_perf` | FilterCore 吞吐 + profiling 报告 | 动内核时 |
 | `lens_gtest_glass_probe` | 玻璃幕布的采集上限：适配器与输出归属 / 桌面复制可用性与一帧的代价 / GDI 读屏对照 / 抓屏排除在复制帧里是否生效 | 动玻璃采集或画质档位时，人工执行（CI 没有可复制的桌面会话） |
@@ -60,7 +60,7 @@ powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_pet
 
 需要看合并后的机器路径、来源文件与是否可用：`powershell -File scripts/build/show-paths.ps1`。
 
-- OCR 的离线契约在 `lens_gtest_unit`：`OcrTsv.*`、`OcrLocal.*`、`OcrRapidOcr.*`、`OcrMigration.*`、`RapidOcrBundle.*`、`OcrSpace.*`、`CaptureDuty.*`（含零上传断言）。真实引擎用 `lens_gtest_integration` 的 `OcrEngineProbe*` 与 `RapidOcrProbe*`，只读合成图，不读桌面；`RapidOcrProbe*` 需要 `LENS_RAPIDOCR_ROOT` 指向解压后的 RapidOCR-json v0.2.0，否则跳过。英语、中文与混排基线用 `scripts/qa/ocr-bench.ps1`（`-Language chi_sim` / `chi_sim+eng`），证据见 `docs/metrics/ocr-baseline-2026-10-28.md`；安装产物检查见 `docs/metrics/ocr-installer-2026-10-28.md`。真实在线 smoke 与 setup 安装/卸载不在日常套件里。
+- OCR 的离线契约在 `lens_gtest_unit`：`OcrTsv.*`、`OcrLocal.*`、`OcrRapidOcr.*`、`OcrMigration.*`、`RapidOcrBundle.*`、`OcrSpace.*`、`CaptureDuty.*`（含零上传断言）、`ScanSession.*`（扫描循环的门序、失效与判定，脚本化 ScanTrack，无需 Chrome）。真实引擎用 `lens_gtest_integration` 的 `OcrEngineProbe*` 与 `RapidOcrProbe*`，只读合成图，不读桌面；`RapidOcrProbe*` 需要 `LENS_RAPIDOCR_ROOT` 指向解压后的 RapidOCR-json v0.2.0，否则跳过。英语、中文与混排基线用 `scripts/qa/ocr-bench.ps1`（`-Language chi_sim` / `chi_sim+eng`），证据见 `docs/metrics/ocr-baseline-2026-10-28.md`；安装产物检查见 `docs/metrics/ocr-installer-2026-10-28.md`。真实在线 smoke 与 setup 安装/卸载不在日常套件里。
 
 - 改动后先跑**覆盖它的那条用例**，不跑整套：gtest 用 `gtest.ps1 -Filter 'PetThrow*'`，QTest 用
   `qtest.ps1 -Target <目标> -Case Main::test_x`，约 5 秒；整套 surfaces 249 例，**只在发版跑**

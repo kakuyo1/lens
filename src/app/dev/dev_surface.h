@@ -88,6 +88,8 @@ private:
     nlohmann::json wheel(std::string const& surface, int steps, bool pad);
     /// @brief Start the selection pipeline with the text the command gives, so the clipboard is not read.
     nlohmann::json injectSelection(core::dev::Command const& command);
+    /// @brief Drive the scan session without a browser: arm its placement, inject a frame, or clear it.
+    nlohmann::json injectScan(core::dev::Command const& command);
     /// @brief Store one whitelisted setting through the same setter the settings page's control calls.
     nlohmann::json setSetting(core::dev::Command const& command);
     nlohmann::json state() const;

@@ -206,6 +206,68 @@ TEST(DevCommandParse, SelectionRefusesAMalformedLine)
     }
 }
 
+TEST(DevCommandParse, ScanArmTakesARectangleAndClearTakesNothing)
+{
+    auto const armed = parseCommand("scan arm 0,0,1920,400");
+    ASSERT_TRUE(armed.command);
+    EXPECT_EQ(armed.command->verb, Verb::Scan);
+    EXPECT_EQ(armed.command->scan, lens::core::dev::ScanWhat::Arm);
+    EXPECT_EQ(armed.command->region.x, 0);
+    EXPECT_EQ(armed.command->region.width, 1920);
+
+    auto const cleared = parseCommand("scan clear");
+    ASSERT_TRUE(cleared.command);
+    EXPECT_EQ(cleared.command->scan, lens::core::dev::ScanWhat::Clear);
+}
+
+TEST(DevCommandParse, ScanFrameReadsItsWords)
+{
+    auto const parsed = parseCommand(R"(scan frame {"added":[{"id":1,"text":"ubiquitous"}],"visible":[{"id":1,"x":10,"y":20,"width":30,"height":12}]})");
+    ASSERT_TRUE(parsed.command);
+    EXPECT_EQ(parsed.command->verb, Verb::Scan);
+    EXPECT_EQ(parsed.command->scan, lens::core::dev::ScanWhat::Frame);
+    ASSERT_EQ(parsed.command->scanFrame.added.size(), 1);
+    EXPECT_EQ(parsed.command->scanFrame.added[0].id, 1);
+    EXPECT_EQ(parsed.command->scanFrame.added[0].text, "ubiquitous");
+    ASSERT_EQ(parsed.command->scanFrame.visible.size(), 1);
+    EXPECT_EQ(parsed.command->scanFrame.visible[0].x, 10);
+    EXPECT_EQ(parsed.command->scanFrame.visible[0].height, 12);
+    EXPECT_FALSE(parsed.command->scanFrame.lost);
+}
+
+TEST(DevCommandParse, ScanFrameReadsALostMark)
+{
+    auto const parsed = parseCommand(R"(scan frame {"lost":true})");
+    ASSERT_TRUE(parsed.command);
+    EXPECT_TRUE(parsed.command->scanFrame.lost);
+    EXPECT_TRUE(parsed.command->scanFrame.visible.empty());
+}
+
+TEST(DevCommandParse, ScanRefusesAMalformedLine)
+{
+    for (auto const* line : {
+             "scan",
+             "scan frobnicate",
+             "scan arm",
+             "scan arm 160,175,0,70",
+             "scan frame not-json",
+             R"(scan frame {"added":"x"})",
+             R"(scan frame {"added":[{"text":"x"}]})",
+             R"(scan frame {"visible":{"id":1}})",
+         }) {
+        auto const parsed = parseCommand(line);
+        EXPECT_FALSE(parsed.command) << line;
+        EXPECT_FALSE(parsed.error.empty()) << line;
+    }
+}
+
+TEST(DevCommandState, StateKeepsTheScanKeyWhenNoScanIsBound)
+{
+    auto const answer = lens::core::dev::stateJson({});
+    EXPECT_TRUE(answer.contains("scan"));
+    EXPECT_TRUE(answer["scan"].is_null());
+}
+
 TEST(DevCommandParse, SettingSetNamesTheSettingAndItsValue)
 {
     auto const theme = parseCommand("setting set theme light");

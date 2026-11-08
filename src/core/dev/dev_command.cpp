@@ -196,6 +196,68 @@ Parse parseSelection(std::string_view arguments)
     return accept({.verb = Verb::Selection, .region = *region, .selectedText = std::string{quoted.substr(1, quoted.size() - 2)}});
 }
 
+/// `scan arm x,y,w,h | scan frame <json> | scan clear`. The JSON is the rest of the line, from its
+/// first brace, so it keeps the spaces inside it.
+Parse parseScan(std::string_view arguments)
+{
+    char const* const usage = "scan takes arm <x,y,w,h>, frame <json> or clear";
+    arguments               = trimmed(arguments);
+    auto const space        = arguments.find(' ');
+    auto const what         = trimmed(arguments.substr(0, space == std::string_view::npos ? arguments.size() : space));
+    if (what == "clear")
+        return accept({.verb = Verb::Scan, .scan = ScanWhat::Clear});
+    if (what == "arm") {
+        if (space == std::string_view::npos)
+            return refuse(usage);
+        auto const region = regionOf(trimmed(arguments.substr(space + 1)));
+        if (not region)
+            return refuse(usage);
+        return accept({.verb = Verb::Scan, .region = *region, .scan = ScanWhat::Arm});
+    }
+    if (what != "frame" or space == std::string_view::npos)
+        return refuse(usage);
+    auto const     json = trimmed(arguments.substr(space + 1));
+    nlohmann::json parsed;
+    try {
+        parsed = nlohmann::json::parse(json);
+    } catch (nlohmann::json::exception const&) {
+        return refuse(usage);
+    }
+    if (not parsed.is_object())
+        return refuse(usage);
+    ScanFrameInput frame;
+    if (auto const lost = parsed.find("lost"); lost != parsed.end() and lost->is_boolean())
+        frame.lost = lost->get<bool>();
+    if (auto const visible = parsed.find("visible"); visible != parsed.end()) {
+        if (not visible->is_array())
+            return refuse(usage);
+        for (auto const& span : *visible) {
+            if (not span.is_object() or not span.contains("id") or not span["id"].is_number_integer())
+                return refuse(usage);
+            auto const read = [](nlohmann::json const& object, char const* key, int fallback) {
+                auto const found = object.find(key);
+                return found != object.end() and found->is_number_integer() ? found->get<int>() : fallback;
+            };
+            frame.visible.push_back({.id     = span["id"].get<int>(),
+                                     .x      = read(span, "x", 0),
+                                     .y      = read(span, "y", 0),
+                                     .width  = read(span, "width", 0),
+                                     .height = read(span, "height", 0)});
+        }
+    }
+    if (auto const added = parsed.find("added"); added != parsed.end()) {
+        if (not added->is_array())
+            return refuse(usage);
+        for (auto const& word : *added) {
+            if (not word.is_object() or not word.contains("id") or not word["id"].is_number_integer() or
+                not word.contains("text") or not word["text"].is_string())
+                return refuse(usage);
+            frame.added.push_back({.id = word["id"].get<int>(), .text = word["text"].get<std::string>()});
+        }
+    }
+    return accept({.verb = Verb::Scan, .scan = ScanWhat::Frame, .scanFrame = std::move(frame)});
+}
+
 /// The JSON for an optional value: its value, or null when it is unset.
 template <typename T>
 nlohmann::json orNull(std::optional<T> const& value)
@@ -295,6 +357,8 @@ Parse parseCommand(std::string_view line)
 
     if (verb == "selection")
         return parseSelection(line.substr(line.find(verb) + verb.size()));
+    if (verb == "scan")
+        return parseScan(line.substr(line.find(verb) + verb.size()));
 
     if (verb == "setting") {
         if (args != 3 or tokens[1] != "set")
@@ -338,6 +402,15 @@ nlohmann::json stateJson(StateInput const& input)
             {"action", input.pet->action},
         };
     }
+    auto scan = nlohmann::json{};
+    if (input.scan) {
+        scan = {
+            {"autoScan", input.scan->autoScan},
+            {"tracking", input.scan->tracking},
+            {"generation", input.scan->generation},
+            {"candidates", input.scan->candidates},
+        };
+    }
     return {
         {"ok", true},
         {"build", buildJson(input.build)},
@@ -345,6 +418,7 @@ nlohmann::json stateJson(StateInput const& input)
         {"windows", {{"total", input.windowsTotal}, {"visible", input.windowsVisible}}},
         {"surfaces", surfaces},
         {"pet", pet},
+        {"scan", scan},
     };
 }
 
@@ -366,6 +440,7 @@ nlohmann::json helpJson()
                          "surface wheel <name> <ticks> [pad]",
                          "wait visible:<name> | hidden:<name> | painted:<name> | <n>s",
                          "selection <x>,<y>,<w>,<h> \"<text>\"",
+                         "scan arm <x>,<y>,<w>,<h> | scan frame <json> | scan clear",
                          "setting set <name> <value>",
                          "state",
                          "version",

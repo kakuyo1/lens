@@ -39,6 +39,9 @@ enum class Verb : std::uint8_t {
     Help,
     Selection,
     SettingSet,
+    /// Drive the scan session without a browser: arm the placement its frames are placed in, inject
+    /// a frame, or clear it (docs/adr/0165).
+    Scan,
     Quit,
 };
 
@@ -59,6 +62,39 @@ struct Region {
     int y{0};
     int width{0};
     int height{0};
+};
+
+/// What a `scan` line does.
+enum class ScanWhat : std::uint8_t {
+    /// Arm the placement the injected frames are placed in: the region is the screen geometry, its
+    /// top-left the physical origin, at scale 1.
+    Arm,
+    /// Inject one frame into the scan session, judged and placed like a real one.
+    Frame,
+    /// Invalidate the scan; the lines come down.
+    Clear,
+};
+
+/// One placed word a `scan frame` line injects, in the pixels the scan reports.
+struct ScanFrameWord {
+    int id{0};
+    int x{0};
+    int y{0};
+    int width{0};
+    int height{0};
+};
+
+/// One word a `scan frame` line adds to the page, first occurrence only.
+struct ScanFrameAdded {
+    int         id{0};
+    std::string text;
+};
+
+/// The frame a `scan frame` line injects into the scan session.
+struct ScanFrameInput {
+    bool                        lost{false};
+    std::vector<ScanFrameWord>  visible;
+    std::vector<ScanFrameAdded> added;
 };
 
 /// The settings a `setting set` line may change. A whitelist, not a route to every key the settings file holds.
@@ -118,6 +154,10 @@ struct Command {
     /// Whether those ticks are a touchpad's rather than a mouse's: pixel deltas carried in scroll
     /// phases, the gesture a Flickable answers with its own momentum rather than a step per notch.
     bool wheelPad{false};
+    /// What a `scan` line does; unread by every other verb.
+    ScanWhat scan{ScanWhat::Clear};
+    /// The frame a `scan frame` line injects; unread by every other verb.
+    ScanFrameInput scanFrame;
 };
 
 /// The outcome of parsing one line: a command, or the reason the line was refused. Exactly one of the two is set.
@@ -176,6 +216,14 @@ struct PetState {
     std::string action;
 };
 
+/// @brief What the scan session is doing, when this build has one to report.
+struct ScanState {
+    bool          autoScan{false};
+    bool          tracking{false};
+    std::uint64_t generation{0};
+    int           candidates{0};
+};
+
 /// Everything a `state` answer reports, gathered by the application.
 struct StateInput {
     Build                      build;
@@ -185,6 +233,8 @@ struct StateInput {
     std::vector<SurfaceState>  surfaces;
     /// Empty when the pet is not bound, which a build without it reports as null rather than leaving the key out.
     std::optional<PetState> pet;
+    /// Empty when the build has no scan to report, which reads as null rather than leaving the key out.
+    std::optional<ScanState> scan;
 };
 
 /// @return The `state` answer: `{"ok": true, "build", "theme", "windows", "surfaces"}`, every key present.

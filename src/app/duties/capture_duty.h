@@ -30,12 +30,14 @@
 #include "capture/bundle_downloader.h"
 #include "capture_refusal.h"
 #include "app/platform/hover_word_lookup.h"
-#include "app/platform/selection_text_grabber.h"
-#include "core/domain/filter_core.h"
-#include "core/domain/hover_lookup.h"
 #include "ocr/online_ocr.h"
+#include "hover_flow.h"
+#include "ocr_lifecycle.h"
 #include "pending_selection.h"
+#include "scan_session.h"
+#include "selection_capture.h"
 #include "storage_duty.h"
+#include "upload_transaction.h"
 
 namespace lens::app {
 
@@ -60,8 +62,7 @@ public:
 
     QVariantMap settings() const;
     QString     ocrStatus() const;
-    /// @brief The difficulty line moved -- the level, or the reader's custom wordbook: the scan's
-    ///        candidates were judged against the old line, so re-scan.
+    /// @brief The difficulty line moved; the scan session re-judges its candidates.
     void difficultyChanged();
     /// @brief The download state of the pinned RapidOCR bundle, derived from disk and from the
     ///        transfer in flight. It moves during a download, so it stays out of settings(), the
@@ -128,13 +129,12 @@ public:
     /// @brief Send one synthetic image to the configured online service; this may be billed.
     Q_INVOKABLE void testOnlineOcr();
 
-    /// @brief Pause while a request is in flight.
+    /// @brief Pause while a request is in flight; the session invalidates its scan on a change.
     void setScanPaused(bool paused);
     /// @brief Pause every acquisition path when the daily budget is exhausted.
     void setBudgetPaused(bool paused);
-    /// @brief Whether the reader's finger is down on the mark button: while it holds, the scan's
-    ///        foreground gate does not tear the page down — the click takes Chrome out of the
-    ///        foreground for its own length, and the button's word list is what the click lives on.
+    /// @brief Whether the reader's finger is down on the mark button; the scan session's foreground
+    ///        gate holds while it does (docs/adr/0161).
     void setMarkButtonHeld(bool held);
     /// @return False when OCR is disabled, unavailable, busy, or budget-paused.
     bool captureScreenshot(QImage image, QPoint anchor);
@@ -164,13 +164,28 @@ public:
     /// @brief Show the bubble of @p surface, a word the reader's pointer is on while Alt is held; @p anchor is
     ///        its bottom-left in physical pixels, where the bubble goes.
     void lookUpWord(QString surface, QPoint anchor);
-    /// @brief The reader changed @p lemma's verdict: every surface it was judged under is re-judged
-    ///        now, against the verdict store as it stands, so the next emission draws it right -- a
-    ///        retired lemma's lines drop, a known one's restyle -- with no full scan invalidation.
+    /// @brief The reader changed @p lemma's verdict; the scan session re-judges the surfaces it was
+    ///        judged under, with no full scan invalidation (ScanSession::onVerdictChanged).
     void verdictChanged(QString lemma);
     /// @brief True while the automatic scan is on and a Chrome window is in front, the only time a lone Alt tap
     ///        is turned into a cancelled tap for the menu bar.
     bool chromeScanActive();
+
+    /// @brief The facts a developer surface reports about the scan (docs/adr/0165).
+    struct ScanDebugState {
+        bool          autoScan   = false;
+        bool          tracking   = false;
+        std::uint64_t generation = 0;
+        int           candidates = 0;
+    };
+    [[nodiscard]] ScanDebugState debugScanState() const;
+    /// @brief The placement the developer surface arms: the geometry its frames are placed in.
+    void debugScanArm(QRect screen);
+    /// @brief One frame the developer surface injects into the scan session, judged and placed like
+    ///        a real one. It rides the current generation: the surface arms nothing it would drop.
+    void debugScanFrame(capture::TrackFrame frame);
+    /// @brief The scan invalidated by the developer surface; the lines come down.
+    void debugScanClear();
 
 signals:
     void selectionBarRequested(QVariantMap payload);
@@ -205,14 +220,6 @@ signals:
     void rapidOcrBundleChanged();
 
 private:
-    /// @brief A candidate the scan shows on a word of the page. New draws the faint line, Known the
-    ///        firmer one; a Mastered candidate is not carried at all (docs/adr/0159).
-    struct ScanCandidate {
-        QString              lemma;
-        QString              surface;
-        core::CandidateState state = core::CandidateState::New;
-    };
-
     struct OcrJob {
         QPoint        anchor;
         QString       context;
@@ -224,39 +231,27 @@ private:
         bool          detectRapid = false;
     };
 
-    struct PendingUpload {
-        std::uint64_t                         requestId = 0;
-        QImage                                image;
-        QPoint                                anchor;
-        ocr::OnlineOcrConfig                  config; ///< Frozen at consent time; never re-read later.
-        std::chrono::steady_clock::time_point absoluteDeadline;
-        int                                   attempts = 0;
-    };
-
-    /// @brief Rebuild the OCR engine around the stored paths and inspect the new one.
-    void rebuildOcr();
     /// @brief Run the injected engine's readiness probe; production readiness is file inspection.
     void probeOcr();
-    /// @brief Write the local policy for a document that predates ocrConfigVersion.
-    void migrateOcrSettings();
-    /// @param translateNow True when the reader has already said "translate this" with a gesture of
-    ///        their own: a framed region, or a word they rested on. The bar would ask a question they
-    ///        have already answered, so the text goes straight to the translation. A selection keeps
-    ///        the bar -- there the gesture only says "show me what this says", and the bar is where
-    ///        they say what to do with it.
+    /// @brief Classify @p text through the selection module and announce what it answers.
     void classifyText(QString text, QPoint anchor, bool translateNow = false);
+    /// @brief Announce what a classification answered: the selection, the pre-chosen action or the bar.
+    void routeSelection(std::optional<SelectionCapture::Answer> const& answer);
     /// @brief The hover timer's tick: sample the pointer, and when it has rested, read the word under it off-thread.
     void onHoverTick();
     /// @brief The word read under a rested pointer came back; classify it when the pointer still rests on it.
     void onHoverWordRead(std::optional<HoverWord> word);
+    /// @brief Execute what the scan session answered: the cleared lines, the warmed tree, the placed candidates.
+    void routeScanStep(ScanStep const& step);
+    /// @brief The scan timer's tick: gather the facts the session reads, and execute what it answers.
     void scanTick();
     void onOcrFinished(std::uint64_t requestId, capture::OcrResult result);
     bool launchOcr(QImage image, QPoint anchor, QString context);
     void beginOnlineUpload(QImage image, QPoint anchor);
     void onConsentTimeout();
     void onUploadTimeout();
-    void finishOnline(capture::OcrResult const& result);
-    void clearUpload(QString outcome, bool notify);
+    /// @brief Execute what the upload transaction asked for: the clocks, the executor, the signals.
+    void routeUpload(UploadStep const& step);
     bool onlineConfigured() const;
     /// @return Whether the chosen service reads @p language; before a service is chosen, the two
     ///         values every service in the table lists.
@@ -281,64 +276,36 @@ private:
     /// @brief Forget exchanged tokens; their key or address changed, or the reader cleared them.
     void clearOnlineTokens();
     void invalidateScan();
-    /// @brief Build the Tesseract engine the scan reads with, and record whether its resources are present.
-    void rebuildScanOcr();
-    /// @brief Start following the page in @p window's band; its frames come back to onTrackFrame().
-    void startScanTrack(quintptr window, QRect band);
-    /// @brief One frame of the scan's track: judge the words it read, and emit the candidates it has in view.
-    void             onTrackFrame(std::uint64_t generation, capture::TrackFrame frame);
-    core::Difficulty difficulty() const;
 
     StorageDuty&                          storage_;
     MouseSelectionHook&                   hook_;
-    std::unique_ptr<SelectionTextGrabber> grabber_;
-    std::shared_ptr<capture::OcrEngine>   ocr_;
     std::unique_ptr<capture::OcrExecutor> executor_;
     std::shared_ptr<ocr::HttpTransport>   onlineTransport_;
     /// Tokens a service exchanged this run. Memory only; cleared whenever the key or address moves.
-    std::shared_ptr<ocr::OcrTokenStore>                 onlineTokens_;
-    std::shared_ptr<capture::OcrEngine>                 scanOcr_;
-    bool                                                scanReady_ = false; ///< Tesseract and its English data are present.
-    QTimer                                              scanTimer_;
-    QTimer                                              hoverTimer_;
-    core::HoverDwell                                    hoverDwell_;
-    bool                                                hoverMode_ = false;
-    bool                                                hoverBusy_ = false; ///< A word read is in flight.
-    std::optional<OcrJob>                               jobContext_;
-    std::optional<PendingUpload>                        upload_;
-    QTimer                                              consentTimer_;
-    QTimer                                              uploadTimer_;
-    QString                                             uploadPhase_          = QStringLiteral("idle");
-    bool                                                uploadCanRetry_       = false;
-    capture::OcrStatus                                  ocrState_             = capture::OcrStatus::RuntimeMissing;
-    std::uint64_t                                       generation_           = 0;
-    std::uint64_t                                       screenshotGeneration_ = 0;
-    std::uint64_t                                       nextRequestId_        = 0;
-    QString                                             scanContext_;
-    int                                                 scanLevel_      = -1; ///< The level the scan's candidates were judged at; a change invalidates them.
-    bool                                                scanPaused_     = false;
-    bool                                                markButtonHeld_ = false; ///< The reader's finger is down on the mark button; the foreground gate holds.
-    std::unique_ptr<PageTrack>                          track_;                  ///< Follows the page on screen; null while the scan is not reading one.
-    std::unordered_map<int, std::vector<ScanCandidate>> scanCandidates_;         ///< The candidates, by the track's word id.
-    /// What each surface was judged to -- lemma and state -- for this scan generation. A word the
-    /// track loses and reads again is not judged again.
-    std::unordered_map<std::string, std::vector<std::pair<std::string, core::CandidateState>>> scanJudged_;
-    QRect                                                                                      scanScreen_;
-    QPoint                                                                                     scanScreenOrigin_;
-    double                                                                                     scanScale_ = 1.0;
-    QRect                                                                                      scanBand_;
-    bool                                                                                       budgetPaused_ = false;
-    QString                                                                                    ocrTestState_ = QStringLiteral("idle");
-    /// Why the last test failed, in the vocabulary the settings page explains; `none` otherwise.
-    QString                     ocrTestReason_ = QStringLiteral("none");
-    QString                     ocrTestEngine_;
-    QString                     ocrTestLanguage_;
-    int                         ocrTestMs_ = 0;
-    capture::LocalOcrInspection localInspection_;
-    QString                     rapidOcrDetectState_ = QStringLiteral("idle");
-    int                         rapidOcrDetectMs_    = 0;
-    capture::BundleDownloader   bundleDownloader_;
-    int                         rapidOcrBundlePercent_ = 0;
+    std::shared_ptr<ocr::OcrTokenStore> onlineTokens_;
+    QTimer                              scanTimer_;
+    QTimer                              hoverTimer_;
+    std::optional<OcrJob>               jobContext_;
+    /// The online upload transaction: the frozen crop, the consent, the send and the retry
+    /// (docs/adr/0165).
+    UploadTransaction upload_;
+    QTimer            consentTimer_;
+    QTimer            uploadTimer_;
+    std::uint64_t     screenshotGeneration_ = 0;
+    std::uint64_t     nextRequestId_        = 0;
+    /// The engines' life: the chosen local engine, the scan's Tesseract, the test and detect state
+    /// (docs/adr/0165).
+    OcrLifecycle lifecycle_;
+    /// The scan session: the gates, the track's life, the judgement and the invalidation, with its
+    /// own generation and pause (docs/adr/0165).
+    ScanSession session_;
+    bool        budgetPaused_ = false;
+    /// The selection job: the gate, the grab, the classification and the payloads (docs/adr/0165).
+    SelectionCapture selection_;
+    /// The hover rhythm: rest, read, ask (docs/adr/0165).
+    HoverFlow                 hover_;
+    capture::BundleDownloader bundleDownloader_;
+    int                       rapidOcrBundlePercent_ = 0;
     /// Why the last bundle run failed, in the vocabulary the settings page explains; "" otherwise.
     QString rapidOcrBundleFailure_;
 };

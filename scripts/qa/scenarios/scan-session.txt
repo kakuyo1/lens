@@ -1,0 +1,17 @@
+# The scan session driven without Chrome (docs/adr/0165): arm a placement, inject frames,
+# read the state, clear. The leading hold lets the first scan tick spend its level-drift
+# invalidation, so the frames injected after it are not wiped by it. The words injected are
+# off every band's mastered side (a level-5 line: the floor 3000, TEM4/TEM8 and B1-B2), so
+# they draw candidates; "ubiquitous" would not -- it is a TEM8 word.
+wait 1s
+state
+scan arm 0,0,1920,400
+scan frame {"added":[{"id":1,"text":"sonorous"},{"id":2,"text":"mellifluous"}],"visible":[{"id":1,"x":10,"y":20,"width":60,"height":16},{"id":2,"x":90,"y":20,"width":50,"height":16}]}
+wait 1s
+state
+scan clear
+state
+# The selection path still answers through its own verb (docs/adr/0068).
+selection 160,175,620,70 "the quiet library"
+wait 1s
+quit
