@@ -10,18 +10,45 @@
 # that follows them -- and four copies of an installer URL is the drift config/paths.default.json
 # exists to prevent.
 #
+# The installer is cached, the way Qt and sherpa-onnx are (.github/actions/configure): GitHub's
+# release CDN answers 504 in bursts, and a burst on 2026-11-08 took down the coverage scan's
+# install step after the scans' configure had already ridden the same weather out. The key carries
+# the version, so a bump re-downloads.
+#
 # The silent install is waited on, because the next step runs the tool. It writes to the fixed
 # location under Program Files, which is where the scan's own lookup starts, so nothing here has
-# to hand a path to the calling job.
+# to hand a path to the calling job. A cached run reinstalls from the saved copy: the installer
+# is seconds, and it keeps this step's contract -- install, then return -- whatever restored it.
 name: Install OpenCppCoverage
 description: Install OpenCppCoverage 0.9.9.0, the version the coverage numbers in docs/metrics/ were taken with.
 
 runs:
   using: composite
   steps:
+    - name: Restore installer
+      id: covtool
+      uses: actions/cache@v6
+      with:
+        path: ${{ runner.workspace }}/OpenCppCoverageSetup.exe
+        key: opencppcoverage-0.9.9.0-${{ runner.os }}
+
     - name: Install OpenCppCoverage
       shell: pwsh
       run: |
-        $url = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe"
-        Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\OpenCppCoverageSetup.exe"
-        Start-Process -FilePath "$env:TEMP\OpenCppCoverageSetup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
+        $setup = Join-Path $env:RUNNER_WORKSPACE 'OpenCppCoverageSetup.exe'
+        if (-not (Test-Path -LiteralPath $setup)) {
+          $url = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe"
+          # The CDN 504s in bursts rather than for good, so the download retries with a growing
+          # pause: one good window in the sequence is enough, and the cache above makes it the
+          # last download this pin ever needs.
+          for ($attempt = 1; ; ++$attempt) {
+            try {
+              Invoke-WebRequest -Uri $url -OutFile $setup
+              break
+            } catch {
+              if ($attempt -ge 5) { throw }
+              Start-Sleep -Seconds (20 * $attempt)
+            }
+          }
+        }
+        Start-Process -FilePath $setup -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
