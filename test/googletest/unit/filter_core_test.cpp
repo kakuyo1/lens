@@ -379,6 +379,29 @@ TEST_F(CoreTest, DifficultyForLevelClampsToTheTable)
     EXPECT_EQ(lens::core::difficultyForLevel(2).floorRank, 3000u);
 }
 
+TEST_F(CoreTest, StateOfIsTheOneAnswerToWhichLine)
+{
+    // The judgement filterWords annotates its candidates with, answerable on its own now
+    // (docs/adr/0166): the reader's verdicts first, the band second.
+    const auto                            band    = lens::core::difficultyForLevel(2);
+    const std::unordered_set<std::string> noMarks = {};
+
+    // A word inside the floor draws the mastered line with no verdict of the reader's own.
+    EXPECT_EQ(lens::core::stateOf("time", noMarks, noMarks, band), lens::core::CandidateState::Mastered);
+    // The reader's verdicts outrank the band: a floor word marked known still draws the known line.
+    EXPECT_EQ(lens::core::stateOf("time", {"time"}, noMarks, band), lens::core::CandidateState::Known);
+    // Above the floor and in no book, only the reader's verdict decides.
+    EXPECT_EQ(lens::core::stateOf("serendipity", noMarks, noMarks, band), lens::core::CandidateState::New);
+    EXPECT_EQ(lens::core::stateOf("serendipity", {"serendipity"}, noMarks, band), lens::core::CandidateState::Known);
+    EXPECT_EQ(lens::core::stateOf("serendipity", noMarks, {"serendipity"}, band), lens::core::CandidateState::Mastered);
+    // The verdict holds the base form; the form it covers draws the same line.
+    EXPECT_EQ(lens::core::stateOf("vividly", {"vivid"}, noMarks, band), lens::core::CandidateState::Known);
+    EXPECT_EQ(lens::core::stateOf("vividly", noMarks, {"vivid"}, band), lens::core::CandidateState::Mastered);
+    // A hand-picked token the list does not hold is judged by the reader's verdicts alone.
+    EXPECT_EQ(lens::core::stateOf("kubernetes", noMarks, noMarks, band), lens::core::CandidateState::New);
+    EXPECT_EQ(lens::core::stateOf("kubernetes", noMarks, {"kubernetes"}, band), lens::core::CandidateState::Mastered);
+}
+
 TEST_F(WordbookTest, EachLevelMastersItsOwnBooksTheBaseAndTheFloor)
 {
     // The fixture books hold one word each. "time" is inside the frequency floor, so every level masters it;

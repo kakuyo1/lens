@@ -152,9 +152,6 @@ ScanStep ScanSession::onFrame(std::uint64_t const generation, capture::TrackFram
 
 void ScanSession::judgeAdded(capture::TrackFrame const& frame)
 {
-    auto const  known    = store_.known();
-    auto const  mastered = store_.mastered();
-    auto const  band     = core::difficultyForLevel(store_.level());
     QStringList drawn;
     for (auto const& word : frame.added) {
         auto const surface = QString::fromStdString(word.text).trimmed();
@@ -162,7 +159,7 @@ void ScanSession::judgeAdded(capture::TrackFrame const& frame)
         if (not scanJudged_.contains(key)) {
             // New and Known both draw a line (restyled for Known); a Mastered candidate, the
             // reader's retire verdict or the band's, draws none (docs/adr/0159).
-            auto judged = judgeSurface(key, known, mastered, band);
+            auto judged = judgeSurface(key);
             for (auto const& [lemma, state] : judged)
                 drawn << QString::fromStdString(lemma);
             scanJudged_.emplace(key, std::move(judged));
@@ -175,10 +172,7 @@ void ScanSession::judgeAdded(capture::TrackFrame const& frame)
 
 void ScanSession::onVerdictChanged(QString const& lemma)
 {
-    const std::string key      = lemma.toStdString();
-    auto const        known    = store_.known();
-    auto const        mastered = store_.mastered();
-    auto const        band     = core::difficultyForLevel(store_.level());
+    const std::string key = lemma.toStdString();
 
     // Re-judge every surface the changed lemma was judged under, right now: the verdict store
     // already holds the new verdict, and the track's frames carry words only as they are added,
@@ -190,7 +184,7 @@ void ScanSession::onVerdictChanged(QString const& lemma)
             ++it;
             continue;
         }
-        auto judged = judgeSurface(it->first, known, mastered, band);
+        auto judged = judgeSurface(it->first);
         if (judged.empty())
             it = scanJudged_.erase(it);
         else {
@@ -212,12 +206,12 @@ void ScanSession::onVerdictChanged(QString const& lemma)
     }
 }
 
-std::vector<std::pair<std::string, core::CandidateState>>
-ScanSession::judgeSurface(std::string const&                     surface,
-                          std::unordered_set<std::string> const& known,
-                          std::unordered_set<std::string> const& mastered,
-                          core::Difficulty const&                band) const
+std::vector<std::pair<std::string, core::CandidateState>> ScanSession::judgeSurface(std::string const& surface) const
 {
+    auto const known    = store_.known();
+    auto const mastered = store_.mastered();
+    auto const band     = core::difficultyForLevel(store_.level());
+
     std::vector<std::pair<std::string, core::CandidateState>> judged;
     for (auto const& candidate : core::filterWords(surface, known, mastered, band, minimumWordLength_, false))
         if (candidate.state != core::CandidateState::Mastered) judged.emplace_back(candidate.lemma, candidate.state);

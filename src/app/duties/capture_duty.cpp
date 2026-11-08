@@ -30,6 +30,7 @@
 #include "core/domain/settings_table.h"
 #include "app/platform/mouse_selection_hook.h"
 #include "app/settings_access.h"
+#include "verdict_view.h"
 #include "capture/ocr_rapidocr.h"
 #include "util/log.h"
 
@@ -1080,7 +1081,7 @@ void CaptureDuty::routeScanStep(ScanStep const& step)
         for (auto const& word : step.placed->words)
             words.append(QVariantMap{{QStringLiteral("lemma"), word.lemma},
                                      {QStringLiteral("surface"), word.surface},
-                                     {QStringLiteral("verdict"), word.state == core::CandidateState::Known ? QStringLiteral("known") : QStringLiteral("new")},
+                                     {QStringLiteral("verdict"), verdictToken(word.state)},
                                      {QStringLiteral("x"), word.x},
                                      {QStringLiteral("y"), word.y},
                                      {QStringLiteral("width"), word.width},

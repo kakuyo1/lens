@@ -152,6 +152,26 @@ struct Difficulty {
 Difficulty difficultyForLevel(int level);
 
 /**
+ * @brief Which line @p surface draws now: the one place answers the question.
+ *
+ * The reader's own verdicts first, the level's band second: a surface the reader mastered or
+ * that the band reaches is CandidateState::Mastered, one the reader marked known is
+ * CandidateState::Known, and nothing holds is CandidateState::New. Every judge is a form of the
+ * surface, so a base marked known or mastered covers its inflections (docs/adr/0161). The band
+ * only masters a word the word list holds, so a lone hand-picked token outside the list is not
+ * mastered by it -- the same rule filterWords' explicit-token path applies. filterWords annotates
+ * each candidate with this answer, and the scan's judgement reads the same one (docs/adr/0166).
+ *
+ * @param surface The word as written, lower-cased; a form filterWords would judge.
+ * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
+ */
+CandidateState stateOf(
+    std::string const&                     surface,
+    const std::unordered_set<std::string>& knownLemmas,
+    const std::unordered_set<std::string>& masteredLemmas,
+    Difficulty const&                      difficulty);
+
+/**
  * @brief Filter an excerpt down to the words it is made of.
  *
  * Pure pipeline with no I/O; the known set and the frequency cut-off are injected so the

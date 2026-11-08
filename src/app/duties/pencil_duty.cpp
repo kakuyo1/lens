@@ -98,7 +98,7 @@ void PencilDuty::placeWords(QVariantList const words, QRect const screen, QPoint
         auto const verdict = map.value(QStringLiteral("verdict")).toString();
         words_.push_back({.lemma   = map.value(QStringLiteral("lemma")).toString(),
                           .surface = map.value(QStringLiteral("surface")).toString(),
-                          .verdict = verdict.isEmpty() ? QStringLiteral("new") : verdict,
+                          .verdict = verdict.isEmpty() ? verdictToken(core::WordVerdict::None) : verdict,
                           .box     = QRect{map.value(QStringLiteral("x")).toInt(), map.value(QStringLiteral("y")).toInt(), map.value(QStringLiteral("width")).toInt(), map.value(QStringLiteral("height")).toInt()}});
     }
     screen_       = screen;
@@ -184,7 +184,7 @@ void PencilDuty::altUp()
 
 void PencilDuty::verdictChanged(QString const lemma, QString const verdict)
 {
-    if (verdict == QStringLiteral("mastered")) {
+    if (verdict == verdictToken(core::WordVerdict::Mastered)) {
         // A retired word's line is gone for good on this page: the scan no longer places it, so
         // the occurrences leave now rather than on a frame that will not come.
         words_.erase(std::remove_if(words_.begin(), words_.end(), [&lemma](Word const& word) { return word.lemma == lemma; }),

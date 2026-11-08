@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "core/document/stats_store.h"
+#include "duties/verdict_view.h"
 #include "util/text.h"
 
 namespace lens::app {
@@ -123,9 +124,7 @@ inline std::vector<WordRow> wordRowList(QDate const&                           t
                                dayLabel(moment, today),
                                moment.isValid() ? moment.toString(QStringLiteral("MM-dd")) : QString{},
                                moment.isValid() ? moment.toString(QStringLiteral("HH:mm")) : QString{},
-                               masteredLemmas.count(entry.lemma) > 0 ? QStringLiteral("mastered")
-                               : knownLemmas.count(entry.lemma) > 0  ? QStringLiteral("known")
-                                                                     : QStringLiteral("new"),
+                               verdictToken(verdictOf(entry.lemma, knownLemmas, masteredLemmas)),
                                pops.value(shown)});
     }
 
@@ -146,7 +145,7 @@ inline std::vector<WordRow> wordRowList(QDate const&                           t
                                QString{},
                                QString{},
                                QString{},
-                               masteredLemmas.count(lemma) > 0 ? QStringLiteral("mastered") : QStringLiteral("known"),
+                               verdictToken(verdictOf(lemma, knownLemmas, masteredLemmas)),
                                0});
     }
     return rows;

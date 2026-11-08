@@ -20,6 +20,7 @@
 #include "llm/llm_pure.h"
 #include "util/log.h"
 #include "util/text.h"
+#include "verdict_view.h"
 #include "word_answer.h"
 
 namespace lens::app {
@@ -682,10 +683,7 @@ void ExplanationDuty::showBubble(ExplanationExchange::CardView const& card, bool
             payload.insert(QStringLiteral("senseExhausted"), cycle.exhausted);
         }
         payload.insert(QStringLiteral("senses"), senses);
-        payload.insert(QStringLiteral("status"),
-                       storage_.knownStore().isMasteredVerdict(explanation.title.toStdString()) ? QStringLiteral("mastered")
-                       : storage_.knownStore().isKnown(explanation.title.toStdString())         ? QStringLiteral("known")
-                                                                                                : QStringLiteral("new"));
+        payload.insert(QStringLiteral("status"), verdictToken(storage_.knownStore(), explanation.title.toStdString()));
     }
     // The exchange raised this card a step earlier, which is what settled its identity and reset
     // the review life: a scan bubble must not be taken down by the pointer leaving a word the
@@ -746,10 +744,7 @@ void ExplanationDuty::showWaiting(ExplanationExchange::CardView const& card)
     if (isWordKind(selection.kind)) {
         // The badge is the store's rather than the model's: the word already stands in a verdict at
         // the moment of the click, and nothing in the answer changes which.
-        payload.insert(QStringLiteral("status"),
-                       storage_.knownStore().isMasteredVerdict(card.answer.title.toStdString()) ? QStringLiteral("mastered")
-                       : storage_.knownStore().isKnown(card.answer.title.toStdString())         ? QStringLiteral("known")
-                                                                                                : QStringLiteral("new"));
+        payload.insert(QStringLiteral("status"), verdictToken(storage_.knownStore(), card.answer.title.toStdString()));
     }
     bubble_ = payload;
     clearNotice();
@@ -875,9 +870,7 @@ void ExplanationDuty::mark(QString lemma, QString verdict)
     auto const* card = exchange_.card().subject();
     if (not bubble_.isEmpty() and card != nullptr and card->kind != core::SelectionKind::Word and bubble_.value("title").toString() == lemma)
         return;
-    const auto state = verdict == QStringLiteral("mastered") ? core::WordVerdict::Mastered
-                       : verdict == QStringLiteral("known")  ? core::WordVerdict::Known
-                                                             : core::WordVerdict::None;
+    const auto state = verdictFromToken(verdict);
     // The store is keyed by the base form (docs/adr/0162): a verdict made on "crumpled" holds
     // "crumple", and every inflection reads it through formsOf. The surfaces still speak the
     // scan's lemma -- verdictChanged takes it, and the bubble's title matches it.
@@ -887,9 +880,7 @@ void ExplanationDuty::mark(QString lemma, QString verdict)
     storage_.statsStore().recordVerdict(key, nowMinute().toStdString(), state == core::WordVerdict::None ? "new" : "known");
     storage_.save();
     if (bubble_.value("title").toString() == lemma)
-        bubble_["status"] = state == core::WordVerdict::Mastered ? QStringLiteral("mastered")
-                            : state == core::WordVerdict::Known  ? QStringLiteral("known")
-                                                                 : QStringLiteral("new");
+        bubble_["status"] = verdictToken(state);
     emit bubbleChanged();
     emit statsChanged();
     emit verdictChanged(lemma, verdict);

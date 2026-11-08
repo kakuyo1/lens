@@ -26,6 +26,8 @@
 
 #include <chrono>
 
+#include "verdict_view.h"
+
 namespace lens::app {
 
 class CaptureDuty;
@@ -107,8 +109,8 @@ private:
     struct Word {
         QString lemma;
         QString surface;
-        QString verdict = QStringLiteral("new"); ///< "new" or "known": which line the word draws.
-        QRect   box;                             ///< Physical screen pixels.
+        QString verdict = verdictToken(core::WordVerdict::None); ///< The line the word draws, as the payload minted it.
+        QRect   box;                                             ///< Physical screen pixels.
     };
 
     /// @return The index of the word under @p at, a little generous about its edges; -1 when none.

@@ -631,10 +631,7 @@ std::vector<Candidate> filterWords(
         if (const std::string_view token = loneToken(text); !token.empty()) {
             const std::string    surface = util::asciiLower(token);
             const std::string    lemma   = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
-            const CandidateState state   = isMasteredByReader(surface, masteredLemmas)         ? CandidateState::Mastered
-                                           : isKnownForm(surface, knownLemmas)                 ? CandidateState::Known
-                                           : inTable(lemma) && isMastered(surface, difficulty) ? CandidateState::Mastered
-                                                                                               : CandidateState::New;
+            const CandidateState state   = stateOf(surface, knownLemmas, masteredLemmas, difficulty);
             LENS_TRACE("filterWords: lone token '{}' -> surface='{}' lemma='{}' state={}",
                        token,
                        surface,
@@ -699,12 +696,8 @@ std::vector<Candidate> filterWords(
         // What the reader has already said about the word annotates it; it does not take the
         // candidate away (TODO.md item 0). An explicit selection is a request to explain the
         // word whatever they once marked, and phase 2's automatic scanning is the caller that
-        // acts on these states. Mastered outranks Known -- the retire verdict is the stronger
-        // statement -- and the reader's own verdicts outrank the level's band.
-        const CandidateState state = isMasteredByReader(surface, masteredLemmas) ? CandidateState::Mastered
-                                     : isKnownForm(surface, knownLemmas)         ? CandidateState::Known
-                                     : isMastered(surface, difficulty)           ? CandidateState::Mastered
-                                                                                 : CandidateState::New;
+        // acts on these states.
+        const CandidateState state = stateOf(surface, knownLemmas, masteredLemmas, difficulty);
 
         LENS_TRACE("filterWords: candidate surface='{}' lemma='{}' state={}",
                    surface,
@@ -770,6 +763,25 @@ Difficulty difficultyForLevel(int const level)
 {
     constexpr int kLast = static_cast<int>(std::size(kLevelBooks)) - 1;
     return {kFloorRank, static_cast<std::uint8_t>(kLevelBooks[std::clamp(level, 0, kLast)] | kB1B2)};
+}
+
+CandidateState stateOf(
+    std::string const&                     surface,
+    const std::unordered_set<std::string>& knownLemmas,
+    const std::unordered_set<std::string>& masteredLemmas,
+    Difficulty const&                      difficulty)
+{
+    // What the reader has already said about the word annotates it; it does not take the
+    // candidate away (TODO.md item 0). An explicit selection is a request to explain the
+    // word whatever they once marked, and phase 2's automatic scanning is the caller that
+    // acts on these states. Mastered outranks Known -- the retire verdict is the stronger
+    // statement -- and the reader's own verdicts outrank the level's band. The band only
+    // masters a word the list holds, so an acronym the reader picked by hand is judged by
+    // their verdicts alone.
+    return isMasteredByReader(surface, masteredLemmas)                      ? CandidateState::Mastered
+           : isKnownForm(surface, knownLemmas)                              ? CandidateState::Known
+           : inTable(lemmatize(surface)) && isMastered(surface, difficulty) ? CandidateState::Mastered
+                                                                            : CandidateState::New;
 }
 
 std::vector<DefinitionLink> definitionLinks(

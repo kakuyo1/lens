@@ -10,7 +10,8 @@
  * the platform reads and the QObject signals stay with the duty, the way the ceremony and stroll
  * modules left their controller an adapter (docs/adr/0139). The judgement is deliberately the same
  * shape it had on the duty -- filterWords per surface, cached by surface, a retired or mastered
- * lemma carried by no candidate (docs/adr/0159); the projection's unification is its own card.
+ * lemma carried by no candidate (docs/adr/0159); the payload's verdict tokens are minted once, by
+ * verdict_view.h (docs/adr/0166).
  *
  * @note No QObject, no clock: the duty hands in the facts, and the frames the track delivers come
  *       back through the marshal the duty injected.
@@ -204,12 +205,10 @@ private:
     /// @brief Start following @p window's page inside @p band; its frames come back to onFrame().
     void startTrack(quintptr window, QRect const& band);
     /// @return Every lemma of @p surface the band and the verdict store let through, judged state
-    ///         attached. Shared by the frame path and the verdict-change path, which differ only in
-    ///         what they do with the answer.
-    std::vector<std::pair<std::string, core::CandidateState>> judgeSurface(std::string const&                     surface,
-                                                                           std::unordered_set<std::string> const& known,
-                                                                           std::unordered_set<std::string> const& mastered,
-                                                                           core::Difficulty const&                band) const;
+    ///         attached. The one judgement entry: it reads the store and the level's band itself,
+    ///         so the frame path and the verdict-change path share not only the pure filter but
+    ///         the wiring that feeds it (docs/adr/0166).
+    std::vector<std::pair<std::string, core::CandidateState>> judgeSurface(std::string const& surface) const;
 
     core::KnownStore& store_;
     Marshal           marshal_;
