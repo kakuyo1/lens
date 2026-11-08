@@ -331,6 +331,13 @@ void AppController::importWordlist(QUrl file)
     emit settingsChanged();
 }
 
+QUrl AppController::masteredWordsFolder() const
+{
+    // The verdict store's folder, not the file: the opener gets a directory to show, and the
+    // reader finds the settings document in it (PRODUCT.md storage shape).
+    return QUrl::fromLocalFile(widen(storage_.knownStore().path().parent_path()));
+}
+
 void AppController::setTesseractExecutable(QUrl executable)
 {
     capture_.setTesseractExecutable(executable.toLocalFile());

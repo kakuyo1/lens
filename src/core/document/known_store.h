@@ -210,6 +210,12 @@ public:
         return doc_;
     }
 
+    /// @return The path the document was loaded from, which save() rewrites.
+    const std::filesystem::path& path() const
+    {
+        return path_;
+    }
+
     /**
      * @brief The document as a section, which is how a key is read and written.
      *

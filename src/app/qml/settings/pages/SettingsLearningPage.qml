@@ -41,6 +41,11 @@ Item {
         languageField.closeList();
         reviewField.closeList();
     }
+    /// The mastered-words row's second pill: the verdict store's folder goes to the system's
+    /// opener, so the reader can back the settings document up or read it (UI-SPEC.md 4.4).
+    function openDataFolder() {
+        Qt.openUrlExternally(Controller.masteredWordsFolder());
+    }
     /// The word cloud a hovered vocabulary level raises beside the list. The option carries its
     /// own level, so the preview needs nothing from this page but the row.
     Component {
@@ -85,38 +90,89 @@ Item {
                 color: root.tokens.muted
                 font.pixelSize: 12
             }
-            Rectangle {
-                id: importButton
-                objectName: "importWordlistButton"
-                width: importLabel.width + 26
-                height: 30
-                radius: root.tokens.radiusPill
-                color: root.tokens.panel2
-                border.width: 1
-                border.color: root.tokens.line
-                scale: importTap.pressed ? 0.97 : 1.0
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: root.tokens.motion.press
-                        easing.type: root.tokens.motion.easing
+            Row {
+                width: parent.width
+                spacing: 8
+
+                Rectangle {
+                    id: importButton
+                    objectName: "importWordlistButton"
+                    width: importLabel.width + 26
+                    height: 30
+                    radius: root.tokens.radiusPill
+                    color: root.tokens.panel2
+                    border.width: 1
+                    border.color: root.tokens.line
+                    scale: importTap.pressed ? 0.97 : 1.0
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: root.tokens.motion.press
+                            easing.type: root.tokens.motion.easing
+                        }
+                    }
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: importLabel.text
+
+                    Text {
+                        id: importLabel
+                        anchors.centerIn: parent
+                        text: qsTranslate("SettingsPopup", "Import a word list…")
+                        color: root.tokens.text
+                        font.pixelSize: 12
+                        font.weight: Font.Bold
+                    }
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        id: importTap
+                        onTapped: importDialog.open()
                     }
                 }
+                // The verdict store's document sits in the reader's profile folder; QML hands the
+                // folder to the system's opener, the way it owns the import dialog (UI-SPEC.md 4.4).
+                Rectangle {
+                    id: dataFolderButton
+                    objectName: "openDataFolderButton"
+                    width: dataFolderLabel.width + 26
+                    height: 30
+                    radius: root.tokens.radiusPill
+                    color: root.tokens.panel2
+                    border.width: 1
+                    border.color: root.tokens.line
+                    scale: folderTap.pressed ? 0.97 : 1.0
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: root.tokens.motion.press
+                            easing.type: root.tokens.motion.easing
+                        }
+                    }
 
-                Accessible.role: Accessible.Button
-                Accessible.name: importLabel.text
+                    activeFocusOnTab: true
+                    Accessible.role: Accessible.Button
+                    Accessible.name: dataFolderLabel.text
+                    Accessible.onPressAction: root.openDataFolder()
+                    Keys.onPressed: (event) => {
+                        if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space)
+                                && !event.isAutoRepeat) {
+                            event.accepted = true;
+                            root.openDataFolder();
+                        }
+                    }
 
-                Text {
-                    id: importLabel
-                    anchors.centerIn: parent
-                    text: qsTranslate("SettingsPopup", "Import a word list…")
-                    color: root.tokens.text
-                    font.pixelSize: 12
-                    font.weight: Font.Bold
-                }
-                HoverHandler { cursorShape: Qt.PointingHandCursor }
-                TapHandler {
-                    id: importTap
-                    onTapped: importDialog.open()
+                    Text {
+                        id: dataFolderLabel
+                        anchors.centerIn: parent
+                        text: qsTranslate("SettingsPopup", "Open data folder")
+                        color: root.tokens.text
+                        font.pixelSize: 12
+                        font.weight: Font.Bold
+                    }
+                    FocusRing { radius: parent.radius + 4 }
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        id: folderTap
+                        onTapped: root.openDataFolder()
+                    }
                 }
             }
             // The last import's outcome: how many words it marked, or that its file read as nothing.

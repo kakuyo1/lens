@@ -198,7 +198,7 @@
   - 高度固定，按最长的一份说明留够，行间移动时不变尺寸：窗口在第一次显示之前被改过高度就拿不到透明呈现，四周的阴影边带会整块发黑（`docs/QML.md` 2）
 - 词汇档位选项，分三组（CEFR / 国内考试 / 出国考试）：B1–B2 / C1–C2 ｜ CET-4 / CET-6 / TEM-4 / TEM-8 ｜ IELTS / TOEFL
 - 档位的含义：读者已会该档的词书。每档 = 底座（B1–B2 书与词频前 3000）∪ 自身词书；CET-6 含 CET-4，TEM-8 含 TEM-4，IELTS 与 TOEFL 含 CET-4。档位只影响扫描虚线、选区取词与释义链点线，不写入判定库（ADR 0155）
-- **已掌握词（导入）**：词汇档位下方一行，与档位同属阅读学习组。一枚胶囊按钮（4.4 的胶囊规格，`panel2` 底 `line` 描边，文案 `Import a word list…`）唤系统文件对话框选 `.txt`；其下状态行 11 px：无导入不画，成功写 `Imported %1 word(s).`，读不到写 `The file could not be read.`；再下一行 11 px 弱字 `One word per line. Importing marks every word mastered, once; the file is not watched afterwards.`。导入是**一次性批量种子**：文件里的词经词根还原去重，逐词写入判定库的掌握值，此后文件不再被监视——丢失或改动都不影响已有判定（ADR 0159，取代 0158 的文件即来源）。导入后扫描整体重判；不升预览
+- **已掌握词（导入）**：词汇档位下方一行，与档位同属阅读学习组。一枚胶囊按钮（4.4 的胶囊规格，`panel2` 底 `line` 描边，文案 `Import a word list…`）唤系统文件对话框选 `.txt`；右侧并排一枚同规格胶囊（同高同字重，文案 `Open data folder`），点它在系统文件管理器打开判定库文档所在的文件夹——判定与已掌握词都写在读者 `%APPDATA%\Lens\settings.json` 一份文档里（`PRODUCT.md` 存储形状），按钮只把该文件夹交给系统打开器，不选中也不打开文件；键盘上是一枚 Tab 站（Enter / Space 触发）。其下状态行 11 px：无导入不画，成功写 `Imported %1 word(s).`，读不到写 `The file could not be read.`；再下一行 11 px 弱字 `One word per line. Importing marks every word mastered, once; the file is not watched afterwards.`。导入是**一次性批量种子**：文件里的词经词根还原去重，逐词写入判定库的掌握值，此后文件不再被监视——丢失或改动都不影响已有判定（ADR 0159，取代 0158 的文件即来源）。导入后扫描整体重判；不升预览
 - CET-4 项右侧跟 10.5 px 弱文字英文标识 “Minimum requirement”，标注本工具的目标使用者下限（见 `GLOSSARY.md`“目标使用者”）
 - 默认态：触发通道仅 “选区取词” 开，其余关；动作条样式为经典长条；最小词长 3；剪贴板策略默认 “强制置顶”；自启没有默认值，以注册表里那条 Run 项为准
 - 页脚只剩 `Defaults` 与一行状态：设置都即时生效；唯一的输入型设置 API key 在离开输入框或页面时写入并显示 “Saved”，不再有 Save 按钮

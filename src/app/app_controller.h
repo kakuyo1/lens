@@ -111,6 +111,9 @@ public:
     ///        into the verdict store's mastered marks (docs/adr/0159). The file is read once and
     ///        never watched afterwards.
     Q_INVOKABLE void importWordlist(QUrl file);
+    /// @return The folder holding the verdict store's document -- the shared settings file the
+    ///         mastered marks live in -- as a local URL for the system's opener (UI-SPEC.md 4.4).
+    Q_INVOKABLE QUrl masteredWordsFolder() const;
     /// @param executable File the reader picked in the system's dialog; C++ takes the local path.
     Q_INVOKABLE void setTesseractExecutable(QUrl executable);
     /// @param directory Folder the reader picked in the system's dialog; C++ takes the local path.

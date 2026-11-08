@@ -535,6 +535,27 @@ Item {
             compare(hint.visible, false, "the note stayed after English came back");
         }
 
+        /// The mastered-words row's second pill (UI-SPEC.md 4.4): the folder holding the verdict
+        /// store's document is handed to the system's opener, and a case that clicked it would put
+        /// a window up on the machine running the suite -- the sign-in switch's rule. What is
+        /// assertable is the half that matters: the controller answers with a local folder, and
+        /// the pill stands beside the import one as a tab stop with its name read out.
+        function test_theMasteredWordsRowOffersItsDataFolder() {
+            const shown = openLearningPanel();
+
+            const folder = Controller.masteredWordsFolder();
+            verify(String(folder).indexOf("file:") === 0,
+                   "the controller answered '" + folder + "', not a local folder");
+
+            const button = named(shown.panel, "openDataFolderButton");
+            verify(button, "the learning page has no data-folder button");
+            const importButton = named(shown.panel, "importWordlistButton");
+            verify(importButton, "the learning page has no import button beside it");
+            compare(button.y, importButton.y, "the data-folder button is not on the import row");
+            compare(button.activeFocusOnTab, true, "the data-folder button is not a tab stop");
+            verify(button.Accessible.name.length > 0, "the data-folder button reads no name");
+        }
+
         function test_aQuestionOnThePanelTakesEscapeBeforeTheCategoryDoes() {
             const shown = openPetPanel();
             const question = findDeep(shown.panel, function (o) {
