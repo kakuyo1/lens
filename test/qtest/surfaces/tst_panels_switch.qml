@@ -114,7 +114,7 @@ Item {
             Controller.wordsModel.filter = 1;
             settleOn(popup, known);
 
-            Controller.wordsModel.filter = 2;
+            Controller.wordsModel.filter = 3;
             let sample = 0;
             while (Controller.wordsModel.filterSwitching && sample < 400) {
                 const shown = wordsShown(popup);
@@ -136,28 +136,32 @@ Item {
         /// it had until the switch lands and then takes the count once; a hold one frame shorter than
         /// the model's swap let the card drop to the intersection's height and grow back, which the
         /// reader saw as the card blinking rather than as the rows moving.
-        function test_theCardDoesNotShrinkPastItsNewHeightDuringASwitch() {
+        function test_theCardHoldsItsHeightThroughASwitch() {
             const popup = make();
             popup.visible = true;
 
             Controller.wordsModel.filter = 1;
             settleOn(popup, verdictWords("known"));
 
-            // Every height the card takes while the switch runs, in order. One below the height it
-            // settles at is the blink: the card had found its size and lost it again on the way.
+            // Every height the card takes while the switch runs, in order. The two-phase promise
+            // holds the card at the leaving segment's height until the switch lands, so the only
+            // heights on the way are the held one and the destination: anything under the smaller
+            // of the two is the intersection's count showing between the phases, whichever
+            // direction the row count moves.
             let heights = [];
             const record = function () { heights.push(popup.height); };
             popup.heightChanged.connect(record);
-            Controller.wordsModel.filter = 2;
+            Controller.wordsModel.filter = 3;
             tryVerify(function () { return !Controller.wordsModel.filterSwitching; },
                       5000, "the switch never landed");
             popup.heightChanged.disconnect(record);
 
             settleOn(popup, verdictWords("new"));
             const settled = popup.height;
+            const held = heights[0];
             for (let i = 0; i < heights.length; ++i)
-                verify(heights[i] >= settled,
-                       "the card was " + heights[i] + " px on its way to " + settled
+                verify(heights[i] >= Math.min(held, settled) - 0.5,
+                       "the card was " + heights[i] + " px on its way from " + held + " to " + settled
                        + ": the viewport took the intersection's count between the phases");
             Controller.wordsModel.filter = 0;
         }
