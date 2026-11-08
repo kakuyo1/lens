@@ -238,13 +238,22 @@ Item {
             const known = Controller.wordsModel.allRows().filter(function (e) { return e.verdict === "known"; }).map(function (e) { return e.word; });
             settleOn(popup, known);
 
+            // The fixture holds no mastered word, so the segment's own word is marked here and
+            // leaves with the case: the segment is verified holding exactly what it should.
+            Controller.explanationDuty.mark("clipseed", "mastered");
             Controller.wordsModel.filter = 2;
+            settleOn(popup, ["clipseed"]);
+
+            Controller.wordsModel.filter = 3;
             const fresh = Controller.wordsModel.allRows().filter(function (e) { return e.verdict === "new"; }).map(function (e) { return e.word; });
             settleOn(popup, fresh);
 
+            Controller.explanationDuty.mark("clipseed", "new");
             // The model is shared by every case in the run; leave it where the next one expects to
             // find it rather than on the last segment this case happened to try.
             Controller.wordsModel.filter = 0;
+            tryVerify(function () { return !Controller.wordsModel.filterSwitching; }, 5000,
+                      "the filter never came back to the whole list");
         }
 
         /// The switch itself -- its two phases, the ghost they prevent and the card's height through
@@ -586,6 +595,8 @@ Item {
             Controller.wordsModel.filter = 1;
             compare(popup.scope, "known");
             Controller.wordsModel.filter = 2;
+            compare(popup.scope, "mastered");
+            Controller.wordsModel.filter = 3;
             compare(popup.scope, "new");
 
             // A path under a directory that does not exist, so a write could not land even if
