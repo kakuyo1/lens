@@ -40,15 +40,11 @@ runs:
           $url = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe"
           # The CDN 504s in bursts rather than for good, so the download retries with a growing
           # pause: one good window in the sequence is enough, and the cache above makes it the
-          # last download this pin ever needs.
-          for ($attempt = 1; ; ++$attempt) {
-            try {
-              Invoke-WebRequest -Uri $url -OutFile $setup
-              break
-            } catch {
-              if ($attempt -ge 5) { throw }
-              Start-Sleep -Seconds (20 * $attempt)
-            }
-          }
+          # last download this pin ever needs. curl rather than Invoke-WebRequest: the runner's
+          # edge answered 504 to .NET's fifteen attempts across three runs on 2026-11-08 while
+          # the same object served fine elsewhere, so the fetch goes through a second transport
+          # before the day is written off.
+          curl.exe -fsSL --retry 10 --retry-delay 25 --retry-all-errors -o $setup $url
+          if ($LASTEXITCODE -ne 0) { throw "opencppcoverage: the installer download did not survive the retries" }
         }
         Start-Process -FilePath $setup -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
