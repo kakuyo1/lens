@@ -360,6 +360,29 @@ TEST(WordTrack, RebasingOnAnotherAnchorKeepsEveryWordWhereItWas)
     }
 }
 
+TEST(WordTrack, ThePageTheTrackKeepsFillsTheBand)
+{
+    using lens::capture::Band;
+    // The window's page area, and the sliver a background tab answers with: the scan once kept
+    // itself wired to a 77 px strip at the window's bottom edge -- an iTab new-tab page parked in
+    // the background -- and drew its words there while the article went unwired for an hour
+    // (docs/adr/0163).
+    Band const band{.x = 0, .y = 166, .width = 1921, .height = 854};
+    EXPECT_TRUE(lens::capture::fillsTheBand(band, band));
+    Band const strip{.x = 0, .y = 942, .width = 1921, .height = 77};
+    EXPECT_FALSE(lens::capture::fillsTheBand(strip, band));
+
+    // A side panel answers with a sliver column; a half split is the page. The quarter share holds
+    // at its edge, and a page answering nothing is no page.
+    Band const column{.x = 1601, .y = 166, .width = 320, .height = 854};
+    EXPECT_FALSE(lens::capture::fillsTheBand(column, band));
+    Band const half{.x = 0, .y = 166, .width = 1921, .height = 427};
+    EXPECT_TRUE(lens::capture::fillsTheBand(half, band));
+    Band const quarter{.x = 0, .y = 166, .width = 961, .height = 427};
+    EXPECT_TRUE(lens::capture::fillsTheBand(quarter, band));
+    EXPECT_FALSE(lens::capture::fillsTheBand(Band{.x = 0, .y = 166, .width = 0, .height = 854}, band));
+}
+
 TEST(PageAlignment, TheNameSetHoldsEachNameOfThePageOnce)
 {
     // "Shoes" is not a name: the page also writes "shoes" in lower case. "Richard" repeats and is kept once.

@@ -27,4 +27,13 @@ void rebaseSpans(std::vector<TrackedSpan>& spans, int const dx, int const dy)
     }
 }
 
+bool fillsTheBand(Band const& visible, Band const& band)
+{
+    // A quarter of the area admits a half split and the embedded viewers the page search's own share
+    // rule lets through, and refuses the sliver a background tab or a side panel answers with.
+    long long const area  = static_cast<long long>(visible.width) * visible.height;
+    long long const whole = static_cast<long long>(band.width) * band.height;
+    return area * 4 >= whole;
+}
+
 }

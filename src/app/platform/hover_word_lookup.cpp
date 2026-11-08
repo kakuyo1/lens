@@ -641,6 +641,14 @@ std::optional<TrackFrame> TrackState::step(QRect const band)
             forgetPageOf(window_);
             return lose();
         }
+        // A page kept from an old search can also be a background tab's sliver: its own reads keep
+        // answering, so nothing above catches it, and the article would starve for as long as the
+        // sliver's tab stays open. The band says what the reader sees (docs/adr/0163).
+        if (not capture::fillsTheBand(bandOf(visible), bandOf(band))) {
+            LENS_INFO("scan page dropped: it answers {}x{} in a {}x{} band", visible.width(), visible.height(), band.width(), band.height());
+            forgetPageOf(window_);
+            return lose();
+        }
     }
 
     TrackFrame frame;
@@ -689,9 +697,14 @@ std::optional<TrackFrame> TrackState::acquire(QRect const band)
     }
     if (not page_) return std::nullopt;
     QRect const visible = band.intersected(currentBoxOf(*page_));
-    if (visible.isEmpty()) {
-        // The browser rebuilds its document on a navigation, a discarded tab or a renderer swap, and
-        // the cached page then answers nothing forever: drop it, so the next step searches anew.
+    // The browser rebuilds its document on a navigation, a discarded tab or a renderer swap, and the
+    // cached page then answers nothing forever. A tab parked in the background answers with less: its
+    // box collapses to a sliver of the window, and a search run while the real page answers nothing
+    // picks that sliver -- its words then draw in its corner of the screen while the article goes
+    // unwired, for as long as the tab stays open (docs/adr/0163). Either way the page is dropped, so
+    // the next step searches anew.
+    if (not capture::fillsTheBand(bandOf(visible), bandOf(band))) {
+        LENS_INFO("scan page refused: it answers {}x{} in a {}x{} band", visible.width(), visible.height(), band.width(), band.height());
         forgetPageOf(window_);
         page_.reset();
         return std::nullopt;

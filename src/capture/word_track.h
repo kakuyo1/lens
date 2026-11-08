@@ -39,4 +39,13 @@ std::vector<PlacedSpan> placeSpans(std::vector<TrackedSpan> const& spans, int an
 /// @brief Re-base every span on another anchor: @p dx and @p dy are that anchor's top-left, relative to the current one.
 void rebaseSpans(std::vector<TrackedSpan>& spans, int dx, int dy);
 
+/// @brief Whether a page's on-screen part is large enough to be the page the band is showing.
+/// @param visible The part of the page that lies in the band, in the band's pixels.
+/// @param band The window's page area the scan draws in.
+/// @return Whether @p visible holds at least a quarter of @p band's area.
+/// @note A tab parked in the background answers with a sliver strip at the window's bottom edge and
+///       a side panel with a sliver column; neither is the page. A half split, and an embedded
+///       viewer the page search's own share rule already admits, are.
+bool fillsTheBand(Band const& visible, Band const& band);
+
 }
