@@ -34,6 +34,7 @@
 #include "hover_flow.h"
 #include "ocr_lifecycle.h"
 #include "pending_selection.h"
+#include "scan_emission_gate.h"
 #include "scan_session.h"
 #include "selection_capture.h"
 #include "storage_duty.h"
@@ -243,6 +244,13 @@ private:
     void onHoverWordRead(std::optional<HoverWord> word);
     /// @brief Execute what the scan session answered: the cleared lines, the warmed tree, the placed candidates.
     void routeScanStep(ScanStep const& step);
+    /// @brief Project one placement into the scanPlaced payload and emit it.
+    void emitPlaced(ScanStep::Placed const& placed);
+    /// @brief The placed lines no longer describe anything: drop the gate's memory, stop a pending
+    ///       flush, and announce the clear.
+    void clearScanLines();
+    /// @brief The emission gate's flush: the newest placement it held back goes out now.
+    void onScanPlaceFlush();
     /// @brief The scan timer's tick: gather the facts the session reads, and execute what it answers.
     void scanTick();
     void onOcrFinished(std::uint64_t requestId, capture::OcrResult result);
@@ -299,7 +307,11 @@ private:
     /// The scan session: the gates, the track's life, the judgement and the invalidation, with its
     /// own generation and pause (docs/adr/0165).
     ScanSession session_;
-    bool        budgetPaused_ = false;
+    /// The emission gate and its trailing flush: which placements are worth the pencil layer's
+    /// rebuild, and the newest held one when the cadence closes (docs/adr/0167).
+    ScanEmissionGate scanGate_;
+    QTimer           scanPlaceFlush_;
+    bool             budgetPaused_ = false;
     /// The selection job: the gate, the grab, the classification and the payloads (docs/adr/0165).
     SelectionCapture selection_;
     /// The hover rhythm: rest, read, ask (docs/adr/0165).

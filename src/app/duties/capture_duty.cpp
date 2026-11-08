@@ -162,6 +162,8 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
     uploadTimer_.setSingleShot(true);
     connect(&consentTimer_, &QTimer::timeout, this, &CaptureDuty::onConsentTimeout);
     connect(&uploadTimer_, &QTimer::timeout, this, &CaptureDuty::onUploadTimeout);
+    scanPlaceFlush_.setSingleShot(true);
+    connect(&scanPlaceFlush_, &QTimer::timeout, this, &CaptureDuty::onScanPlaceFlush);
 
     scanTimer_.setInterval(250);
     connect(&scanTimer_, &QTimer::timeout, this, &CaptureDuty::scanTick);
@@ -284,7 +286,7 @@ void CaptureDuty::invalidateScan()
 {
     // The session moves its generation and drops its track and caches; the duty announces it, as it always has.
     session_.invalidate();
-    emit scanCleared();
+    clearScanLines();
 }
 
 void CaptureDuty::difficultyChanged()
@@ -753,7 +755,7 @@ void CaptureDuty::setScanPaused(bool const paused)
     // The session invalidates its scan on a change; the duty announces it, as it always has.
     if (session_.scanPaused() == paused) return;
     session_.setScanPaused(paused);
-    emit scanCleared();
+    clearScanLines();
 }
 
 void CaptureDuty::setBudgetPaused(bool const paused)
@@ -1071,23 +1073,50 @@ void CaptureDuty::scanTick()
 
 void CaptureDuty::routeScanStep(ScanStep const& step)
 {
-    if (step.cleared) emit scanCleared();
+    if (step.cleared) clearScanLines();
     if (step.warm) {
         // The first query for a browser window makes it build its page tree, so the query runs ahead of the first read.
         QThreadPool::globalInstance()->start(QRunnable::create([window = *step.warm] { warmPageTreeOf(window); }));
     }
     if (step.placed) {
-        QVariantList words;
-        for (auto const& word : step.placed->words)
-            words.append(QVariantMap{{QStringLiteral("lemma"), word.lemma},
-                                     {QStringLiteral("surface"), word.surface},
-                                     {QStringLiteral("verdict"), verdictToken(word.state)},
-                                     {QStringLiteral("x"), word.x},
-                                     {QStringLiteral("y"), word.y},
-                                     {QStringLiteral("width"), word.width},
-                                     {QStringLiteral("height"), word.height}});
-        emit scanPlaced(words, step.placed->screen, step.placed->origin, step.placed->scale);
+        // The layer rebuilds its whole model for every payload, so the gate drops the ones that
+        // describe the page it already draws and holds the rest to a cadence, with the newest
+        // kept for the flush (docs/adr/0167).
+        auto const now    = std::chrono::steady_clock::now();
+        auto const answer = scanGate_.admit(*step.placed, now);
+        if (answer.emitNow) {
+            emitPlaced(*step.placed);
+        } else if (answer.hold and not scanPlaceFlush_.isActive()) {
+            auto const dueMs = std::chrono::duration_cast<std::chrono::milliseconds>(answer.dueAt - now).count();
+            scanPlaceFlush_.start(static_cast<int>(std::max<decltype(dueMs)>(0, dueMs)));
+        }
     }
+}
+
+void CaptureDuty::emitPlaced(ScanStep::Placed const& placed)
+{
+    QVariantList words;
+    for (auto const& word : placed.words)
+        words.append(QVariantMap{{QStringLiteral("lemma"), word.lemma},
+                                 {QStringLiteral("surface"), word.surface},
+                                 {QStringLiteral("verdict"), verdictToken(word.state)},
+                                 {QStringLiteral("x"), word.x},
+                                 {QStringLiteral("y"), word.y},
+                                 {QStringLiteral("width"), word.width},
+                                 {QStringLiteral("height"), word.height}});
+    emit scanPlaced(words, placed.screen, placed.origin, placed.scale);
+}
+
+void CaptureDuty::clearScanLines()
+{
+    scanGate_.reset();
+    scanPlaceFlush_.stop();
+    emit scanCleared();
+}
+
+void CaptureDuty::onScanPlaceFlush()
+{
+    if (auto const held = scanGate_.takeHeld(std::chrono::steady_clock::now())) emitPlaced(*held);
 }
 
 CaptureDuty::ScanDebugState CaptureDuty::debugScanState() const
