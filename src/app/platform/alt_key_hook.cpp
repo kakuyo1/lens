@@ -97,6 +97,10 @@ AltKeyHook::AltKeyHook(QObject* const parent)
 
 AltKeyHook::~AltKeyHook()
 {
+    // Only the instance that installed the hook may take it down: a second instance's destructor
+    // would otherwise unhook the first one's and leave its owner silent, still believing it is
+    // installed.
+    if (g_owner != this) return;
     if (g_hook != nullptr) UnhookWindowsHookEx(g_hook);
     g_hook  = nullptr;
     g_owner = nullptr;
@@ -107,6 +111,13 @@ AltKeyHook::~AltKeyHook()
 bool AltKeyHook::install()
 {
     if (installed_) return true;
+    // One hook, one owner: the callback reads a single owner and guard, so a second install would
+    // silently replace the first. Debug builds stop here; release refuses and says why.
+    Q_ASSERT(g_owner == nullptr or g_owner == this);
+    if (g_owner != nullptr and g_owner != this) {
+        LENS_WARN("AltKeyHook::install: another instance owns the keyboard hook; this one stays off");
+        return false;
+    }
     g_owner = this;
     g_hook  = SetWindowsHookExW(WH_KEYBOARD_LL, &lowLevelKeyboardProc, GetModuleHandleW(nullptr), 0);
     if (g_hook == nullptr) {
