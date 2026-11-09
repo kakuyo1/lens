@@ -81,6 +81,41 @@ OcrLifecycle::OcrLifecycle(StorageDuty& storage, std::function<void()> cancelJob
     : storage_(storage), cancelJobs_(std::move(cancelJobs))
 {}
 
+QString OcrLifecycle::testState() const
+{
+    switch (testPhase_) {
+        case TestPhase::Idle: return QStringLiteral("idle");
+        case TestPhase::Checking: return QStringLiteral("checking");
+        case TestPhase::Ready: return QStringLiteral("ready");
+        case TestPhase::Refused: return testRefusal_;
+    }
+    return QStringLiteral("idle");
+}
+
+QString OcrLifecycle::detectState() const
+{
+    switch (detectPhase_) {
+        case DetectPhase::Idle: return QStringLiteral("idle");
+        case DetectPhase::Checking: return QStringLiteral("checking");
+        case DetectPhase::Ready: return QStringLiteral("ready");
+        case DetectPhase::Failed: return QStringLiteral("failed");
+        case DetectPhase::Refused: return detectRefusal_;
+    }
+    return QStringLiteral("idle");
+}
+
+void OcrLifecycle::setTest(TestPhase const phase, QString token)
+{
+    testPhase_   = phase;
+    testRefusal_ = phase == TestPhase::Refused ? std::move(token) : QString{};
+}
+
+void OcrLifecycle::setDetect(DetectPhase const phase, QString token)
+{
+    detectPhase_   = phase;
+    detectRefusal_ = phase == DetectPhase::Refused ? std::move(token) : QString{};
+}
+
 void OcrLifecycle::adopt(std::unique_ptr<capture::OcrEngine> engine, capture::LocalOcrConfig const& local)
 {
     ocr_ = std::move(engine);
@@ -95,7 +130,7 @@ void OcrLifecycle::rebuild()
     auto const local = storedLocalConfig(storage_);
     ocr_             = capture::makeLocalOcr(local);
     inspect(local);
-    ocrTestState_  = QStringLiteral("idle");
+    setTest(TestPhase::Idle);
     ocrTestReason_ = QStringLiteral("none");
     ocrTestEngine_.clear();
     ocrTestLanguage_.clear();
@@ -159,53 +194,62 @@ void OcrLifecycle::setStatus(capture::OcrStatus const status)
 
 void OcrLifecycle::testStarted()
 {
-    ocrTestState_  = QStringLiteral("checking");
+    setTest(TestPhase::Checking);
     ocrTestReason_ = QStringLiteral("none");
 }
 
 void OcrLifecycle::testRefused(QString token)
 {
-    ocrTestState_ = std::move(token);
+    setTest(TestPhase::Refused, std::move(token));
 }
 
 void OcrLifecycle::testFinished(capture::OcrResult const& result)
 {
     auto const refusal = refusalOf(result.status);
-    ocrTestState_      = refusal ? tokenOf(*refusal) : QStringLiteral("ready");
-    ocrTestReason_     = failureReasonToken(result.failureReason);
-    ocrTestEngine_     = result.actualEngine;
-    ocrTestLanguage_   = result.languageUsed;
-    ocrTestMs_         = result.timing.totalMs;
+    if (refusal)
+        setTest(TestPhase::Refused, tokenOf(*refusal));
+    else
+        setTest(TestPhase::Ready);
+    ocrTestReason_   = failureReasonToken(result.failureReason);
+    ocrTestEngine_   = result.actualEngine;
+    ocrTestLanguage_ = result.languageUsed;
+    ocrTestMs_       = result.timing.totalMs;
 }
 
 void OcrLifecycle::testCancelled()
 {
-    ocrTestState_  = QStringLiteral("idle");
+    setTest(TestPhase::Idle);
     ocrTestReason_ = QStringLiteral("none");
 }
 
 void OcrLifecycle::detectIdle()
 {
-    rapidOcrDetectState_ = QStringLiteral("idle");
-    rapidOcrDetectMs_    = 0;
+    setDetect(DetectPhase::Idle);
+    rapidOcrDetectMs_ = 0;
 }
 
 void OcrLifecycle::detectStarted()
 {
-    rapidOcrDetectState_ = QStringLiteral("checking");
-    rapidOcrDetectMs_    = 0;
+    setDetect(DetectPhase::Checking);
+    rapidOcrDetectMs_ = 0;
 }
 
 void OcrLifecycle::detectRefused(capture::OcrStatus const status)
 {
-    rapidOcrDetectState_ = statusToken(status);
-    rapidOcrDetectMs_    = 0;
+    setDetect(DetectPhase::Refused, statusToken(status));
+    rapidOcrDetectMs_ = 0;
 }
 
 void OcrLifecycle::detectDone(QString state, int const ms)
 {
-    rapidOcrDetectState_ = std::move(state);
-    rapidOcrDetectMs_    = ms;
+    // The duty's detection outcomes are the ready pass, the failed pass, or the refusal token.
+    if (state == QLatin1String("ready"))
+        setDetect(DetectPhase::Ready);
+    else if (state == QLatin1String("failed"))
+        setDetect(DetectPhase::Failed);
+    else
+        setDetect(DetectPhase::Refused, std::move(state));
+    rapidOcrDetectMs_ = ms;
 }
 
 }

@@ -66,9 +66,20 @@ PictureDuty::PictureDuty(pictures::PictureSource& source, pictures::PictureCache
     });
 }
 
+QString PictureDuty::stateToken() const
+{
+    switch (state_) {
+        case State::Idle: return QStringLiteral("idle");
+        case State::Loading: return QStringLiteral("loading");
+        case State::Ready: return QStringLiteral("ready");
+        case State::Failed: return QStringLiteral("failed");
+    }
+    return QStringLiteral("idle");
+}
+
 QVariantMap PictureDuty::pictures() const
 {
-    return QVariantMap{{QStringLiteral("state"), state_},
+    return QVariantMap{{QStringLiteral("state"), stateToken()},
                        {QStringLiteral("query"), query_},
                        {QStringLiteral("items"), items_},
                        {QStringLiteral("failure"), failure_},
@@ -85,7 +96,7 @@ void PictureDuty::request(QString query)
     // Loading or already up is not asked for again: pressing the entry a second time is the reader
     // looking at the strip, not asking for another fetch. One that failed is, which is what makes
     // closing and reopening the entry the reader's retry.
-    if (trimmed == query_ and (state_ == QStringLiteral("loading") or state_ == QStringLiteral("ready")))
+    if (trimmed == query_ and (state_ == State::Loading or state_ == State::Ready))
         return;
 
     auto fetch   = std::make_shared<Fetch>();
@@ -100,7 +111,7 @@ void PictureDuty::request(QString query)
         deadline_.stop();
         query_ = trimmed;
         items_ = itemsOf(*cached);
-        state_ = QStringLiteral("ready");
+        state_ = State::Ready;
         failure_.clear();
         emit picturesChanged();
         return;
@@ -110,7 +121,7 @@ void PictureDuty::request(QString query)
     live_     = fetch;
     query_    = trimmed;
     items_.clear();
-    state_ = QStringLiteral("loading");
+    state_ = State::Loading;
     failure_.clear();
     emit picturesChanged();
     deadline_.start();
@@ -124,11 +135,11 @@ void PictureDuty::clear()
     ++requestId_;
     live_ = nullptr;
     deadline_.stop();
-    if (state_ == QStringLiteral("idle") and items_.isEmpty() and query_.isEmpty())
+    if (state_ == State::Idle and items_.isEmpty() and query_.isEmpty())
         return;
     query_.clear();
     items_.clear();
-    state_ = QStringLiteral("idle");
+    state_ = State::Idle;
     failure_.clear();
     emit picturesChanged();
 }
@@ -232,13 +243,13 @@ void PictureDuty::settle(std::shared_ptr<Fetch> fetch)
         // the reader the image search instead. A search that answered with
         // candidates but whose downloads all failed is its own reason.
         items_.clear();
-        state_   = QStringLiteral("failed");
+        state_   = State::Failed;
         failure_ = fetch->failure.isEmpty() ? QStringLiteral("download") : fetch->failure;
         emit picturesChanged();
         return;
     }
     items_ = itemsOf(stored);
-    state_ = QStringLiteral("ready");
+    state_ = State::Ready;
     failure_.clear();
     emit picturesChanged();
 }

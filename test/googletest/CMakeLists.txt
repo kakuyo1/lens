@@ -78,6 +78,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/scan_emission_gate_test.cpp
   unit/ocr_tsv_test.cpp
   unit/ocr_local_test.cpp
+  unit/ocr_lifecycle_test.cpp
   unit/ocr_adapter_test.cpp
   unit/ocr_rapidocr_test.cpp
   unit/rapidocr_bundle_test.cpp

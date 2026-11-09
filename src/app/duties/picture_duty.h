@@ -101,6 +101,16 @@ private:
     /// still completes and still writes its pictures to the cache.
     struct Fetch;
 
+    /// @brief What the strip is doing; the failure token is payload, not another state.
+    enum class State {
+        Idle,
+        Loading,
+        Ready,
+        Failed,
+    };
+    /// @return The state token the strip reads.
+    [[nodiscard]] QString stateToken() const;
+
     void startSearch(const std::shared_ptr<Fetch>& fetch);
     void nextThumbnail(const std::shared_ptr<Fetch>& fetch, int index);
     /**
@@ -119,7 +129,7 @@ private:
     /// is not the current number is drawn nowhere.
     int     requestId_ = 0;
     QString query_;
-    QString state_ = QStringLiteral("idle");
+    State   state_ = State::Idle;
     /// Why the last lookup failed; empty whenever the strip is not in `failed`.
     QString                failure_;
     QVariantList           items_;

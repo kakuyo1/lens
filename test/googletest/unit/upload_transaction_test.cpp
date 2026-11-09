@@ -13,6 +13,7 @@ namespace {
 
 using lens::app::UploadStep;
 using lens::app::UploadTransaction;
+using lens::ocr::OnlineOcrConfig;
 
 }
 
@@ -31,4 +32,30 @@ TEST(UploadTransaction, ARefusalWithNoTransactionIsSilent)
     EXPECT_FALSE(step.changed);
     EXPECT_EQ(transaction.phase(), QStringLiteral("idle"));
     EXPECT_FALSE(transaction.canRetry());
+}
+
+/// The phase lives in one place: the pending record's own stage. The settings projection still
+/// reads the same vocabulary, and the retry window is the only stage that offers a retry.
+TEST(UploadTransaction, APendingTransactionMovesThroughItsPhases)
+{
+    UploadTransaction transaction(nullptr, nullptr);
+    const auto        now = std::chrono::steady_clock::now();
+
+    const UploadStep begun = transaction.begin(QImage{1, 1, QImage::Format_ARGB32}, QPoint{}, OnlineOcrConfig{}, 7, now);
+    EXPECT_EQ(begun.kind, UploadStep::Kind::Consent);
+    EXPECT_EQ(transaction.phase(), QStringLiteral("awaiting-consent"));
+    EXPECT_FALSE(transaction.canRetry());
+
+    const UploadStep refused = transaction.submitRefused();
+    EXPECT_EQ(refused.kind, UploadStep::Kind::Finished);
+    EXPECT_EQ(transaction.phase(), QStringLiteral("awaiting-retry"));
+    EXPECT_TRUE(transaction.canRetry());
+    EXPECT_EQ(refused.retryWindow, UploadTransaction::kRetryWindow);
+
+    const UploadStep expired = transaction.consentTimedOut();
+    EXPECT_TRUE(expired.cleared);
+    EXPECT_EQ(expired.outcome.status, QStringLiteral("retry-expired"));
+    EXPECT_EQ(transaction.phase(), QStringLiteral("idle"));
+    EXPECT_FALSE(transaction.canRetry());
+    EXPECT_FALSE(transaction.active());
 }

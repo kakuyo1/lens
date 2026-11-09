@@ -52,7 +52,7 @@ UpdateDuty::UpdateDuty(StorageDuty&            storage,
     connect(&downloader_, &update::DownloadClient::sumsReady, this, &UpdateDuty::onSumsReady);
     connect(&downloader_, &update::DownloadClient::installerReady, this, &UpdateDuty::onInstallerReady);
     connect(&downloader_, &update::DownloadClient::progressed, this, [this](qint64 received, qint64 total) {
-        if (downloadState_ != QLatin1String("downloading"))
+        if (downloadState_ != DownloadState::Downloading)
             return;
         downloadReceived_ = received;
         if (total > 0)
@@ -77,7 +77,7 @@ UpdateDuty::UpdateDuty(StorageDuty&            storage,
             return;
         // Only a download the reader asked for can fail as one. The checksum list is read without
         // the reader's asking, so its failure is logged and the card keeps View only.
-        if (downloadState_ != QLatin1String("downloading") and downloadState_ != QLatin1String("verifying")) {
+        if (downloadState_ != DownloadState::Downloading and downloadState_ != DownloadState::Verifying) {
             LENS_WARN("the checksum list could not be read; the card keeps View only");
             return;
         }
@@ -186,18 +186,18 @@ void UpdateDuty::applyResult(update::Release const& release, bool manual)
     // one, the transfer is given up on first: its half-written file, its digest and the name it
     // would land under all name the old release, and letting it finish would put a checked
     // file under a name it was never checked as.
-    const bool downloading = downloadState_ == QLatin1String("downloading") or downloadState_ == QLatin1String("verifying");
+    const bool downloading = downloadState_ == DownloadState::Downloading or downloadState_ == DownloadState::Verifying;
     if (downloading and release.versionText != downloadVersion_) {
         LENS_INFO("a newer release arrived while {} was downloading; the transfer was cancelled", downloadVersion_.toStdString());
         cancelDownload();
     }
     // An installer that finished for one version is not offered under another's card, and is
     // not launched from one: the card's version and the file's version must be the same.
-    const bool finished = downloadState_ == QLatin1String("ready") or downloadState_ == QLatin1String("failed");
+    const bool finished = downloadState_ == DownloadState::Ready or downloadState_ == DownloadState::Failed;
     if (finished and release.versionText != downloadVersion_)
         discardDownload();
     // Recomputed: the cancel above may have just ended the transfer.
-    const bool busy = downloadState_ == QLatin1String("downloading") or downloadState_ == QLatin1String("verifying");
+    const bool busy = downloadState_ == DownloadState::Downloading or downloadState_ == DownloadState::Verifying;
 
     latest_  = release.versionText;
     notes_   = release.notes;
@@ -220,7 +220,7 @@ void UpdateDuty::applyResult(update::Release const& release, bool manual)
     // request would only replace the one it is still waiting on.
     // A verified installer keeps the answer it was checked against: a re-check of the same version
     // must not reset it, or a failed list read would turn a ready download back into idle.
-    if (not busy and downloadState_ != QLatin1String("ready")) {
+    if (not busy and downloadState_ != DownloadState::Ready) {
         sumsKnown_         = false;
         downloadAvailable_ = false;
         downloadWanted_    = false;
@@ -239,7 +239,7 @@ void UpdateDuty::reportOffline(bool manual)
 {
     // A transfer for the version this answer just cleared has no card to belong to, and its list
     // would be dropped on arrival; it is given up on here, as a newer answer would give it up.
-    if (downloadState_ == QLatin1String("downloading") or downloadState_ == QLatin1String("verifying"))
+    if (downloadState_ == DownloadState::Downloading or downloadState_ == DownloadState::Verifying)
         cancelDownload();
     latest_.clear();
     notes_.clear();
@@ -294,13 +294,25 @@ bool UpdateDuty::cardVisible() const
 
 QVariantMap UpdateDuty::download() const
 {
-    return QVariantMap{{QStringLiteral("state"), downloadState_},
+    return QVariantMap{{QStringLiteral("state"), downloadStateToken()},
                        {QStringLiteral("percent"), downloadPercent_},
                        {QStringLiteral("received"), downloadReceived_},
                        {QStringLiteral("total"), downloadTotal_},
                        {QStringLiteral("etaSeconds"), downloadEtaSeconds_},
                        {QStringLiteral("available"), downloadAvailable_},
                        {QStringLiteral("failure"), downloadFailure_}};
+}
+
+QString UpdateDuty::downloadStateToken() const
+{
+    switch (downloadState_) {
+        case DownloadState::Idle: return QStringLiteral("idle");
+        case DownloadState::Downloading: return QStringLiteral("downloading");
+        case DownloadState::Verifying: return QStringLiteral("verifying");
+        case DownloadState::Ready: return QStringLiteral("ready");
+        case DownloadState::Failed: return QStringLiteral("failed");
+    }
+    return QStringLiteral("idle");
 }
 
 QString UpdateDuty::downloadDirectory() const
@@ -347,11 +359,11 @@ void UpdateDuty::discardDownload()
     deletePartial();
     expectedDigest_.clear();
     downloadVersion_.clear();
-    resetDownload(QStringLiteral("idle"));
+    resetDownload(DownloadState::Idle);
     LENS_INFO("the downloaded installer for another version was discarded");
 }
 
-void UpdateDuty::resetDownload(const QString& state)
+void UpdateDuty::resetDownload(DownloadState const state)
 {
     downloadState_      = state;
     downloadPercent_    = 0;
@@ -359,7 +371,7 @@ void UpdateDuty::resetDownload(const QString& state)
     downloadTotal_      = 0;
     downloadEtaSeconds_ = -1;
     transferClock_.invalidate();
-    if (state != QLatin1String("failed"))
+    if (state != DownloadState::Failed)
         downloadFailure_.clear();
     emit downloadChanged();
 }
@@ -376,7 +388,7 @@ void UpdateDuty::beginTransfer()
 void UpdateDuty::failDownload(const QString& kind)
 {
     downloadFailure_ = kind;
-    resetDownload(QStringLiteral("failed"));
+    resetDownload(DownloadState::Failed);
     LENS_WARN("the update download failed ({})", kind.toStdString());
 }
 
@@ -388,18 +400,18 @@ void UpdateDuty::downloadUpdate()
         LENS_WARN("a download was asked for with no release on offer; nothing was requested");
         return;
     }
-    if (downloadState_ == QLatin1String("downloading") or downloadState_ == QLatin1String("verifying"))
+    if (downloadState_ == DownloadState::Downloading or downloadState_ == DownloadState::Verifying)
         return; // one download at a time
 
     // Remembered for the whole download: the file it writes, the digest it is checked against
     // and the name it lands under are all this version's, whatever a later check finds.
     downloadVersion_ = latest_;
     deletePartial(); // a half-written file from an earlier run is not an answer to anything
-    resetDownload(QStringLiteral("downloading"));
+    resetDownload(DownloadState::Downloading);
 
     if (sumsKnown_) {
         if (not downloadAvailable_) {
-            resetDownload(QStringLiteral("idle"));
+            resetDownload(DownloadState::Idle);
             LENS_INFO("this release publishes no checksum; the card keeps View only");
             return;
         }
@@ -417,11 +429,11 @@ void UpdateDuty::cancelDownload()
 {
     // Only a transfer in progress can be cancelled. A verified installer is kept until the reader
     // installs it or a newer answer discards it; cancelling it here would orphan it on disk.
-    if (downloadState_ != QLatin1String("downloading") and downloadState_ != QLatin1String("verifying"))
+    if (downloadState_ != DownloadState::Downloading and downloadState_ != DownloadState::Verifying)
         return;
     // A check in progress has the file open; closing it here is what lets the delete below
     // succeed on Windows. The queued verifyStep that follows finds the state gone and returns.
-    if (downloadState_ == QLatin1String("verifying")) {
+    if (downloadState_ == DownloadState::Verifying) {
         verifyFile_.close();
         verifyHash_.reset();
         verifyPath_.clear();
@@ -435,7 +447,7 @@ void UpdateDuty::cancelDownload()
     expectedDigest_.clear();
     downloadWanted_ = false;
     downloadVersion_.clear();
-    resetDownload(QStringLiteral("idle"));
+    resetDownload(DownloadState::Idle);
     LENS_INFO("the update download was cancelled");
 }
 
@@ -455,7 +467,7 @@ void UpdateDuty::onSumsReady(QByteArray sums)
 
     if (not downloadAvailable_) {
         downloadWanted_ = false;
-        resetDownload(QStringLiteral("idle"));
+        resetDownload(DownloadState::Idle);
         LENS_INFO("this release publishes no checksum for the installer; the card keeps View only");
         return;
     }
@@ -471,7 +483,7 @@ void UpdateDuty::onSumsReady(QByteArray sums)
 
 void UpdateDuty::onInstallerReady(QString path)
 {
-    resetDownload(QStringLiteral("verifying"));
+    resetDownload(DownloadState::Verifying);
     if (path.isEmpty() or expectedDigest_.empty()) {
         deletePartial();
         failDownload(QStringLiteral("checksum"));
@@ -496,7 +508,7 @@ void UpdateDuty::onInstallerReady(QString path)
 
 void UpdateDuty::verifyStep()
 {
-    if (downloadState_ != QLatin1String("verifying"))
+    if (downloadState_ != DownloadState::Verifying)
         return;
 
     // A megabyte per turn keeps each turn short enough that a click lands between them.
@@ -541,13 +553,13 @@ void UpdateDuty::verifyStep()
     }
     verifyPath_.clear();
     LENS_INFO("the installer for {} was downloaded and checked", latest_.toStdString());
-    resetDownload(QStringLiteral("ready"));
+    resetDownload(DownloadState::Ready);
 }
 
 void UpdateDuty::installUpdate()
 {
     const QString path = installerPath();
-    if (downloadState_ != QLatin1String("ready") or path.isEmpty()) {
+    if (downloadState_ != DownloadState::Ready or path.isEmpty()) {
         LENS_WARN("an install was asked for with nothing downloaded");
         return;
     }

@@ -113,18 +113,24 @@ public:
         return upload_.has_value();
     }
     /// @brief The phase, in the vocabulary the settings projection spells.
-    [[nodiscard]] QString phase() const
-    {
-        return phase_;
-    }
+    [[nodiscard]] QString phase() const;
+    /// @return Whether the reader may confirm the request again.
     [[nodiscard]] bool canRetry() const
     {
-        return canRetry_;
+        return upload_ and upload_->stage == Stage::AwaitingRetry;
     }
 
 private:
+    /// @brief Where a live transaction stands; idle is the absence of Pending.
+    enum class Stage {
+        AwaitingConsent, ///< The frozen crop waits for the reader's confirmation.
+        Uploading,       ///< A request is in the executor's hands.
+        AwaitingRetry,   ///< A refusal the reader may retry within kRetryWindow.
+    };
+
     /// @brief The transaction's state, frozen with the crop.
     struct Pending {
+        Stage                                 stage     = Stage::AwaitingConsent;
         std::uint64_t                         requestId = 0;
         QImage                                image;
         QPoint                                anchor;
@@ -136,8 +142,6 @@ private:
     std::shared_ptr<ocr::HttpTransport> transport_;
     std::shared_ptr<ocr::OcrTokenStore> tokens_;
     std::optional<Pending>              upload_;
-    QString                             phase_    = QStringLiteral("idle");
-    bool                                canRetry_ = false;
 
     static constexpr std::chrono::milliseconds kJobBudget{30000};
     static constexpr int                       kAttemptCap = 2;

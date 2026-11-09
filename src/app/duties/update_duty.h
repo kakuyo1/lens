@@ -158,6 +158,17 @@ signals:
     void downloadChanged();
 
 private:
+    /// @brief The download's own stage; the sums flags and the transfer counters are its payload.
+    enum class DownloadState {
+        Idle,
+        Downloading,
+        Verifying,
+        Ready,
+        Failed,
+    };
+    /// @return The stage token the card reads.
+    [[nodiscard]] QString downloadStateToken() const;
+
     /// @brief Read the `UPDATE` section, filling in every default.
     update::StoredUpdate stored() const;
     /// @brief Write one field of the `UPDATE` section, leaving the other two alone.
@@ -189,7 +200,8 @@ private:
     void failDownload(const QString& kind);
     /// Removes a finished download for a version the card no longer shows.
     void discardDownload();
-    void resetDownload(const QString& state);
+    /// @brief The one place the download stage moves; the counters reset with it.
+    void resetDownload(DownloadState state);
 
     StorageDuty&            storage_;
     update::UpdateClient&   client_;
@@ -208,10 +220,10 @@ private:
     /// failure says: an automatic check that fails says nothing, a manual one answers.
     bool manual_ = true;
 
-    QString     downloadState_ = QStringLiteral("idle");
-    QString     downloadFailure_;
-    std::string expectedDigest_;
-    int         downloadPercent_ = 0;
+    DownloadState downloadState_ = DownloadState::Idle;
+    QString       downloadFailure_;
+    std::string   expectedDigest_;
+    int           downloadPercent_ = 0;
     /// The bytes the installer transfer has reported, and the length it announced.
     qint64 downloadReceived_ = 0;
     qint64 downloadTotal_    = 0;

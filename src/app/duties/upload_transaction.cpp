@@ -14,6 +14,17 @@ UploadTransaction::UploadTransaction(std::shared_ptr<ocr::HttpTransport> transpo
     : transport_(std::move(transport)), tokens_(std::move(tokens))
 {}
 
+QString UploadTransaction::phase() const
+{
+    if (not upload_) return QStringLiteral("idle");
+    switch (upload_->stage) {
+        case Stage::AwaitingConsent: return QStringLiteral("awaiting-consent");
+        case Stage::Uploading: return QStringLiteral("uploading");
+        case Stage::AwaitingRetry: return QStringLiteral("awaiting-retry");
+    }
+    return QStringLiteral("idle");
+}
+
 UploadStep UploadTransaction::begin(QImage image, QPoint anchor, ocr::OnlineOcrConfig config, std::uint64_t const requestId, std::chrono::steady_clock::time_point const now)
 {
     UploadStep step;
@@ -21,8 +32,6 @@ UploadStep UploadTransaction::begin(QImage image, QPoint anchor, ocr::OnlineOcrC
     // the announcement.
     if (upload_) step.changed = true;
     upload_.reset();
-    phase_    = QStringLiteral("idle");
-    canRetry_ = false;
 
     Pending pending;
     pending.requestId        = requestId;
@@ -31,8 +40,6 @@ UploadStep UploadTransaction::begin(QImage image, QPoint anchor, ocr::OnlineOcrC
     pending.config           = std::move(config);
     pending.absoluteDeadline = now + kAbsoluteWindow;
     upload_                  = std::move(pending);
-    phase_                   = QStringLiteral("awaiting-consent");
-    canRetry_                = false;
     step.kind                = UploadStep::Kind::Consent;
     step.card                = {requestId, upload_->config.endpoint.host(), upload_->config.provider.label, upload_->config.language, kConsentWindow.count()};
     step.image               = upload_->image;
@@ -57,8 +64,7 @@ UploadStep UploadTransaction::confirm(qulonglong const requestId, std::uint64_t 
                                 .layout    = capture::OcrLayoutHint::Unknown,
                                 .deadline  = budget};
     ++upload_->attempts;
-    phase_    = QStringLiteral("uploading");
-    canRetry_ = false;
+    upload_->stage = Stage::Uploading;
     UploadStep step;
     step.kind       = UploadStep::Kind::Submit;
     step.client     = std::move(client);
@@ -72,9 +78,8 @@ UploadStep UploadTransaction::confirm(qulonglong const requestId, std::uint64_t 
 UploadStep UploadTransaction::submitRefused()
 {
     if (not upload_) return {};
+    upload_->stage = Stage::AwaitingRetry;
     UploadStep step;
-    phase_           = QStringLiteral("awaiting-retry");
-    canRetry_        = true;
     step.kind        = UploadStep::Kind::Finished;
     step.outcome     = {QStringLiteral("busy"), upload_->requestId, {}, true};
     step.retryWindow = kRetryWindow;
@@ -109,10 +114,9 @@ UploadStep UploadTransaction::finish(capture::OcrResult const& result, std::chro
                            attempts < kAttemptCap and now < absolute and
                            result.uploadState != capture::OcrUploadState::NotUploaded;
     if (retryable) {
+        upload_->stage = Stage::AwaitingRetry;
         UploadStep step;
         step.kind        = UploadStep::Kind::Finished;
-        phase_           = QStringLiteral("awaiting-retry");
-        canRetry_        = true;
         step.outcome     = {token, requestId, {}, true};
         step.retryWindow = kRetryWindow;
         step.announced   = true;
@@ -125,8 +129,8 @@ UploadStep UploadTransaction::finish(capture::OcrResult const& result, std::chro
 UploadStep UploadTransaction::consentTimedOut()
 {
     if (not upload_) return {};
-    if (phase_ == QLatin1String("awaiting-consent")) return clear(QStringLiteral("consent-expired"), true);
-    if (phase_ == QLatin1String("awaiting-retry")) return clear(QStringLiteral("retry-expired"), true);
+    if (upload_->stage == Stage::AwaitingConsent) return clear(QStringLiteral("consent-expired"), true);
+    if (upload_->stage == Stage::AwaitingRetry) return clear(QStringLiteral("retry-expired"), true);
     return {};
 }
 
@@ -147,8 +151,6 @@ UploadStep UploadTransaction::clear(QString outcome, bool const notify)
     auto const requestId = upload_ ? upload_->requestId : 0;
     auto const hadUpload = upload_.has_value();
     upload_.reset();
-    phase_       = QStringLiteral("idle");
-    canRetry_    = false;
     step.cleared = hadUpload;
     step.changed = hadUpload;
     if (notify and hadUpload) {

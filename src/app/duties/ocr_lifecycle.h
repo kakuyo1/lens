@@ -84,10 +84,7 @@ public:
     {
         return localInspection_;
     }
-    [[nodiscard]] QString testState() const
-    {
-        return ocrTestState_;
-    }
+    [[nodiscard]] QString testState() const;
     [[nodiscard]] QString testReason() const
     {
         return ocrTestReason_;
@@ -104,16 +101,34 @@ public:
     {
         return ocrTestMs_;
     }
-    [[nodiscard]] QString detectState() const
-    {
-        return rapidOcrDetectState_;
-    }
-    [[nodiscard]] int detectMs() const
+    [[nodiscard]] QString detectState() const;
+    [[nodiscard]] int     detectMs() const
     {
         return rapidOcrDetectMs_;
     }
 
 private:
+    /// @brief A settings test's own life; the refusal token is its payload, not another state.
+    enum class TestPhase {
+        Idle,
+        Checking,
+        Ready,
+        Refused,
+    };
+    /// @brief A RapidOCR detection's life; a detection that ran but did not pass says `failed`.
+    enum class DetectPhase {
+        Idle,
+        Checking,
+        Ready,
+        Failed,
+        Refused,
+    };
+
+    /// @brief The one place the test phase moves; @p token is kept only when @p phase is Refused.
+    void setTest(TestPhase phase, QString token = {});
+    /// @brief The one place the detection phase moves; @p token is kept only when @p phase is Refused.
+    void setDetect(DetectPhase phase, QString token = {});
+
     /// @brief Readiness is a file/resource inspection; no child process is started until the reader
     ///        asks for a real test or captures a region. RapidOCR's digest is verified here, at
     ///        startup and after a path or language change, rather than on every settings projection.
@@ -124,14 +139,16 @@ private:
     std::shared_ptr<capture::OcrEngine> ocr_; ///< The chosen local engine, for the screenshot path.
     capture::OcrStatus                  ocrState_ = capture::OcrStatus::RuntimeMissing;
     capture::LocalOcrInspection         localInspection_;
-    QString                             ocrTestState_ = QStringLiteral("idle");
+    TestPhase                           testPhase_ = TestPhase::Idle;
+    QString                             testRefusal_; ///< The settings page's token, when testPhase_ is Refused.
     /// Why the last test failed, in the vocabulary the settings page explains; `none` otherwise.
-    QString ocrTestReason_ = QStringLiteral("none");
-    QString ocrTestEngine_;
-    QString ocrTestLanguage_;
-    int     ocrTestMs_           = 0;
-    QString rapidOcrDetectState_ = QStringLiteral("idle");
-    int     rapidOcrDetectMs_    = 0;
+    QString     ocrTestReason_ = QStringLiteral("none");
+    QString     ocrTestEngine_;
+    QString     ocrTestLanguage_;
+    int         ocrTestMs_   = 0;
+    DetectPhase detectPhase_ = DetectPhase::Idle;
+    QString     detectRefusal_; ///< The settings page's token, when detectPhase_ is Refused.
+    int         rapidOcrDetectMs_ = 0;
 };
 
 }
