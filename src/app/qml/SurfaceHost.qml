@@ -468,7 +468,7 @@ QtObject {
     function showTrayMenu() {
         hidePanels(trayMenu);
         trayMenu.contentActive = true;
-        trayMenu.listVisible = false;
+        trayMenu.closeLanguageList();
         placePanel(trayMenu, trayAnchor());
     }
 

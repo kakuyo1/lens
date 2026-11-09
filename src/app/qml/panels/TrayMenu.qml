@@ -27,6 +27,11 @@ Window {
     /// Set by the panel that replaces this one: the card fades out in place, and the window goes when it has.
     property bool leaving: false
 
+    /// The menu's own state: `hidden` while its window is down, `leaving` while the panel that
+    /// replaces it takes over, `shown` otherwise. The language list is an overlay on top of any of
+    /// them, named by `listVisible`, not a phase.
+    readonly property string phase: !visible ? "hidden" : leaving ? "leaving" : "shown"
+
     readonly property int shadowMargin: 26
     readonly property int padding: 6
     readonly property int cardWidth: 240
@@ -105,6 +110,19 @@ Window {
     }
 
     property bool listVisible: false
+
+    /// @brief Unfold the language list. The row's hover and its press are the two ways in; both
+    ///        cancel the grace a pointer leaving the row started.
+    function openLanguageList() {
+        listHide.stop();
+        listVisible = true;
+    }
+
+    /// @brief Fold the language list, cancelling a grace a pointer leaving the row started.
+    function closeLanguageList() {
+        listHide.stop();
+        listVisible = false;
+    }
 
     /// The menu rows are only needed after the tray menu is first opened.
     property bool contentActive: false
@@ -266,16 +284,14 @@ Window {
                     // The list unfolds on hover and folds again a moment after the pointer leaves.
                     // The moment is what lets the pointer cross the gap between the two cards.
                     onHoveredChanged: {
-                        if (hovered) {
-                            listHide.stop();
-                            menu.listVisible = true;
-                        } else {
+                        if (hovered)
+                            menu.openLanguageList();
+                        else
                             listHide.restart();
-                        }
                     }
                     // A press on the row is another way to unfold the list; the menu itself stays
                     // pointer-first, so the row and its options carry screen-reader names only.
-                    onPicked: menu.listVisible = !menu.listVisible
+                    onPicked: menu.listVisible ? menu.closeLanguageList() : menu.openLanguageList()
                 }
 
                 MenuRow {
@@ -378,7 +394,7 @@ Window {
                         HoverHandler {
                             id: rowHover
                             cursorShape: Qt.PointingHandCursor
-                            onHoveredChanged: if (hovered) listHide.stop()
+                            onHoveredChanged: if (hovered) menu.openLanguageList()
                         }
                         TapHandler {
                             id: rowPress
@@ -393,7 +409,7 @@ Window {
     Timer {
         id: listHide
         interval: 160
-        onTriggered: menu.listVisible = false
+        onTriggered: menu.closeLanguageList()
     }
 
     /// Escape puts the menu down, the way a press outside it does. Application-wide rather than
