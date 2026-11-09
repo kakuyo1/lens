@@ -64,7 +64,7 @@ ScanStep ScanSession::tick(ScanFacts const& facts)
 {
     ScanStep step;
     minimumWordLength_ = facts.minimumWordLength;
-    if (facts.budgetPaused or scanPaused_ or not facts.scanReady or not facts.autoScan) return step;
+    if (facts.budgetPaused or scanPaused_ or not facts.autoScan) return step;
     // A level moved by any path (the settings page, a sync round) reaches the scan here, so the candidates re-judge.
     if (store_.level() != scanLevel_) {
         scanLevel_ = store_.level();

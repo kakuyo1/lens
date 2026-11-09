@@ -86,7 +86,6 @@ struct ScanForeground {
 struct ScanFacts {
     bool budgetPaused        = false;
     bool autoScan            = false;
-    bool scanReady           = false;
     bool jobOrUploadInFlight = false;
     /// The prose floor the judgement applies. Cached between ticks, which is safe because a change
     /// to it invalidates the generation before any frame can carry the old value.

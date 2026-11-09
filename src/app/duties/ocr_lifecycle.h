@@ -50,8 +50,6 @@ public:
     /// @brief Rebuild the chosen local engine around the stored paths and inspect the new one: the
     ///        job in flight dies with the engine, and the test state resets.
     void rebuild();
-    /// @brief Build the Tesseract engine the scan reads with, and record whether its resources are present.
-    void rebuildScan();
     /// @brief Write the local policy for a document that predates ocrConfigVersion.
     void migrate();
 
@@ -77,14 +75,6 @@ public:
     [[nodiscard]] std::shared_ptr<capture::OcrEngine> const& engine() const
     {
         return ocr_;
-    }
-    [[nodiscard]] std::shared_ptr<capture::OcrEngine> const& scanEngine() const
-    {
-        return scanOcr_;
-    }
-    [[nodiscard]] bool scanReady() const
-    {
-        return scanReady_;
     }
     [[nodiscard]] capture::OcrStatus status() const
     {
@@ -131,10 +121,8 @@ private:
 
     StorageDuty&                        storage_;
     std::function<void()>               cancelJobs_;
-    std::shared_ptr<capture::OcrEngine> ocr_;               ///< The chosen local engine, for the screenshot path.
-    std::shared_ptr<capture::OcrEngine> scanOcr_;           ///< Tesseract-for-scan, whatever the reader picked.
-    bool                                scanReady_ = false; ///< Tesseract and its English data are present.
-    capture::OcrStatus                  ocrState_  = capture::OcrStatus::RuntimeMissing;
+    std::shared_ptr<capture::OcrEngine> ocr_; ///< The chosen local engine, for the screenshot path.
+    capture::OcrStatus                  ocrState_ = capture::OcrStatus::RuntimeMissing;
     capture::LocalOcrInspection         localInspection_;
     QString                             ocrTestState_ = QStringLiteral("idle");
     /// Why the last test failed, in the vocabulary the settings page explains; `none` otherwise.

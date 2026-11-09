@@ -67,7 +67,6 @@ Item {
                         label: qsTranslate("SettingsPopup", "Auto scan")
                         badge: qsTranslate("SettingsPopup", "Experimental")
                         checked: Controller.settings.autoScan
-                        interactive: Controller.settings.scanAvailable
                         onToggled: (on) => Controller.captureDuty.setAutoScan(on)
                     }
                 }
@@ -81,29 +80,6 @@ Item {
             objectName: "autoScanNote"
             width: parent.width
             text: qsTranslate("SettingsPopup", "Auto scan is still experimental and not released yet; its results are not reliable.")
-            color: root.tokens.muted
-            font.pixelSize: 12
-            wrapMode: Text.WordWrap
-        }
-
-        // Auto scan needs the local OCR runtime, and the reason it is grey belongs under the switch.
-        // The screenshot switch has its own reason on the OCR page.
-        Text {
-            width: parent.width
-            visible: Controller.settings.ocrMode === "online"
-                     ? !Controller.settings.onlineConfigured
-                     : !Controller.settings.ocrAvailable
-            text: Controller.settings.ocrMode === "online"
-                  ? qsTranslate("SettingsPopup", "Online OCR is not configured yet; screenshots stay disabled until it is.")
-                  : Controller.settings.ocrStatus === "checking" ? qsTr("Checking OCR")
-                  : Controller.settings.ocrStatus === "language-missing" ? qsTranslate("SettingsPopup", "The OCR language data is missing")
-                  : Controller.settings.ocrStatus === "path-unsupported" ? qsTranslate("SettingsPopup", "RapidOCR's model folder path must contain only ASCII characters")
-                  : Controller.settings.ocrStatus === "untrusted" ? qsTranslate("SettingsPopup", "RapidOCR is not trusted yet")
-                  : Controller.settings.ocrStatus === "runtime-missing"
-                    ? (Controller.settings.ocrLocalEngine === "rapidocr"
-                       ? qsTranslate("SettingsPopup", "RapidOCR is not installed.")
-                       : qsTranslate("SettingsPopup", "Tesseract is not installed."))
-                  : qsTr("OCR runtime is unavailable")
             color: root.tokens.muted
             font.pixelSize: 12
             wrapMode: Text.WordWrap

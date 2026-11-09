@@ -100,7 +100,6 @@ void OcrLifecycle::rebuild()
     ocrTestEngine_.clear();
     ocrTestLanguage_.clear();
     ocrTestMs_ = 0;
-    rebuildScan();
 }
 
 void OcrLifecycle::inspect(capture::LocalOcrConfig const& local)
@@ -110,18 +109,6 @@ void OcrLifecycle::inspect(capture::LocalOcrConfig const& local)
     // startup and after a path or language change, rather than on every settings projection.
     localInspection_ = capture::inspectLocalOcr(local, true);
     ocrState_        = localInspection_.status;
-}
-
-void OcrLifecycle::rebuildScan()
-{
-    // The scan always reads with Tesseract, whatever engine the reader picked for screenshots: only
-    // Tesseract reports a box for each word, and the page alignment needs those boxes.
-    auto config               = storedLocalConfig(storage_);
-    config.engine             = capture::LocalEngineChoice::Tesseract;
-    config.tesseract.language = capture::OcrLanguage::English;
-    scanReady_                = capture::tesseractResourceStatus(config.tesseract) == capture::OcrStatus::Ready;
-    scanOcr_                  = capture::makeLocalOcr(config);
-    if (not scanReady_) LENS_INFO("automatic scan is off: Tesseract or its English data is missing");
 }
 
 void OcrLifecycle::migrate()

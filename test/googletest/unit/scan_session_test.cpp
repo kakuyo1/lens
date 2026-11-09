@@ -94,8 +94,7 @@ struct Harness {
     ScanFacts chrome(QRect const band = QRect{0, 0, 1920, 400}) const
     {
         ScanFacts facts;
-        facts.autoScan  = true;
-        facts.scanReady = true;
+        facts.autoScan = true;
         ScanForeground foreground;
         foreground.kind      = ScanForeground::Kind::Chrome;
         foreground.window    = 42;
@@ -110,8 +109,7 @@ struct Harness {
 ScanFacts foregroundOf(ScanForeground::Kind const kind)
 {
     ScanFacts facts;
-    facts.autoScan  = true;
-    facts.scanReady = true;
+    facts.autoScan = true;
     ScanForeground foreground;
     foreground.kind    = kind;
     foreground.context = QStringLiteral("other");
@@ -137,12 +135,7 @@ TEST(ScanSession, GatesRefuseSilently)
     EXPECT_EQ(h.started, 0);
 
     facts.budgetPaused = false;
-    facts.scanReady    = false;
-    EXPECT_FALSE(h.session.tick(facts).cleared);
-    EXPECT_EQ(h.started, 0);
-
-    facts.scanReady = true;
-    facts.autoScan  = false;
+    facts.autoScan     = false;
     EXPECT_FALSE(h.session.tick(facts).cleared);
     EXPECT_EQ(h.started, 0);
 }
@@ -160,9 +153,7 @@ TEST(ScanSession, TheGatesTearNothingDownWhileATrackRuns)
 
     h.session.setScanPaused(true);
     // The pause itself invalidates; the gate afterwards is silent.
-    auto unpaused      = h.chrome();
-    unpaused.scanReady = false;
-    EXPECT_FALSE(h.session.tick(unpaused).cleared);
+    EXPECT_FALSE(h.session.tick(h.chrome()).cleared);
 }
 
 TEST(ScanSession, TheFirstChromeTickClearsAndStartsTheTrack)
@@ -206,8 +197,7 @@ TEST(ScanSession, LeavingChromeTearsDownOnceAndTheMarkHoldShieldsItsOwn)
     EXPECT_FALSE(h.session.tick(foregroundOf(ScanForeground::Kind::OwnProcess)).cleared);
     EXPECT_EQ(h.started, 2);
     ScanFacts gone;
-    gone.autoScan  = true;
-    gone.scanReady = true;
+    gone.autoScan = true;
     EXPECT_FALSE(h.session.tick(gone).cleared);
     // Another application in front is still the page leaving.
     EXPECT_TRUE(h.session.tick(foregroundOf(ScanForeground::Kind::Other)).cleared);

@@ -177,7 +177,6 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
     } else {
         lifecycle_.rebuild();
     }
-    lifecycle_.rebuildScan();
 }
 
 CaptureDuty::~CaptureDuty()
@@ -243,7 +242,6 @@ QVariantMap CaptureDuty::settings() const
             {"ocrOnlineCredentials", credentials},
             {"onlineConfigured", onlineReady},
             {"screenshotAvailable", online ? onlineReady : lifecycle_.status() == capture::OcrStatus::Ready},
-            {"scanAvailable", lifecycle_.status() == capture::OcrStatus::Ready},
             {"ocrOnlineHost", provider != nullptr ? onlineEndpoint(*provider).host() : QString{}},
             {"uploadPhase", upload_.phase()},
             {"uploadCanRetry", upload_.canRetry()},
@@ -993,7 +991,7 @@ bool CaptureDuty::launchOcr(QImage image, QPoint const anchor, QString context)
                                 .source    = context.isEmpty() ? capture::OcrSource::Screenshot : capture::OcrSource::AutoScan,
                                 .image     = std::move(image),
                                 .deadline  = std::chrono::milliseconds{10000}};
-    auto                engine  = context.isEmpty() ? lifecycle_.engine() : lifecycle_.scanEngine();
+    auto                engine  = lifecycle_.engine();
     auto const          started = executor_->start(id, [engine, request = std::move(request)](std::shared_ptr<std::atomic_bool> cancel) {
         try {
             return engine->recognize(request, std::move(cancel));
@@ -1050,7 +1048,6 @@ void CaptureDuty::scanTick()
     ScanFacts facts;
     facts.budgetPaused        = budgetPaused_;
     facts.autoScan            = settings().value("autoScan").toBool();
-    facts.scanReady           = lifecycle_.scanReady();
     facts.jobOrUploadInFlight = jobContext_.has_value() or upload_.active();
     facts.minimumWordLength   = settings().value("minimumWordLength").toInt();
     if (auto const foreground = capture::foregroundWindow()) {

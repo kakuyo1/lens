@@ -186,7 +186,8 @@ Item {
             const ocr = makeOcrPage();
             compare(child(ocr, "ocrCapture").interactive, Controller.settings.screenshotAvailable);
             const page = make();
-            compare(child(page, "autoScan").interactive, Controller.settings.scanAvailable);
+            // Auto scan reads Chrome through UI Automation, so no OCR runtime gates it.
+            verify(child(page, "autoScan").interactive);
             // Auto scan is switchable as an experiment, so the status has to travel with the row.
             compare(child(page, "autoScan").badge, qsTranslate("SettingsPopup", "Experimental"));
             verify(child(page, "autoScanNote").visible);
