@@ -98,21 +98,24 @@ GistClient::GistClient(QNetworkAccessManager* manager, QObject* parent)
 {
 }
 
-void GistClient::listGists(const QString& token)
+quint64 GistClient::listGists(const QString& token)
 {
-    listPage(token, QUrl{QStringLiteral("%1/gists?per_page=100").arg(QLatin1String(kApi))}, kMaxPages, QJsonArray{});
+    const quint64 callId = nextCallId_++;
+    listPage(callId, token, QUrl{QStringLiteral("%1/gists?per_page=100").arg(QLatin1String(kApi))}, kMaxPages, QJsonArray{});
+    return callId;
 }
 
-void GistClient::getGist(const QString& token, const QString& id)
+quint64 GistClient::getGist(const QString& token, const QString& id)
 {
-    send("GET", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, {}, [this, token](int status, QByteArray body, QByteArray) {
+    const quint64 callId = nextCallId_++;
+    send(callId, "GET", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, {}, [this, callId, token](int status, QByteArray body, QByteArray) {
         if (status != 200) {
-            emit failed(failureFor(status, body));
+            emit failed(callId, failureFor(status, body));
             return;
         }
         const std::optional<Gist> gist = parseGist(body);
         if (not gist) {
-            emit failed(GistFailure::Generic);
+            emit failed(callId, GistFailure::Generic);
             return;
         }
         QStringList pending;
@@ -120,16 +123,17 @@ void GistClient::getGist(const QString& token, const QString& id)
             if (file.truncated)
                 pending.append(file.name);
         if (pending.isEmpty())
-            emit gotGist(*gist);
+            emit gotGist(callId, *gist);
         else
-            fillTruncated(token, *gist, pending);
+            fillTruncated(callId, token, *gist, pending);
     });
+    return callId;
 }
 
-void GistClient::fillTruncated(const QString& token, Gist gist, QStringList pending)
+void GistClient::fillTruncated(quint64 const callId, const QString& token, Gist gist, QStringList pending)
 {
     if (pending.isEmpty()) {
-        emit gotGist(gist);
+        emit gotGist(callId, gist);
         return;
     }
     const QString name = pending.takeFirst();
@@ -137,87 +141,95 @@ void GistClient::fillTruncated(const QString& token, Gist gist, QStringList pend
     // The raw address is on the gist host; anything else is not asked for, and the file stays short.
     if (not allowedHost(raw)) {
         LENS_WARN("a truncated gist file's address is not one this call may ask for");
-        emit failed(GistFailure::Generic);
+        emit failed(callId, GistFailure::Generic);
         return;
     }
-    send("GET", raw, token, {}, [this, token, gist, pending, name](int status, QByteArray body, QByteArray) mutable {
+    send(callId, "GET", raw, token, {}, [this, callId, token, gist, pending, name](int status, QByteArray body, QByteArray) mutable {
         if (status != 200) {
-            emit failed(failureFor(status, body));
+            emit failed(callId, failureFor(status, body));
             return;
         }
         GistFile file    = gist.files.value(name);
         file.content     = QString::fromUtf8(body);
         file.truncated   = false;
         gist.files[name] = file;
-        fillTruncated(token, gist, pending);
+        fillTruncated(callId, token, gist, pending);
     });
 }
 
-void GistClient::createGist(const QString& token, const QString& description, const QMap<QString, QString>& files)
+quint64 GistClient::createGist(const QString& token, const QString& description, const QMap<QString, QString>& files)
 {
+    const quint64 callId = nextCallId_++;
     // One POST, no retry. A create whose answer is lost leaves an orphan gist with the same description;
     // findGistId() reads the newest of those, so the orphan is never mistaken for a different document.
     const QJsonObject body{{"description", description}, {"public", false}, {"files", filesObject(files)}};
-    send("POST", QUrl{QStringLiteral("%1/gists").arg(QLatin1String(kApi))}, token, QJsonDocument(body).toJson(QJsonDocument::Compact), [this](int status, QByteArray answer, QByteArray) {
+    send(callId, "POST", QUrl{QStringLiteral("%1/gists").arg(QLatin1String(kApi))}, token, QJsonDocument(body).toJson(QJsonDocument::Compact), [this, callId](int status, QByteArray answer, QByteArray) {
         if (status != 201) {
-            emit failed(failureFor(status, answer));
+            emit failed(callId, failureFor(status, answer));
             return;
         }
         const std::optional<Gist> gist = parseGist(answer);
         if (gist)
-            emit created(*gist);
+            emit created(callId, *gist);
         else
-            emit failed(GistFailure::Generic);
+            emit failed(callId, GistFailure::Generic);
     });
+    return callId;
 }
 
-void GistClient::updateGist(const QString& token, const QString& id, const QMap<QString, QString>& files)
+quint64 GistClient::updateGist(const QString& token, const QString& id, const QMap<QString, QString>& files)
 {
+    const quint64     callId = nextCallId_++;
     const QJsonObject body{{"files", filesObject(files)}};
-    send("PATCH", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, QJsonDocument(body).toJson(QJsonDocument::Compact), [this](int status, QByteArray answer, QByteArray) {
+    send(callId, "PATCH", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, QJsonDocument(body).toJson(QJsonDocument::Compact), [this, callId](int status, QByteArray answer, QByteArray) {
         if (status != 200) {
-            emit failed(failureFor(status, answer));
+            emit failed(callId, failureFor(status, answer));
             return;
         }
         const std::optional<Gist> gist = parseGist(answer);
         if (gist)
-            emit updated(*gist);
+            emit updated(callId, *gist);
         else
-            emit failed(GistFailure::Generic);
+            emit failed(callId, GistFailure::Generic);
     });
+    return callId;
 }
 
-void GistClient::deleteGist(const QString& token, const QString& id)
+quint64 GistClient::deleteGist(const QString& token, const QString& id)
 {
-    send("DELETE", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, {}, [this, id](int status, QByteArray answer, QByteArray) {
+    const quint64 callId = nextCallId_++;
+    send(callId, "DELETE", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, {}, [this, callId, id](int status, QByteArray answer, QByteArray) {
         // 204 is the answer; a 404 means it is already gone, which is what the caller wanted.
         if (status == 204 or status == 404)
-            emit deleted(id);
+            emit deleted(callId, id);
         else
-            emit failed(failureFor(status, answer));
+            emit failed(callId, failureFor(status, answer));
     });
+    return callId;
 }
 
-void GistClient::getUser(const QString& token)
+quint64 GistClient::getUser(const QString& token)
 {
-    send("GET", QUrl{QStringLiteral("%1/user").arg(QLatin1String(kApi))}, token, {}, [this](int status, QByteArray body, QByteArray) {
+    const quint64 callId = nextCallId_++;
+    send(callId, "GET", QUrl{QStringLiteral("%1/user").arg(QLatin1String(kApi))}, token, {}, [this, callId](int status, QByteArray body, QByteArray) {
         if (status != 200) {
-            emit failed(failureFor(status, body));
+            emit failed(callId, failureFor(status, body));
             return;
         }
         const QString login = QJsonDocument::fromJson(body).object().value("login").toString();
         if (login.isEmpty())
-            emit failed(GistFailure::Generic);
+            emit failed(callId, GistFailure::Generic);
         else
-            emit gotUser(login);
+            emit gotUser(callId, login);
     });
+    return callId;
 }
 
-void GistClient::send(const QByteArray& verb, const QUrl& url, const QString& token, const QByteArray& body, std::function<void(int, QByteArray, QByteArray)> onDone)
+void GistClient::send(quint64 const callId, const QByteArray& verb, const QUrl& url, const QString& token, const QByteArray& body, std::function<void(int, QByteArray, QByteArray)> onDone)
 {
     if (not allowedHost(url)) {
         LENS_WARN("a gist call's address is not one this client may ask for");
-        emit failed(GistFailure::Generic);
+        emit failed(callId, GistFailure::Generic);
         return;
     }
 
@@ -256,16 +268,16 @@ void GistClient::send(const QByteArray& verb, const QUrl& url, const QString& to
     });
 }
 
-void GistClient::listPage(const QString& token, const QUrl& url, int pagesLeft, QJsonArray merged)
+void GistClient::listPage(quint64 const callId, const QString& token, const QUrl& url, int pagesLeft, QJsonArray merged)
 {
-    send("GET", url, token, {}, [this, token, pagesLeft, merged](int status, QByteArray body, QByteArray link) mutable {
+    send(callId, "GET", url, token, {}, [this, callId, token, pagesLeft, merged](int status, QByteArray body, QByteArray link) mutable {
         if (status != 200) {
-            emit failed(failureFor(status, body));
+            emit failed(callId, failureFor(status, body));
             return;
         }
         const QJsonDocument document = QJsonDocument::fromJson(body);
         if (not document.isArray()) {
-            emit failed(GistFailure::Generic);
+            emit failed(callId, GistFailure::Generic);
             return;
         }
         for (const QJsonValue& item : document.array())
@@ -274,10 +286,10 @@ void GistClient::listPage(const QString& token, const QUrl& url, int pagesLeft, 
         // A missing or exhausted link, or the page cap, ends the list with what has been read.
         const QUrl next = nextPage(link);
         if (next.isValid() and pagesLeft > 1 and allowedHost(next)) {
-            listPage(token, next, pagesLeft - 1, merged);
+            listPage(callId, token, next, pagesLeft - 1, merged);
             return;
         }
-        emit listed(QJsonDocument(merged).toJson(QJsonDocument::Compact));
+        emit listed(callId, QJsonDocument(merged).toJson(QJsonDocument::Compact));
     });
 }
 

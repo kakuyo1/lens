@@ -29,14 +29,14 @@ WebdavBackend::WebdavBackend(core::sync::SyncPartition& partition, QNetworkAcces
       transport_(dav_, partition, this),
       partition_(partition)
 {
-    connect(&dav_, &lens::sync::WebDavClient::found, this, [this](bool exists) {
+    connect(&dav_, &lens::sync::WebDavClient::found, this, [this](quint64 callId, bool exists) {
         // A round's List probe is the transport's to answer; only this backend's own verify reacts.
-        if (phase_ != Phase::Verifying)
+        if (phase_ != Phase::Verifying or callId != verifyCallId_)
             return;
         onProbed(exists);
     });
-    connect(&dav_, &lens::sync::WebDavClient::failed, this, [this](lens::sync::WebDavFailure why) {
-        if (phase_ != Phase::Verifying)
+    connect(&dav_, &lens::sync::WebDavClient::failed, this, [this](quint64 callId, lens::sync::WebDavFailure why) {
+        if (phase_ != Phase::Verifying or callId != verifyCallId_)
             return;
         onVerifyFailed(why);
     });
@@ -82,9 +82,9 @@ void WebdavBackend::startLogin()
 {
     if (not configured() or phase_ != Phase::Idle)
         return;
-    phase_ = Phase::Verifying;
+    phase_        = Phase::Verifying;
+    verifyCallId_ = dav_.propfind(QString::fromStdString(partition_.server()), QString::fromStdString(partition_.username()), QString::fromStdString(partition_.appPassword()), QString());
     emit changed();
-    dav_.propfind(QString::fromStdString(partition_.server()), QString::fromStdString(partition_.username()), QString::fromStdString(partition_.appPassword()), QString());
 }
 
 void WebdavBackend::cancelLogin()

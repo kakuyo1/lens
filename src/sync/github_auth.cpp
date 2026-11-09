@@ -275,16 +275,18 @@ void GithubAuth::onPollFinished(QNetworkReply* reply)
     }
 }
 
-void GithubAuth::refresh(const QString& clientId, const QString& refreshToken)
+quint64 GithubAuth::refresh(const QString& clientId, const QString& refreshToken)
 {
     stop();
+    const quint64 callId = nextCallId_++;
     if (clientId.isEmpty() or refreshToken.isEmpty()) {
         LENS_WARN("a token refresh was asked for without a client id or a refresh token");
-        emit failed(AuthFailure::Generic);
-        return;
+        emit refreshFailed(callId, AuthFailure::Generic);
+        return callId;
     }
 
     clientId_            = clientId;
+    refreshCallId_       = callId;
     QNetworkReply* reply = manager_->post(formRequest(QUrl{QString::fromLatin1(kTokenUrl)}, userAgent_),
                                           formBody({{QStringLiteral("client_id"), clientId},
                                                     {QStringLiteral("refresh_token"), refreshToken},
@@ -293,6 +295,7 @@ void GithubAuth::refresh(const QString& clientId, const QString& refreshToken)
     connect(reply, &QNetworkReply::finished, this, [this, reply] { onRefreshFinished(reply); });
     // The refresh token itself is never logged, here or anywhere else.
     LENS_INFO("renewing the GitHub sign-in token");
+    return callId;
 }
 
 void GithubAuth::onRefreshFinished(QNetworkReply* reply)
@@ -305,7 +308,7 @@ void GithubAuth::onRefreshFinished(QNetworkReply* reply)
     // Same rule as a poll: only an answer that never arrived is a transport failure.
     if (status == 0 and body.isEmpty()) {
         LENS_WARN("the token refresh got no answer");
-        fail(AuthFailure::Proxy);
+        failRefresh(AuthFailure::Proxy);
         return;
     }
 
@@ -315,14 +318,14 @@ void GithubAuth::onRefreshFinished(QNetworkReply* reply)
             // GitHub rotates both: the access token that was replaced and the refresh token spent
             // here stop working, so the caller has to store what comes back.
             LENS_INFO("the sign-in token was renewed; the new one lives {} s", result.token.expiresIn);
-            emit refreshed(result.token);
+            emit refreshed(refreshCallId_, result.token);
             return;
         case PollState::BadRefresh:
             // The token or the app's own credentials, both of which end at the same place. The code
             // says which, because the two look identical from the page and one of them is a
             // registration problem rather than an expired sign-in.
             LENS_WARN("the refresh was refused ('{}'); the reader has to sign in again", errorCodeOf(body).toStdString());
-            fail(AuthFailure::BadRefresh);
+            failRefresh(AuthFailure::BadRefresh);
             return;
         default:
             // Pending, slow_down and the device-code states do not belong to this endpoint.
@@ -330,7 +333,7 @@ void GithubAuth::onRefreshFinished(QNetworkReply* reply)
             // line that cannot be acted on, and the one failure that cost an hour of reading
             // (incorrect_client_credentials, 2026-10-26) was named in the body it did not print.
             LENS_WARN("the token refresh answer was not recognised: HTTP {}, error '{}'", status, errorCodeOf(body).toStdString());
-            fail(AuthFailure::Generic);
+            failRefresh(AuthFailure::Generic);
             return;
     }
 }
@@ -339,7 +342,8 @@ void GithubAuth::stop()
 {
     pollTimer_->stop();
     expiryTimer_->stop();
-    code_ = DeviceCode{};
+    code_          = DeviceCode{};
+    refreshCallId_ = 0;
     if (reply_ != nullptr) {
         QNetworkReply* reply = reply_;
         reply_               = nullptr;
@@ -354,6 +358,13 @@ void GithubAuth::fail(AuthFailure why)
 {
     stop();
     emit failed(why);
+}
+
+void GithubAuth::failRefresh(AuthFailure why)
+{
+    const quint64 callId = refreshCallId_;
+    stop();
+    emit refreshFailed(callId, why);
 }
 
 }

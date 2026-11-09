@@ -60,6 +60,8 @@ private:
     WebdavTransport            transport_;
     core::sync::SyncPartition& partition_;
     Phase                      phase_ = Phase::Idle;
+    /// The probe this backend asked for; a round's own WebDAV call carries another id.
+    quint64 verifyCallId_ = 0;
 };
 
 }

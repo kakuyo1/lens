@@ -230,9 +230,13 @@ void record(GithubAuth& auth, Reports& seen)
         ++seen.granted;
         seen.token = token;
     });
-    QObject::connect(&auth, &GithubAuth::refreshed, [&seen](Token token) {
+    QObject::connect(&auth, &GithubAuth::refreshed, [&seen](quint64, Token token) {
         ++seen.refreshed;
         seen.token = token;
+    });
+    QObject::connect(&auth, &GithubAuth::refreshFailed, [&seen](quint64, AuthFailure why) {
+        ++seen.failed;
+        seen.why = why;
     });
     QObject::connect(&auth, &GithubAuth::failed, [&seen](AuthFailure why) {
         ++seen.failed;

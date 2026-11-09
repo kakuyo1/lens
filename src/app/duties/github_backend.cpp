@@ -61,7 +61,7 @@ GithubBackend::GithubBackend(const std::filesystem::path& dataDir, QNetworkAcces
         verificationUri_.clear();
         phase_ = Phase::Naming;
         emit changed();
-        gist_.getUser(token.access);
+        userCallId_ = gist_.getUser(token.access);
     });
     connect(&auth_, &lens::sync::GithubAuth::failed, this, [this](lens::sync::AuthFailure why) {
         // A refresh's failure is the round's port's to report; this handler is the sign-in's.
@@ -77,12 +77,12 @@ GithubBackend::GithubBackend(const std::filesystem::path& dataDir, QNetworkAcces
         emit failed(errorForAuth(why));
     });
 
-    connect(&gist_, &lens::sync::GistClient::gotUser, this, [this](QString loginName) {
-        if (phase_ == Phase::Naming)
+    connect(&gist_, &lens::sync::GistClient::gotUser, this, [this](quint64 callId, QString loginName) {
+        if (phase_ == Phase::Naming and callId == userCallId_)
             onNamed(loginName);
     });
-    connect(&gist_, &lens::sync::GistClient::failed, this, [this](lens::sync::GistFailure why) {
-        if (phase_ == Phase::Naming)
+    connect(&gist_, &lens::sync::GistClient::failed, this, [this](quint64 callId, lens::sync::GistFailure why) {
+        if (phase_ == Phase::Naming and callId == userCallId_)
             onLoginGistFailed(why);
     });
 }

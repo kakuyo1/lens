@@ -34,107 +34,115 @@ WebDavClient::WebDavClient(QNetworkAccessManager* manager, QObject* parent)
 {
 }
 
-void WebDavClient::propfind(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath)
+quint64 WebDavClient::propfind(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath)
 {
-    const QUrl url = addressFor(server, relativePath);
+    const quint64 callId = nextCallId_++;
+    const QUrl    url    = addressFor(server, relativePath);
     if (not allowedHost(url)) {
         LENS_WARN("a WebDAV call's address is not one this client may ask for");
-        emit failed(WebDavFailure::Generic);
-        return;
+        emit failed(callId, WebDavFailure::Generic);
+        return callId;
     }
-    send("PROPFIND", url, username, appPassword, {}, {}, [this](int status, QByteArray body) {
+    send("PROPFIND", url, username, appPassword, {}, {}, [this, callId](int status, QByteArray body) {
         // A missing file is an answer, not a failure: the first sync creates the envelope. Nutstore
         // answers 409 while the collection above the file is missing; nginx-flavoured servers say 404.
         if (status == 404 or status == 409) {
-            emit found(false);
+            emit found(callId, false);
             return;
         }
         if (status != 207 and status != 200) {
-            emit failed(failureFor(status, body));
+            emit failed(callId, failureFor(status, body));
             return;
         }
-        emit found(true);
+        emit found(callId, true);
     });
+    return callId;
 }
 
-void WebDavClient::get(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath)
+quint64 WebDavClient::get(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath)
 {
-    const QUrl url = addressFor(server, relativePath);
+    const quint64 callId = nextCallId_++;
+    const QUrl    url    = addressFor(server, relativePath);
     if (not allowedHost(url)) {
         LENS_WARN("a WebDAV call's address is not one this client may ask for");
-        emit failed(WebDavFailure::Generic);
-        return;
+        emit failed(callId, WebDavFailure::Generic);
+        return callId;
     }
-    send("GET", url, username, appPassword, {}, {}, [this](int status, QByteArray body) {
+    send("GET", url, username, appPassword, {}, {}, [this, callId](int status, QByteArray body) {
         if (status == 404 or status == 409) {
             // The path is gone, its parent collection with it (see the propfind note).
-            emit failed(WebDavFailure::NotFound);
+            emit failed(callId, WebDavFailure::NotFound);
             return;
         }
         if (status != 200) {
-            emit failed(failureFor(status, body));
+            emit failed(callId, failureFor(status, body));
             return;
         }
-        emit gotFile(QString::fromUtf8(body));
+        emit gotFile(callId, QString::fromUtf8(body));
     });
+    return callId;
 }
 
-void WebDavClient::put(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content)
+quint64 WebDavClient::put(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content)
 {
-    putOnce(server, username, appPassword, relativePath, content, false);
+    const quint64 callId = nextCallId_++;
+    putOnce(callId, server, username, appPassword, relativePath, content, false);
+    return callId;
 }
 
-void WebDavClient::putOnce(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content, bool collectionMade)
+void WebDavClient::putOnce(quint64 const callId, const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content, bool collectionMade)
 {
     const QUrl url = addressFor(server, relativePath);
     if (not allowedHost(url)) {
         LENS_WARN("a WebDAV call's address is not one this client may ask for");
-        emit failed(WebDavFailure::Generic);
+        emit failed(callId, WebDavFailure::Generic);
         return;
     }
-    send("PUT", url, username, appPassword, content.toUtf8(), "application/octet-stream", [this, server, username, appPassword, relativePath, content, collectionMade](int status, QByteArray body) {
+    send("PUT", url, username, appPassword, content.toUtf8(), "application/octet-stream", [this, callId, server, username, appPassword, relativePath, content, collectionMade](int status, QByteArray body) {
         if (status == 200 or status == 201 or status == 204) {
-            emit putDone(relativePath);
+            emit putDone(callId, relativePath);
             return;
         }
         // The collection is missing: make it once and write again. A second refusal is real.
         if (status == 409 and collectionMade) {
-            emit failed(failureFor(status, body));
+            emit failed(callId, failureFor(status, body));
             return;
         }
         if (status == 409) {
             const int     slash      = relativePath.lastIndexOf('/');
             const QString collection = slash > 0 ? relativePath.left(slash) : QString();
-            send("MKCOL", addressFor(server, collection), username, appPassword, {}, {}, [this, server, username, appPassword, relativePath, content](int mkcolStatus, QByteArray mkcolBody) {
+            send("MKCOL", addressFor(server, collection), username, appPassword, {}, {}, [this, callId, server, username, appPassword, relativePath, content](int mkcolStatus, QByteArray mkcolBody) {
                 // 201 made it; 405 says it was already there. Anything else is not recoverable.
                 if (mkcolStatus != 201 and mkcolStatus != 405) {
-                    emit failed(failureFor(mkcolStatus, mkcolBody));
+                    emit failed(callId, failureFor(mkcolStatus, mkcolBody));
                     return;
                 }
-                putOnce(server, username, appPassword, relativePath, content, true);
+                putOnce(callId, server, username, appPassword, relativePath, content, true);
             });
             return;
         }
-        emit failed(failureFor(status, body));
+        emit failed(callId, failureFor(status, body));
     });
 }
 
-void WebDavClient::del(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath)
+quint64 WebDavClient::del(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath)
 {
-    const QUrl url = addressFor(server, relativePath);
+    const quint64 callId = nextCallId_++;
+    const QUrl    url    = addressFor(server, relativePath);
     if (not allowedHost(url)) {
         LENS_WARN("a WebDAV call's address is not one this client may ask for");
-        emit failed(WebDavFailure::Generic);
-        return;
+        emit failed(callId, WebDavFailure::Generic);
+        return callId;
     }
-    send("DELETE", url, username, appPassword, {}, {}, [this, relativePath](int status, QByteArray body) {
+    send("DELETE", url, username, appPassword, {}, {}, [this, callId, relativePath](int status, QByteArray body) {
         // 204 is the answer; a 404 or a 409 means it is already gone -- or its collection is --
         // which is what the caller wanted. Nutstore answers 204 to both, but not every server does.
         if (status == 200 or status == 204 or status == 404 or status == 409)
-            emit deleted(relativePath);
+            emit deleted(callId, relativePath);
         else
-            emit failed(failureFor(status, body));
+            emit failed(callId, failureFor(status, body));
     });
+    return callId;
 }
 
 void WebDavClient::send(const QByteArray& verb, const QUrl& url, const QString& username, const QString& appPassword, const QByteArray& body, const QByteArray& contentType, std::function<void(int, QByteArray)> onDone)

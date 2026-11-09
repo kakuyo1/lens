@@ -37,6 +37,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/sync_run_test.cpp
   unit/sync_round_test.cpp
   unit/sync_transport_test.cpp
+  unit/transport_queue_test.cpp
   unit/sync_duty_test.cpp
   unit/webdav_client_test.cpp
   unit/webdav_backend_test.cpp

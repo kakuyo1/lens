@@ -70,6 +70,8 @@ private:
     Phase                      phase_ = Phase::Idle;
     QString                    userCode_;
     QString                    verificationUri_;
+    /// The login-name read this backend asked for; a round's gist call carries another id.
+    quint64 userCallId_ = 0;
 };
 
 }

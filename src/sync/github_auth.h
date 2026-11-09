@@ -108,9 +108,10 @@ public:
      *
      * @param clientId     The OAuth app the refresh token belongs to.
      * @param refreshToken The stored refresh token.
+     * @return The call's id, which refreshed() and refreshFailed() carry.
      * @note An empty @p refreshToken fails at once with Generic; the caller should not have asked.
      */
-    void refresh(const QString& clientId, const QString& refreshToken);
+    quint64 refresh(const QString& clientId, const QString& refreshToken);
 
     /// @brief Stop polling and drop the code. Nothing is reported.
     void cancel();
@@ -123,9 +124,12 @@ signals:
     void granted(lens::sync::Token token);
 
     /// @brief A refresh token bought a new pair of tokens; both must replace what was stored.
-    void refreshed(lens::sync::Token token);
+    void refreshed(quint64 callId, lens::sync::Token token);
 
-    /// @brief Sign-in stopped without a token, or a refresh did not happen. Carries no text.
+    /// @brief A refresh did not happen; the sign-in's own failures are failed()'s.
+    void refreshFailed(quint64 callId, lens::sync::AuthFailure why);
+
+    /// @brief Sign-in stopped without a token. Carries no text.
     void failed(lens::sync::AuthFailure why);
 
 private:
@@ -138,6 +142,8 @@ private:
     void stop();
     /// Stops, then reports @p why.
     void fail(lens::sync::AuthFailure why);
+    /// Stops, then reports @p why to the refresh caller under the id it asked with.
+    void failRefresh(lens::sync::AuthFailure why);
 
     QNetworkAccessManager* manager_;
     QString                userAgent_;
@@ -146,7 +152,10 @@ private:
     QNetworkReply*         reply_ = nullptr;
     QString                clientId_;
     DeviceCode             code_;
-    int                    intervalMs_ = 5000;
+    int                    intervalMs_    = 5000;
+    quint64                refreshCallId_ = 0;
+    /// The id the next refresh takes; every answer carries it back.
+    quint64 nextCallId_ = 1;
 };
 
 }

@@ -46,34 +46,39 @@ public:
 
     /// @brief Ask whether @p relativePath exists under the server; an empty path probes the server
     ///        itself, which is the reachability check a sign-in runs.
-    void propfind(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 propfind(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath);
 
     /// @brief Read the file at @p relativePath as UTF-8 text.
-    void get(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 get(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath);
 
     /// @brief Write @p content to @p relativePath as UTF-8 text.
-    void put(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 put(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content);
 
     /// @brief Delete @p relativePath; a path already gone counts as deleted.
-    void del(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 del(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath);
 
 signals:
     /// @brief The asked-about path exists; for a server probe, the probe simply answered.
-    void found(bool exists);
-    void gotFile(QString content);
-    void putDone(QString path);
-    void deleted(QString path);
+    void found(quint64 callId, bool exists);
+    void gotFile(quint64 callId, QString content);
+    void putDone(quint64 callId, QString path);
+    void deleted(quint64 callId, QString path);
 
     /// @brief A call stopped without its answer. Carries only the kind, never the server's text.
-    void failed(lens::sync::WebDavFailure why);
+    void failed(quint64 callId, lens::sync::WebDavFailure why);
 
 private:
     /// Sends one request and hands its reply to @p onDone: the status and the body.
     void send(const QByteArray& verb, const QUrl& url, const QString& username, const QString& appPassword, const QByteArray& body, const QByteArray& contentType, std::function<void(int status, QByteArray body)> onDone);
     /// @brief Write @p content, making the file's collection once when it is missing.
+    /// @param callId The caller's id, carried through the collection request and the retry.
     /// @param collectionMade Whether this attempt follows a MKCOL this call already made; a 409
     ///        after that is a real refusal.
-    void putOnce(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content, bool collectionMade);
+    void putOnce(quint64 callId, const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content, bool collectionMade);
     /// @return The server's address for @p relativePath: a scheme is supplied when missing, the path
     ///         is joined under it; invalid when the address is not one this client may ask.
     static QUrl          addressFor(const QString& server, const QString& relativePath);
@@ -81,6 +86,8 @@ private:
 
     QNetworkAccessManager* manager_;
     QString                userAgent_;
+    /// The id the next call takes; every answer carries it back, so one client's calls stay apart.
+    quint64 nextCallId_ = 1;
 };
 
 }

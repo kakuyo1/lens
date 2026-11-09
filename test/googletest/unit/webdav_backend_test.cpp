@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <optional>
 
 #include <gtest/gtest.h>
 
@@ -26,6 +27,7 @@
 #include "core/crypto/vault.h"
 #include "core/document/known_store.h"
 #include "core/domain/sync_partition.h"
+#include "core/domain/sync_round.h"
 #include "scripted_manager.h"
 
 namespace {
@@ -214,4 +216,38 @@ TEST(WebdavBackend, ARefusedCredentialEndsTheRunWithTheSignInError)
 
     EXPECT_EQ(manager.requests, 2) << "Basic auth has nothing to renew, so no third call goes out";
     EXPECT_EQ(duty.error(), QStringLiteral("signInExpired"));
+}
+
+/// A round's List probe and the backend's reachability probe share one client. Each answer must
+/// land on the call that asked for it: the round's 207 is not the probe's verdict, and the probe's
+/// 404 is not the round's missing copy.
+TEST(WebdavBackend, ARoundsListAndAProbeDoNotShareAnAnswer)
+{
+    QtApplication qt;
+    Fixture       fixture("lens-webdav-crosstalk-test");
+
+    lens::test::ScriptedManager manager;
+    auto                        backend = lens::app::makeSyncBackend(fixture.partition->provider(), fixture.dir, &manager, *fixture.partition);
+
+    QString error;
+    int     completed = 0;
+    QObject::connect(backend.get(), &lens::app::SyncBackend::completed, [&completed] { ++completed; });
+    QObject::connect(backend.get(), &lens::app::SyncBackend::failed, [&error](const QString& code) { error = code; });
+
+    // The server root answers 404 -- the address is wrong -- while the envelope's collection
+    // answers 207. Swapping the two would mark the sign-in good and leave the round with nothing.
+    manager.queue(404);
+    manager.queue(207);
+    backend->startLogin();
+
+    std::optional<lens::core::sync::Answer> listed;
+    backend->transport().send(lens::core::sync::Request{.kind = lens::core::sync::Request::Kind::List, .token = "token"},
+                              [&listed](lens::core::sync::Answer answer) { listed = std::move(answer); });
+
+    ASSERT_TRUE(spinUntil([&] { return not error.isEmpty() and listed.has_value(); }));
+    EXPECT_EQ(completed, 0) << "the server root answered 404, so the probe did not pass";
+    EXPECT_EQ(error, QStringLiteral("generic"));
+    ASSERT_TRUE(listed.has_value());
+    EXPECT_EQ(listed->gistId, "Lens/lens-sync.json") << "the round's own 207 is its answer";
+    EXPECT_EQ(manager.sent.size(), 2u);
 }

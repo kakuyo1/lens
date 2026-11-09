@@ -55,7 +55,7 @@ TEST(WebDavClient, APropfindAnswersWhetherTheFileExists)
     ScriptedManager     manager;
     dav::WebDavClient   client(&manager);
     std::optional<bool> found;
-    QObject::connect(&client, &dav::WebDavClient::found, [&found](bool exists) { found = exists; });
+    QObject::connect(&client, &dav::WebDavClient::found, [&found](quint64, bool exists) { found = exists; });
 
     manager.queue(207);
     client.propfind("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json");
@@ -85,7 +85,7 @@ TEST(WebDavClient, APutThatConflictsMakesTheCollectionAndWritesAgain)
     ScriptedManager   manager;
     dav::WebDavClient client(&manager);
     QString           done;
-    QObject::connect(&client, &dav::WebDavClient::putDone, [&done](QString path) { done = path; });
+    QObject::connect(&client, &dav::WebDavClient::putDone, [&done](quint64, QString path) { done = path; });
 
     manager.queue(409); // the PUT: the Lens collection is missing
     manager.queue(201); // the MKCOL
@@ -109,7 +109,7 @@ TEST(WebDavClient, ASecondConflictAfterTheCollectionFails)
     ScriptedManager                   manager;
     dav::WebDavClient                 client(&manager);
     std::optional<dav::WebDavFailure> why;
-    QObject::connect(&client, &dav::WebDavClient::failed, [&why](dav::WebDavFailure failure) { why = failure; });
+    QObject::connect(&client, &dav::WebDavClient::failed, [&why](quint64, dav::WebDavFailure failure) { why = failure; });
 
     manager.queue(409); // the PUT: the collection is missing
     manager.queue(201); // the MKCOL
@@ -127,7 +127,7 @@ TEST(WebDavClient, FailuresCarryTheKindAndNeverTheServer)
     ScriptedManager                   manager;
     dav::WebDavClient                 client(&manager);
     std::optional<dav::WebDavFailure> why;
-    QObject::connect(&client, &dav::WebDavClient::failed, [&why](dav::WebDavFailure failure) { why = failure; });
+    QObject::connect(&client, &dav::WebDavClient::failed, [&why](quint64, dav::WebDavFailure failure) { why = failure; });
 
     manager.queue(401);
     client.get("https://dav.example.com/dav", "reader", "wrong-pass", "Lens/lens-sync.json");
@@ -155,7 +155,7 @@ TEST(WebDavClient, AnAddressWithoutASchemeIsAskedOverHttps)
     ScriptedManager   manager;
     dav::WebDavClient client(&manager);
     QString           done;
-    QObject::connect(&client, &dav::WebDavClient::deleted, [&done](QString path) { done = path; });
+    QObject::connect(&client, &dav::WebDavClient::deleted, [&done](quint64, QString path) { done = path; });
 
     manager.queue(204);
     client.del("dav.example.com/dav/", "reader", "app-pass", "Lens/lens-sync.json");

@@ -72,48 +72,56 @@ public:
     explicit GistClient(QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 
     /// @brief List the reader's gists, following up to five pages.
-    void listGists(const QString& token);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 listGists(const QString& token);
 
     /// @brief Read one gist, with any truncated file read in full from its raw address.
-    void getGist(const QString& token, const QString& id);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 getGist(const QString& token, const QString& id);
 
     /// @brief Create a secret gist with @p files, mapping file name to its UTF-8 content.
-    void createGist(const QString& token, const QString& description, const QMap<QString, QString>& files);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 createGist(const QString& token, const QString& description, const QMap<QString, QString>& files);
 
     /// @brief Replace the content of the named files in an existing gist.
-    void updateGist(const QString& token, const QString& id, const QMap<QString, QString>& files);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 updateGist(const QString& token, const QString& id, const QMap<QString, QString>& files);
 
     /// @brief Delete a gist.
-    void deleteGist(const QString& token, const QString& id);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 deleteGist(const QString& token, const QString& id);
 
     /// @brief Read the login name the token belongs to.
-    void getUser(const QString& token);
+    /// @return The call's id; every signal it produces carries it.
+    quint64 getUser(const QString& token);
 
 signals:
     /// @brief The gist list, every page's array joined into one JSON array for findGistId() to read.
-    void listed(QByteArray body);
-    void gotGist(lens::sync::Gist gist);
-    void created(lens::sync::Gist gist);
-    void updated(lens::sync::Gist gist);
-    void deleted(QString id);
-    void gotUser(QString login);
+    void listed(quint64 callId, QByteArray body);
+    void gotGist(quint64 callId, lens::sync::Gist gist);
+    void created(quint64 callId, lens::sync::Gist gist);
+    void updated(quint64 callId, lens::sync::Gist gist);
+    void deleted(quint64 callId, QString id);
+    void gotUser(quint64 callId, QString login);
 
     /// @brief A call stopped without its answer. Carries only the kind, never the server's text.
-    void failed(lens::sync::GistFailure why);
+    void failed(quint64 callId, lens::sync::GistFailure why);
 
 private:
     /// Sends one request and hands its reply to @p onDone: the status, the body, and the Link header.
-    void send(const QByteArray& verb, const QUrl& url, const QString& token, const QByteArray& body, std::function<void(int status, QByteArray body, QByteArray link)> onDone);
+    void send(quint64 callId, const QByteArray& verb, const QUrl& url, const QString& token, const QByteArray& body, std::function<void(int status, QByteArray body, QByteArray link)> onDone);
     /// Reads one page of the list, and asks for the next when Link names one, up to @p pagesLeft pages.
-    void listPage(const QString& token, const QUrl& url, int pagesLeft, QJsonArray merged);
+    void listPage(quint64 callId, const QString& token, const QUrl& url, int pagesLeft, QJsonArray merged);
     /// Reads a truncated file's full content from its raw address.
-    void               fillTruncated(const QString& token, Gist gist, QStringList pending);
+    void               fillTruncated(quint64 callId, const QString& token, Gist gist, QStringList pending);
     static GistFailure failureFor(int status, const QByteArray& body);
     /// @return The files as the API wants them on write: { name: { content } }.
     static QJsonObject filesObject(const QMap<QString, QString>& files);
 
     QNetworkAccessManager* manager_;
     QString                userAgent_;
+    /// The id the next call takes; every answer carries it back, so one client's calls stay apart.
+    quint64 nextCallId_ = 1;
 };
 
 }
