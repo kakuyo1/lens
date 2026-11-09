@@ -254,6 +254,26 @@ TEST(SyncRound, TheKeyThatOpenedTheCloudCopyIsStoredEvenWhenTheRunFails)
     EXPECT_EQ(fixture.partition.storedKey()->key, cloud.key);
 }
 
+/// A stored string that cannot be decoded into a 32-byte key is not a passphrase the next run can
+/// use. Reporting one would hide the page's field and start a run that stops on the first answer;
+/// the reader is asked for the passphrase instead.
+TEST(SyncRound, AStoredKeyThatCannotBeUsedIsNotOne)
+{
+    Fixture fixture;
+    fixture.partition.storeTokens("access-1", "refresh-1");
+    auto section = fixture.store.section("sync");
+    section.set<std::string>("key", vault::encodeBase64(vault::Bytes(31, 0)));
+    section.set<std::string>("salt", vault::encodeBase64(vault::Bytes(16, 0)));
+    section.set<int>("iterations", 1000);
+
+    EXPECT_FALSE(fixture.partition.hasKey());
+    EXPECT_FALSE(fixture.partition.storedKey().has_value());
+
+    fixture.start(true);
+    EXPECT_EQ(fixture.recorded.error, "passphrase") << "the reader is asked rather than sent into a run that cannot finish";
+    EXPECT_FALSE(fixture.transport.waitingFor(Request::Kind::List));
+}
+
 /// The fingerprint is taken after the merged document was written: a mark that arrived from the
 /// cloud is part of what went up, so the run leaves nothing new to send.
 TEST(SyncRound, TheFingerprintIsTakenAfterTheMergedDocumentIsApplied)

@@ -29,7 +29,7 @@ bool OcrExecutor::start(std::uint64_t const id, Work work)
 {
     {
         std::lock_guard lock{mutex_};
-        if (stopping_ or pending_ or running_.load(std::memory_order_relaxed)) return false;
+        if (stopping_ or pending_ or running_) return false;
         pending_ = Job{.id = id, .work = std::move(work)};
     }
     wake_.notify_one();
@@ -48,7 +48,7 @@ void OcrExecutor::cancel()
 bool OcrExecutor::busy() const
 {
     std::lock_guard lock{mutex_};
-    return pending_.has_value() or running_.load(std::memory_order_relaxed);
+    return pending_.has_value() or running_;
 }
 
 void OcrExecutor::run()
@@ -63,7 +63,7 @@ void OcrExecutor::run()
             job          = std::move(*pending_);
             cancel       = std::make_shared<std::atomic_bool>(false);
             cancelToken_ = cancel;
-            running_.store(true, std::memory_order_relaxed);
+            running_     = true;
             pending_.reset();
         }
 
@@ -77,8 +77,8 @@ void OcrExecutor::run()
         {
             std::lock_guard lock{mutex_};
             cancelToken_.reset();
+            running_ = false;
         }
-        running_.store(false, std::memory_order_relaxed);
 
         // Delivered on the owner's thread; the context object drops the event if this executor
         // is already gone, so a late answer can never land on a destroyed duty.

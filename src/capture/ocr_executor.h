@@ -57,8 +57,9 @@ private:
     std::optional<Job>                pending_;
     std::shared_ptr<std::atomic_bool> cancelToken_;
     bool                              stopping_ = false;
-    std::atomic_bool                  running_{false};
-    std::thread                       worker_;
+    /// Guarded by @c mutex_ like the rest: set when the job is taken, cleared with its token.
+    bool        running_ = false;
+    std::thread worker_;
 };
 
 }

@@ -178,7 +178,9 @@ void SyncPartition::forgetGistId()
 
 bool SyncPartition::hasKey() const
 {
-    return !section().value<std::string>(kKey, "").empty();
+    // The same answer storedKey() gives: a stored string that cannot be decoded into a 32-byte
+    // key is not a key the next run can encrypt under, so the page must ask for a passphrase.
+    return storedKey().has_value();
 }
 
 std::optional<syncrun::StoredKey> SyncPartition::storedKey() const

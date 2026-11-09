@@ -73,7 +73,7 @@ public:
     /// @brief Forget the cloud copy's id alone, as when the gist is no longer there.
     void forgetGistId();
 
-    /// @return Whether a derived key is stored.
+    /// @return Whether a usable derived key is stored: the same answer storedKey() gives.
     [[nodiscard]] bool hasKey() const;
     /// @return The key and the parameters it was derived under, or nullopt when missing or malformed.
     [[nodiscard]] std::optional<syncrun::StoredKey> storedKey() const;

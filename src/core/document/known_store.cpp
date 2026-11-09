@@ -327,8 +327,9 @@ KnownStore KnownStore::load(std::filesystem::path path)
         for (auto it = doc["known"].begin(); it != doc["known"].end(); ++it) {
             if (!it.value().is_boolean()) continue;
             const bool learned     = it.value().get<bool>();
-            store.marks_[it.key()] = learned ? WordVerdict::Known : WordVerdict::None;
-            if (learned) store.known_.insert(it.key());
+            const auto verdict     = learned ? WordVerdict::Known : WordVerdict::None;
+            store.marks_[it.key()] = verdict;
+            store.indexVerdict(it.key(), verdict);
         }
     }
     if (doc.contains("mastered") && doc["mastered"].is_object()) {
@@ -340,8 +341,7 @@ KnownStore KnownStore::load(std::filesystem::path path)
             if (knownIt == doc["known"].end() || !knownIt->is_boolean() || !knownIt->get<bool>())
                 continue;
             store.marks_[it.key()] = WordVerdict::Mastered;
-            store.known_.erase(it.key());
-            store.mastered_.insert(it.key());
+            store.indexVerdict(it.key(), WordVerdict::Mastered);
         }
     }
     if (doc.contains("markTimes") && doc["markTimes"].is_object()) {
@@ -380,25 +380,23 @@ bool KnownStore::isMasteredVerdict(const std::string& lemma) const
     return mastered_.count(lemma) != 0;
 }
 
+bool KnownStore::indexVerdict(const std::string& lemma, const WordVerdict verdict)
+{
+    bool changed = known_.erase(lemma) != 0;
+    changed      = mastered_.erase(lemma) != 0 || changed;
+    if (verdict == WordVerdict::Known)
+        changed = known_.insert(lemma).second || changed;
+    else if (verdict == WordVerdict::Mastered)
+        changed = mastered_.insert(lemma).second || changed;
+    return changed;
+}
+
 void KnownStore::mark(const std::string& lemma, const WordVerdict verdict)
 {
     marks_[lemma]    = verdict;
     markedAt_[lemma] = nowMs();
     deletedAt_.erase(lemma); // a fresh mark outranks the tombstone it replaces
-    switch (verdict) {
-        case WordVerdict::None:
-            known_.erase(lemma);
-            mastered_.erase(lemma);
-            break;
-        case WordVerdict::Known:
-            known_.insert(lemma);
-            mastered_.erase(lemma);
-            break;
-        case WordVerdict::Mastered:
-            known_.erase(lemma);
-            mastered_.insert(lemma);
-            break;
-    }
+    indexVerdict(lemma, verdict);
     LENS_TRACE("KnownStore::mark: '{}' -> {}", lemma, verdict == WordVerdict::Mastered ? "mastered" : verdict == WordVerdict::Known ? "known"
                                                                                                                                     : "new word");
 }
@@ -449,10 +447,7 @@ void KnownStore::applySyncMarks(const nlohmann::json& known, const nlohmann::jso
                                                  : WordVerdict::Known;
             marks_[it.key()]      = verdict;
             markedAt_[it.key()]   = timeOf(entry.value("at", nlohmann::json()));
-            if (verdict == WordVerdict::Known)
-                known_.insert(it.key());
-            else if (verdict == WordVerdict::Mastered)
-                mastered_.insert(it.key());
+            indexVerdict(it.key(), verdict);
         }
     }
     if (deleted.is_object()) {
@@ -485,8 +480,7 @@ bool KnownStore::rebaseMarks(const std::function<std::string(const std::string&)
         // The surface key retires with a tombstone, so another device's copy of it cannot come
         // back on top of the base form the verdict now holds.
         marks_.erase(lemma);
-        known_.erase(lemma);
-        mastered_.erase(lemma);
+        indexVerdict(lemma, WordVerdict::None);
         markedAt_.erase(lemma);
         deletedAt_[lemma] = nowMs();
     }
@@ -556,9 +550,7 @@ bool KnownStore::removeLemma(std::string const& lemma)
     if (hadMark)
         deletedAt_[lemma] = nowMs();
     markedAt_.erase(lemma);
-    bool removed = hadMark;
-    removed      = known_.erase(lemma) != 0 || removed;
-    removed      = mastered_.erase(lemma) != 0 || removed;
+    bool removed = indexVerdict(lemma, WordVerdict::None) || hadMark;
 
     for (auto it = cache_.begin(); it != cache_.end();) {
         if (it->first.lemma == lemma) {

@@ -239,6 +239,10 @@ public:
     void save() const;
 
 private:
+    /// @brief Make the derived views say @p verdict for @p lemma; the one place either set changes.
+    /// @return Whether either set changed.
+    bool indexVerdict(const std::string& lemma, WordVerdict verdict);
+
     std::filesystem::path path_;
     nlohmann::json        doc_; ///< The document as loaded; the base for save().
     /// lemma -> the reader's verdict: None is the explicit clear vote, Known the lighter "still
