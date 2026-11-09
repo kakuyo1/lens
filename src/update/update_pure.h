@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QString>
 #include <QUrl>
+#include <QVariantMap>
 
 #include <optional>
 #include <string>
@@ -111,6 +112,65 @@ std::optional<std::string> expectedDigest(const QByteArray& sums, const QString&
  * @return `Lens-<version>-setup.exe`, or an empty string for an empty version.
  */
 QString installerName(const QString& versionText);
+
+/// @brief The download's stage, as the card names it.
+enum class DownloadStage {
+    Idle,
+    Downloading,
+    Verifying,
+    Ready,
+    Failed,
+};
+
+/// @return The card's token for @p stage: `idle`, `downloading`, `verifying`, `ready` or `failed`.
+QString downloadToken(DownloadStage stage);
+
+/**
+ * @brief What the card knows about the release's checksum list.
+ *
+ * The list is a fact about the release, not about a transfer: it outlives a cancelled download,
+ * which is why its digest is kept when the transfer it fed is given up on.
+ */
+struct DigestList {
+    /// @brief Whether the list has been asked for, and whether its answer has landed.
+    enum class Stage { Unasked,
+                       Asked,
+                       Known };
+
+    Stage stage = Stage::Unasked;
+    /// @brief The version the list is for; set when it is asked for.
+    QString version;
+    /// @brief The installer's digest; empty when the list names none, which is what makes a
+    ///        release not downloadable.
+    std::string digest;
+    /// @brief Whether a press is waiting for the answer.
+    bool wanted = false;
+};
+
+/// @brief The download as one value: its stage, the offer it is checked against, its reading.
+struct Download {
+    DownloadStage stage = DownloadStage::Idle;
+    /// @brief Why the stage is `Failed`: `generic`, `proxy` or `checksum`; empty otherwise.
+    QString failure;
+    /// @brief The release the transfer belongs to, never the one a later check may name.
+    QString    version;
+    DigestList list;
+    /// @brief The installer transfer's reading: bytes, share and remaining time.
+    qint64 received   = 0;
+    qint64 total      = 0;
+    int    percent    = 0;
+    int    etaSeconds = -1;
+
+    /// @return Whether the list names a digest for the release on the card, which is what decides
+    ///         whether a download can be offered at all.
+    [[nodiscard]] bool available() const
+    {
+        return list.stage == DigestList::Stage::Known and not list.digest.empty();
+    }
+};
+
+/// @return The `download` property's map, projected from the one value the duty keeps.
+QVariantMap downloadMap(Download const& download);
 
 /**
  * @brief Whether a download may be requested from this address.

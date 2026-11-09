@@ -123,6 +123,29 @@ QString installerName(const QString& versionText)
     return QStringLiteral("Lens-%1-setup.exe").arg(versionText);
 }
 
+QString downloadToken(DownloadStage stage)
+{
+    switch (stage) {
+        case DownloadStage::Idle: return QStringLiteral("idle");
+        case DownloadStage::Downloading: return QStringLiteral("downloading");
+        case DownloadStage::Verifying: return QStringLiteral("verifying");
+        case DownloadStage::Ready: return QStringLiteral("ready");
+        case DownloadStage::Failed: return QStringLiteral("failed");
+    }
+    return QStringLiteral("idle");
+}
+
+QVariantMap downloadMap(Download const& download)
+{
+    return QVariantMap{{QStringLiteral("state"), downloadToken(download.stage)},
+                       {QStringLiteral("percent"), download.percent},
+                       {QStringLiteral("received"), download.received},
+                       {QStringLiteral("total"), download.total},
+                       {QStringLiteral("etaSeconds"), download.etaSeconds},
+                       {QStringLiteral("available"), download.available()},
+                       {QStringLiteral("failure"), download.failure}};
+}
+
 bool isAllowedDownloadUrl(const QUrl& url)
 {
     if (not url.isValid() or url.scheme() != QLatin1String("https"))

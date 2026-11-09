@@ -52,22 +52,22 @@ UpdateDuty::UpdateDuty(StorageDuty&            storage,
     connect(&downloader_, &update::DownloadClient::sumsReady, this, &UpdateDuty::onSumsReady);
     connect(&downloader_, &update::DownloadClient::installerReady, this, &UpdateDuty::onInstallerReady);
     connect(&downloader_, &update::DownloadClient::progressed, this, [this](qint64 received, qint64 total) {
-        if (downloadState_ != DownloadState::Downloading)
+        if (download_.stage != update::DownloadStage::Downloading)
             return;
-        downloadReceived_ = received;
+        download_.received = received;
         if (total > 0)
-            downloadTotal_ = total;
-        downloadPercent_ = downloadTotal_ > 0 ? static_cast<int>(qMin<qint64>(100, received * 100 / downloadTotal_)) : 0;
+            download_.total = total;
+        download_.percent = download_.total > 0 ? static_cast<int>(qMin<qint64>(100, received * 100 / download_.total)) : 0;
         // The pace is the average since the transfer started, so a burst of buffered bytes does
         // not promise a finish the rest of the transfer cannot keep. Under half a second there is
         // no average worth showing, and the card leaves the estimate out.
-        downloadEtaSeconds_ = -1;
-        if (downloadTotal_ > 0 and received > 0 and transferClock_.isValid()) {
+        download_.etaSeconds = -1;
+        if (download_.total > 0 and received > 0 and transferClock_.isValid()) {
             const qint64 elapsedMs = transferClock_.elapsed();
             if (elapsedMs >= 500) {
                 const qint64 speed     = received * 1000 / elapsedMs;
-                const qint64 remaining = qMax<qint64>(0, downloadTotal_ - received);
-                downloadEtaSeconds_    = speed > 0 ? static_cast<int>((remaining + speed - 1) / speed) : -1;
+                const qint64 remaining = qMax<qint64>(0, download_.total - received);
+                download_.etaSeconds   = speed > 0 ? static_cast<int>((remaining + speed - 1) / speed) : -1;
             }
         }
         emit downloadChanged();
@@ -77,7 +77,7 @@ UpdateDuty::UpdateDuty(StorageDuty&            storage,
             return;
         // Only a download the reader asked for can fail as one. The checksum list is read without
         // the reader's asking, so its failure is logged and the card keeps View only.
-        if (downloadState_ != DownloadState::Downloading and downloadState_ != DownloadState::Verifying) {
+        if (download_.stage != update::DownloadStage::Downloading and download_.stage != update::DownloadStage::Verifying) {
             LENS_WARN("the checksum list could not be read; the card keeps View only");
             return;
         }
@@ -186,18 +186,18 @@ void UpdateDuty::applyResult(update::Release const& release, bool manual)
     // one, the transfer is given up on first: its half-written file, its digest and the name it
     // would land under all name the old release, and letting it finish would put a checked
     // file under a name it was never checked as.
-    const bool downloading = downloadState_ == DownloadState::Downloading or downloadState_ == DownloadState::Verifying;
-    if (downloading and release.versionText != downloadVersion_) {
-        LENS_INFO("a newer release arrived while {} was downloading; the transfer was cancelled", downloadVersion_.toStdString());
+    const bool downloading = download_.stage == update::DownloadStage::Downloading or download_.stage == update::DownloadStage::Verifying;
+    if (downloading and release.versionText != download_.version) {
+        LENS_INFO("a newer release arrived while {} was downloading; the transfer was cancelled", download_.version.toStdString());
         cancelDownload();
     }
     // An installer that finished for one version is not offered under another's card, and is
     // not launched from one: the card's version and the file's version must be the same.
-    const bool finished = downloadState_ == DownloadState::Ready or downloadState_ == DownloadState::Failed;
-    if (finished and release.versionText != downloadVersion_)
+    const bool finished = download_.stage == update::DownloadStage::Ready or download_.stage == update::DownloadStage::Failed;
+    if (finished and release.versionText != download_.version)
         discardDownload();
     // Recomputed: the cancel above may have just ended the transfer.
-    const bool busy = downloadState_ == DownloadState::Downloading or downloadState_ == DownloadState::Verifying;
+    const bool busy = download_.stage == update::DownloadStage::Downloading or download_.stage == update::DownloadStage::Verifying;
 
     latest_  = release.versionText;
     notes_   = release.notes;
@@ -220,12 +220,11 @@ void UpdateDuty::applyResult(update::Release const& release, bool manual)
     // request would only replace the one it is still waiting on.
     // A verified installer keeps the answer it was checked against: a re-check of the same version
     // must not reset it, or a failed list read would turn a ready download back into idle.
-    if (not busy and downloadState_ != DownloadState::Ready) {
-        sumsKnown_         = false;
-        downloadAvailable_ = false;
-        downloadWanted_    = false;
+    if (not busy and download_.stage != update::DownloadStage::Ready) {
+        download_.list = {};
         if (available) {
-            sumsFor_ = latest_;
+            download_.list.stage   = update::DigestList::Stage::Asked;
+            download_.list.version = latest_;
             downloader_.fetchSums(latest_);
         }
     }
@@ -239,7 +238,7 @@ void UpdateDuty::reportOffline(bool manual)
 {
     // A transfer for the version this answer just cleared has no card to belong to, and its list
     // would be dropped on arrival; it is given up on here, as a newer answer would give it up.
-    if (downloadState_ == DownloadState::Downloading or downloadState_ == DownloadState::Verifying)
+    if (download_.stage == update::DownloadStage::Downloading or download_.stage == update::DownloadStage::Verifying)
         cancelDownload();
     latest_.clear();
     notes_.clear();
@@ -294,25 +293,7 @@ bool UpdateDuty::cardVisible() const
 
 QVariantMap UpdateDuty::download() const
 {
-    return QVariantMap{{QStringLiteral("state"), downloadStateToken()},
-                       {QStringLiteral("percent"), downloadPercent_},
-                       {QStringLiteral("received"), downloadReceived_},
-                       {QStringLiteral("total"), downloadTotal_},
-                       {QStringLiteral("etaSeconds"), downloadEtaSeconds_},
-                       {QStringLiteral("available"), downloadAvailable_},
-                       {QStringLiteral("failure"), downloadFailure_}};
-}
-
-QString UpdateDuty::downloadStateToken() const
-{
-    switch (downloadState_) {
-        case DownloadState::Idle: return QStringLiteral("idle");
-        case DownloadState::Downloading: return QStringLiteral("downloading");
-        case DownloadState::Verifying: return QStringLiteral("verifying");
-        case DownloadState::Ready: return QStringLiteral("ready");
-        case DownloadState::Failed: return QStringLiteral("failed");
-    }
-    return QStringLiteral("idle");
+    return update::downloadMap(download_);
 }
 
 QString UpdateDuty::downloadDirectory() const
@@ -330,7 +311,7 @@ QString UpdateDuty::downloadDirectory() const
 
 QString UpdateDuty::installerPath() const
 {
-    const QString name = update::installerName(downloadVersion_);
+    const QString name = update::installerName(download_.version);
     if (name.isEmpty())
         return {};
     return downloadDirectory() + QLatin1Char('/') + name;
@@ -338,7 +319,7 @@ QString UpdateDuty::installerPath() const
 
 QString UpdateDuty::partialPath() const
 {
-    const QString name = update::installerName(downloadVersion_);
+    const QString name = update::installerName(download_.version);
     if (name.isEmpty())
         return {};
     return downloadDirectory() + QLatin1Char('/') + name + QStringLiteral(".part");
@@ -357,38 +338,38 @@ void UpdateDuty::discardDownload()
     // The file's name is this version's, so it is removed before the version is forgotten.
     QFile::remove(installerPath());
     deletePartial();
-    expectedDigest_.clear();
-    downloadVersion_.clear();
-    resetDownload(DownloadState::Idle);
+    download_.list = {};
+    download_.version.clear();
+    resetDownload(update::DownloadStage::Idle);
     LENS_INFO("the downloaded installer for another version was discarded");
 }
 
-void UpdateDuty::resetDownload(DownloadState const state)
+void UpdateDuty::resetDownload(update::DownloadStage const stage)
 {
-    downloadState_      = state;
-    downloadPercent_    = 0;
-    downloadReceived_   = 0;
-    downloadTotal_      = 0;
-    downloadEtaSeconds_ = -1;
+    download_.stage      = stage;
+    download_.percent    = 0;
+    download_.received   = 0;
+    download_.total      = 0;
+    download_.etaSeconds = -1;
     transferClock_.invalidate();
-    if (state != DownloadState::Failed)
-        downloadFailure_.clear();
+    if (stage != update::DownloadStage::Failed)
+        download_.failure.clear();
     emit downloadChanged();
 }
 
 void UpdateDuty::beginTransfer()
 {
-    downloadReceived_   = 0;
-    downloadTotal_      = 0;
-    downloadEtaSeconds_ = -1;
+    download_.received   = 0;
+    download_.total      = 0;
+    download_.etaSeconds = -1;
     transferClock_.start();
-    downloader_.fetchInstaller(downloadVersion_, partialPath());
+    downloader_.fetchInstaller(download_.version, partialPath());
 }
 
 void UpdateDuty::failDownload(const QString& kind)
 {
-    downloadFailure_ = kind;
-    resetDownload(DownloadState::Failed);
+    download_.failure = kind;
+    resetDownload(update::DownloadStage::Failed);
     LENS_WARN("the update download failed ({})", kind.toStdString());
 }
 
@@ -400,18 +381,18 @@ void UpdateDuty::downloadUpdate()
         LENS_WARN("a download was asked for with no release on offer; nothing was requested");
         return;
     }
-    if (downloadState_ == DownloadState::Downloading or downloadState_ == DownloadState::Verifying)
+    if (download_.stage == update::DownloadStage::Downloading or download_.stage == update::DownloadStage::Verifying)
         return; // one download at a time
 
     // Remembered for the whole download: the file it writes, the digest it is checked against
     // and the name it lands under are all this version's, whatever a later check finds.
-    downloadVersion_ = latest_;
+    download_.version = latest_;
     deletePartial(); // a half-written file from an earlier run is not an answer to anything
-    resetDownload(DownloadState::Downloading);
+    resetDownload(update::DownloadStage::Downloading);
 
-    if (sumsKnown_) {
-        if (not downloadAvailable_) {
-            resetDownload(DownloadState::Idle);
+    if (download_.list.stage == update::DigestList::Stage::Known) {
+        if (not download_.available()) {
+            resetDownload(update::DownloadStage::Idle);
             LENS_INFO("this release publishes no checksum; the card keeps View only");
             return;
         }
@@ -420,8 +401,8 @@ void UpdateDuty::downloadUpdate()
     }
     // The list this release publishes has not been read yet, so the press is remembered and
     // answered by the answer rather than guessing whether the download exists at all.
-    downloadWanted_ = true;
-    sumsFor_        = latest_;
+    download_.list.wanted  = true;
+    download_.list.version = latest_;
     downloader_.fetchSums(latest_);
 }
 
@@ -429,11 +410,11 @@ void UpdateDuty::cancelDownload()
 {
     // Only a transfer in progress can be cancelled. A verified installer is kept until the reader
     // installs it or a newer answer discards it; cancelling it here would orphan it on disk.
-    if (downloadState_ != DownloadState::Downloading and downloadState_ != DownloadState::Verifying)
+    if (download_.stage != update::DownloadStage::Downloading and download_.stage != update::DownloadStage::Verifying)
         return;
     // A check in progress has the file open; closing it here is what lets the delete below
     // succeed on Windows. The queued verifyStep that follows finds the state gone and returns.
-    if (downloadState_ == DownloadState::Verifying) {
+    if (download_.stage == update::DownloadStage::Verifying) {
         verifyFile_.close();
         verifyHash_.reset();
         verifyPath_.clear();
@@ -444,10 +425,11 @@ void UpdateDuty::cancelDownload()
     downloader_.cancel();
     cancelling_ = false;
     deletePartial();
-    expectedDigest_.clear();
-    downloadWanted_ = false;
-    downloadVersion_.clear();
-    resetDownload(DownloadState::Idle);
+    // The offer stays: the digest is a fact about the release, not about this transfer. A second
+    // press transfers again and is checked against the same digest.
+    download_.list.wanted = false;
+    download_.version.clear();
+    resetDownload(update::DownloadStage::Idle);
     LENS_INFO("the update download was cancelled");
 }
 
@@ -456,35 +438,34 @@ void UpdateDuty::onSumsReady(QByteArray sums)
     // A list is only for the version it was asked for. A newer answer may have asked for another
     // one since, and that list is then not this card's list: it is ignored, and the one for the
     // current version is the one that counts.
-    if (sumsFor_ != latest_)
+    if (download_.list.version != latest_)
         return;
     const auto digest = update::expectedDigest(sums, update::installerName(latest_));
     // Fail closed: a release that publishes no digest for this installer cannot be checked, and
     // a file this program cannot check is not one it downloads.
-    sumsKnown_         = true;
-    downloadAvailable_ = digest.has_value();
-    expectedDigest_    = digest.value_or(std::string{});
+    download_.list.stage  = update::DigestList::Stage::Known;
+    download_.list.digest = digest.value_or(std::string{});
 
-    if (not downloadAvailable_) {
-        downloadWanted_ = false;
-        resetDownload(DownloadState::Idle);
+    if (not download_.available()) {
+        download_.list.wanted = false;
+        resetDownload(update::DownloadStage::Idle);
         LENS_INFO("this release publishes no checksum for the installer; the card keeps View only");
         return;
     }
 
     emit downloadChanged();
-    if (downloadWanted_) {
+    if (download_.list.wanted) {
         // The reader pressed Download while the list was still being read.
-        downloadWanted_  = false;
-        downloadVersion_ = latest_;
+        download_.list.wanted = false;
+        download_.version     = latest_;
         beginTransfer();
     }
 }
 
 void UpdateDuty::onInstallerReady(QString path)
 {
-    resetDownload(DownloadState::Verifying);
-    if (path.isEmpty() or expectedDigest_.empty()) {
+    resetDownload(update::DownloadStage::Verifying);
+    if (path.isEmpty() or download_.list.digest.empty()) {
         deletePartial();
         failDownload(QStringLiteral("checksum"));
         return;
@@ -508,7 +489,7 @@ void UpdateDuty::onInstallerReady(QString path)
 
 void UpdateDuty::verifyStep()
 {
-    if (downloadState_ != DownloadState::Verifying)
+    if (download_.stage != update::DownloadStage::Verifying)
         return;
 
     // A megabyte per turn keeps each turn short enough that a click lands between them.
@@ -534,7 +515,7 @@ void UpdateDuty::verifyStep()
 
     verifyFile_.close();
     const QString actual = QString::fromLatin1(verifyHash_.result().toHex());
-    if (actual.compare(QString::fromStdString(expectedDigest_), Qt::CaseInsensitive) != 0) {
+    if (actual.compare(QString::fromStdString(download_.list.digest), Qt::CaseInsensitive) != 0) {
         deletePartial();
         failDownload(QStringLiteral("checksum"));
         return;
@@ -553,19 +534,19 @@ void UpdateDuty::verifyStep()
     }
     verifyPath_.clear();
     LENS_INFO("the installer for {} was downloaded and checked", latest_.toStdString());
-    resetDownload(DownloadState::Ready);
+    resetDownload(update::DownloadStage::Ready);
 }
 
 void UpdateDuty::installUpdate()
 {
     const QString path = installerPath();
-    if (downloadState_ != DownloadState::Ready or path.isEmpty()) {
+    if (download_.stage != update::DownloadStage::Ready or path.isEmpty()) {
         LENS_WARN("an install was asked for with nothing downloaded");
         return;
     }
     // Checked again, here, rather than trusted from the moment it landed: this is the last
     // point at which the program can refuse to run a file.
-    if (expectedDigest_.empty() or not update::digestMatches(path, expectedDigest_)) {
+    if (download_.list.digest.empty() or not update::digestMatches(path, download_.list.digest)) {
         QFile::remove(path);
         failDownload(QStringLiteral("checksum"));
         return;

@@ -984,6 +984,39 @@ TEST(UpdateDownload, AChecksumListIsNotReportedAsDownloadProgress)
     EXPECT_EQ(progress, 0) << "the digest list is read for the reader, not shown to them as a download";
 }
 
+TEST(UpdateDownload, TheCardIsOneProjectionOfOneValue)
+{
+    lens::update::Download download;
+    QVariantMap            view = lens::update::downloadMap(download);
+    EXPECT_EQ(view.value("state").toString(), QStringLiteral("idle"));
+    EXPECT_FALSE(view.value("available").toBool()) << "nothing is offered before the list is read";
+    EXPECT_EQ(view.value("etaSeconds").toInt(), -1);
+    EXPECT_TRUE(view.value("failure").toString().isEmpty());
+
+    download.stage        = lens::update::DownloadStage::Downloading;
+    download.received     = 1'000'000;
+    download.total        = 4'000'000;
+    download.percent      = 25;
+    download.etaSeconds   = 12;
+    download.list.stage   = lens::update::DigestList::Stage::Known;
+    download.list.version = QStringLiteral("1.2.0");
+    download.list.digest  = std::string(64, 'a');
+    view                  = lens::update::downloadMap(download);
+    EXPECT_EQ(view.value("state").toString(), QStringLiteral("downloading"));
+    EXPECT_EQ(view.value("received").toLongLong(), 1'000'000);
+    EXPECT_EQ(view.value("percent").toInt(), 25);
+    EXPECT_TRUE(view.value("available").toBool()) << "a known digest is what makes the release downloadable";
+
+    // A known list that names no installer digest is not an offer, whatever the stage.
+    download.list.digest.clear();
+    EXPECT_FALSE(lens::update::downloadMap(download).value("available").toBool());
+
+    download.stage   = lens::update::DownloadStage::Failed;
+    download.failure = QStringLiteral("checksum");
+    EXPECT_EQ(lens::update::downloadMap(download).value("state").toString(), QStringLiteral("failed"));
+    EXPECT_EQ(lens::update::downloadMap(download).value("failure").toString(), QStringLiteral("checksum"));
+}
+
 TEST(UpdateDuty, AFailedChecksumReadWhileNothingIsDownloadingIsNotShownAsADownloadFailure)
 {
     QtApplication qt;
@@ -1077,6 +1110,40 @@ TEST(UpdateDuty, CancellingDeletesTheHalfWrittenFileAndGoesBackToIdle)
     one.duty->cancelDownload();
 
     EXPECT_EQ(one.duty->download().value("state").toString(), QStringLiteral("idle"));
+    EXPECT_FALSE(QFile::exists(one.partialAt()));
+}
+
+/// A cancelled transfer is not a cancelled release: the digest list the card already read still
+/// names this version's installer, so a second press must transfer again and be checked against
+/// that same digest. Only the transfer's own version and half-written file belong to the cancel.
+TEST(UpdateDuty, ASecondPressAfterACancelUsesTheOfferTheCardAlreadyRead)
+{
+    QtApplication    qt;
+    DutyFixture      one(false);
+    const QByteArray contents("the installer as it arrived");
+    one.duty->checkForUpdates();
+    one.answerWithNewer();
+    emit one.downloader->sumsReady(DutyFixture::sumsFor(installerName("1.2.0"), contents));
+    settle();
+    // The list request the check started never answered; drop it so the installer request is
+    // not refused as a second transfer, the way a real list answer would have ended it.
+    one.downloader->cancel();
+
+    one.duty->downloadUpdate();
+    one.duty->cancelDownload();
+    ASSERT_EQ(one.duty->download().value("state").toString(), QStringLiteral("idle"));
+
+    one.duty->downloadUpdate();
+    QFile partial(one.partialAt());
+    ASSERT_TRUE(partial.open(QIODevice::WriteOnly));
+    partial.write(contents);
+    partial.close();
+    emit one.downloader->installerReady(one.partialAt());
+    settle();
+
+    EXPECT_EQ(one.duty->download().value("state").toString(), QStringLiteral("ready"))
+        << "a second press must not be failed for a digest the cancel had no business forgetting";
+    EXPECT_TRUE(QFile::exists(one.installerAt()));
     EXPECT_FALSE(QFile::exists(one.partialAt()));
 }
 

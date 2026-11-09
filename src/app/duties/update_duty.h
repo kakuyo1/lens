@@ -158,17 +158,6 @@ signals:
     void downloadChanged();
 
 private:
-    /// @brief The download's own stage; the sums flags and the transfer counters are its payload.
-    enum class DownloadState {
-        Idle,
-        Downloading,
-        Verifying,
-        Ready,
-        Failed,
-    };
-    /// @return The stage token the card reads.
-    [[nodiscard]] QString downloadStateToken() const;
-
     /// @brief Read the `UPDATE` section, filling in every default.
     update::StoredUpdate stored() const;
     /// @brief Write one field of the `UPDATE` section, leaving the other two alone.
@@ -200,8 +189,8 @@ private:
     void failDownload(const QString& kind);
     /// Removes a finished download for a version the card no longer shows.
     void discardDownload();
-    /// @brief The one place the download stage moves; the counters reset with it.
-    void resetDownload(DownloadState state);
+    /// @brief The one place the download stage moves; the reading resets with it.
+    void resetDownload(update::DownloadStage stage);
 
     StorageDuty&            storage_;
     update::UpdateClient&   client_;
@@ -220,31 +209,11 @@ private:
     /// failure says: an automatic check that fails says nothing, a manual one answers.
     bool manual_ = true;
 
-    DownloadState downloadState_ = DownloadState::Idle;
-    QString       downloadFailure_;
-    std::string   expectedDigest_;
-    int           downloadPercent_ = 0;
-    /// The bytes the installer transfer has reported, and the length it announced.
-    qint64 downloadReceived_ = 0;
-    qint64 downloadTotal_    = 0;
-    /// The remaining time from the average speed since `transferClock_` started, -1 when the
-    /// transfer has not run long enough to say.
-    int downloadEtaSeconds_ = -1;
+    /// The download's stage, the offer it is checked against and its reading, as one value.
+    update::Download download_;
     /// Runs for the installer transfer only: the digest list is a different request, and its
     /// few kilobytes must not set the pace the card reports.
     QElapsedTimer transferClock_;
-    bool          downloadAvailable_ = false;
-    /// Whether this release's digest list has been read, which is what `downloadAvailable_`
-    /// means: before it is, the card offers nothing rather than offering something untested.
-    bool sumsKnown_ = false;
-    /// Whether a press is waiting for that list to arrive.
-    bool downloadWanted_ = false;
-    /// The version the download in flight is for. Everything the download touches on disk and
-    /// every digest it is checked against is this one, never `latest_`: a check that lands while
-    /// a transfer is running names a different release, and a file must not be renamed into it.
-    QString downloadVersion_;
-    /// The version the checksum list in flight was asked for, checked against the card's version.
-    QString sumsFor_;
     /// Set while cancelDownload() stops the transfer, so its own stop report is not a failure.
     bool cancelling_ = false;
     /// The file being checked and the hash built from it; both live only for `verifying`.

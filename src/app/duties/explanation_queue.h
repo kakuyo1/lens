@@ -65,11 +65,29 @@ struct ExplanationSettlement {
  * A caller drives it in three moves: take() a batch, send it, and when the answer arrives read
  * settled() or refusalSubject() -- then complete(). Nothing is handed out between a take() and its
  * complete(), which is what keeps a second request out of the air while the first is still landing.
+ * stage() names where among those moves the queue is.
  */
 class ExplanationQueue {
 public:
     /// @brief The cap on one scan batch, so a scan tick cannot turn into an unbounded request.
     static constexpr int kMaximumScanBatch = 5;
+
+    /// @brief What the queue is between a take() and the complete() that answers it.
+    enum class Stage {
+        Empty,    ///< Nothing waiting and nothing in flight.
+        Waiting,  ///< Something to send, and nothing in flight.
+        InFlight, ///< A batch is out; anything queued waits behind it.
+    };
+
+    /// @return The protocol's stage, read off what is waiting and what is out.
+    [[nodiscard]] Stage stage() const
+    {
+        if (sent_)
+            return Stage::InFlight;
+        if (heldRequest_ or not scanQueue_.isEmpty())
+            return Stage::Waiting;
+        return Stage::Empty;
+    }
 
     /// @brief The reader's selection moved on: another was taken, or this one was acted on.
     ///
@@ -127,7 +145,7 @@ public:
         };
         if (std::any_of(scanQueue_.cbegin(), scanQueue_.cend(), same))
             return true;
-        return sent_.has_value() and sent_->fromScan and std::any_of(sent_->items.cbegin(), sent_->items.cend(), same);
+        return sent_.has_value() and sent_->batch.fromScan and std::any_of(sent_->batch.items.cbegin(), sent_->batch.items.cend(), same);
     }
 
     /// @return Whether an answer is on its way that this queue is waiting for. A failed request to
@@ -135,7 +153,7 @@ public:
     ///         not arrive.
     bool inFlight() const
     {
-        return sent_.has_value();
+        return stage() == Stage::InFlight;
     }
 
     /// @return Whether the reader's own ask is still waiting for the batch in flight to land, or for a
@@ -192,8 +210,8 @@ public:
         if (titles.isEmpty() or not sent_)
             return out;
 
-        out.batch         = *sent_;
-        const auto& items = sent_->items;
+        out.batch         = sent_->batch;
+        const auto& items = sent_->batch.items;
         out.resultFor.reserve(items.size());
         for (PendingSelection const& item : items) {
             // A word is named by its lemma; anything else has no lemma to be named by, so it is
@@ -208,7 +226,7 @@ public:
         }
 
         // A batch the word list asked for is a prefetch: its answers are stored above, and nothing is shown.
-        if (sent_->fromScan or not stillTheReaders(now))
+        if (sent_->batch.fromScan or not stillTheReaders(now))
             return out;
         out.subject = items.front();
         return out;
@@ -225,9 +243,9 @@ public:
      */
     std::optional<PendingSelection> liveSubject(core::CacheContext const& now) const
     {
-        if (not stillTheReaders(now) or sent_->fromScan)
+        if (not stillTheReaders(now) or sent_->batch.fromScan)
             return {};
-        return sent_->items.front();
+        return sent_->batch.items.front();
     }
 
     /// @return The request to report a failure about, or nothing when it is not the reader's to
@@ -235,9 +253,9 @@ public:
     ///         reader has since moved on from.
     std::optional<PendingSelection> refusalSubject() const
     {
-        if (not sent_ or sent_->fromScan or requestedGeneration_ != selectionGeneration_)
+        if (not sent_ or sent_->batch.fromScan or sent_->generation != selectionGeneration_)
             return {};
-        return sent_->items.front();
+        return sent_->batch.items.front();
     }
 
     /// @brief The batch in flight has been disposed of, its answer or its failure alike.
@@ -248,7 +266,7 @@ public:
     {
         if (not sent_)
             return;
-        forgetInvalidations(sent_->items);
+        forgetInvalidations(sent_->batch.items);
         sent_.reset();
     }
 
@@ -257,11 +275,11 @@ private:
     ///         selection, and the same language and sense mode, as when it went out.
     bool stillTheReaders(core::CacheContext const& now) const
     {
-        if (not sent_ or requestedGeneration_ != selectionGeneration_)
+        if (not sent_ or sent_->generation != selectionGeneration_)
             return false;
         // The sense mode counts only on the word channel, so the reader's "now" is masked by the
         // kind the batch went out under before the two are compared.
-        return sent_->context == core::ExplanationCache::masked(now, sent_->items.front().kind);
+        return sent_->batch.context == core::ExplanationCache::masked(now, sent_->batch.items.front().kind);
     }
 
     /// @brief Make @p items the batch in flight and hand back what the caller is to send.
@@ -274,9 +292,8 @@ private:
     {
         forgetInvalidations(items);
         const core::CacheContext context = core::ExplanationCache::masked(now, items.front().kind);
-        requestedGeneration_             = selectionGeneration_;
-        sent_                            = ExplanationBatch{std::move(items), context, example, fromScan};
-        return *sent_;
+        sent_                            = InFlight{ExplanationBatch{std::move(items), context, example, fromScan}, selectionGeneration_};
+        return sent_->batch;
     }
 
     /// @brief These words are no longer deleted: the request that arrived with the deletion is over.
@@ -290,19 +307,24 @@ private:
             invalidated_.remove(item.lemma);
     }
 
+    /// @brief The batch in flight, with the selection count it was taken under: the two travel
+    ///        together, so an answer cannot be read without the count it is judged by.
+    struct InFlight {
+        ExplanationBatch batch;
+        unsigned         generation = 0;
+    };
+
     /// The reader's selection, as a count of how many times it has moved: an answer stamped with an
     /// older count is one the reader is no longer waiting for.
     unsigned selectionGeneration_ = 0;
-    /// The count the batch in flight went out under.
-    unsigned requestedGeneration_ = 0;
 
     QVector<PendingSelection> scanQueue_;
     /// The reader's own request, waiting for the batch in flight to land.
     std::optional<PendingSelection> heldRequest_;
     /// The batch in flight. Holding it whole is also what says one is: nothing is handed out
     /// between the take() that set it and the complete() that clears it.
-    std::optional<ExplanationBatch> sent_;
-    QSet<QString>                   invalidated_;
+    std::optional<InFlight> sent_;
+    QSet<QString>           invalidated_;
 };
 
 }
