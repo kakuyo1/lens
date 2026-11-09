@@ -35,6 +35,13 @@ Item {
 
     /// Whether the drawer is out: the hover opens it after 120 ms, a screen reader's press at once.
     property bool open: false
+    /// The drawer's own state: `closed`, `opening` (the pointer rests on the copy text and the
+    /// dwell is running), `open`, or `closing` (the pointer left and the close delay is running).
+    readonly property string phase: {
+        if (open)
+            return closeTimer.running ? "closing" : "open";
+        return openTimer.running ? "opening" : "closed";
+    }
 
     signal picked(string action)
 
@@ -89,7 +96,15 @@ Item {
 
     /// @brief Open at once, for a screen reader's press on the copy text.
     function expand() {
-        root.open = true;
+        root.setOpen(true);
+    }
+
+    /// @brief The one place the drawer opens or closes: a dwell still running on either side is
+    ///        settled with it.
+    function setOpen(next) {
+        openTimer.stop();
+        closeTimer.stop();
+        open = next;
     }
 
     /// Counts the moves of the copy text and of every item above it. Their positions are set by layouts and by
@@ -145,11 +160,8 @@ Item {
     }
 
     onShownChanged: {
-        if (!shown) {
-            openTimer.stop();
-            closeTimer.stop();
-            open = false;
-        }
+        if (!shown)
+            setOpen(false);
     }
 
     /// One action of the drawer: its icon and label, with the press and the reader's name. The label sits beside
@@ -359,13 +371,13 @@ Item {
     Timer {
         id: openTimer
         interval: 120
-        onTriggered: root.open = true
+        onTriggered: root.setOpen(true)
     }
 
     Timer {
         id: closeTimer
         interval: 200
-        onTriggered: root.open = false
+        onTriggered: root.setOpen(false)
     }
 
     HoverHandler {

@@ -31,6 +31,14 @@ Window {
     /// dismiss(), which move this and leave the window to SurfaceFade.qml.
     property bool surfaceShown: false
 
+    /// The bar's appearance as one word: `hidden`, `opening` (the arrival has not reached full
+    /// opacity), `shown`, or `fading` (still on screen while it leaves).
+    readonly property string phase: {
+        if (surfaceShown)
+            return fade.progress < 1 ? "opening" : "shown";
+        return fade.progress > 0 ? "fading" : "hidden";
+    }
+
     readonly property int shadowMargin: 26
     /// Clearance between the bar and the selection: the tag needs the length of its string.
     readonly property int gap: bar.barStyle === "tag" ? 16 : 8
