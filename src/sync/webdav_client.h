@@ -70,8 +70,10 @@ signals:
 private:
     /// Sends one request and hands its reply to @p onDone: the status and the body.
     void send(const QByteArray& verb, const QUrl& url, const QString& username, const QString& appPassword, const QByteArray& body, const QByteArray& contentType, std::function<void(int status, QByteArray body)> onDone);
-    /// @brief Write @p content once the collection of @p relativePath exists, making it when it does not.
-    void putOnce(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content);
+    /// @brief Write @p content, making the file's collection once when it is missing.
+    /// @param collectionMade Whether this attempt follows a MKCOL this call already made; a 409
+    ///        after that is a real refusal.
+    void putOnce(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content, bool collectionMade);
     /// @return The server's address for @p relativePath: a scheme is supplied when missing, the path
     ///         is joined under it; invalid when the address is not one this client may ask.
     static QUrl          addressFor(const QString& server, const QString& relativePath);

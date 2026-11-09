@@ -190,7 +190,8 @@ public:
     {
         return scanPaused_;
     }
-    /// @brief Stop the track and join its worker. The duty owes the frames this before it dies.
+    /// @brief Stop the track, forget the page it followed and join its worker. The duty owes the
+    ///        frames this before it dies.
     void stopTrack();
     /// @brief The placement a developer surface arms: the geometry the next frames are placed in,
     ///        with no track to read one. The frames the surface injects land here (docs/adr/0165).

@@ -94,6 +94,7 @@ public:
     /// @return Submit to start, or the Finished answer when the gate refused.
     UploadStep confirm(qulonglong requestId, std::uint64_t screenshotGeneration, std::chrono::steady_clock::time_point now);
     /// @brief The executor refused the job: the reader may retry within the consent clock.
+    /// @note Silent when no transaction is live, the same as finish().
     UploadStep submitRefused();
     /// @brief The executor answered for the request in flight.
     UploadStep finish(capture::OcrResult const& result, std::chrono::steady_clock::time_point now);

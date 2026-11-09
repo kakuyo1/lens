@@ -71,6 +71,7 @@ UploadStep UploadTransaction::confirm(qulonglong const requestId, std::uint64_t 
 
 UploadStep UploadTransaction::submitRefused()
 {
+    if (not upload_) return {};
     UploadStep step;
     phase_           = QStringLiteral("awaiting-retry");
     canRetry_        = true;

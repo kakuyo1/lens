@@ -89,7 +89,7 @@ QVariantMap ReadingProfileDuty::facts() const
 void ReadingProfileDuty::interpret()
 {
     const QVariantMap now = facts();
-    if (interpreting_ || now.value("pops").toInt() == 0 || !cost_.canRequest())
+    if (interpreting_ || storyWriting_ || now.value("pops").toInt() == 0 || !cost_.canRequest())
         return;
 
     interpreting_    = true;

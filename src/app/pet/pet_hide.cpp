@@ -49,7 +49,14 @@ void PetHide::begin(EdgeSide side, QPoint from, QSize size, QRect area, QString 
 
 void PetHide::stop()
 {
-    active_ = false;
+    active_    = false;
+    leaving_   = false;
+    asking_    = false;
+    dragging_  = false;
+    slide_     = 0ms;
+    peekClock_ = 0ms;
+    lean_      = 0.0;
+    leave_     = 0ms;
 }
 
 bool PetHide::peeking() const

@@ -101,6 +101,25 @@ TEST(WebDavClient, APutThatConflictsMakesTheCollectionAndWritesAgain)
     EXPECT_EQ(manager.sent[2].body.toStdString(), "{\"format\":1}");
 }
 
+/// A second 409 after the collection was made is a real refusal: the write stops rather than
+/// making the same collection again for as long as the server keeps saying no.
+TEST(WebDavClient, ASecondConflictAfterTheCollectionFails)
+{
+    QtApplication                     qt;
+    ScriptedManager                   manager;
+    dav::WebDavClient                 client(&manager);
+    std::optional<dav::WebDavFailure> why;
+    QObject::connect(&client, &dav::WebDavClient::failed, [&why](dav::WebDavFailure failure) { why = failure; });
+
+    manager.queue(409); // the PUT: the collection is missing
+    manager.queue(201); // the MKCOL
+    manager.queue(409); // the PUT again: a second refusal is real
+    client.put("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json", "{}");
+    ASSERT_TRUE(spinUntil([&] { return why.has_value(); }));
+    EXPECT_EQ(*why, dav::WebDavFailure::Generic);
+    EXPECT_EQ(manager.sent.size(), 3u) << "a second 409 must not make the collection again";
+}
+
 /// A server that refuses the credentials, and a connection that never got a byte, are different kinds.
 TEST(WebDavClient, FailuresCarryTheKindAndNeverTheServer)
 {

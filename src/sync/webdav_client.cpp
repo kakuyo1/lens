@@ -81,10 +81,10 @@ void WebDavClient::get(const QString& server, const QString& username, const QSt
 
 void WebDavClient::put(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content)
 {
-    putOnce(server, username, appPassword, relativePath, content);
+    putOnce(server, username, appPassword, relativePath, content, false);
 }
 
-void WebDavClient::putOnce(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content)
+void WebDavClient::putOnce(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath, const QString& content, bool collectionMade)
 {
     const QUrl url = addressFor(server, relativePath);
     if (not allowedHost(url)) {
@@ -92,12 +92,16 @@ void WebDavClient::putOnce(const QString& server, const QString& username, const
         emit failed(WebDavFailure::Generic);
         return;
     }
-    send("PUT", url, username, appPassword, content.toUtf8(), "application/octet-stream", [this, server, username, appPassword, relativePath, content](int status, QByteArray body) {
+    send("PUT", url, username, appPassword, content.toUtf8(), "application/octet-stream", [this, server, username, appPassword, relativePath, content, collectionMade](int status, QByteArray body) {
         if (status == 200 or status == 201 or status == 204) {
             emit putDone(relativePath);
             return;
         }
         // The collection is missing: make it once and write again. A second refusal is real.
+        if (status == 409 and collectionMade) {
+            emit failed(failureFor(status, body));
+            return;
+        }
         if (status == 409) {
             const int     slash      = relativePath.lastIndexOf('/');
             const QString collection = slash > 0 ? relativePath.left(slash) : QString();
@@ -107,7 +111,7 @@ void WebDavClient::putOnce(const QString& server, const QString& username, const
                     emit failed(failureFor(mkcolStatus, mkcolBody));
                     return;
                 }
-                putOnce(server, username, appPassword, relativePath, content);
+                putOnce(server, username, appPassword, relativePath, content, true);
             });
             return;
         }

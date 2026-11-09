@@ -398,4 +398,16 @@ TEST(ScanSession, AnInvalidationDropsTheTrackAndTheGenerationMoves)
     EXPECT_EQ(h.started, 2);
 }
 
+/// stopTrack forgets the page along with the track: the duty's teardown must not leave the scan
+/// reporting a page it no longer follows.
+TEST(ScanSession, StopTrackForgetsThePage)
+{
+    Harness h;
+    h.session.tick(h.chrome());
+    ASSERT_TRUE(h.session.trackingPage());
+
+    h.session.stopTrack();
+    EXPECT_FALSE(h.session.trackingPage());
+}
+
 }

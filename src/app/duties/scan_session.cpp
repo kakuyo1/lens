@@ -43,6 +43,7 @@ void ScanSession::setMarkButtonHeld(bool const held)
 void ScanSession::stopTrack()
 {
     track_.reset();
+    scanContext_.clear();
 }
 
 void ScanSession::debugArm(ScanPlacement const placement)
