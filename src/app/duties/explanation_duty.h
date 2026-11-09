@@ -13,6 +13,7 @@
 #include "core/domain/pet/pet_state.h"
 #include "core/document/explanation_cache.h"
 #include "explanation_exchange.h"
+#include "hold_dismiss.h"
 #include "llm/llm_client.h"
 #include "pending_selection.h"
 #include "storage_duty.h"
@@ -285,9 +286,8 @@ private:
     QVariantMap         notice_;
     QVariantMap         wordHint_;
     /// The pointer's hold on the word hint, and the row's dismissal that waits for it to end.
-    bool    wordHintHeld_           = false;
-    bool    wordHintDismissPending_ = false;
-    QString busyLabel_;
+    HoldDismiss wordHintHold_;
+    QString     busyLabel_;
     /// Where the row the reader is pointing at sits, and how big the word is: the review card and the
     /// word's hint are both placed against it.
     QPoint reviewAnchor_;

@@ -239,9 +239,7 @@ void ExplanationDuty::dismissReview()
 {
     // A pointer on the hint is reading it, and its button is there to be pressed, so the row's dismissal waits
     // for the pointer to leave the hint (holdWordHint). Otherwise the hint goes with the word.
-    if (wordHintHeld_)
-        wordHintDismissPending_ = true;
-    else
+    if (not wordHintHold_.requestDismiss())
         clearWordHint();
     // A pointer on the card is reading it -- and the entry at its foot is there to be pressed --
     // so the dismissal waits for the pointer to leave the card, which the card itself reports.
@@ -258,9 +256,12 @@ void ExplanationDuty::dismissReviewNow()
 
 void ExplanationDuty::holdWordHint(bool const on)
 {
-    wordHintHeld_ = on;
+    if (on) {
+        wordHintHold_.hold();
+        return;
+    }
     // The pointer has left the hint, and the row's dismissal was waiting for it: it lands now.
-    if (!on && wordHintDismissPending_)
+    if (wordHintHold_.release())
         clearWordHint();
 }
 
@@ -835,8 +836,7 @@ void ExplanationDuty::showWordHint(QString const& lemma)
 void ExplanationDuty::clearWordHint()
 {
     // Whatever held the hint is gone with it; a fresh hint starts with nothing held.
-    wordHintHeld_           = false;
-    wordHintDismissPending_ = false;
+    wordHintHold_.clear();
     if (wordHint_.isEmpty()) return;
     wordHint_.clear();
     emit wordHintChanged();

@@ -92,12 +92,12 @@ public:
     /// @return Whether the arc is still flying.
     [[nodiscard]] bool flying() const
     {
-        return flight_.has_value();
+        return phase_ == Phase::Flying;
     }
     /// @return Whether a landing's angry repeat is still owed. It owns the pet's body as the arc does.
     [[nodiscard]] bool repeatsOwed() const
     {
-        return repeatsLeft_ > 0;
+        return phase_ == Phase::Repeating;
     }
     /// @return Whether an arc, an owed repeat or a run of landings is still there to interrupt. The run is what a
     ///         click or a settings change starts over; it outlives the body's own motion.
@@ -131,12 +131,19 @@ public:
     void dropRepeats();
 
 private:
+    /// @brief Where the throw stands; the arc data, the owed count and the anger roll are its payload.
+    enum class Phase {
+        Idle,             ///< No arc, no reaction owed, no repeat owed.
+        Flying,           ///< The arc is moving the window.
+        AwaitingReaction, ///< Landed; the landing's role answer has not arrived.
+        Repeating,        ///< The angry repeat still owes plays.
+    };
+
     core::pet::RandomSource  roll_;
+    Phase                    phase_{Phase::Idle};
     std::optional<PetFlight> flight_;
     PetThrowMood             mood_;
     int                      repeatsLeft_{0};
-    /// A landing whose role request has not been answered, so its angry repeat is not settled yet.
-    bool awaitingLanding_{false};
     /// Whether the landing just answered rolled for anger, before its role decides if that anger can play.
     bool angryLanding_{false};
 };

@@ -65,6 +65,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/explanation_cache_test.cpp
   unit/explanation_exchange_test.cpp
   unit/card_session_test.cpp
+  unit/hold_dismiss_test.cpp
   unit/word_answer_test.cpp
   unit/surface_geometry_test.cpp
   unit/phase2_explanation_test.cpp

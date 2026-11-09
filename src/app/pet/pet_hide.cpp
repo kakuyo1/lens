@@ -28,7 +28,7 @@ double PetHide::scale() const
 
 void PetHide::begin(EdgeSide side, QPoint from, QSize size, QRect area, QString screen, Ink ink)
 {
-    active_    = true;
+    mode_      = Mode::Sliding;
     side_      = side;
     screen_    = std::move(screen);
     area_      = area;
@@ -39,19 +39,15 @@ void PetHide::begin(EdgeSide side, QPoint from, QSize size, QRect area, QString 
     slide_     = 0ms;
     peekClock_ = 0ms;
     lean_      = 0.0;
-    leaving_   = false;
     leaveFrom_ = {};
     leaveTo_   = {};
     leave_     = 0ms;
-    asking_    = false;
     dragging_  = false;
 }
 
 void PetHide::stop()
 {
-    active_    = false;
-    leaving_   = false;
-    asking_    = false;
+    mode_      = Mode::Off;
     dragging_  = false;
     slide_     = 0ms;
     peekClock_ = 0ms;
@@ -61,30 +57,30 @@ void PetHide::stop()
 
 bool PetHide::peeking() const
 {
-    return active_ and not dragging_ and not leaving_ and not asking_ and slide_ >= PetWander::kHideSlide;
+    return mode_ == Mode::Peeking and not dragging_;
 }
 
 bool PetHide::pulledOut(QPoint at, QSize size) const
 {
-    return active_ and PetWander::draggedOut(at, size, area_);
+    return mode_ != Mode::Off and PetWander::draggedOut(at, size, area_);
 }
 
 void PetHide::dragStart()
 {
-    if (active_) dragging_ = true;
+    if (mode_ != Mode::Off) dragging_ = true;
 }
 
 PetHide::Drop PetHide::drop(QPoint at, QSize size)
 {
-    if (not active_) return {};
+    if (mode_ == Mode::Off) return {};
     dragging_ = false;
     if (PetWander::draggedOut(at, size, area_)) {
-        active_ = false;
+        mode_ = Mode::Off;
         return {.pulledOut = true, .snapBackTo = {}};
     }
 
     // A drag that never pulled the pet out puts the hide back as it was, including one caught mid-call-out.
-    leaving_   = false;
+    if (mode_ == Mode::Sliding or mode_ == Mode::Leaving) mode_ = Mode::Peeking;
     lean_      = 0.0;
     slide_     = PetWander::kHideSlide;
     peekClock_ = 0ms;
@@ -93,8 +89,8 @@ PetHide::Drop PetHide::drop(QPoint at, QSize size)
 
 void PetHide::lureOut(QPoint at, QSize size)
 {
-    if (not active_ or dragging_ or leaving_) return;
-    leaving_   = true;
+    if (mode_ == Mode::Off or dragging_ or mode_ == Mode::Leaving) return;
+    mode_      = Mode::Leaving;
     leave_     = 0ms;
     leaveFrom_ = at;
     leaveTo_   = clampedWithin(from_, size, area_);
@@ -102,11 +98,11 @@ void PetHide::lureOut(QPoint at, QSize size)
 
 PetHide::Ask PetHide::ask()
 {
-    if (not active_) return {};
-    if (leaving_) return {.position = leaveTo_, .left = true};
+    if (mode_ == Mode::Off) return {};
+    if (mode_ == Mode::Leaving) return {.position = leaveTo_, .left = true};
 
     // The question and its sign stand beside the hidden base; the peek waits until the machine is idle again.
-    asking_    = true;
+    mode_      = Mode::Asking;
     slide_     = PetWander::kHideSlide;
     peekClock_ = 0ms;
     return {.position = base_, .left = false};
@@ -114,10 +110,11 @@ PetHide::Ask PetHide::ask()
 
 QPoint PetHide::refit(QRect area, QSize size)
 {
-    if (not active_) return {};
-    area_      = area;
-    size_      = size;
-    base_      = PetWander::hiddenBase(area_, size_, side_, base_, ink_.left * scale(), ink_.right * scale());
+    if (mode_ == Mode::Off) return {};
+    area_ = area;
+    size_ = size;
+    base_ = PetWander::hiddenBase(area_, size_, side_, base_, ink_.left * scale(), ink_.right * scale());
+    if (mode_ == Mode::Sliding) mode_ = Mode::Peeking;
     slide_     = PetWander::kHideSlide;
     peekClock_ = 0ms;
     return base_;
@@ -125,7 +122,7 @@ QPoint PetHide::refit(QRect area, QSize size)
 
 double PetHide::distanceToSliver(QPoint cursor, QPoint origin) const
 {
-    if (not active_ or ink_.canvas <= 0.0 or size_.width() <= 0) return 0.0;
+    if (mode_ == Mode::Off or ink_.canvas <= 0.0 or size_.width() <= 0) return 0.0;
 
     auto const sx = scale();
     auto const sy = size_.height() / ink_.canvas;
@@ -144,7 +141,7 @@ double PetHide::distanceToSliver(QPoint cursor, QPoint origin) const
 
 QPointF PetHide::sliverCentre(QPoint origin) const
 {
-    if (not active_ or ink_.canvas <= 0.0 or size_.width() <= 0) return ink_.centre();
+    if (mode_ == Mode::Off or ink_.canvas <= 0.0 or size_.width() <= 0) return ink_.centre();
 
     auto const sx = scale();
     auto       x1 = origin.x() + ink_.left * sx;
@@ -161,15 +158,15 @@ QPointF PetHide::sliverCentre(QPoint origin) const
 
 PetHide::Step PetHide::tick(std::chrono::milliseconds step, bool idle, bool pointerNear)
 {
-    if (not active_ or dragging_) return {};
+    if (mode_ == Mode::Off or dragging_) return {};
 
-    if (asking_ and idle) {
+    if (mode_ == Mode::Asking and idle) {
         // The question and its reaction are over: the pet picks the peek up from the start.
-        asking_    = false;
+        mode_      = Mode::Peeking;
         peekClock_ = 0ms;
     }
 
-    if (leaving_) {
+    if (mode_ == Mode::Leaving) {
         leave_ += step;
         if (leave_ < PetWander::kHideSlide)
             return {.position = PetWander::slideAt(leaveFrom_, leaveTo_, leave_)};
@@ -177,10 +174,11 @@ PetHide::Step PetHide::tick(std::chrono::milliseconds step, bool idle, bool poin
     }
 
     auto answer = Step{};
-    if (slide_ < PetWander::kHideSlide) {
+    if (mode_ == Mode::Sliding) {
         slide_          = std::min(PetWander::kHideSlide, slide_ + step);
         answer.position = PetWander::slideAt(from_, base_, slide_);
-    } else if (asking_) {
+        if (slide_ >= PetWander::kHideSlide) mode_ = Mode::Peeking;
+    } else if (mode_ == Mode::Asking) {
         answer.position = base_;
     } else {
         peekClock_ += step;

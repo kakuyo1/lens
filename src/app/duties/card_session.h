@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "core/document/known_store.h"
+#include "hold_dismiss.h"
 #include "llm/llm_client.h"
 #include "pending_selection.h"
 
@@ -219,8 +220,7 @@ private:
     CardKind                        kind_ = CardKind::None;
     QString                         title_;
     /// The pointer's hold on a review card, and the dismissal that waits for it to end.
-    bool reviewHeld_           = false;
-    bool reviewDismissPending_ = false;
+    HoldDismiss reviewHold_;
 
     /// The sense cycles bought this session, keyed explanation language then lemma.
     QHash<QString, QHash<QString, Cycle>> cycles_;

@@ -28,8 +28,7 @@ bool CardSession::raise(PendingSelection selection, CardKind const kind, QString
     title_          = std::move(title);
     // Whatever raised this bubble, the review card the pointer's row put up is no longer the
     // reading: the held exit goes with it.
-    reviewHeld_           = false;
-    reviewDismissPending_ = false;
+    reviewHold_.clear();
     return same;
 }
 
@@ -38,8 +37,7 @@ void CardSession::clear()
     subject_.reset();
     kind_ = CardKind::None;
     title_.clear();
-    reviewHeld_           = false;
-    reviewDismissPending_ = false;
+    reviewHold_.clear();
 }
 
 bool CardSession::sameCard(PendingSelection const& selection, CardKind const kind) const
@@ -88,35 +86,26 @@ CardSession::ReviewDismissal CardSession::dismissReview()
         return ReviewDismissal::NotReview;
     // A pointer on the card is reading it: the dismissal waits for it to leave, which the card
     // itself reports.
-    if (reviewHeld_) {
-        reviewDismissPending_ = true;
-        return ReviewDismissal::Wait;
-    }
-    return ReviewDismissal::Dismiss;
+    return reviewHold_.requestDismiss() ? ReviewDismissal::Wait : ReviewDismissal::Dismiss;
 }
 
 bool CardSession::dismissReviewNow()
 {
-    reviewDismissPending_ = false;
+    reviewHold_.pending = false;
     return kind_ == CardKind::Review;
 }
 
 bool CardSession::holdReviewCard(bool const on)
 {
-    if (reviewHeld_ == on)
+    if (reviewHold_.held == on)
         return false;
-    reviewHeld_ = on;
     if (on) {
         // The pointer arrived on the card: a dismissal that waited for it to leave the word is
         // obsolete -- the reader moved onto the card, not away from the reading.
-        reviewDismissPending_ = false;
+        reviewHold_.hold();
         return false;
     }
-    if (reviewDismissPending_ and kind_ == CardKind::Review) {
-        reviewDismissPending_ = false;
-        return true;
-    }
-    return false;
+    return reviewHold_.release();
 }
 
 std::optional<PendingSelection> CardSession::chainStep(QString const& lemma) const

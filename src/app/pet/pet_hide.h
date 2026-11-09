@@ -81,7 +81,7 @@ public:
     void               stop();
     [[nodiscard]] bool active() const
     {
-        return active_;
+        return mode_ != Mode::Off;
     }
     [[nodiscard]] EdgeSide side() const
     {
@@ -148,10 +148,19 @@ public:
     Step tick(std::chrono::milliseconds step, bool idle, bool pointerNear);
 
 private:
+    /// @brief Where the hide stands; the slide, peek and call-out data are its payload, and a drag overlays it.
+    enum class Mode {
+        Off,
+        Sliding,
+        Peeking,
+        Asking,
+        Leaving,
+    };
+
     /// @return The window's pixels per canvas unit.
     [[nodiscard]] double scale() const;
 
-    bool                      active_{false};
+    Mode                      mode_{Mode::Off};
     EdgeSide                  side_{EdgeSide::Left};
     QString                   screen_;
     QRect                     area_;
@@ -162,11 +171,9 @@ private:
     std::chrono::milliseconds slide_{0};
     std::chrono::milliseconds peekClock_{0};
     double                    lean_{0.0};
-    bool                      leaving_{false};
     QPoint                    leaveFrom_;
     QPoint                    leaveTo_;
     std::chrono::milliseconds leave_{0};
-    bool                      asking_{false};
     bool                      dragging_{false};
 };
 
