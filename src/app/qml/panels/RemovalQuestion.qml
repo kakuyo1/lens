@@ -56,6 +56,10 @@ Window {
     /// emitted at once, not after it.
     property bool leaving: false
 
+    /// The question's own state: `hidden`, `asking` (up and waiting for an answer), or `closing`
+    /// (answered or put down, fading before the window goes).
+    readonly property string phase: !visible ? "hidden" : leaving ? "closing" : "asking"
+
     /// @p dontAsk is what the switch under the sentence says.
     signal answered(bool dontAsk)
     /// The question is on its way out, answered or not. The caller's idea of what is being asked

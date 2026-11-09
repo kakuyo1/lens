@@ -49,6 +49,17 @@ Item {
         }
     }
 
+    /// The smallest window a preview field can be handed: the members DropdownField calls on it.
+    Component {
+        id: previewComponent
+        Window {
+            property bool hasContent: true
+            property int shadowMargin: 0
+            visible: false
+            function showOption(option) { title = String(option.value); }
+        }
+    }
+
     TokenHost { id: host }
 
     TestCase {
@@ -93,6 +104,27 @@ Item {
             compare(opened, 1);
             field.closeList();
             compare(field.openChildRect, null, "closeList() left the list up");
+        }
+
+        /// The list and the preview window it may raise, as the one word the field reports:
+        /// closed, open, or previewing while a row has its preview up; the leave grace keeps the
+        /// preview named until it actually goes.
+        function test_theOpenChildNamesItsPhase() {
+            const field = make({ optionPreview: previewComponent });
+            compare(field.phase, "closed");
+
+            field.openList();
+            compare(field.phase, "open");
+
+            field.rowHovered(0, true);
+            compare(field.phase, "previewing", "the hovered row's preview window is not named");
+
+            field.rowHovered(0, false);
+            compare(field.phase, "previewing", "the preview went before its grace ran out");
+            tryCompare(field, "phase", "open", 500, "the preview outlived its leave grace");
+
+            field.closeList();
+            compare(field.phase, "closed");
         }
 
         /// Where the list lands, and where its rows land inside it, in screen coordinates: the

@@ -51,6 +51,14 @@ Item {
     property int highlightIndex: -1
     /// Whether the list's window is up. The field keeps the focus: the list itself takes none.
     readonly property bool listVisible: list.visible
+    /// The open child as one word: `closed` while the list's window is down, `open` while it is
+    /// up, `previewing` while the option under the pointer also has its preview window up. The
+    /// search, the keyboard row and the preview's leave grace stay out of it.
+    readonly property string phase: {
+        if (!list.visible)
+            return "closed";
+        return optionPreviewWindow !== null && optionPreviewWindow.visible ? "previewing" : "open";
+    }
     /// The window an option hovers into, created on the first hover and owned by this field.
     property var optionPreviewWindow: null
 

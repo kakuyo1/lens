@@ -204,7 +204,7 @@ Window {
     Shortcut {
         sequence: "Escape"
         context: Qt.ApplicationShortcut
-        enabled: words.visible && (!question.visible || question.leaving)
+        enabled: words.visible && question.phase !== "asking"
         onActivated: words.visible = false
     }
 
@@ -236,7 +236,7 @@ Window {
         /// included, because the window is modal until it hides. This guard is what holds on the
         /// offscreen platform, which does not enforce modality: a press reaching the card would act
         /// on a verdict pill or a cross, deleting a second word out from under the first.
-        enabled: !question.visible
+        enabled: question.phase === "hidden"
 
         GlassSurface {
             anchors.fill: parent
