@@ -31,6 +31,13 @@ class UiaPageReader final : public capture::PageReader {
 public:
     /// @param window The window handle whose pages are read; held for the reader's life.
     explicit UiaPageReader(quintptr window);
+    /// @brief Drops this reader's cached page before it dies. The cache outlives the reader, but
+    ///        the proxies in a cached page were created in the reader's own thread's COM apartment:
+    ///        if the entry outlived that apartment (a track worker's death unhooks its
+    ///        CoInitialize), the next reader of the same window would use proxies from a torn-down
+    ///        apartment, and the first call through one faults. Dropping here -- still inside the
+    ///        apartment that minted them -- keeps that from ever standing (docs/adr/0168).
+    ~UiaPageReader() override;
 
     std::shared_ptr<capture::Page> acquire(capture::Band const& band) override;
     void                           drop() override;

@@ -367,6 +367,11 @@ UiaPageReader::UiaPageReader(quintptr const window)
     : window_{window}
 {}
 
+UiaPageReader::~UiaPageReader()
+{
+    drop();
+}
+
 /// @return The page of @p window: the cached one while the window is the same, else a fresh search; null when there is none.
 std::shared_ptr<capture::Page> UiaPageReader::acquire(capture::Band const& band)
 {
