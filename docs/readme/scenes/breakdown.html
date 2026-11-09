@@ -38,7 +38,10 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
 .card{position:absolute;z-index:5;width:470px;padding:14px 18px 13px;
   background:var(--glass-fill);background-image:var(--glass-sheen);border:1px solid var(--glass-edge);border-radius:16px;
   box-shadow:var(--sh2);backdrop-filter:blur(24px) saturate(1.25)}
+.card-top{display:flex;align-items:center;margin-bottom:8px}
+.card-top .close{margin-left:auto;width:13px;height:13px;color:var(--faint)}
 .tag{display:inline-block;padding:2px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:11px;font-weight:700}
+.meta{margin-top:9px;font-size:10.5px;color:var(--faint)}
 .bk{margin-top:10px;font-family:var(--read);font-size:17px;line-height:1.9;color:var(--text)}
 .ck{border-radius:9px;padding:1px 3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .ck[data-r=S]{background:color-mix(in srgb,var(--r-S) 16%,transparent)}
@@ -65,7 +68,10 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
 </div>
 
 <div class="card" id="card" data-glass>
-  <span class="tag">Breakdown</span>
+  <div class="card-top">
+    <span class="tag">Breakdown</span>
+    <svg class="close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+  </div>
   <div class="bk"><span class="ck" data-r="A">Although the rain had stopped,</span> <span class="ck" data-r="S">the streets</span> <span class="ck" data-r="V">remained</span> <span class="ck" data-r="C">flooded</span> <span class="ck" data-r="A">for hours.</span></div>
   <div class="legend">
     <span data-r="S"><i></i>Subject</span>
@@ -73,6 +79,7 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
     <span data-r="C"><i></i>Complement</span>
     <span data-r="A"><i></i>Adverbial</span>
   </div>
+  <div class="meta">Disappears in 5s</div>
 </div>
 
 <script src="liquid-glass.js"></script>

@@ -48,10 +48,10 @@ La mayoría de las herramientas de consulta te sacan de la página y responden e
 - **La barra de acciones ofrece Traducir, Explicar y Copiar texto.** Lens gira alrededor de Explicar: te dice qué hace la palabra en ese contexto con palabras que ya conoces, en lugar de sustituirla por una palabra china que puedes saltarte.
 - **Una palabra que se puede oír.** Un altavoz junto a la pronunciación: púlsalo a él o a la propia pronunciación y la palabra se lee una vez. Las frases, los nombres y las traducciones no suenan.
 - **La respuesta se queda junto al texto.** Lens vive en la bandeja del sistema y no tiene ventana principal. La burbuja aparece junto a la selección, se queda mientras pasas el ratón y desaparece cuando sigues leyendo.
-- **Una memoria tranquila.** Marca una palabra como Conocida o Nueva. Lens guarda la lista. Sin rachas ni planes de estudio.
-- **Una mascota que pregunta.** Cuando toca repasar una palabra, aparece un cartel a los pies de la mascota. Si aciertas, la siguiente pausa es más larga; si fallas, vuelve antes. La mascota solo recibe tipos de evento y no puede leer tu pantalla, la selección ni las definiciones. Desactivada por defecto; actívala en Ajustes › Extensiones.
+- **Tres veredictos, una memoria tranquila.** Marca una palabra como Conocida, Dominado o Nueva. Conocida sigue en práctica y su línea de escaneo se dibuja más firme; Dominado la retira del escaneo y de las preguntas de la mascota; Nueva la mantiene en práctica. Sin rachas ni planes de estudio.
+- **Una mascota que pregunta.** Cuando toca repasar una palabra, aparece un cartel a los pies de la mascota. Si aciertas, la siguiente pausa es más larga; si fallas, vuelve antes. Una palabra dominada no vuelve a preguntarse. La mascota solo recibe tipos de evento y no puede leer tu pantalla, la selección ni las definiciones. Desactivada por defecto; actívala en Ajustes › Extensiones.
 - **Una definición por la que se puede entrar.** Las palabras de una definición que quedan por encima de tu nivel conservan el subrayado de puntos. Ábrela y la misma tarjeta baja un nivel, con una ruta para volver; la caché, el presupuesto y las reglas de veredicto acompañan cada paso.
-- **El globo es el único control de idioma que queda en la tarjeta.** Mantenlo pulsado medio segundo y el significado en tu lengua materna aparece bajo la definición en inglés; al soltar, desaparece. La lengua materna es un ajuste propio, chino por defecto. Una palabra cuya explicación ya incluye ese idioma no cuesta nada; cualquier otra se pide una vez por sesión.
+- **El globo es el único control de idioma que queda en la tarjeta.** Con el idioma de las explicaciones en inglés, mantenlo pulsado medio segundo y el significado en tu lengua materna aparece bajo la definición en inglés; al soltar, desaparece. La lengua materna es un ajuste propio, chino por defecto. Una palabra cuya explicación ya incluye ese idioma no cuesta nada; cualquier otra se pide una vez por sesión.
 
 ## Un vistazo
 
@@ -74,15 +74,15 @@ Cada tarjeta de palabra lleva un altavoz junto a la pronunciación; pulsa uno u 
 
 ## Texto que no se puede seleccionar
 
-Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR.
+Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes › OCR), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR.
 
-- **Tesseract, incluido con Lens, es el motor automático.** El lector puede instalar RapidOCR-json, elegirlo explícitamente y apuntarlo a una carpeta de modelos ASCII tras una comprobación de confianza.
+- **Tesseract, incluido con Lens, es el motor automático.** También puedes descargar RapidOCR-json desde Ajustes, o apuntar a tu propia copia y, tras detectarla y confiar en ella, elegirla; la carpeta de modelos debe ser una ruta ASCII.
 - **El OCR en línea es opcional.** Pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space.
-- **El escaneo automático sigue siendo experimental y está en desarrollo.** Solo vigila las aplicaciones de tu lista blanca, y sus resultados aún no son fiables.
+- **El escaneo automático es otro canal y sigue siendo experimental.** No usa OCR; ahora solo funciona con Chrome en primer plano: dibuja una línea de puntos bajo las palabras que pueden estar por encima de tu nivel; mantén Alt para ver la señal del sentido, o deja el puntero sobre una palabra para que aparezca un botón **Dominado** que la retira. Sus resultados aún no son fiables.
 
 ## Consulta al pasar el cursor
 
-Los enlaces y los titulares suelen no poder seleccionarse. Cambia a la consulta al pasar el cursor (por defecto `Ctrl+Alt+H`; puedes cambiarla en la página de atajos de Ajustes), deja el puntero sobre una palabra durante un segundo y Lens la traduce. Pulsa la tecla otra vez para volver a la selección. La consulta solo lee el texto bajo el puntero: no hace clic, no toca el portapapeles, no lee campos de contraseña y solo funciona en las aplicaciones de tu lista blanca de escaneo.
+Los enlaces y los titulares suelen no poder seleccionarse. Cambia a la consulta al pasar el cursor (por defecto `Ctrl+Alt+H`; puedes cambiarla en Ajustes › Captura y ventanas), deja el puntero sobre una palabra durante un segundo y Lens la traduce. Pulsa la tecla otra vez para volver a la selección. La consulta solo lee el texto bajo el puntero: no hace clic, no toca el portapapeles, no lee campos de contraseña y solo funciona en las aplicaciones de tu lista blanca de escaneo.
 
 <p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="Tras cambiar a la consulta al pasar el cursor, el puntero se queda sobre serendipity en un enlace durante un segundo y una tarjeta da su significado"></p>
 
@@ -103,11 +103,11 @@ Análisis tiñe cada parte de la frase con uno de cuatro colores — sujeto, ver
 
 <p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="El cartel de repaso de Fantasma junto a ella y el registro anual de palabras"></p>
 
-Conocida y Nueva viven en una sola lista de palabras.
+Conocida, Dominado y Nueva viven en una sola lista de palabras, con un segmento para cada una arriba.
 
 - Pasa el ratón por una fila para releer una explicación que Lens ya guardó, sin enviar ninguna petición.
-- Cuando toca repasar una palabra, aparece junto al compañero de escritorio un pequeño cartel, el suyo; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días.
-- El registro anual mantiene visible el hábito sin convertirlo en una racha.
+- Cuando toca repasar una palabra, aparece junto al compañero de escritorio un pequeño cartel, el suyo; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días. Una palabra dominada no vuelve a preguntarse.
+- El registro anual mantiene visible el hábito sin convertirlo en una racha: un cuadro por consulta, en uno de doce colores a tu elección (verde por defecto).
 
 ## Mascotas que te devuelven las palabras
 
@@ -117,7 +117,7 @@ Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fa
 
 - Cada mascota tiene su propio vestuario de nueve piezas y seis escenas — cuatro propias y dos compartidas; una bufanda o unas gafas inclinan qué escena elige.
 - Su tamaño y su ropa se recuerdan por mascota, mientras la ventana se queda donde la dejas.
-- Deambulan, se esconden en el borde de la pantalla, notan el puntero y se pueden coger y lanzar.
+- Deambulan, se esconden en el borde de la pantalla, notan el puntero y se pueden coger y lanzar; cuando la barra de tareas está fija, a veces saltan a ella, rebotan, caminan despacio hasta un extremo y vuelven.
 - Solo reciben tipos de evento — nunca tus selecciones, explicaciones o texto en pantalla — y los paquetes solo contienen datos.
 
 Las seis de Fantasma: el reloj de medianoche, la calabaza de Halloween, el espejo y el té de fantasmas son suyos; el escritorio y el baño los comparte con las demás mascotas — cada escena es una animación propia. La calabaza, en movimiento:
@@ -130,9 +130,9 @@ Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del reposi
 
 - **Trae tu propio modelo.** DeepSeek, OpenAI, Gemini, OpenRouter, xAI, Moonshot, Zhipu, Qwen o un endpoint personalizado compatible con OpenAI.
 - **Costes visibles.** Coste por petición a partir de los tokens y un presupuesto diario que pausa las consultas, la captura y las peticiones cuando se alcanza.
-- **Informe de lectura semanal.** El perfil semanal de Estadísticas recoge las consultas de la semana; pulsa «Interpretar la semana» para que el modelo escriba unas observaciones. Solo se envía cuando pulsas, y solo lleva recuentos y palabras.
-- **Sincronización cuando la quieras.** Las marcas Conocida/Nueva, el historial, las estadísticas y los ajustes seleccionados se cifran con tu frase de contraseña y se guardan en un gist secreto de tu propia cuenta de GitHub. La clave de API se queda en este dispositivo.
-- **Listas de palabras de ida y vuelta.** Importa o exporta `.txt` y `.json`; borra una palabra con una confirmación.
+- **Informe de lectura semanal.** El perfil semanal de Estadísticas muestra las consultas de la semana por hora, categoría gramatical y palabras más consultadas; pulsa «Interpretar la semana» y el modelo escribe cinco observaciones en una tarjeta de informe semanal, y su botón «Relato» escribe un relato corto con las palabras de la semana. Solo se envía cuando pulsas, y solo lleva recuentos y palabras.
+- **Sincronización cuando la quieras.** Los veredictos, el historial, las estadísticas y los ajustes seleccionados se cifran con tu frase de contraseña y se guardan en un gist secreto de tu propia cuenta de GitHub. La clave de API se queda en este dispositivo.
+- **Listas de palabras de ida y vuelta.** La ventana de palabras importa y exporta `.txt` y `.json`, y exporta CSV y Anki TSV con las explicaciones ya guardadas; la fila Palabras dominadas de Ajustes › Lectura y aprendizaje importa una vez una lista con una palabra por línea y marca sus palabras como dominadas. Borra una palabra con una confirmación.
 - **Fotos cuando ayudan.** Si el modelo cree que una foto explica mejor un sentido, la tarjeta puede abrir tres imágenes de Wikimedia Commons. Se guardan en caché local y «Acerca de» muestra su tamaño y permite borrarla.
 - **Hazlo tuyo.** Cinco formas de barra de acciones; temas Claro, Oscuro, Vidrio mate y Vidrio líquido; y una tipografía inglesa con texto de burbuja de 12–18 px.
 - **Cinco idiomas.** La interfaz y las explicaciones ofrecen inglés, chino, chino tradicional, español y japonés. Las traducciones al chino tradicional, al español y al japonés están generadas por máquina y no han sido revisadas por un hablante nativo.

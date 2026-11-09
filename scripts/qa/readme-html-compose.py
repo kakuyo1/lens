@@ -177,7 +177,7 @@ def compose_learning_loop() -> None:
         draw.text((820, 60), "A year of reading", font=label_font, fill=(26, 26, 31, 255))
         draw.text((60, 956), "The pet's own sign asks the word; answer Forgot or Remembered.", font=caption_font, fill=(74, 79, 94, 255))
         draw.text((60, 992), "It comes back on a schedule from 10 minutes to 60 days.", font=small_font, fill=(102, 102, 111, 255))
-        draw.text((820, 956), "Every lookup leaves one green square.", font=caption_font, fill=(74, 79, 94, 255))
+        draw.text((820, 956), "Every lookup leaves one square, in the colour you pick.", font=caption_font, fill=(74, 79, 94, 255))
         draw.text((820, 992), "A year of reading, without a streak.", font=small_font, fill=(102, 102, 111, 255))
         frames.append(canvas.convert("RGB").resize((1200, 780), Image.Resampling.LANCZOS)
                       .quantize(colors=128, method=Image.MEDIANCUT, dither=Image.Dither.NONE))

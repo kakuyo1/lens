@@ -218,12 +218,11 @@ function closePalette(){palette.classList.remove('open');panel.classList.remove(
 document.querySelectorAll('.swatch').forEach(swatch=>swatch.addEventListener('click',()=>{const shut=!palette.hidden&&swatch.getAttribute('aria-pressed')==='true';document.querySelectorAll('.swatch').forEach(item=>item.setAttribute('aria-pressed',String(item===swatch)));shut?closePalette():openPalette()}));
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!palette.hidden)closePalette()});
 applyHue(selectedHue);
-/// README-only (?hue=<deg>): one frame of the animated learning-loop still, the wheel and swatches at that hue.
+/// README-only (?hue=<deg>): one frame of the animated learning-loop still, the whole card at that hue --
+/// grid, swatches, wheel and the colour's name all follow the same selection, as a click does.
 if (new URLSearchParams(location.search).has('hue')) {
   const hue = Number(new URLSearchParams(location.search).get('hue'));
-  root.style.setProperty('--hue', hue);
-  root.style.setProperty('--palette-hue', hue);
-  root.style.setProperty('--wheel-angle', `${hue}deg`);
+  applyHue((hue / 30) % 12);
 }
 if (new URLSearchParams(location.search).get('bg') === 'paper') {
   root.style.background = '#f4ecd9';

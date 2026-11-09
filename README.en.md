@@ -48,10 +48,10 @@ Most lookup tools pull you out of the page and answer in your first language. Yo
 - **The action bar offers Translate, Explain, and Copy text.** Explain is the one Lens is built around: it tells you what the word means in words you already know, instead of replacing it with a Chinese word you can skip.
 - **A word you can hear.** A speaker sits beside every pronunciation: press it, or the pronunciation itself, and the headword is read once. Sentences, names, and translations stay silent.
 - **The answer stays on the page.** Lens lives in the system tray and has no main window. The bubble opens beside the selection, holds while you hover, and is gone when you keep reading.
-- **A quiet memory.** Mark a word Known or New. Lens keeps the list. No streaks, no lesson plan.
-- **A pet that asks.** When a word comes due, a sign goes up at the pet's feet. Answer right and the next gap gets longer; answer wrong and it comes back sooner. The pet only receives event types and cannot read your screen, selection, or definitions. Off by default; turn it on in Settings › Extensions.
+- **Three verdicts, one quiet record.** Mark a word Known, Mastered, or New. Known means you have seen it and are still learning it; Mastered retires it from the scan and the pet's questions; New keeps it in practice. No streaks, no lesson plan.
+- **A pet that asks.** When a word comes due, a sign goes up at the pet's feet. Answer right and the next gap gets longer; answer wrong and it comes back sooner. A mastered word is never asked again. The pet only receives event types and cannot read your screen, selection, or definitions. Off by default; turn it on in Settings › Extensions.
 - **A definition you can walk into.** A word in a definition that sits above your level stays dotted. Open it and the same card steps down one layer, with a breadcrumb back; the cache, budget, and verdict rules follow every step.
-- **The globe is the only language control left on the card.** Hold it for half a second and the meaning in your mother tongue appears under the English definition; let go and it is gone. The mother tongue is a setting of its own — Chinese by default. A word whose explanation already includes that language costs nothing to peek at; any other is asked once per session.
+- **The globe is the only language control left on the card.** Under English explanations, hold it for half a second and the meaning in your mother tongue appears under the English definition; let go and it is gone. The mother tongue is a setting of its own — Chinese by default. A word whose explanation already includes that language costs nothing to peek at; any other is asked once per session.
 
 ## A quick look
 
@@ -74,15 +74,15 @@ Every word card carries a speaker beside its pronunciation; pressing either one 
 
 ## Text you can't select
 
-Press `Ctrl+Alt+S` (changeable in Settings), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default.
+Press `Ctrl+Alt+S` (changeable in Settings › OCR), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default.
 
-- **The bundled Tesseract is the automatic engine.** A reader can install RapidOCR-json, choose it explicitly, and point it at an ASCII model folder after an explicit trust check.
+- **The bundled Tesseract is the automatic engine.** You can also download RapidOCR-json in Settings, or point at your own copy, then detect and trust it before choosing it; its model folder must be an ASCII path.
 - **Online OCR is opt-in.** It asks before each upload and can be pointed at Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision, or OCR.space.
-- **Automatic scanning is still experimental and under development.** It watches only the apps you whitelist, and its results are not reliable yet.
+- **Automatic scanning is a separate channel and still experimental.** It does not use OCR; it runs only while Chrome is in front, drawing a dashed line under words that may sit above your level; hold Alt for a signpost, or rest the pointer on a word for a **Mastered** button that retires it. Its results are not reliable yet.
 
 ## Hover to look up a word
 
-Links and headlines often can't be selected. Switch to hover lookup (`Ctrl+Alt+H` by default; change it on the Shortcuts page of Settings), rest the pointer on a word for about a second, and Lens translates it. Press the key again to go back to selection. Hover lookup only reads the text under the pointer. It never clicks or touches the clipboard, skips password fields, and works only in the apps on your scan whitelist.
+Links and headlines often can't be selected. Switch to hover lookup (`Ctrl+Alt+H` by default; change it in Settings › Capture & popups), rest the pointer on a word for about a second, and Lens translates it. Press the key again to go back to selection. Hover lookup only reads the text under the pointer. It never clicks or touches the clipboard, skips password fields, and works only in the apps on your scan whitelist.
 
 <p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="After switching to hover lookup, the pointer rests on serendipity in a link for a second, and a card gives its meaning"></p>
 
@@ -103,11 +103,11 @@ Breakdown tints each part of the sentence in one of four colours — subject, ve
 
 <p align="center"><img src="docs/readme/learning-loop.gif" width="900" alt="The ghost's review sign beside it, and the year-in-words graph"></p>
 
-Known and New live on one word list.
+Known, Mastered, and New live on one word list, with a segment for each at the top.
 
 - Hover a row to reread an explanation Lens already stored, without sending a request.
-- When a word is due, a small sign appears beside the desktop pet — its own, drawn for that pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days.
-- The year-in-words graph keeps the habit visible without turning it into a streak.
+- When a word is due, a small sign appears beside the desktop pet — its own, drawn for that pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days. A mastered word is never asked again.
+- The year-in-words graph keeps the habit visible without turning it into a streak: one square per lookup, in one of twelve colours you pick (green by default).
 
 ## Pets that ask you the words back
 
@@ -117,7 +117,7 @@ Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, C
 
 - Each pet has its own nine-piece wardrobe and six scenes — four of its own and two shared; a scarf or a pair of frames can tilt which scene it chooses.
 - Its size and outfit are remembered per pet, while the window stays where you put it.
-- They wander, hide at the screen edge, notice the pointer, and can be picked up and thrown.
+- They wander, hide at the screen edge, notice the pointer, and can be picked up and thrown; when the taskbar is fixed on screen, they sometimes hop onto it, bounce, walk slowly to one end, and hop back.
 - They react to event types only — never to your selections, explanations, or screen text — and packages hold data only.
 
 The ghost's six: a midnight clock, a jack-o'-lantern, a mirror and a tea party of its own, and the desk and the bubble bath it shares with the other pets — each scene an animation of its own. The jack-o'-lantern, playing:
@@ -130,9 +130,9 @@ Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Cl
 
 - **Bring your own model.** DeepSeek, OpenAI, Gemini, OpenRouter, xAI, Moonshot, Zhipu, Qwen, or a custom OpenAI-compatible endpoint.
 - **Costs you can see.** Per-request cost from tokens, and a daily budget that pauses lookups, capture, and requests when the day reaches it.
-- **A weekly reading report.** Statistics keeps this week's lookups as a Week profile; press **Interpret this week** and the model writes a few observations. It is sent only when you press, and carries only counts and words.
-- **Sync when you want it.** Word marks, lookup history, statistics, and selected settings are encrypted with your passphrase and kept in a secret gist in your own GitHub account. The API key stays on this device.
-- **Word lists in and out.** Import or export `.txt` and `.json`; delete a word with one confirmation.
+- **A weekly reading report.** Statistics keeps this week's lookups as a Week profile, broken down by hour, part of speech, and the words you looked up most. Press **Interpret this week** and the model writes five observations into a weekly report card; its Story button writes a short story from the week's words. It is sent only when you press, and carries only counts and words.
+- **Sync when you want it.** Verdicts, lookup history, statistics, and selected settings are encrypted with your passphrase and kept in a secret gist in your own GitHub account. The API key stays on this device.
+- **Word lists in and out.** The words popup imports and exports `.txt` and `.json`, and exports CSV and Anki TSV with the explanations already stored; the Mastered words row in Settings › Reading & learning imports a one-word-per-line list once, marking its words mastered. Delete a word with one confirmation.
 - **Pictures when they help.** A sense the model thinks a photo explains better can open three Wikimedia Commons pictures. They are cached locally, and About shows the cache size and clears it in place.
 - **Make it yours.** Five action-bar shapes; Light, Dark, Frosted glass, and Liquid glass themes; and an English typeface with 12–18 px bubble text.
 - **Five languages.** Interface and explanations each offer English, Chinese, Traditional Chinese, Spanish, and Japanese. The Traditional Chinese, Spanish, and Japanese translations are machine-generated and have not been reviewed by a native speaker.

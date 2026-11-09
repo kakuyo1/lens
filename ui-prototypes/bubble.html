@@ -103,7 +103,7 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .bub-meta svg{width:12px;height:12px}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid transparent;cursor:pointer;font-family:var(--f);transition:.15s}
-.btn.known{background:var(--panel2);color:var(--text);border-color:var(--line)}
+.btn.known,.btn.mastered{background:var(--panel2);color:var(--text);border-color:var(--line)}
 .btn.again{background:var(--ink);color:var(--on)}
 .btn:active{transform:scale(.97)}
 .themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
@@ -177,7 +177,7 @@ html.shot *{transition:none!important;animation:none!important}
     <div class="bub-example-text">Our first meeting was pure serendipity.</div>
   </div>
   <div class="colloc" id="colloc">~ encounter · pure ~</div>
-  <div class="bub-actions"><button class="btn known" data-l="known"></button><button class="btn again" data-l="new"></button></div>
+  <div class="bub-actions"><button class="btn known" data-l="known"></button><button class="btn mastered" data-l="mastered"></button><button class="btn again" data-l="new"></button></div>
   <div class="bub-meta" data-l="meta"></div>
 </div>
 <button class="themebtn" id="tb"></button>
@@ -192,22 +192,22 @@ html.shot *{transition:none!important;animation:none!important}
 /// is drawn only when the etymology setting is on. `exLabel` likewise; the example sentence under it
 /// is English in every language, because the application asks for it in English only.
 const L = {
-  en: { new: "New", known: "Known", meta: "Disappears in 5s",
+  en: { new: "New", known: "Known", mastered: "Mastered", meta: "Disappears in 5s",
         def: "the occurrence of events by chance in a happy or beneficial way",
         etymLabel: "Etymology", exLabel: "Example", sentence: "Sentence",
         etym: "Coined in 1754 from Horace Walpole's tale of the three princes of Serendip.",
         themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass" },
-  zh: { new: "新词", known: "已会", meta: "5 秒后自动消失",
+  zh: { new: "新词", known: "已会", mastered: "掌握", meta: "5 秒后自动消失",
         def: "偶然遇到美好事物的运气；意外的幸运发现。",
         etymLabel: "词源", exLabel: "例句", sentence: "句子",
         etym: "1754 年由霍勒斯·沃波尔在《塞伦迪普三王子》中首创。",
         themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃" },
-  ja: { new: "初見", known: "覚えた", meta: "5 秒後に消えます",
+  ja: { new: "初見", known: "覚えた", mastered: "習得", meta: "5 秒後に消えます",
         def: "思いがけず素敵なものに出会う幸運。",
         etymLabel: "語源", exLabel: "例文", sentence: "文",
         etym: "1754 年、ホレス・ウォルポールの『セレンディップの三人の王子』で作られた語。",
         themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス" },
-  es: { new: "Nueva", known: "Conocida", meta: "Desaparece en 5 s",
+  es: { new: "Nueva", known: "Conocida", mastered: "Dominada", meta: "Desaparece en 5 s",
         def: "el hallazgo afortunado de algo bueno por casualidad.",
         etymLabel: "Etimología", exLabel: "Ejemplo", sentence: "Oración",
         etym: "Acuñada en 1754 a partir del cuento de los tres príncipes de Serendip, de Horace Walpole.",
@@ -356,7 +356,7 @@ document.fonts.ready.then(fitTitle);
 // Screenshot-only states for the README's marketing frames. Normal use never passes these.
 // ?explain=zh draws the sample in that explanation language; ?speak=1 lights the speaker the way
 // a playing recording does; ?hold=<percent> draws the globe's ring part-way through its sweep and
-// ?peek=1 draws the mother-tongue line under the definition; ?actions=open shows the Known/New row;
+// ?peek=1 draws the mother-tongue line under the definition; ?actions=open shows the Known/Mastered/New row;
 // ?transparent drops the page colour for a composed shot.
 if (kind === 'word' && explained !== lang) {
   document.querySelector('#definition').textContent = L[explained].def;
