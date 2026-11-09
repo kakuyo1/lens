@@ -53,6 +53,15 @@ QString listedNameOf(fs::path const& folder)
     return plainText(widen(folder.filename())).left(core::pet::kMaxNameChars);
 }
 
+/// @return The path's last-write time, or the clock's least value when it cannot be read. A missing folder and a read
+///         failure both stamp something, so one appearing later still moves the stamp.
+fs::file_time_type writtenAt(fs::path const& path)
+{
+    auto       error = std::error_code{};
+    auto const time  = fs::last_write_time(path, error);
+    return error ? fs::file_time_type::min() : time;
+}
+
 } // namespace
 
 PetEntry const* PetCatalog::find(std::string_view id) const
@@ -93,6 +102,24 @@ PetCatalog scanPets(fs::path const& shippedRoot, fs::path const& installedRoot)
         }
     }
     return catalog;
+}
+
+ScanStamp scanStamp(fs::path const& shippedRoot, fs::path const& installedRoot)
+{
+    // The documents a package is read from: an edit to any of them can change what a scan answers. An image is not
+    // among them; changed art is read when its pet loads.
+    constexpr char const* kDocuments[] = {"pet.json", "animations.json", "anchors.json", "accessories.json", "sign.json"};
+
+    auto stamp = ScanStamp{};
+    for (auto const& root : {shippedRoot, installedRoot}) {
+        stamp.push_back(writtenAt(root));
+        for (auto const& folder : foldersIn(root)) {
+            stamp.push_back(writtenAt(folder));
+            for (auto const* document : kDocuments)
+                stamp.push_back(writtenAt(folder / document));
+        }
+    }
+    return stamp;
 }
 
 } // namespace lens::app::pet

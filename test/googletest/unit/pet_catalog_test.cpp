@@ -21,6 +21,7 @@ namespace {
 using lens::app::pet::PetCatalog;
 using lens::app::pet::PetSource;
 using lens::app::pet::scanPets;
+using lens::app::pet::scanStamp;
 using lens::core::pet::Refusal;
 using nlohmann::json;
 
@@ -179,6 +180,35 @@ TEST(PetCatalog, AFolderNameIsCleanedOfInvisibleCharactersBeforeItIsListed)
 
     ASSERT_EQ(catalog.refused.size(), 1u);
     EXPECT_EQ(catalog.refused.front().id, QStringLiteral("lounge"));
+}
+
+TEST(PetCatalog, TheStampMovesOnlyWhenTheFoldersDo)
+{
+    auto       scratch = ScratchInstalled{"stamp"};
+    auto const folder  = scratch.path() / "lounge";
+    std::filesystem::copy(shippedRoot() / "dog", folder, std::filesystem::copy_options::recursive);
+    auto doc   = json::parse(std::ifstream{folder / "pet.json"});
+    doc["id"]  = "lounge";
+    auto write = [&] {
+        auto out = std::ofstream{folder / "pet.json", std::ios::binary};
+        out << doc.dump(2);
+    };
+    write();
+
+    // Nothing touched between two entries that saw the same folders: the stamp holds, so the catalogue may be reused.
+    auto const before = scanStamp(shippedRoot(), scratch.path());
+    EXPECT_EQ(before, scanStamp(shippedRoot(), scratch.path()));
+
+    // The display name lives in pet.json; editing it in place moves the stamp, so the next entry scans instead of
+    // keeping the name the last scan read.
+    doc["name"] = "Lounge Cat";
+    write();
+    EXPECT_NE(before, scanStamp(shippedRoot(), scratch.path()));
+
+    auto const  catalog = scanPets(shippedRoot(), scratch.path());
+    auto const* entry   = catalog.find("lounge");
+    ASSERT_NE(entry, nullptr);
+    EXPECT_EQ(entry->name, QStringLiteral("Lounge Cat"));
 }
 
 } // namespace

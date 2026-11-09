@@ -160,6 +160,7 @@ private slots:
     void anInstalledPackageWaitsForItsConfirmation();
     void aGonePackageFallsBackToTheShippedDefault();
     void anUnconfirmedChoiceStartsOnTheDefault();
+    void refreshRereadsAnEditedPackage();
 };
 
 void TstPetController::reviewAvailabilityFollowsThePet()
@@ -829,6 +830,43 @@ void TstPetController::anUnconfirmedChoiceStartsOnTheDefault()
 
     QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
     QVERIFY(rig.controller.available());
+}
+
+/// The extensions section asks for a scan each time it opens; an unchanged folder keeps the catalogue, and a moved
+/// one is read again (docs/adr/0169).
+void TstPetController::refreshRereadsAnEditedPackage()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig        rig{settingsIn(dir), shippedRoot()};
+    auto const installed = settingsIn(dir).parent_path() / "installed";
+    std::filesystem::create_directories(installed);
+    std::filesystem::copy(shippedRoot() / "dog", installed / "lounge", std::filesystem::copy_options::recursive);
+    auto doc  = readJson(installed / "lounge" / "pet.json");
+    doc["id"] = "lounge";
+    writeJson(installed / "lounge" / "pet.json", doc);
+    rig.controller.refresh();
+    QVERIFY(idsOf(rig.controller).contains(QStringLiteral("lounge")));
+
+    auto nameOf = [&rig](QString const& id) {
+        for (auto const& pet : rig.controller.pets()) {
+            if (pet.toMap().value(QStringLiteral("id")).toString() == id)
+                return pet.toMap().value(QStringLiteral("name")).toString();
+        }
+        return QString{};
+    };
+    QCOMPARE(nameOf(QStringLiteral("lounge")), QStringLiteral("lounge"));
+
+    // The display name lives in pet.json: an edit in place moves the stamp, so the next entry reads the folder again
+    // rather than keeping the name the last scan found.
+    doc["name"] = "Lounge Cat";
+    writeJson(installed / "lounge" / "pet.json", doc);
+    rig.controller.refresh();
+    QCOMPARE(nameOf(QStringLiteral("lounge")), QStringLiteral("Lounge Cat"));
+
+    // Nothing changed between entries: the catalogue holds, name and all.
+    rig.controller.refresh();
+    QCOMPARE(nameOf(QStringLiteral("lounge")), QStringLiteral("Lounge Cat"));
 }
 
 QTEST_GUILESS_MAIN(TstPetController)

@@ -178,7 +178,10 @@ PetController::PetController(std::filesystem::path shippedRoot, std::filesystem:
     connect(&health_, &QTimer::timeout, this, &PetController::checkHealth);
     health_.start();
     // The scenes sit beside the shipped pets: data/pet next to data/scenes.
-    scenes_           = PetScenes::load(shippedRoot_.parent_path() / "scenes");
+    scenes_ = PetScenes::load(shippedRoot_.parent_path() / "scenes");
+    // The stamp is taken before the scan it guards: a folder that changes mid-scan then asks for one rescan too many,
+    // never one too few.
+    catalogStamp_     = scanStamp(shippedRoot_, installedRoot_);
     catalog_          = scanPets(shippedRoot_, installedRoot_);
     auto const chosen = store_.pet();
     if (usable(chosen)) {
@@ -1093,7 +1096,15 @@ void PetController::refresh()
         else
             abortCeremony();
     }
+    auto const stamp = scanStamp(shippedRoot_, installedRoot_);
+    // Nothing changed, so nothing is announced: the page that asked is freshly built and already reads these values,
+    // and the emissions would only churn its bindings while it lays out.
+    if (stamp == catalogStamp_)
+        return;
     catalog_ = scanPets(shippedRoot_, installedRoot_);
+    // The stamp was taken before the scan: an edit that lands mid-scan then asks for one rescan too many, never
+    // one too few.
+    catalogStamp_ = stamp;
     // A rescan is the one moment a folder may have changed under a card already read.
     portraits_.clear();
     auto const chosen = store_.pet();

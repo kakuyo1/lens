@@ -138,7 +138,7 @@ public:
      * @param id A folder name from pets().
      * @return {canvas, foot, sheets, anchors, expression}, keyed as the sprite layer reads them, or an empty map for
      *         an installed package, an unknown id, or a folder that will not load. Read once and kept until the next
-     *         refresh().
+     *         rescan drops it.
      */
     QVariantMap portrait(QString id);
     /// @return Every installed package that was refused, as {id, reason}. The reason is the Refusal name, such as "BadName".
@@ -218,8 +218,10 @@ public:
     void setPet(QString id);
     /// @brief Records the reader's confirmation of an installed pet, and switches to it.
     void confirmPet(QString id);
-    /// @brief Rescans both folders. The settings call it each time the extensions section opens; a chosen pet that has gone
-    ///        or been refused gives way to the shipped default, with a notice.
+    /// @brief Re-reads both folders when their stamp moved since the last read, which is what the settings ask each time
+    ///        the extensions section opens. An unchanged pair of folders keeps the catalogue, so opening the section
+    ///        costs one stamp over the folders instead of a whole check of every pet (docs/adr/0169). A chosen pet that
+    ///        has gone or been refused gives way to the shipped default, with a notice.
     void refresh();
     /// @brief Opens the reader's pets folder in the file manager, creating it first when it is not there yet.
     void             openPacksFolder();
@@ -425,10 +427,12 @@ private:
     PetPicker picker_{*this};
     PetHost   host_{*this};
 
-    /// The shipped pets, and the reader's folder. The catalogue is what both scans last found.
+    /// The shipped pets, and the reader's folder. The catalogue is what both scans last found, and the stamp is what
+    /// the folders looked like just before that scan -- an entry into the settings compares it before scanning again.
     std::filesystem::path shippedRoot_;
     std::filesystem::path installedRoot_;
     PetCatalog            catalog_;
+    ScanStamp             catalogStamp_;
     /// The picker's postcards by pet id: read on the first hover and dropped when the catalogue is rescanned.
     std::map<std::string, QVariantMap> portraits_;
     /// The app's own scenes, read once: each shipped pet plays the four its action table names. A package may use another
