@@ -20,6 +20,9 @@ Window {
     /// Set by the panel that replaces this one: the card fades out in place, and the window goes when it has.
     property bool leaving: false
 
+    /// The panel's own state, off its shell: `hidden`, `leaving` or `shown`; a page dropdown is `openChildRect`.
+    readonly property string phase: shell.phase
+
     readonly property int shadowMargin: 26
     readonly property int cardWidth: 380
     readonly property int cardHeight: 480

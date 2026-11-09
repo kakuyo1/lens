@@ -44,6 +44,14 @@ Item {
     property bool shown: root.Window.window ? root.Window.window.visible && !root.Window.window.leaving : true
     // qmllint enable missing-property
 
+    /// @brief The card's own state: `shown`, `leaving` (its window is fading out for another
+    ///        panel), or `hidden`. Read off `shown`, so a card whose owner names its own overlay
+    ///        (the tray's language list) answers for that overlay too.
+    // qmllint disable missing-property
+    readonly property string phase: root.shown ? "shown"
+                                    : root.Window.window && root.Window.window.visible && root.Window.window.leaving ? "leaving" : "hidden"
+    // qmllint enable missing-property
+
     opacity: shown ? 1 : 0
     Behavior on opacity {
         NumberAnimation {

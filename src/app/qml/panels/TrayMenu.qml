@@ -27,10 +27,9 @@ Window {
     /// Set by the panel that replaces this one: the card fades out in place, and the window goes when it has.
     property bool leaving: false
 
-    /// The menu's own state: `hidden` while its window is down, `leaving` while the panel that
-    /// replaces it takes over, `shown` otherwise. The language list is an overlay on top of any of
-    /// them, named by `listVisible`, not a phase.
-    readonly property string phase: !visible ? "hidden" : leaving ? "leaving" : "shown"
+    /// The menu's own state, read off its card: `hidden`, `leaving` or `shown`. The language list
+    /// is an overlay on top of any of them, named by `listVisible`, not a phase.
+    readonly property string phase: card.phase
 
     readonly property int shadowMargin: 26
     readonly property int padding: 6
