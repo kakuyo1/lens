@@ -38,6 +38,23 @@ Window {
     /// Whether the card is meant to be on screen. The fade and the delayed window hide follow
     /// it (SurfaceFade.qml), so every path that takes the bubble down goes through dismiss().
     property bool surfaceShown: false
+    /// Whether show() has been asked for and the placement turn that puts the card up has not run.
+    /// dismiss() clears it, so a card cleared before its first frame never appears.
+    property bool showPending: false
+
+    /// The card's appearance as one word: `hidden`, `fading` (the window is still on screen while
+    /// it fades out), `pending` (a show is waiting for its placement turn), `waiting` (the click's
+    /// card, nothing answered yet), `holding` (the answer is on its way and the height it reserved
+    /// still stands), `revealing` (the fields are being written out) or `shown` (settled).
+    /// Hover, drag, the sense swap and the clock stay out of it: they are orthogonal to whether the
+    /// card is arriving, waiting or settled.
+    readonly property string phase: {
+        if (surfaceShown)
+            return waiting ? "waiting" : holding ? "holding" : revealing ? "revealing" : "shown";
+        if (showPending)
+            return "pending";
+        return fade.progress > 0 ? "fading" : "hidden";
+    }
 
     readonly property int shadowMargin: 26
     readonly property int gap: 10
@@ -328,8 +345,10 @@ Window {
         }
 
         // Growing content re-asks for placement; a dragged card keeps its frame.
-        if (!dragging)
+        if (!dragging) {
+            showPending = true;
             placement.restart();
+        }
     }
 
     /// @brief Take the card down, fading it out before the window goes.
@@ -343,6 +362,10 @@ Window {
         // being read out of a card the reader has closed is a voice with nothing on screen to
         // explain it.
         Controller.speechDuty.stop();
+        // A show that has not reached its placement turn is cancelled with the dismissal: the
+        // timer compares generations, and this bump is what makes the pending one stale.
+        ++showGeneration;
+        showPending = false;
         surfaceShown = false;
     }
 
@@ -375,6 +398,7 @@ Window {
         onTriggered: {
             if (bubble.pendingGeneration !== bubble.showGeneration)
                 return;
+            bubble.showPending = false;
             bubble.placementRequested(bubble.pendingPayload);
             if (!bubble.pendingWasVisible)
                 bubble.visible = true;
