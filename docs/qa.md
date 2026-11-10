@@ -71,3 +71,65 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
   Ctrl+C 于是送去了控制台而不是被拖选的应用——取文拿到的是控制台里的东西，或者什么都没有。
 - **取词只认发生变化的剪贴板**。重选同一段文本之前要先用 `Set-Clipboard` 换掉剪贴板内容，否则钩子读回来
   的还是上一次的字符串，日志只会说 `did not change within 250 ms`，看着像钩子没触发。
+
+## 一轮以上的驱动
+
+上面那些剧本都是一轮：`scripts/qa/scenarios/` 里的 `five-surfaces.txt` 五面各开合一次，
+`scan-session.txt` 只注入一帧。`docs/metrics/resource-footprint/memory-leak-2026-10-05.md`
+因此留了两个没答上的问题：表面的反复开关没有脚本驱动，长时间运行只测了十分钟。
+2026-10-18 那份玻璃内存报告后来用 `.workbuddy-ai/tools/` 下的本机实验脚本补做过十次开合和
+八分钟常开，但那些脚本不是仓库设施，也不进 `scripts/qa/`；它 9.9 节仍留着一笔没定位的
+每轮慢速爬升。要把它变成可复现的常规检查，用 `scripts/qa/lens-soak.ps1` 把一份剧本
+重放 N 次，每轮采一行。
+
+三份剧本既是 `lens-dev.ps1 -Script` 能单独跑的一轮，也是浸泡脚本的一轮：
+
+| 剧本 | 一轮的内容 | 问的是 |
+| --- | --- | --- |
+| `soak-surfaces.txt` | 七张表面各 show、painted、hide、hidden，末了 hide-all | 开合 N 次后水线回不回落 |
+| `scan-frames.txt` | arm 加八帧各不相同的注入帧，再 clear | jthread 与 COM 单元反复建销的代价 |
+| `glass-settings.txt` | 十次真实 setter 写入 | ADR 0173 之后滑块是否还重建整张投影 |
+
+dev 面的 `surface show` 只认 `dev_surface.cpp` 的 `kOpeners`，一共七个名字；
+`surface_table.h` 里其余表面由业务流程抬起，不能按名字打开，所以一轮是七张而不是十九张。
+每轮都带 `wait painted`，因为驱动线程、D3D 设备与句柄是窗口第一次上屏时才付的，
+只记 show 与 hide 量到的是一次属性写入。
+
+```
+powershell -File scripts/qa/lens-soak.ps1 -Rounds 3 -IntervalSeconds 2 -SettleSeconds 3
+powershell -File scripts/qa/lens-soak.ps1 -Script scripts/qa/scenarios/soak-surfaces.txt -Rounds 240 -IntervalSeconds 60 -Out logs/soak-4h.csv
+powershell -File scripts/qa/lens-soak.ps1 -Idle -Rounds 1440 -IntervalSeconds 10 -Out logs/soak-idle-4h.csv
+powershell -File scripts/qa/lens-soak.ps1 -KeepGraphics -Rounds 10 -Out logs/soak-keep-graphics.csv
+```
+
+`-Rounds` 乘 `-IntervalSeconds` 就是时长，数小时靠这两个数配，不是靠改脚本。
+`-SettleSeconds` 缺省十五秒：`releaseHiddenSurfaces()` 在隐藏后 500 ms 才释放，
+驱动还页还要更久，2026-10-18 那份报告里三秒时仍有 283.9 MB，十五秒才到 260.0 MB。
+`-KeepGraphics` 设 `LENS_KEEP_GRAPHICS=1`，用同一份二进制留一份 Qt 默认值的对照曲线。
+`-Idle` 不驱动，只采样，是托盘常驻应用的空载对照。
+
+脚本自己启动带 `--dev-pipe` 的构建，`--settings-file` 把这一轮的设置留在 `logs/dev-run/`，
+不写读者自己的配置；与 `lens-dev.ps1` 一样，检测到已有 `lens.exe` 在跑就拒绝启动。
+它在整个运行期间占住管道的唯一客户端，所以自己用 `Get-Process` 采样，
+不要同时再开一份 `lens-measure.ps1`：那个脚本用于不驱动、只采样的独立场合，
+加 `-Cpu` 会多一列 `cpu_cores`，单位是核而不是百分比。管道有读超时，
+某条命令不回答就报出命令名并结束，不会让一次数小时的浸泡无声挂住。
+
+一次运行同时出两组数：`round_ms` 是这一轮工作的耗时，
+`private_mb`、`threads`、`handles` 是水线，末了写一份同名 `.summary.json`。
+命令与回答由脚本自己逐条记进 `-DevOut` 的 JSONL：应用的 `--dev-out` 只在
+`--dev-script` 那条路径上接线，pipe 模式下不会写。被拒或超时的命令另有计数。
+这些数字都只对同一次构建说话，报告首行记 `version` 的应答，并且不对时间下断言。
+为看清状态临时加进 `src/` 的计时器与 `console.log` 仍然一律不留。
+
+水线涨了之后，下一步是问哪一类句柄在涨。`scripts/qa/handle-types.ps1` 遍历系统句柄表、
+按对象类型计数，可以连采多次看趋势：
+
+```
+powershell -File scripts/qa/handle-types.ps1 -ProcessId <pid> -Samples 8 -WaitSeconds 20 -Out logs/handle/trend.txt
+```
+
+它只读，不需要管理员权限；`-Samples 2` 就是一次前后对比。一次快照只是一次相位采样，
+所以先看序列形状：线性上涨的是泄漏，在两条水平线之间来回跳的是每轮一批、下轮释放的
+临时对象。线程按起始模块归因用 `.workbuddy-ai/tools/threadmap.py <pid>`。
+堆分配点的工具是另一套，见 `docs/metrics/profiling-and-coverage.md`。

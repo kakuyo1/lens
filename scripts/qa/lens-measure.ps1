@@ -33,6 +33,16 @@
 .PARAMETER Tolerance
     The largest spread, in MB, that still counts as settled.
 
+.PARAMETER Cpu
+    Add a cpu_cores column: the process's processor time divided by wall time between two
+    samples, so 1.0 means one core kept busy. It is a core count, not a percentage capped at
+    100, and it is empty on the first row because there is no interval before it. Useful for
+    the glass backdrop's steady repaint, where the 2026-10-18 report quotes about 0.25 of a
+    core. Off by default so existing CSVs keep their columns.
+
+.EXAMPLE
+    .\scripts\qa\lens-measure.ps1 -ProcessId 1234 -Seconds 60 -Interval 10 -Cpu -Out logs\cpu.csv
+
 .EXAMPLE
     .\scripts\qa\lens-measure.ps1 -ProcessId 1234 -Pipe lens-dev-1 -Seconds 60 -Interval 10 -Out logs\two.csv
 
@@ -48,7 +58,8 @@ param(
     [switch]$Settle,
     [int]$Samples = 3,
     [double]$Tolerance = 2,
-    [int]$SettleTimeoutSeconds = 300
+    [int]$SettleTimeoutSeconds = 300,
+    [switch]$Cpu
 )
 
 $ErrorActionPreference = 'Stop'
@@ -59,11 +70,18 @@ if (Test-Path -LiteralPath $Out) {
 
 function Get-Sample([System.Diagnostics.Process]$Process) {
     $Process.Refresh()
+    $cpuNow = $Process.TotalProcessorTime.TotalSeconds
+    $now = Get-Date
+    $wall = ($now - $script:prevAt).TotalSeconds
+    $cores = if ($Cpu -and $wall -gt 0.001) { [math]::Round(($cpuNow - $script:prevCpu) / $wall, 3) } else { 0 }
+    $script:prevCpu = $cpuNow
+    $script:prevAt = $now
     [pscustomobject]@{
         PrivateMb    = [math]::Round($Process.PrivateMemorySize64 / 1MB, 1)
         WorkingSetMb = [math]::Round($Process.WorkingSet64 / 1MB, 1)
         Threads      = $Process.Threads.Count
         Handles      = $Process.HandleCount
+        CpuCores     = $cores
     }
 }
 
@@ -91,20 +109,23 @@ function Write-Row($Process, [double]$ElapsedSeconds) {
     if ($Pipe -ne '') {
         try { $state = Get-State $Pipe } catch { $state = "error: $($_.Exception.Message)" }
     }
-    $row = [pscustomobject]@{
+    $data = [ordered]@{
         time_iso       = (Get-Date).ToString('o')
         elapsed_s      = [math]::Round($ElapsedSeconds, 1)
         private_mb     = $sample.PrivateMb
         working_set_mb = $sample.WorkingSetMb
         threads        = $sample.Threads
         handles        = $sample.Handles
-        state          = $state
     }
-    $row | Export-Csv -LiteralPath $Out -NoTypeInformation -Encoding UTF8 -Append
+    if ($Cpu) { $data['cpu_cores'] = $sample.CpuCores }
+    $data['state'] = $state
+    [pscustomobject]$data | Export-Csv -LiteralPath $Out -NoTypeInformation -Encoding UTF8 -Append
     return $sample
 }
 
 $process = Get-Process -Id $ProcessId
+$script:prevCpu = $process.TotalProcessorTime.TotalSeconds
+$script:prevAt = Get-Date
 
 if ($Settle) {
     $window = New-Object System.Collections.Generic.List[double]

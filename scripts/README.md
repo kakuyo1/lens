@@ -12,7 +12,7 @@
 | `data/` | 词形数据生成与样例集独立校验 |
 | `pet/` | 桌宠美术流水线的配方与渲染（方法见 `docs/pet-art-pipeline.md`，运行入口见其 README） |
 | `profiling/` | QML profiler、QML 结构指标和 trace 解析 |
-| `qa/` | 起应用、gtest 单条/整套、QTest 单条/整套/并行分片、桌面驱动、截图、QML 快照和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
+| `qa/` | 起应用、gtest 单条/整套、QTest 单条/整套/并行分片、桌面驱动、截图、QML 快照和鼠标停顿探针；长时间浸泡、循环负载与 UMDH 堆快照 diff；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
 | `quality/` | QML lint、分层边界检查、C++ / QML 覆盖率和 AST 指标、CI 变更分类（`ci-changes.sh`）；`zhlintrc.json` 是 CI 上排版检查用的仓库内配置 |
 | `release/` | 安装包构建和 GitHub Release 发布 |
 
@@ -36,6 +36,10 @@ powershell -File scripts/build/show-paths.ps1             # 合并后的机器�
 powershell -File scripts/qa/gtest.ps1 -Filter 'PetThrow*'  # gtest；-Target 缺省 lens_gtest_unit
 powershell -File scripts/qa/ocr-bench.ps1                 # 合成语料的本地 OCR 基线；-Language chi_sim / chi_sim+eng 跑中文与混排；只读语料，不联网
 powershell -File scripts/qa/lens-dev.ps1 -Script <剧本>   # 开发面优先：不移动指针、不抓屏，见 docs/qa.md
+powershell -File scripts/qa/lens-measure.ps1 -ProcessId <pid> -Seconds 60 -Cpu -Out logs/cpu.csv  # 只采样；-Cpu 加一列核数
+powershell -File scripts/qa/lens-soak.ps1 -Script scripts/qa/scenarios/soak-surfaces.txt -Rounds 240 -IntervalSeconds 60 -Out logs/soak-4h.csv  # 循环负载与长稳曲线，见 docs/qa.md
+powershell -File scripts/qa/heap-diff.ps1 -ProcessId <pid> -WaitSeconds 600 -Out logs/heap/diff.txt  # UMDH 两次堆快照 diff：定位分配点，需要 SDK 调试工具
+powershell -File scripts/qa/handle-types.ps1 -ProcessId <pid> -Samples 8 -WaitSeconds 20 -Out logs/handle/trend.txt  # 按对象类型数句柄：只读，不需要管理员
 powershell -File scripts/qa/ui-run.ps1        # 起 release 树的应用：旧了就重建，见 docs/qa.md
 powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_components   # 整套；加 -Case <用例> 只跑一条，见 TEST.md 第 2 节
 powershell -File scripts/qa/readme-gifs.ps1   # 离屏渲染 QML 动图与设置页截图（旧 README 管线，当前 README 不引用）

@@ -69,9 +69,10 @@ if ($Interactive) {
     $profilerArguments += "--interactive"
 }
 $previousScenario = $env:LENS_QML_PROFILE_SCENARIO
-if ($Scenario -ne "full") {
-    $env:LENS_QML_PROFILE_SCENARIO = $Scenario
-}
+# main.cpp runs the timeline only when LENS_QML_PROFILE_SCENARIO is non-empty, and "full" is
+# not a special value there: any other name falls through to all eight steps. Skipping the
+# assignment for "full" used to leave the app running with no Qt.quit(), hanging the profiler.
+$env:LENS_QML_PROFILE_SCENARIO = $Scenario
 $profilerArguments += $executable
 $profilerArguments += $ApplicationArguments
 

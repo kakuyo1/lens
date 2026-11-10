@@ -100,3 +100,60 @@ sh scripts/quality/qml-coverage.sh
 
 数字读出来之后怎么写、往哪写，见 `docs/metrics/` 里按日期存的那份报告；补什么、按什么顺序补，
 见 `docs/metrics/coverage/coverage-plan-2026-10-03.md`。
+
+## 长时间运行与内存
+
+这一层的设施一直只答一个问题：水线涨没涨。2026-10-05 的两份报告读
+`Get-Process` 的私有字节、工作集、句柄与线程，十分钟采二十一个点；2026-10-18 那份
+用 `.workbuddy-ai/tools/` 下的本机实验脚本做过八分钟常开与十次开合，加读 VMMap 的分段
+和线程起始地址，但那些脚本不进仓库的 `scripts/qa/`。三者都是进程级计数，没有一个能说出
+字节是在哪一行分配的；长的一次也只有八分钟，开合最多十次。所以这一层补的是三件事：
+把负载变长、把负载变成仓库内可复现的循环、把分配点补上。
+
+口径先定死，否则数字不可比：
+
+- 私有字节是应用自己的账，工作集不是。Windows 会回收可丢弃页，十分钟里工作集从 180 MB
+  掉到 130 MB 而私有字节几乎不动，那是系统在收页，不是应用让出来的。
+- 一次性台阶与慢速爬升分开读。窗口第一次上屏建 D3D 设备、编译着色器、拉起驱动线程池，
+  约 60 到 100 MB、80 线程、1630 句柄；它只发生一次，不是每次使用的增长。真正要盯的是
+  台阶之后每轮还剩多少不归零的部分。
+- 关闭后等十五秒再读。驱动还页是渐进的，三秒时读数仍然偏高。
+- 一次结论至少三轮，报区间不报点值；开发构建的数字只与同构建的数字比，报告首行记 `version`。
+
+`scripts/qa/lens-soak.ps1` 把一份 dev 面剧本重放 N 次，每轮记一行，同时给出这一轮的耗时。
+驱动手段、三份剧本与参数见 `docs/qa.md` 的一轮以上的驱动一节。`scripts/qa/lens-measure.ps1`
+作独立采样，加 `-Cpu` 多一列 `cpu_cores`，量玻璃持续重拍这类 CPU 成本，单位是核。
+两者管道互斥，不要并行。
+
+分配点这一层由 `scripts/qa/heap-diff.ps1` 补：UMDH 对同一个进程抓两份堆快照再做 diff，
+按调用栈排增量。它需要 Windows SDK 的 Debugging Tools、一次管理员权限下的
+`gflags /i lens.exe +ust`、重启目标进程，以及 `_NT_SYMBOL_PATH` 指向构建树的 PDB；
+缺一样就只得到地址，得不到函数名。快照是进程堆的内容，读者的设置与密钥都在里面，
+因此只准落在 `logs/` 这个 gitignored 目录，读完即删，绝不提交或外发。
+它要验的第一个具体问题是 2026-10-18 报告 9.9 节那笔没定位的慢速爬升：
+十次开合加 10.3 MB、38 个句柄，稳定但不归零，当时的候选是 QML 图片缓存的 serial 条目与字体缓存。
+另一个明确的观察点是 `src/app/glass/glass_capture.cpp` 里 `ensure()` 的
+`CoInitializeEx` 全仓没有配对 `CoUninitialize`，失败后五秒重试会再初始化一次。
+
+2026-11-10 的归因把要分清的两类摆开了：堆泄漏用 UMDH，句柄泄漏要用句柄创建栈，
+两者不是一套工具。UMDH 对句柄泄漏会一无所获，因为堆上没有对应的块；
+句柄创建栈要靠 `gflags /i lens.exe +htc`、ETW 的 Kernel-Handle 提供者或
+Application Verifier，三者都要管理员权限并重启目标进程。
+`scripts/qa/handle-types.ps1` 先用对象类型回答是哪一类，再决定用哪套栈；
+它只读、不需要提权，`resource-footprint/handle-types-2026-11-10.md` 是它的第一份结果。
+
+线程与句柄单独成一条线。2026-10-18 的主因不是堆，是每个顶层窗口各带起约 80 个驱动线程；
+`main.cpp` 的 `releaseHiddenSurfaces()` 已经把线程数从 804 压到 165，
+`LENS_KEEP_GRAPHICS=1` 是同一份二进制的对照。复测时按起始模块归因线程，
+并盯 hover 走全局 `QThreadPool` 的任务、扫描 track 的 jthread、发音的空闲销毁与同步更新的轮询。
+
+2026-11-10 已经用这套设施复测过一次，数字在
+`resource-footprint/soak-cycles-2026-11-10.md`：默认组 25 轮线程不涨，
+对照组 12 轮就到 643 线程、首轮一次 460 MB 与 557 线程，说明释放路径没有回归；
+但句柄在两种配置下都按每轮 25 到 33 个稳定爬升，而设置连打那组完全不涨，
+所以这笔爬升与图形资源是否释放、与设置投影缓存都无关，候选缩到每次窗口显示时
+新建、隐藏后不归还的那类句柄上。分配点仍未定位。
+
+数字写进 `docs/metrics/resource-footprint/` 或 `runtime-performance/` 下按日期命名的报告，
+索引加进 `docs/metrics/README.md`；原始 CSV、JSONL、trace 与堆快照留在 `test/records/`
+和 `logs/`，两者都 gitignored。值得留档的一次运行按 `TEST.md` 第 6 节写单列窄栏 HTML。

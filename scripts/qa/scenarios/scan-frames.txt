@@ -1,0 +1,24 @@
+# One round of scan frames, driven without Chrome (docs/adr/0165).
+# Each frame changes its ids, words and boxes so the emission gate in scan_emission_gate.cpp
+# cannot coalesce them into one placement. The words are rare enough to stay outside every
+# band's mastered side; "ubiquitous" would not. A round ends by clearing the pencil layer.
+#
+# What this is for: every track rebuild tears down a jthread and its COM apartment, and the
+# page cache in page_reader_uia.cpp holds UIA proxies minted inside it (ADR 0168). Repeated
+# frames plus a clear are the cheapest way to watch that lifecycle without a live browser.
+#
+#   powershell -File scripts/qa/lens-dev.ps1 -Script scripts/qa/scenarios/scan-frames.txt
+#   powershell -File scripts/qa/lens-soak.ps1 -Script scripts/qa/scenarios/scan-frames.txt -Rounds 100
+wait 1s
+scan arm 0,0,1920,400
+scan frame {"added":[{"id":1,"text":"sonorous"}],"visible":[{"id":1,"x":10,"y":20,"width":60,"height":16}]}
+scan frame {"added":[{"id":2,"text":"mellifluous"}],"visible":[{"id":2,"x":90,"y":20,"width":74,"height":16}]}
+scan frame {"added":[{"id":3,"text":"perspicacious"}],"visible":[{"id":3,"x":180,"y":20,"width":92,"height":16}]}
+scan frame {"added":[{"id":4,"text":"obstreperous"}],"visible":[{"id":4,"x":20,"y":48,"width":88,"height":16}]}
+scan frame {"added":[{"id":5,"text":"ebullient"}],"visible":[{"id":5,"x":130,"y":48,"width":62,"height":16}]}
+scan frame {"added":[{"id":6,"text":"sagacious"}],"visible":[{"id":6,"x":212,"y":48,"width":66,"height":16}]}
+scan frame {"added":[{"id":7,"text":"quixotic"}],"visible":[{"id":7,"x":40,"y":76,"width":58,"height":16}]}
+scan frame {"added":[{"id":8,"text":"recondite"}],"visible":[{"id":8,"x":118,"y":76,"width":68,"height":16}]}
+scan clear
+state
+quit

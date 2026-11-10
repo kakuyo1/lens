@@ -1,0 +1,45 @@
+# One round of the surfaces the developer face can actually raise.
+# Only these seven carry an opener in dev_surface.cpp's kOpeners; the other surfaces in
+# surface_table.h are raised by a product flow (selection, review, update, onboarding) and
+# cannot be shown by name. A round therefore exercises seven of the windows, every time.
+#
+# The painted wait matters: the first time a window reaches the screen is when the D3D device,
+# its driver thread pool and its handles are paid for. Counting only show/hide would measure
+# a property write, not a first frame. See docs/metrics/resource-footprint/glass-memory-2026-10-18.md.
+#
+# Run one round on its own:
+#   powershell -File scripts/qa/lens-dev.ps1 -Script scripts/qa/scenarios/soak-surfaces.txt
+# Drive it repeatedly and sample the curve:
+#   powershell -File scripts/qa/lens-soak.ps1 -Script scripts/qa/scenarios/soak-surfaces.txt -Rounds 50
+state
+surface show settings
+wait painted:settings
+surface hide settings
+wait hidden:settings
+surface show tray
+wait painted:tray
+surface hide tray
+wait hidden:tray
+surface show stats
+wait painted:stats
+surface hide stats
+wait hidden:stats
+surface show words
+wait painted:words
+surface hide words
+wait hidden:words
+surface show yearWords
+wait painted:yearWords
+surface hide yearWords
+wait hidden:yearWords
+surface show cost
+wait painted:cost
+surface hide cost
+wait hidden:cost
+surface show profile
+wait painted:profile
+surface hide profile
+wait hidden:profile
+surface hide-all
+state
+quit

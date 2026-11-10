@@ -1,0 +1,24 @@
+# One round of glass-parameter writes through the real setters.
+# ADR 0173 moved the six glass numbers onto a live projection: a slider stop must no longer
+# rebuild the whole settings map, and the document is written once the 300 ms gesture settles.
+# Ten writes in a row are enough to see a projection rebuilt per write, and to exercise the
+# deferred commit of KnownStore::section (the SettingsSectionWrite case in lens_gtest_unit).
+#
+# Values are the grammar's own: theme takes light/dark/frosted/liquid, glassQuality takes
+# auto/eco/standard/smooth, animationsEnabled takes on/off, the three blur and refraction
+# keys take whole numbers (see src/core/domain/settings_table.h for the clamp).
+#
+#   powershell -File scripts/qa/lens-dev.ps1 -Script scripts/qa/scenarios/glass-settings.txt
+#   powershell -File scripts/qa/lens-soak.ps1 -Script scripts/qa/scenarios/glass-settings.txt -Rounds 60
+setting set theme liquid
+setting set liquidBlur 12
+setting set frostedBlur 12
+setting set liquidRefraction 22
+setting set glassQuality smooth
+setting set animationsEnabled off
+setting set animationsEnabled on
+setting set liquidBlur 40
+setting set frostedBlur 40
+setting set liquidRefraction 30
+state
+quit

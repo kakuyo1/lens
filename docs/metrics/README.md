@@ -47,6 +47,9 @@
 | [`qml-language-list-lazy-loading-validation-2026-10-03.md`](runtime-performance/qml-language-list-lazy-loading-validation-2026-10-03.md) | 语言列表延迟加载是否把成本移出启动 |
 | [`qml-tray-menu-lazy-loading-experiment-2026-10-03.md`](runtime-performance/qml-tray-menu-lazy-loading-experiment-2026-10-03.md) | 托盘菜单正文延迟加载前后对比 |
 | [`glass-capture-capability-2026-10-19.md`](runtime-performance/glass-capture-capability-2026-10-19.md) | 玻璃幕布的帧率上限卡在哪：哪块屏能桌面复制、一帧值多少、GDI 读屏的真实代价 |
+| [`filtercore-throughput-2026-11-10.md`](runtime-performance/filtercore-throughput-2026-11-10.md) | 当前语料与词表规模下的 FilterCore 吞吐新基线，以及插桩开与关的两树对照 |
+| [`qml-scenario-2026-11-10.md`](runtime-performance/qml-scenario-2026-11-10.md) | 八步 QML 场景与 10-03 基线的对比：wall 稳定，工作量随表面与向导翻了约五倍；附鼠标停顿探针 |
+| [`a3-probes-2026-11-10.md`](runtime-performance/a3-probes-2026-11-10.md) | 采集上限、读屏节奏、旋转裁剪、抓屏排除与 21 张 OCR 语料的复测，对照 10-19 与 10-28 |
 
 ## resource-footprint
 
@@ -56,6 +59,9 @@
 | [`idle-memory-2026-10-05.md`](resource-footprint/idle-memory-2026-10-05.md) | 空闲时进程占多少内存，占在哪 |
 | [`memory-leak-2026-10-05.md`](resource-footprint/memory-leak-2026-10-05.md) | 长时间运行与真实使用会不会让内存只涨不跌 |
 | [`glass-memory-2026-10-18.md`](resource-footprint/glass-memory-2026-10-18.md) | 开了流光玻璃主题为什么占到 967 MB、804 线程，涨在哪，怎么量的 |
+| [`idle-sample-2026-11-10.md`](resource-footprint/idle-sample-2026-11-10.md) | 当前 release 实例的一分钟只读采样：`-Cpu` 列的验证，以及长稳复测的起点水位 |
+| [`soak-cycles-2026-11-10.md`](resource-footprint/soak-cycles-2026-11-10.md) | 四组循环负载：释放路径有没有回归、9.9 节的慢速爬升还在不在、释放的毫秒代价 |
+| [`handle-types-2026-11-10.md`](resource-footprint/handle-types-2026-11-10.md) | 那笔爬升是哪类句柄：Section、Mutant、Thread 各约每轮十个，Event 与 Timer 是锯齿不是泄漏 |
 
 ## cost
 
