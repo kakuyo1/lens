@@ -53,6 +53,15 @@ Item {
         root.picked(action);
     }
 
+    /// @brief Whether a press in this body's own coordinates is on the tag it draws.
+    ///
+    /// The body is the card plus the 16 px the string hangs in; beside the string that strip is blank, and a
+    /// press there belongs to the room around the bar (SelectionBar.containsPoint()).
+    function containsLocal(point) {
+        return point.x >= 0 && point.x <= card.width
+            && point.y >= tag.y && point.y <= tag.y + card.height;
+    }
+
     onShownChanged: {
         if (shown) {
             flashing = "";

@@ -250,6 +250,37 @@ Window {
                        : up ? "up" : "down";
     }
 
+    /// @brief Whether @p point on the desktop is on what the bar draws, rather than on the blank room its window
+    ///        keeps around it.
+    ///
+    /// The window is larger than the bar: `shadowMargin` all round for the shadow, and `reach` on the sides a
+    /// drawer can open to. A press in that room is a press outside the bar, and SurfaceHost puts the bar down on
+    /// one; the body, and the drawer while it is out, are the bar itself.
+    /// @param point The press, in the desktop's coordinates -- the ones the surfaces are placed in.
+    function containsPoint(point) {
+        const local = Qt.point(point.x - bar.x, point.y - bar.y);
+        if (bar.bodyItem) {
+            const at = Qt.point(local.x - content.x, local.y - content.y);
+            // A body with blank padding inside its own box -- the tag's strip beside the string -- answers for
+            // what it draws; the rest cover their box.
+            // qmllint disable missing-property
+            const inside = bar.bodyItem.containsLocal !== undefined
+                         ? bar.bodyItem.containsLocal(at)
+                         : (at.x >= 0 && at.x <= content.width && at.y >= 0 && at.y <= content.height);
+            // qmllint enable missing-property
+            if (inside) return true;
+        }
+        // qmllint disable missing-property
+        const drawer = bar.bodyItem ? bar.bodyItem.drawer : null;
+        // qmllint enable missing-property
+        if (!drawer || !drawer.enabled || !drawer.visible)
+            return false;
+        // The drawer hangs outside the body in most forms, into the room reach holds for it.
+        const at = drawer.mapToItem(bar.contentItem, 0, 0);
+        return local.x >= at.x && local.x <= at.x + drawer.width
+            && local.y >= at.y && local.y <= at.y + drawer.height;
+    }
+
     Item {
         id: content
         x: bar.originX

@@ -495,7 +495,13 @@ QtObject {
             panel.closeChild();
         }
 
-        const surfaces = [bar, settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup, readingProfilePopup, trayMenu];
+        // The bar's window keeps room around the bar itself -- the shadow margin, and the side a drawer may open
+        // to -- so a rectangle around the window reads a press in that blank room as a press on the bar. The bar
+        // answers with its own shape instead: the body, and the drawer while it is out.
+        if (bar.visible && !bar.containsPoint(point))
+            bar.dismiss();
+
+        const surfaces = [settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup, readingProfilePopup, trayMenu];
         for (const surface of surfaces) {
             if (!surface.visible)
                 continue;
