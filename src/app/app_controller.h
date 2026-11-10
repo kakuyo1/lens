@@ -20,6 +20,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <optional>
 
 #include "app/duties/capture_duty.h"
 #include "app/duties/capture_refusal.h"
@@ -30,6 +31,7 @@
 #include "app/duties/explanation_duty.h"
 #include "app/duties/onboarding_duty.h"
 #include "app/glass/glass_backdrop.h"
+#include "app/glass/glass_parameters.h"
 #include "app/platform/global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
@@ -199,6 +201,9 @@ public:
     ///       section, which is a writable view. Every other dependency is borrowed by reference;
     ///       this one is owned. See docs/adr/0024.
     QVariantMap settings();
+    /// @brief The six glass numbers, projected on their own so a slider's drag reaches the glass and nothing else
+    ///        (docs/adr/0173).
+    GlassParameters* glassParameters();
     /// @brief The words list's model, which owns its rows, filter and removals (docs/adr/0122).
     WordsModel* wordsModel();
     /// @brief The last 365 local dates, including zero-use days, for the annual words surface.
@@ -263,6 +268,7 @@ public:
     Q_INVOKABLE void setReviewFrequency(int value);
 
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
+    Q_PROPERTY(lens::app::GlassParameters* glassParameters READ glassParameters CONSTANT)
     Q_PROPERTY(lens::app::WordsModel* wordsModel READ wordsModel CONSTANT)
     Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
     Q_PROPERTY(lens::app::CostDuty* costDuty READ costDuty CONSTANT)
@@ -312,6 +318,15 @@ private:
     QString recordHotkey(GlobalHotkey& hotkey, GlobalHotkey const& other, char const* settingKey, int key, int modifiers);
     /// @brief Write one row: the value through the row's rule, then the signal the row names.
     bool writeSetting(core::settings::Row const& row, QVariant const& value);
+    /// @brief The projection, built from the document (settings() hands out the last build until something moves it).
+    QVariantMap buildSettings();
+    /// @brief Write the document now, from the gesture that was settling.
+    void commitGestureSettings();
+    /// @brief Write the document, logging a failure instead of throwing: the gesture timer's slot must not unwind.
+    /// @return Whether it reached the disk.
+    bool saveDocument();
+    /// @brief Read the six glass numbers from the document into glassParameters_, announcing what moved.
+    void reloadGlassParameters();
     /// @brief Restore provider wire options and persisted connection choices without touching credentials.
     void restoreModelService();
     /// @brief The plain-text export for a scope, without the QML string parse.
@@ -331,11 +346,17 @@ private:
 
     static AppController* instance_;
 
-    StorageDuty            storage_;
-    WordsModel             wordsModel_;
-    CostDuty               cost_;
-    CaptureDuty            capture_;
-    GlassBackdrop          glass_;
+    StorageDuty     storage_;
+    WordsModel      wordsModel_;
+    CostDuty        cost_;
+    CaptureDuty     capture_;
+    GlassBackdrop   glass_;
+    GlassParameters glassParameters_;
+    /// The last build of settings(), dropped whenever a write or a signal says it is stale. Mutable state behind a
+    /// getter QML calls once per binding read (docs/adr/0173).
+    std::optional<QVariantMap> settingsProjection_;
+    /// Writes the document once a gesture's stops stop arriving (docs/adr/0173).
+    QTimer                 gestureSettle_;
     ModelCatalogDuty       catalog_;
     ExplanationDuty        explanation_;
     PencilDuty             pencil_;

@@ -45,6 +45,13 @@ public:
      */
     core::SettingsSection section(std::string_view name = {});
 
+    /**
+     * @brief The same section, with @p commit deciding when a write reaches the disk.
+     * @note A gesture's writes pass a commit that coalesces: the document sees every stop, the file sees one write
+     *       once the gesture settles (docs/adr/0173).
+     */
+    core::SettingsSection section(std::string_view name, core::SettingsCommit commit);
+
     /// @brief Persist the current document, including statistics changes.
     void save() const;
 

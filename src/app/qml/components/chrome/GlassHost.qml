@@ -34,10 +34,12 @@ Item {
     readonly property real fillAlpha: host.window.tokens.panel.a
     /// Whether the card draws no backdrop (GlassRule, docs/adr/0069). Then the desktop shows through the window's own
     /// transparency at its own rate, and the sheet is only ever asked for one thing: the text tone under the card.
+    /// The numbers are the live projection's, so a slider's drag is judged at once and costs no map rebuild
+    /// (docs/adr/0173).
     readonly property bool passthrough: host.glass && GlassRule.passthrough(host.window.tokens.glassMode,
-                                                                            Controller.settings.frostedBlur,
-                                                                            Controller.settings.liquidBlur,
-                                                                            Controller.settings.liquidRefraction)
+                                                                            Controller.glassParameters.frostedBlur,
+                                                                            Controller.glassParameters.liquidBlur,
+                                                                            Controller.glassParameters.liquidRefraction)
 
     function windowRect() {
         return Qt.rect(host.window.x, host.window.y, host.window.width, host.window.height);

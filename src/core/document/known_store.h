@@ -228,10 +228,21 @@ public:
      */
     SettingsSection section(std::string_view name = {})
     {
+        return section(name, [this] { save(); });
+    }
+
+    /**
+     * @brief The same section, with @p commit deciding when the write reaches the disk.
+     *
+     * A gesture that writes a dozen stops a second lands in the document at once, so every reader sees the value, and
+     * commits once the gesture settles (docs/adr/0173). A section that saves nothing at all is the empty commit.
+     */
+    SettingsSection section(std::string_view name, SettingsCommit commit)
+    {
         std::vector<std::string> path;
         if (!name.empty())
             path.emplace_back(name);
-        return SettingsSection{doc_, std::move(path), [this] { save(); }};
+        return SettingsSection{doc_, std::move(path), std::move(commit)};
     }
 
     /// @brief Write the whole document back, preserving every unrecognised key.

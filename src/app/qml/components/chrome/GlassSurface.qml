@@ -26,22 +26,25 @@ Item {
     /// "frosted" or "liquid": the glass drawn. Empty draws nothing.
     property string mode: ""
     property real radius: root.tokens.radiusCard
-    /// Blur, in percent of the full scale: the theme's own setting.
-    property real blur: root.mode === "liquid" ? Controller.settings.liquidBlur : Controller.settings.frostedBlur
+    /// Blur, in percent of the full scale: the theme's own setting. The six glass numbers come from the live projection
+    /// and not from the settings map, so a slider's drag repaints the glass and leaves the rest of the application
+    /// alone (docs/adr/0173).
+    property real blur: root.mode === "liquid" ? Controller.glassParameters.liquidBlur : Controller.glassParameters.frostedBlur
     /// Frosted only: saturation in percent, 100 being untouched.
-    property real saturation: Controller.settings.frostedSaturation
+    property real saturation: Controller.glassParameters.frostedSaturation
     /// Rim highlight, in percent of white opacity: the theme's own setting.
-    property real rim: root.mode === "liquid" ? Controller.settings.liquidRim : Controller.settings.frostedRim
+    property real rim: root.mode === "liquid" ? Controller.glassParameters.liquidRim : Controller.glassParameters.frostedRim
     /// Liquid only: refraction in px.
-    property real refraction: Controller.settings.liquidRefraction
+    property real refraction: Controller.glassParameters.liquidRefraction
     /// Whether the blur draws with the Smooth tier's taps (docs/adr/0111): seventeen a pass at half the spacing under a
     /// prefilter half a level deeper, instead of the nine every tier shares.
     readonly property bool denseBlur: Controller.settings.glassQuality === 3
     /// Whether the card draws no backdrop: blur at 0 with nothing to bend (docs/adr/0069). The window is per-pixel
     /// transparent, so the live desktop shows through it with no desktop read; GlassHost still keeps one picture for
     /// the text tone, and nothing uploads it here.
-    readonly property bool passthrough: GlassRule.passthrough(root.mode, Controller.settings.frostedBlur,
-                                                              Controller.settings.liquidBlur, Controller.settings.liquidRefraction)
+    readonly property bool passthrough: GlassRule.passthrough(root.mode, Controller.glassParameters.frostedBlur,
+                                                              Controller.glassParameters.liquidBlur,
+                                                              Controller.glassParameters.liquidRefraction)
     /// Whether the card draws the sheet. False with the glass off and in passthrough, so the live texture is released.
     readonly property bool drawsBackdrop: root.mode !== "" && !root.passthrough
     /// The rectangle the picture in force covers, in device-independent pixels. The sheet moves it on a capture.

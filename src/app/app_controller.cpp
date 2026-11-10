@@ -101,7 +101,7 @@ AppController::AppController(core::KnownStore&            store,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), pencil_(capture_, explanation_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), glassParameters_(this), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), pencil_(capture_, explanation_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     // Marks written before the keys were base forms join their lemma once (docs/adr/0162); the
@@ -126,6 +126,18 @@ AppController::AppController(core::KnownStore&            store,
     // hand-edited number cannot reach the refresh code.
     const auto* const quality = core::settings::find("glassQuality");
     glass_.setQuality(glassQualityFrom(settings::read(storage_.section(), *quality).toInt()));
+    // The six numbers the glass surfaces read live, and the projection's cache: both are dropped by the first
+    // subscriber of settingsChanged, which runs before the QML bindings because it is connected here (docs/adr/0173).
+    reloadGlassParameters();
+    connect(this, &AppController::settingsChanged, this, [this] {
+        settingsProjection_.reset();
+        reloadGlassParameters();
+    });
+    // A slider's stops land faster than a disk write or a whole projection should: the document takes each one, and
+    // the file takes the last (writeSetting routes the six glass keys here). The 300 ms is the glass's own settle.
+    gestureSettle_.setSingleShot(true);
+    gestureSettle_.setInterval(300);
+    connect(&gestureSettle_, &QTimer::timeout, this, &AppController::commitGestureSettings);
     // A change to the statistics or the settings is what a sync carries, so either one schedules
     // a sync. Marks reach here as statsChanged too, since ExplanationDuty forwards it.
     connect(this, &AppController::statsChanged, &sync_, &SyncDuty::scheduleSync);
@@ -242,7 +254,15 @@ PencilDuty* AppController::pencil()
     return &pencil_;
 }
 
-AppController::~AppController() = default;
+AppController::~AppController()
+{
+    // A gesture that was still settling writes its last stop now: the timer will not fire again. The sync round is not
+    // scheduled from here -- the run is going away.
+    if (gestureSettle_.isActive()) {
+        gestureSettle_.stop();
+        saveDocument();
+    }
+}
 
 void AppController::restoreModelService()
 {
@@ -457,11 +477,21 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
             emit settingsChanged();
             return true;
         }
-        case Signal::Settings:
+        case Signal::Settings: {
+            // The six glass numbers are a gesture a dozen stops long: each lands in the document and in the live
+            // projection at once, and the disk and the settings map wait for the gesture to settle (docs/adr/0173).
+            if (GlassParameters::holds(row.key)) {
+                if (not settings::write(storage_.section({}, [this] { gestureSettle_.start(); }), row, value))
+                    return false;
+                settingsProjection_.reset();
+                glassParameters_.set(row.key, settings::read(storage_.section(), row).toInt());
+                return true;
+            }
             if (not settings::write(storage_.section(), row, value))
                 return false;
             emit settingsChanged();
             return true;
+        }
     }
     return false;
 }
@@ -734,6 +764,50 @@ void AppController::explainLemma(QString lemma)
 }
 
 QVariantMap AppController::settings()
+{
+    // Once per change, not once per read: a binding that reads one key would otherwise rebuild the whole map, and the
+    // application has a binding on nearly every surface (docs/adr/0173). The cache is dropped before settingsChanged
+    // reaches QML, because the connection that drops it is made in the constructor.
+    if (not settingsProjection_)
+        settingsProjection_ = buildSettings();
+    return *settingsProjection_;
+}
+
+GlassParameters* AppController::glassParameters()
+{
+    return &glassParameters_;
+}
+
+void AppController::commitGestureSettings()
+{
+    if (saveDocument())
+        sync_.scheduleSync();
+}
+
+bool AppController::saveDocument()
+{
+    try {
+        storage_.save();
+        return true;
+    } catch (std::exception const& e) {
+        // The timer's slot must not let a write failure unwind through the event loop; the value stays in the
+        // document, and the next save tries again.
+        LENS_ERROR("the settings document could not be written: {}", e.what());
+        return false;
+    }
+}
+
+void AppController::reloadGlassParameters()
+{
+    auto const             keys = storage_.section();
+    std::string_view const tunables[]{"frostedBlur", "frostedSaturation", "frostedRim", "liquidBlur", "liquidRim", "liquidRefraction"};
+    for (auto const key : tunables) {
+        if (const auto* const row = core::settings::find(key); row != nullptr)
+            glassParameters_.set(key, settings::read(keys, *row).toInt());
+    }
+}
+
+QVariantMap AppController::buildSettings()
 {
     auto const keys = storage_.section();
     // Every key the settings table owns, read through that row's own rule: the clamp, the members and

@@ -85,8 +85,8 @@ Item {
     readonly property color bladeRight: root.hovered === 2 ? root.hoverBlade : root.restBlade
     /// The white rim the other glass cards get from GlassSurface. The fan cannot use that
     /// rounded-rect rim, so it is drawn along the pentagon's own edge from the same setting.
-    readonly property real rim: root.tokens.glassMode === "liquid" ? Controller.settings.liquidRim
-                                                                   : Controller.settings.frostedRim
+    readonly property real rim: root.tokens.glassMode === "liquid" ? Controller.glassParameters.liquidRim
+                                                                   : Controller.glassParameters.frostedRim
     readonly property color rimColor: Qt.rgba(1, 1, 1, root.rim / 100)
 
     function playPress(action) {

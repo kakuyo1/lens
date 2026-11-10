@@ -204,6 +204,36 @@ TEST(SettingsSectionWrite, RemovesAKeyAltogetherAndSavesOnlyWhenSomethingWent)
     EXPECT_EQ(doc.commits, 1) << "nothing was taken away, so there is nothing to save";
 }
 
+/// A section built with its own commit lands in the document at once and reaches the disk only when that commit says
+/// so: the gesture path (docs/adr/0173) keeps a slider's value in hand and writes the file once the slider stops.
+TEST(SettingsSectionWrite, ACommitOfItsOwnDecidesWhenTheDocumentIsSaved)
+{
+    const auto path  = scratchPath("lens-settings-section-deferred.json");
+    KnownStore store = KnownStore::load(path);
+    store.save();
+
+    int  commits  = 0;
+    auto deferred = store.section({}, [&commits] { ++commits; });
+    deferred.set<int>("frostedBlur", 40);
+    deferred.set<int>("liquidBlur", 25);
+
+    EXPECT_EQ(commits, 2);
+    EXPECT_EQ(store.document().at("frostedBlur").get<int>(), 40)
+        << "the document takes the value at once, so every reader sees it";
+    {
+        std::ifstream in(path);
+        const json    onDisk = json::parse(in, nullptr, false);
+        EXPECT_FALSE(onDisk.contains("frostedBlur")) << "nothing reaches the disk before its commit says so";
+    }
+
+    store.save();
+    {
+        std::ifstream in(path);
+        EXPECT_EQ(json::parse(in).at("frostedBlur").get<int>(), 40);
+    }
+    std::filesystem::remove(path);
+}
+
 // ---------------------------------------------------------------------------------------------
 // The document's keys, as a declaration: which module may write which key.
 // ---------------------------------------------------------------------------------------------

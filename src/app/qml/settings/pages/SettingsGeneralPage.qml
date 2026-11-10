@@ -164,11 +164,13 @@ Item {
                 font.weight: Font.Bold
             }
 
+            // The six glass numbers read the live projection rather than the settings map: a drag then repaints the
+            // glass and leaves the rest of the application alone (docs/adr/0173).
             SliderRow {
                 label: qsTranslate("SettingsPopup", "Blur")
                 suffix: "%"
                 to: Controller.settingRange("frostedBlur").high
-                value: Controller.settings.frostedBlur
+                value: Controller.glassParameters.frostedBlur
                 onMoved: (stop) => Controller.setSetting("frostedBlur", stop)
             }
 
@@ -176,7 +178,7 @@ Item {
                 label: qsTranslate("SettingsPopup", "Saturation")
                 suffix: "%"
                 to: Controller.settingRange("frostedSaturation").high
-                value: Controller.settings.frostedSaturation
+                value: Controller.glassParameters.frostedSaturation
                 onMoved: (stop) => Controller.setSetting("frostedSaturation", stop)
             }
 
@@ -184,7 +186,7 @@ Item {
                 label: qsTranslate("SettingsPopup", "Rim highlight")
                 suffix: "%"
                 to: Controller.settingRange("frostedRim").high
-                value: Controller.settings.frostedRim
+                value: Controller.glassParameters.frostedRim
                 onMoved: (stop) => Controller.setSetting("frostedRim", stop)
             }
         }
@@ -206,7 +208,7 @@ Item {
                 label: qsTranslate("SettingsPopup", "Refraction")
                 suffix: " px"
                 to: Controller.settingRange("liquidRefraction").high
-                value: Controller.settings.liquidRefraction
+                value: Controller.glassParameters.liquidRefraction
                 onMoved: (stop) => Controller.setSetting("liquidRefraction", stop)
             }
 
@@ -214,7 +216,7 @@ Item {
                 label: qsTranslate("SettingsPopup", "Blur")
                 suffix: "%"
                 to: Controller.settingRange("liquidBlur").high
-                value: Controller.settings.liquidBlur
+                value: Controller.glassParameters.liquidBlur
                 onMoved: (stop) => Controller.setSetting("liquidBlur", stop)
             }
 
@@ -222,7 +224,7 @@ Item {
                 label: qsTranslate("SettingsPopup", "Rim highlight")
                 suffix: "%"
                 to: Controller.settingRange("liquidRim").high
-                value: Controller.settings.liquidRim
+                value: Controller.glassParameters.liquidRim
                 onMoved: (stop) => Controller.setSetting("liquidRim", stop)
             }
         }

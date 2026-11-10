@@ -55,6 +55,11 @@ core::SettingsSection StorageDuty::section(std::string_view const name)
     return store_.section(name);
 }
 
+core::SettingsSection StorageDuty::section(std::string_view const name, core::SettingsCommit commit)
+{
+    return store_.section(name, std::move(commit));
+}
+
 void StorageDuty::save() const
 {
     store_.save();

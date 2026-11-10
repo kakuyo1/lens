@@ -52,7 +52,7 @@ Item {
     /// Whether the drawer is on glass: its cards and the fan's blades are glass then, as the bar's own are.
     readonly property bool underGlass: root.tokens.glassMode !== ""
     /// The glass rim, as GlassSurface draws it: the theme's setting in percent of white.
-    readonly property color rimColor: Qt.rgba(1, 1, 1, (root.tokens.glassMode === "liquid" ? Controller.settings.liquidRim : Controller.settings.frostedRim) / 100)
+    readonly property color rimColor: Qt.rgba(1, 1, 1, (root.tokens.glassMode === "liquid" ? Controller.glassParameters.liquidRim : Controller.glassParameters.frostedRim) / 100)
     readonly property color hoverTint: Qt.rgba(18 / 255, 24 / 255, 36 / 255, 0.12)
     /// The fan's hinge in the body's own coordinates: the outer corner of its right blade (SelectionBarFanBody). The
     /// drawer's lower blade starts at its bottom-left corner, so the drawer stands with that corner on the hinge.
