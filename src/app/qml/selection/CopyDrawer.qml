@@ -111,6 +111,25 @@ Item {
     /// other items' bindings, which mapToItem() does not report; each move ticks this, and overhangIn() reads it.
     property int geomTick: 0
 
+    /// Lands the move this drawer was told about, once the turn that reported it has ended.
+    Timer {
+        id: geomBump
+        interval: 0
+        repeat: false
+        onTriggered: root.geomTick++
+    }
+
+    /// @brief Ask for a re-measure once the moves that caused it have settled.
+    ///
+    /// The tick cannot be written from the move itself: the tag's flip in placeAt() moves an item the drawer is
+    /// measured against while the bar is reading `reach`, and a write during that read reads back as the binding
+    /// depending on itself -- Qt reports it as a binding loop on every arrival. Queued, the write lands after the
+    /// move has finished, and the window keeps the room the drawer really has. A burst of moves coalesces: the
+    /// running timer is restarted rather than counted again.
+    function bumpGeom() {
+        geomBump.restart();
+    }
+
     /// Measures again the room the window keeps for the drawer, once the tag has stopped turning. The room is not
     /// re-measured while it turns, so the window does not move with the turn.
     function settle() {
@@ -135,8 +154,8 @@ Item {
         delegate: Connections {
             required property var modelData
             target: modelData
-            function onXChanged() { root.geomTick++; }
-            function onYChanged() { root.geomTick++; }
+            function onXChanged() { root.bumpGeom() }
+            function onYChanged() { root.bumpGeom() }
         }
     }
 

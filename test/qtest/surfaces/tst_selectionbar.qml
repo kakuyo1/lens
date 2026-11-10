@@ -43,6 +43,34 @@ Item {
             return Util.textsUnder(bar).map(function (t) { return t.parent.parent; });
         }
 
+        /// A tag placed with its drawer out flips its string side while the bar is reading the room the drawer needs.
+/// The re-measure that flip asks for must land after the move, not inside the read (a queued tick, not a direct
+/// one: the direct write read back as the bar's `reach` binding depending on itself and Qt warned on every
+/// arrival). This case walks that path and reads the room the window kept.
+        function test_aTagWithADrawerKeepsRoomForItWhenItFlips() {
+            Controller.setSetting("selectionBarStyle", "tag");
+            const bar = createTemporaryObject(barComponent, root);
+            verify(bar);
+            bar.selectionText = "a sentence long enough to be a breakdownable English sentence with several words";
+            bar.selectionKind = "sentence";
+            bar.breakdownable = true;
+            bar.grammarable = true;
+            bar.placeAt(Qt.point(300, 300), {left: 0, top: 0, right: 800, bottom: 600}, 8);
+
+            const drawer = drawerOf(bar);
+            verify(drawer, "the tag drew no copy drawer");
+            verify(drawer.applies, "the drawer does not apply to the sentence");
+            verify(bar.drawerSide !== "", "the drawer was given no side to open from");
+            verify(bar.reach.top + bar.reach.right + bar.reach.bottom + bar.reach.left > 0,
+                   "the window kept no room for the drawer");
+
+            bar.open();
+            wait(100);
+            bar.dismiss();
+            wait(100);
+            Controller.setSetting("selectionBarStyle", "bar");
+        }
+
         function test_holdingAnItemShrinksIt() {
             const bar = opened();
             const item = itemsOf(bar)[0];
