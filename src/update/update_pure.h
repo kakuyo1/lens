@@ -30,6 +30,14 @@ struct Release {
     QString      notes;       ///< Always empty: the redirect carries no notes, and none are fetched.
 };
 
+/// @brief Why an address was not the release this check acts on.
+enum class Refusal {
+    NotHttps,    ///< Not an https URL, so it is not asked to answer at all.
+    WrongHost,   ///< Not on github.com: a lookalike, or anything else.
+    NotATagPage, ///< Not under this repository's release-tag path, or no tag at all.
+    UnusableTag, ///< This repository's tag, with a version this check does not act on.
+};
+
 /**
  * @brief Read the address a release page redirects to, and refuse anything else.
  *
@@ -42,9 +50,12 @@ struct Release {
  * yet, which redirects to `/releases` rather than to a tag: no tag, no release, `offline`.
  *
  * @param location The redirect target, already resolved against the request URL.
+ * @param reason When not null, receives why the address was refused. A tag this check does not
+ *        act on (a pre-release such as `v1.0.0-alpha`) is a fact about the project, not a
+ *        source failure, and the caller reports it differently.
  * @return The release, or nothing when the address is not one this program can act on.
  */
-std::optional<Release> parseReleaseLocation(const QUrl& location);
+std::optional<Release> parseReleaseLocation(const QUrl& location, Refusal* reason = nullptr);
 
 /**
  * @brief Whether @p latest is newer than the version this build carries.

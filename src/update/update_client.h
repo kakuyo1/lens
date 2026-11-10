@@ -85,6 +85,13 @@ signals:
     /// Carries no text: the reason is in the log, and nothing here reaches a surface.
     void offline();
 
+    /// @brief The page answered with this project's release tag, carrying a version this check
+    ///        does not act on (a pre-release, say): there is no update to offer, and the source
+    ///        itself is fine.
+    ///
+    /// Kept apart from offline() so a reachable source is never reported as an unreachable one.
+    void noRelease();
+
 private:
     Settings               settings_;
     QNetworkAccessManager* manager_;

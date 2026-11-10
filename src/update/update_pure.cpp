@@ -24,28 +24,35 @@ const QString kDownloadPath = QStringLiteral("/kakuyo1/lens/releases/download/")
 
 } // namespace
 
-std::optional<Release> parseReleaseLocation(const QUrl& location)
+std::optional<Release> parseReleaseLocation(const QUrl& location, Refusal* reason)
 {
+    const auto refuse = [reason](Refusal why) {
+        if (reason != nullptr) *reason = why;
+        return std::nullopt;
+    };
     if (not location.isValid() or location.scheme() != QLatin1String("https")) {
         LENS_WARN("the release address is not an https URL; the answer was refused");
-        return std::nullopt;
+        return refuse(Refusal::NotHttps);
     }
     if (location.host().compare(QLatin1String(kReleaseHost), Qt::CaseInsensitive) != 0) {
         LENS_WARN("the release address is not on {}; the answer was refused", kReleaseHost);
-        return std::nullopt;
+        return refuse(Refusal::WrongHost);
     }
     if (not location.path().startsWith(kTagPath)) {
-        // The repository with no release yet redirects here rather than to a tag, which is the
-        // one refusal that is a fact about the project rather than a fault.
+        // The repository with no release yet redirects here rather than to a tag: one of the two
+        // refusals that are a fact about the project rather than a fault, the other being a tag
+        // this check does not act on (below).
         LENS_WARN("the release address is not under {}; the answer was refused", kTagPath.toStdString());
-        return std::nullopt;
+        return refuse(Refusal::NotATagPage);
     }
 
     const QString tag     = location.path().mid(kTagPath.size());
     const auto    version = util::parseTag(tag.toStdString());
     if (not version) {
-        LENS_WARN("the release tag is not a plain three-number version; the answer was refused");
-        return std::nullopt;
+        // The page answered with this project's own tag; that it names a pre-release is a fact
+        // about the release, not an answer to distrust, so it is said once and not as a warning.
+        LENS_INFO("the release tag is not a version this check acts on; no release to offer");
+        return refuse(Refusal::UnusableTag);
     }
 
     Release release;

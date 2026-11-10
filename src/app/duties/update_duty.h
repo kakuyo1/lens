@@ -170,6 +170,8 @@ private:
     void startCheck(bool manual);
     void applyResult(update::Release const& release, bool manual);
     void reportOffline(bool manual);
+    /// @brief The page answered with a tag this check does not act on: nothing to offer, not a failure.
+    void reportNoRelease(bool manual);
 
     /// @brief Where a downloaded installer lives: the reader's own cache, nothing else.
     QString downloadDirectory() const;

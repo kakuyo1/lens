@@ -34,6 +34,7 @@
 #include <filesystem>
 #include <memory>
 #include <thread>
+#include <utility>
 
 #include <nlohmann/json.hpp>
 
@@ -95,10 +96,11 @@ const QDate pinnedDate()
 struct DutyFixture {
     /// `answers` false leaves the check's stub quiet, which is what a download case wants: its
     /// own answers arrive as the duty's signals, and a check answer landing mid-case would
-    /// wipe the state the case is checking.
-    explicit DutyFixture(bool answers = true)
+    /// wipe the state the case is checking. `status` and `location` are the check's answer for
+    /// the cases that drive the client's own redirect path.
+    explicit DutyFixture(bool answers = true, int status = 500, QString location = {})
         : path(std::filesystem::temp_directory_path() / "lens_update_duty_test.json"),
-          manager(500, QString{}, answers)
+          manager(status, std::move(location), answers)
     {
         std::filesystem::remove(path);
         QDir(cache).removeRecursively();
@@ -231,6 +233,23 @@ TEST(UpdateLocation, RefusesAnythingThatIsNotThisProjectsReleasePage)
     // And nothing at all.
     EXPECT_FALSE(parseReleaseLocation(QUrl{}).has_value());
     EXPECT_FALSE(parseReleaseLocation(QUrl{QString{}}).has_value());
+}
+
+/// A refusal says which kind it was, because the kinds are reported differently: a tag this
+/// check does not act on is the project's own pre-release, while every other refusal is an
+/// answer that cannot be trusted.
+TEST(UpdateLocation, ARefusalSaysWhySoAPreReleaseIsNotASourceFailure)
+{
+    QtApplication qt;
+    auto          reason = lens::update::Refusal::NotHttps;
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"http://github.com/kakuyo1/lens/releases/tag/v1.1.0"}, &reason).has_value());
+    EXPECT_EQ(reason, lens::update::Refusal::NotHttps);
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"https://example.com/kakuyo1/lens/releases/tag/v1.1.0"}, &reason).has_value());
+    EXPECT_EQ(reason, lens::update::Refusal::WrongHost);
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"https://github.com/kakuyo1/lens/releases"}, &reason).has_value());
+    EXPECT_EQ(reason, lens::update::Refusal::NotATagPage);
+    EXPECT_FALSE(parseReleaseLocation(releaseUrl("v1.0.0-alpha"), &reason).has_value());
+    EXPECT_EQ(reason, lens::update::Refusal::UnusableTag) << "the page answered; what it named is a pre-release, not a fault";
 }
 
 TEST(UpdateLocation, RefusesARepositoryWithNoReleaseYet)
@@ -419,6 +438,32 @@ TEST(UpdateClient, ARedirectCarryingAReleaseIsTheOnlyAnswerItAccepts)
     }
 }
 
+/// The redirect reached this project's tag path, carrying a pre-release. That is not a source
+/// that failed: it is an answer with nothing to offer, and it must not reach the surfaces as
+/// "offline" -- the reader would be told the check could not reach a page it just read.
+TEST(UpdateClient, AReleaseTagThisCheckDoesNotActOnIsNotAnOfflineAnswer)
+{
+    QtApplication          qt;
+    ScriptedManager        manager{302, releaseUrl("v1.0.0-alpha").toString()};
+    lens::update::Settings settings;
+    settings.source = QUrl{QString::fromLatin1(kReleasePage)};
+
+    lens::update::UpdateClient client(settings, &manager);
+    int                        offline   = 0;
+    int                        noRelease = 0;
+    int                        releases  = 0;
+    QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
+    QObject::connect(&client, &lens::update::UpdateClient::noRelease, [&noRelease] { ++noRelease; });
+    QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release) { ++releases; });
+
+    client.fetch();
+    settle();
+
+    EXPECT_EQ(noRelease, 1);
+    EXPECT_EQ(offline, 0) << "the page answered; the source did not fail";
+    EXPECT_EQ(releases, 0);
+}
+
 TEST(UpdateClient, AnAnswerLargerThanTheCeilingIsAbortedAndReadsAsOffline)
 {
     QtApplication          qt;
@@ -514,6 +559,30 @@ TEST(UpdateDuty, AFailedManualCheckSaysOffline)
 
     EXPECT_EQ(one.duty->update().value("state").toString(), QStringLiteral("offline"));
     EXPECT_FALSE(one.duty->cardVisible());
+}
+
+/// The release page redirects to this project's pre-release tag. The page answered, so neither
+/// path may report an offline source: the automatic check stays quiet and the manual one says
+/// there is nothing newer, which is true -- a pre-release is not a version this build installs.
+TEST(UpdateDuty, APreReleaseTagIsNoUpdateRatherThanAnOfflineSource)
+{
+    QtApplication qt;
+    {
+        DutyFixture one{true, 302, releaseUrl("v1.0.0-alpha").toString()};
+        one.duty->checkAtStartup();
+        settle();
+
+        EXPECT_EQ(one.duty->update().value("state").toString(), QStringLiteral("idle"));
+        EXPECT_FALSE(one.duty->cardVisible());
+    }
+    {
+        DutyFixture one{true, 302, releaseUrl("v1.0.0-alpha").toString()};
+        one.duty->checkForUpdates();
+        settle();
+
+        EXPECT_EQ(one.duty->update().value("state").toString(), QStringLiteral("upToDate"));
+        EXPECT_FALSE(one.duty->cardVisible());
+    }
 }
 
 TEST(UpdateDuty, ASwitchedOffCheckSendsNothingAtAll)

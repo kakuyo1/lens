@@ -7,6 +7,7 @@
 
 #include "consent_preview.h"
 
+#include <QAudioDevice>
 #include <QCoreApplication>
 #include <QCursor>
 #include <QDate>
@@ -17,6 +18,7 @@
 #include <QGuiApplication>
 #include <QImage>
 #include <QLocale>
+#include <QMediaDevices>
 #include <QSaveFile>
 #include <QScreen>
 #include <QSoundEffect>
@@ -220,12 +222,23 @@ AppController::AppController(core::KnownStore&            store,
     hotkey_.setKeys(storedHotkey(storage_, "ocrHotkey", GlobalHotkey::defaultKeys()));
     connect(&hoverHotkey_, &GlobalHotkey::pressed, &capture_, &CaptureDuty::toggleHoverMode);
     hoverHotkey_.setKeys(storedHotkey(storage_, "hoverHotkey", GlobalHotkey::hoverDefaultKeys()));
-    modeCue_ = std::make_unique<QSoundEffect>();
-    modeCue_->setSource(QUrl::fromLocalFile(widen(dataDir / "sounds" / "mode-switch.wav")));
-    connect(modeCue_.get(), &QSoundEffect::statusChanged, this, [this] {
-        if (modeCue_->status() == QSoundEffect::Error) LENS_WARN("the mode-switch sound did not load; switching lookup modes will be silent");
-    });
-    connect(&capture_, &CaptureDuty::hoverModeChanged, this, [this] { modeCue_->play(); });
+    // A machine with no audio output endpoint -- headphones unplugged, a remote session, a desktop
+    // whose speakers are all disabled -- has nothing to play a cue on, and QSoundEffect reports that
+    // as a load error on every start. That is a fact about the machine, not a fault: the cue is not
+    // built, and the silence is said once at the level it belongs to.
+    // The default endpoint rather than the list: QAudioDevice's destructor is not noexcept, so a
+    // QList of it is refused by Qt 6.9's containers (its own static_assert), and one endpoint is
+    // all this needs.
+    if (QMediaDevices::defaultAudioOutput().isNull()) {
+        LENS_INFO("no audio output on this machine; the mode-switch cue stays silent");
+    } else {
+        modeCue_ = std::make_unique<QSoundEffect>();
+        modeCue_->setSource(QUrl::fromLocalFile(widen(dataDir / "sounds" / "mode-switch.wav")));
+        connect(modeCue_.get(), &QSoundEffect::statusChanged, this, [this] {
+            if (modeCue_->status() == QSoundEffect::Error) LENS_WARN("the mode-switch sound did not load; switching lookup modes will be silent");
+        });
+        connect(&capture_, &CaptureDuty::hoverModeChanged, this, [this] { modeCue_->play(); });
+    }
     restoreModelService();
     cost_.setLegacyModel(llm_.model());
     gateTimer_.setInterval(1000);

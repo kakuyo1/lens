@@ -49,6 +49,10 @@ UpdateDuty::UpdateDuty(StorageDuty&            storage,
         inFlight_ = false;
         reportOffline(manual_);
     });
+    connect(&client_, &update::UpdateClient::noRelease, this, [this] {
+        inFlight_ = false;
+        reportNoRelease(manual_);
+    });
     connect(&downloader_, &update::DownloadClient::sumsReady, this, &UpdateDuty::onSumsReady);
     connect(&downloader_, &update::DownloadClient::installerReady, this, &UpdateDuty::onInstallerReady);
     connect(&downloader_, &update::DownloadClient::progressed, this, [this](qint64 received, qint64 total) {
@@ -250,6 +254,24 @@ void UpdateDuty::reportOffline(bool manual)
     state_ = manual ? QStringLiteral("offline") : QStringLiteral("idle");
     LENS_WARN("the update source could not be reached; {}",
               manual ? "reporting it" : "saying nothing, since nobody asked");
+    emit updateChanged();
+}
+
+void UpdateDuty::reportNoRelease(bool manual)
+{
+    // The page answered; what it named is a tag this build does not act on, which today means a
+    // pre-release. Nothing is offered and nothing failed: the manual check reports what is true
+    // -- nothing newer to offer -- and the automatic one stays quiet, as it does before the first
+    // release. The daily write has already happened, so tomorrow asks again. A transfer that was
+    // running for an older offer has no card to belong to, the way it has none after reportOffline().
+    if (download_.stage == update::DownloadStage::Downloading or download_.stage == update::DownloadStage::Verifying)
+        cancelDownload();
+    latest_.clear();
+    notes_.clear();
+    pageUrl_.clear();
+    cardVisible_ = false;
+    state_       = manual ? QStringLiteral("upToDate") : QStringLiteral("idle");
+    LENS_INFO("the release page names a tag this check does not act on; no update to offer");
     emit updateChanged();
 }
 

@@ -122,9 +122,15 @@ void UpdateClient::fetch()
             return;
         }
         // The header may be relative; the parser sees the address the redirect really names.
-        const auto release = parseReleaseLocation(settings_.source.resolved(QUrl{raw.toUrl()}));
+        Refusal    reason  = Refusal::NotHttps;
+        const auto release = parseReleaseLocation(settings_.source.resolved(QUrl{raw.toUrl()}), &reason);
         if (not release) {
-            emit offline();
+            // A tag this check does not act on is the project's own answer, not a source that
+            // failed to answer; it is reported as no release, never as offline.
+            if (reason == Refusal::UnusableTag)
+                emit noRelease();
+            else
+                emit offline();
             return;
         }
         emit finished(*release);

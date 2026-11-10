@@ -111,6 +111,17 @@ TEST(PricingTest, LoadsTheShippedPriceList)
     EXPECT_DOUBLE_EQ(cost, (0.15 + 0.6) * 6.71);
 }
 
+TEST(PricingTest, PricesTheFlashAliasTheSameAsTheModelItNames)
+{
+    const Pricing pricing = Pricing::load(pricingPath());
+
+    // `deepseek-v4-flash` is the endpoint's alias for the flash model (docs/adr/0137), and the
+    // field takes typed names. Quoting it is what keeps the tally and the daily budget honest
+    // for a reader who chose it.
+    EXPECT_DOUBLE_EQ(pricing.cost(QStringLiteral("deepseek-v4-flash"), Usage{1000000, 1000000}),
+                     pricing.cost(QStringLiteral("deepseek-flash"), Usage{1000000, 1000000}));
+}
+
 TEST(PricingTest, ScalesLinearlyWithTokens)
 {
     const Pricing pricing = Pricing::load(pricingPath());
