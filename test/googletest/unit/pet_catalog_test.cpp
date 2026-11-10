@@ -4,6 +4,7 @@
  *        (docs/adr/0043). Also an opt-in run over packages made outside the repository.
  */
 
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -203,6 +204,11 @@ TEST(PetCatalog, TheStampMovesOnlyWhenTheFoldersDo)
     // keeping the name the last scan read.
     doc["name"] = "Lounge Cat";
     write();
+    // Windows stamps a file from a clock that ticks about every 15 ms, so two writes in one tick carry the same
+    // time and the scan legitimately holds its answer. The edit's time is placed a second on instead, so the case
+    // tests the stamp's reaction rather than the filesystem's clock.
+    std::filesystem::last_write_time(folder / "pet.json",
+                                     std::filesystem::last_write_time(folder / "pet.json") + std::chrono::seconds{1});
     EXPECT_NE(before, scanStamp(shippedRoot(), scratch.path()));
 
     auto const  catalog = scanPets(shippedRoot(), scratch.path());

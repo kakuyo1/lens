@@ -126,13 +126,9 @@ AppController::AppController(core::KnownStore&            store,
     // hand-edited number cannot reach the refresh code.
     const auto* const quality = core::settings::find("glassQuality");
     glass_.setQuality(glassQualityFrom(settings::read(storage_.section(), *quality).toInt()));
-    // The six numbers the glass surfaces read live, and the projection's cache: both are dropped by the first
-    // subscriber of settingsChanged, which runs before the QML bindings because it is connected here (docs/adr/0173).
+    // The six numbers the glass surfaces read live. Every settingsChanged goes out through notifySettingsChanged(),
+    // which reloads them and drops the map before the signal runs (docs/adr/0173).
     reloadGlassParameters();
-    connect(this, &AppController::settingsChanged, this, [this] {
-        settingsProjection_.reset();
-        reloadGlassParameters();
-    });
     // A slider's stops land faster than a disk write or a whole projection should: the document takes each one, and
     // the file takes the last (writeSetting routes the six glass keys here). The 300 ms is the glass's own settle.
     gestureSettle_.setSingleShot(true);
@@ -143,7 +139,7 @@ AppController::AppController(core::KnownStore&            store,
     connect(this, &AppController::statsChanged, &sync_, &SyncDuty::scheduleSync);
     connect(this, &AppController::settingsChanged, &sync_, &SyncDuty::scheduleSync);
     connect(&sync_, &SyncDuty::remoteApplied, this, [this] {
-        emit settingsChanged();
+        notifySettingsChanged();
         emit statsChanged();
     });
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
@@ -168,7 +164,7 @@ AppController::AppController(core::KnownStore&            store,
     });
     // A lone Alt tap never opens Chrome's menu bar while Chrome is the page being scanned (see AltKeyHook).
     altHook.setMenuGuard([this] { return capture_.chromeScanActive(); });
-    connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
+    connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::notifySettingsChanged);
     connect(&capture_, &CaptureDuty::uploadPreviewReady, this, [this](qulonglong requestId, QImage const& image) {
         if (consentPreview_) consentPreview_->set(requestId, image);
     });
@@ -176,7 +172,7 @@ AppController::AppController(core::KnownStore&            store,
         if (consentPreview_ and outcome.value("canRetry").toBool() != true)
             consentPreview_->clear(outcome.value("requestId").toULongLong());
     });
-    connect(&catalog_, &ModelCatalogDuty::settingsChanged, this, &AppController::settingsChanged);
+    connect(&catalog_, &ModelCatalogDuty::settingsChanged, this, &AppController::notifySettingsChanged);
     connect(&catalog_, &ModelCatalogDuty::settingsChanged, this, &AppController::invalidateConnectionTest);
     connect(&llm_, &llm::LlmClient::probeFinished, this, [this](bool ok, QString message) {
         connectionTesting_ = false;
@@ -209,7 +205,7 @@ AppController::AppController(core::KnownStore&            store,
         explanation_.resumeQueued();
         emit statsChanged();
         emit yearDaysChanged();
-        emit settingsChanged();
+        notifySettingsChanged();
         emit dailyBudgetChanged();
         // The pet sleeps while the daily budget is spent and wakes once it is not, one event per change.
         const bool paused = cost_.budgetStatus().exhausted;
@@ -336,7 +332,7 @@ void AppController::importWordlist(QUrl file)
     if (lemmas.empty()) {
         importStatus_ = QCoreApplication::translate("lens::app::AppController", "The file could not be read.");
         LENS_WARN("wordlist import from '{}': nothing was read", path.toStdString());
-        emit settingsChanged();
+        notifySettingsChanged();
         return;
     }
     auto& store = storage_.knownStore();
@@ -348,7 +344,7 @@ void AppController::importWordlist(QUrl file)
     importStatus_ = QCoreApplication::translate("lens::app::AppController", "Imported %1 word(s).").arg(static_cast<int>(lemmas.size()));
     LENS_INFO("wordlist imported from '{}': {} mastered verdict(s)", path.toStdString(), lemmas.size());
     emit statsChanged();
-    emit settingsChanged();
+    notifySettingsChanged();
 }
 
 QUrl AppController::masteredWordsFolder() const
@@ -439,7 +435,7 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
             storage_.save();
             capture_.difficultyChanged();
             LENS_INFO("level set to {}", level);
-            emit settingsChanged();
+            notifySettingsChanged();
             return true;
         }
         case Signal::ExplanationLang: {
@@ -451,7 +447,7 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
             storage_.knownStore().setExplanationLang(lang);
             storage_.save();
             LENS_INFO("explanation language set to '{}'", lang);
-            emit settingsChanged();
+            notifySettingsChanged();
             emit statsChanged();
             return true;
         }
@@ -459,7 +455,7 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
             if (not settings::write(storage_.section(), row, value))
                 return false;
             emit uiLanguageChanged(value.toString());
-            emit settingsChanged();
+            notifySettingsChanged();
             emit statsChanged();
             return true;
         }
@@ -467,14 +463,14 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
             if (not settings::write(storage_.section(), row, value))
                 return false;
             glass_.setQuality(glassQualityFrom(settings::read(storage_.section(), row).toInt()));
-            emit settingsChanged();
+            notifySettingsChanged();
             return true;
         }
         case Signal::Logged: {
             if (not settings::write(storage_.section(), row, value))
                 return false;
             LENS_INFO("{} set to '{}'", std::string{row.key}, settings::read(storage_.section(), row).toString().toStdString());
-            emit settingsChanged();
+            notifySettingsChanged();
             return true;
         }
         case Signal::Settings: {
@@ -489,7 +485,7 @@ bool AppController::writeSetting(core::settings::Row const& row, QVariant const&
             }
             if (not settings::write(storage_.section(), row, value))
                 return false;
-            emit settingsChanged();
+            notifySettingsChanged();
             return true;
         }
     }
@@ -516,7 +512,7 @@ QString AppController::recordHotkey(GlobalHotkey& hotkey, GlobalHotkey const& ot
     const QString text = sequence.toString(QKeySequence::PortableText);
     storage_.section().set<std::string>(settingKey, text.toStdString());
     LENS_INFO("trigger key '{}' set to '{}'", settingKey, text.toStdString());
-    emit settingsChanged();
+    notifySettingsChanged();
     return {};
 }
 
@@ -537,7 +533,7 @@ bool AppController::installHotkey()
         LENS_WARN("the OCR trigger key is not in force; the capture mask cannot be raised from the keyboard");
     if (not hoverHotkey_.install())
         LENS_WARN("the hover lookup key is not in force; hover lookup cannot be switched on from the keyboard");
-    emit settingsChanged();
+    notifySettingsChanged();
     return registered;
 }
 
@@ -613,7 +609,7 @@ void AppController::setReviewFrequency(int const value)
 {
     auto const clamped = std::clamp(value, static_cast<int>(core::ReviewFrequency::Off), static_cast<int>(core::kLastReviewFrequency));
     reviewDuty_.setFrequency(static_cast<core::ReviewFrequency>(clamped), QDateTime::currentMSecsSinceEpoch());
-    emit settingsChanged();
+    notifySettingsChanged();
 }
 
 QVariantList AppController::latinFontFamilies() const
@@ -658,7 +654,7 @@ void AppController::setApiKey(QString key)
     // A pending online OCR consent froze the explanation destination too; the text would go to a
     // service the reader did not confirm.
     capture_.invalidateOnlineConfiguration();
-    emit settingsChanged();
+    notifySettingsChanged();
 }
 
 void AppController::clearOcrOnlineConfiguration()
@@ -680,7 +676,7 @@ void AppController::setModel(QString model)
     if (catalog_.setModel(model)) {
         invalidateConnectionTest();
         capture_.invalidateOnlineConfiguration();
-        emit settingsChanged();
+        notifySettingsChanged();
     }
 }
 
@@ -699,7 +695,7 @@ void AppController::setApiUrl(QString url)
     catalog_.refreshModels();
     invalidateConnectionTest();
     capture_.invalidateOnlineConfiguration();
-    emit settingsChanged();
+    notifySettingsChanged();
 }
 
 void AppController::testConnection()
@@ -744,7 +740,7 @@ void AppController::invalidateConnectionTest()
 void AppController::setAutostart(bool on)
 {
     writeAutostart(on);
-    emit settingsChanged();
+    notifySettingsChanged();
 }
 
 void AppController::reviewWord(QString lemma, int x, int y, int width, int height)
@@ -766,11 +762,19 @@ void AppController::explainLemma(QString lemma)
 QVariantMap AppController::settings()
 {
     // Once per change, not once per read: a binding that reads one key would otherwise rebuild the whole map, and the
-    // application has a binding on nearly every surface (docs/adr/0173). The cache is dropped before settingsChanged
-    // reaches QML, because the connection that drops it is made in the constructor.
+    // application has a binding on nearly every surface (docs/adr/0173).
     if (not settingsProjection_)
         settingsProjection_ = buildSettings();
     return *settingsProjection_;
+}
+
+void AppController::notifySettingsChanged()
+{
+    // The write already happened; dropping the map here is what makes the QML bindings that re-read during the
+    // emission see it. A slot connected to settingsChanged cannot do that job: QML's handlers run ahead of it.
+    settingsProjection_.reset();
+    reloadGlassParameters();
+    emit settingsChanged();
 }
 
 GlassParameters* AppController::glassParameters()

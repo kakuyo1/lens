@@ -320,6 +320,10 @@ private:
     bool writeSetting(core::settings::Row const& row, QVariant const& value);
     /// @brief The projection, built from the document (settings() hands out the last build until something moves it).
     QVariantMap buildSettings();
+    /// @brief Drop the projection, reload the glass numbers and emit settingsChanged -- the only way it should go out.
+    /// @note The drop has to happen before the signal runs: QML's own handlers re-read settings() during the
+    ///       emission, ahead of any slot connected to it (docs/adr/0173).
+    void notifySettingsChanged();
     /// @brief Write the document now, from the gesture that was settling.
     void commitGestureSettings();
     /// @brief Write the document, logging a failure instead of throwing: the gesture timer's slot must not unwind.
