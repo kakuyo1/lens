@@ -37,6 +37,15 @@
 namespace lens::app {
 namespace {
 
+/// @return Whether the page scan is allowed to run: the reader's master switch and the switch of
+///         the one shipped app (Chrome) both have to be on. Apps that are not shipped yet have no
+///         switch of their own, so the list cannot grow a half-on state by accident.
+bool autoScanOn(QVariantMap const& current)
+{
+    return current.value(QStringLiteral("autoScan")).toBool() and
+           current.value(QStringLiteral("autoScanChrome")).toBool();
+}
+
 /// @return The monitor behind a QScreen, in the same terms `capture::monitorAt` speaks.
 ///
 /// A screen is looked up by the monitor it is rather than by the name it is called: Qt names a
@@ -226,6 +235,7 @@ QVariantMap CaptureDuty::settings() const
     }
     return {{"ocrCapture", readOf("ocrCapture")},
             {"autoScan", readOf("autoScan")},
+            {"autoScanChrome", readOf("autoScanChrome")},
             {"ocrAvailable", lifecycle_.status() == capture::OcrStatus::Ready},
             {"minimumWordLength", readOf("minimumWordLength")},
             {"ocrConfigVersion", readOf("ocrConfigVersion")},
@@ -302,6 +312,10 @@ bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
     }
     if (key == "autoScan") {
         setAutoScan(value.toBool());
+        return true;
+    }
+    if (key == "autoScanChrome") {
+        setAutoScanChrome(value.toBool());
         return true;
     }
     if (key == "minimumWordLength") {
@@ -385,6 +399,14 @@ void CaptureDuty::setOcrCapture(bool const on)
 void CaptureDuty::setAutoScan(bool const on)
 {
     if (not settings::write(storage_.section(), *core::settings::find("autoScan"), on))
+        return;
+    invalidateScan();
+    emit settingsChanged();
+}
+
+void CaptureDuty::setAutoScanChrome(bool const on)
+{
+    if (not settings::write(storage_.section(), *core::settings::find("autoScanChrome"), on))
         return;
     invalidateScan();
     emit settingsChanged();
@@ -1045,11 +1067,12 @@ std::optional<CaptureRefusal> CaptureDuty::captureRegion(QRect const region)
 
 void CaptureDuty::scanTick()
 {
-    ScanFacts facts;
+    ScanFacts  facts;
+    auto const current        = settings();
     facts.budgetPaused        = budgetPaused_;
-    facts.autoScan            = settings().value("autoScan").toBool();
+    facts.autoScan            = autoScanOn(current);
     facts.jobOrUploadInFlight = jobContext_.has_value() or upload_.active();
-    facts.minimumWordLength   = settings().value("minimumWordLength").toInt();
+    facts.minimumWordLength   = current.value("minimumWordLength").toInt();
     if (auto const foreground = capture::foregroundWindow()) {
         auto& view = facts.foreground.emplace();
         // The page text comes through UI Automation, which exposes a browser's page; no other window has text here.
@@ -1119,7 +1142,7 @@ void CaptureDuty::onScanPlaceFlush()
 CaptureDuty::ScanDebugState CaptureDuty::debugScanState() const
 {
     auto const session = session_.debugState();
-    return {.autoScan   = settings().value("autoScan").toBool(),
+    return {.autoScan   = autoScanOn(settings()),
             .tracking   = session.tracking,
             .generation = session.generation,
             .candidates = session.candidates};
@@ -1192,7 +1215,7 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
                                               .foregroundContext    = std::move(foregroundContext),
                                               .budgetPaused         = budgetPaused_,
                                               .scanPaused           = session_.scanPaused(),
-                                              .autoScan             = settings().value("autoScan").toBool()});
+                                              .autoScan             = autoScanOn(settings())});
     if (not context.context.isEmpty())
         LENS_INFO("scan result: status={} chars={} took {} ms, fate={}", statusToken(result.status).toStdString(), result.text.size(), result.timing.totalMs, fate == capture::OcrResultFate::Current ? "current" : fate == capture::OcrResultFate::Superseded ? "superseded"
                                                                                                                                                                                                                                                                : "withdrawn");
@@ -1229,7 +1252,7 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
 
 bool CaptureDuty::chromeScanActive()
 {
-    return settings().value("autoScan").toBool() and session_.trackingPage();
+    return autoScanOn(settings()) and session_.trackingPage();
 }
 
 void CaptureDuty::lookUpWord(QString const surface, QPoint const anchor)

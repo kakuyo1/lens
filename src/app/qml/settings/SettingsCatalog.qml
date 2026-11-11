@@ -30,6 +30,11 @@ Item {
             onPicked: root.categoryRequested("capture")
         }
         SettingsCategoryRow {
+            title: qsTranslate("SettingsPopup", "Auto scan")
+            summary: qsTranslate("SettingsPopup", "Chrome, supported apps")
+            onPicked: root.categoryRequested("autoscan")
+        }
+        SettingsCategoryRow {
             title: qsTranslate("SettingsPopup", "OCR")
             summary: qsTranslate("SettingsPopup", "Screenshot capture, its key and engine")
             onPicked: root.categoryRequested("ocr")

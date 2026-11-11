@@ -396,6 +396,7 @@ qt_add_qml_module(lens_app
     qml/settings/pages/SettingsGeneralPage.qml
     qml/settings/pages/SettingsLearningPage.qml
     qml/settings/pages/SettingsCapturePage.qml
+    qml/settings/pages/SettingsAutoScanPage.qml
     qml/settings/pages/SettingsOcrPathsPage.qml
     qml/settings/pages/SettingsOcrPage.qml
     qml/settings/pages/SettingsOnlineOcrPage.qml

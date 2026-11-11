@@ -74,6 +74,7 @@ Window {
         if (value === "general") return qsTranslate("SettingsPopup", "General");
         if (value === "learning") return qsTranslate("SettingsPopup", "Reading & learning");
         if (value === "capture") return qsTranslate("SettingsPopup", "Capture & popups");
+        if (value === "autoscan") return qsTranslate("SettingsPopup", "Auto scan");
         if (value === "ocr") return qsTranslate("SettingsPopup", "OCR");
         if (value === "model") return qsTranslate("SettingsPopup", "Model service");
         if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
@@ -130,8 +131,8 @@ Window {
     function routeTo(path) {
         if (!settings.visible)
             return false;
-        const categories = ["general", "learning", "capture", "ocr", "model", "extensions",
-                            "sync", "about"];
+        const categories = ["general", "learning", "capture", "autoscan", "ocr", "model",
+                            "extensions", "sync", "about"];
         const steps = path.split("/");
         if (!categories.includes(steps[0]))
             return false;
@@ -554,6 +555,7 @@ Window {
                                   : settings.category === "general" ? generalComponent
                                   : settings.category === "learning" ? learningComponent
                                   : settings.category === "capture" ? captureComponent
+                                  : settings.category === "autoscan" ? autoScanComponent
                                   : settings.category === "ocr" ? ocrComponent
                                   : settings.category === "model" ? modelComponent
                                   : settings.category === "sync" ? syncComponent
@@ -562,9 +564,7 @@ Window {
             }
         }
 
-        // The six-pixel thumb UI-SPEC.md 4.4 asks for: transparent track, faint thumb, in the
-        // card's right margin. It is a sibling of the body, not a child: a child scrolls with
-        // the content it is supposed to measure, and reads as a bar that never moves.
+        // The thumb is a sibling of the body: inside it, the bar would scroll with what it measures.
         Rectangle {
             id: scrollThumb
             objectName: "scrollThumb"
@@ -724,6 +724,7 @@ Window {
             onChildRequested: (value) => settings.openRoute(value)
         }
     }
+    Component { id: autoScanComponent; SettingsAutoScanPage {} }
     Component {
         id: ocrComponent
         SettingsOcrPage {

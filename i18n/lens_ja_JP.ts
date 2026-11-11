@@ -776,12 +776,6 @@ One small word at a time, the reading opens.</translation>
         <source>Minimum word length</source>
         <translation>最小語長</translation>
     </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="201"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="212"/>
-        <source>Scan whitelist</source>
-        <translation>スキャン対象プロセス</translation>
-    </message>
 </context>
 <context>
     <name>SettingsPopup</name>
@@ -839,16 +833,6 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="67"/>
         <source>Auto scan</source>
         <translation>自動スキャン</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="68"/>
-        <source>Experimental</source>
-        <translation>実験的</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="83"/>
-        <source>Auto scan is still experimental and not released yet; its results are not reliable.</source>
-        <translation>自動スキャンはまだ実験的な機能で、未公開です。結果はまだ信頼できません。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="99"/>
@@ -2991,11 +2975,6 @@ One small word at a time, the reading opens.</translation>
         <translation>ユーザーがインストール。ASCII のモデルフォルダーが必要です</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
-        <source>Experimental auto scan always uses this local engine and never an online service.</source>
-        <translation>実験的な自動スキャンは常にこのローカルエンジンを使い、オンラインサービスは使いません。</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="214"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="222"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="184"/>
@@ -3147,6 +3126,46 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="109"/>
         <source>Mail owl</source>
         <translation>手紙配達</translation>
+    </message>
+    <message>
+        <source>Chrome, supported apps</source>
+        <translation>Chrome と対応アプリ</translation>
+    </message>
+    <message>
+        <source>Enable auto scan</source>
+        <translation>自動スキャンを有効にする</translation>
+    </message>
+    <message>
+        <source>Marks words above your level in supported apps. It reads page text through UI Automation, without OCR or an online service.</source>
+        <translation>対応アプリで、あなたのレベルを超える単語に印をつけます。UI Automation でページの文字を読み取り、OCR やオンラインサービスは使いません。</translation>
+    </message>
+    <message>
+        <source>Supported apps</source>
+        <translation>対応アプリ</translation>
+    </message>
+    <message>
+        <source>Chrome</source>
+        <translation>Chrome</translation>
+    </message>
+    <message>
+        <source>PDF reader</source>
+        <translation>PDF リーダー</translation>
+    </message>
+    <message>
+        <source>Video subtitles</source>
+        <translation>動画の字幕</translation>
+    </message>
+    <message>
+        <source>Coming soon</source>
+        <translation>近日対応</translation>
+    </message>
+    <message>
+        <source>Only Chrome web pages are supported today. PDF readers and video subtitles are not available yet.</source>
+        <translation>現在は Chrome のウェブページのみ対応しています。PDF リーダーと動画の字幕はまだ対応していません。</translation>
+    </message>
+    <message>
+        <source>Auto scan reads page text through UI Automation and never uses this engine or an online service.</source>
+        <translation>自動スキャンは UI Automation でページの文字を読み取るため、このエンジンもオンラインサービスも使いません。</translation>
     </message>
 </context>
 <context>

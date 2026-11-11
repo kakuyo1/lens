@@ -15,6 +15,11 @@ Item {
     }
 
     Component {
+        id: autoScanPageComponent
+        SettingsAutoScanPage { x: 26; y: 20; width: 328; height: implicitHeight }
+    }
+
+    Component {
         id: ocrPageComponent
         SettingsOcrPage { x: 26; y: 20; width: 328; height: implicitHeight }
     }
@@ -61,6 +66,13 @@ Item {
             return control;
         }
 
+        function makeAutoScanPage() {
+            const page = createTemporaryObject(autoScanPageComponent, host.contentItem);
+            waitForRendering(host.contentItem);
+            verify(!!page, "Auto scan page was created");
+            return page;
+        }
+
         function makeOcrPage() {
             const page = createTemporaryObject(ocrPageComponent, host.contentItem);
             waitForRendering(host.contentItem);
@@ -99,17 +111,40 @@ Item {
             tryVerify(() => Controller.settings.minimumWordLength === 5);
         }
 
-        function test_whitelistEditingNormalizesAndRejectsInvalidInput() {
-            const page = make();
-            const field = child(page, "scanWhitelist");
-            field.forceActiveFocus();
-            field.text = "CHROME.EXE, firefox.exe";
-            host.focusSink.forceActiveFocus();
-            tryVerify(() => Controller.settings.scanWhitelist === "chrome.exe;firefox.exe");
-            field.forceActiveFocus();
-            field.text = "../invalid.exe";
-            host.focusSink.forceActiveFocus();
-            tryCompare(field, "text", "chrome.exe;firefox.exe");
+        /// Auto scan is its own category now, and the app list is switches rather than a text
+        /// field of process names. Chrome is live; the two readers that are not shipped yet stay
+        /// on the page as dimmed rows that say so.
+        function test_autoScanAppsAreSwitchesWithComingSoonRows() {
+            const capture = make();
+            compare(findChild(capture, "autoScan"), null, "auto scan no longer lives on the capture page");
+            compare(findChild(capture, "scanWhitelist"), null, "the process whitelist field is gone");
+
+            const page = makeAutoScanPage();
+            const master = child(page, "autoScan");
+            const chrome = child(page, "autoScanChrome");
+            const pdf = child(page, "autoScanPdf");
+            const subtitles = child(page, "autoScanSubtitles");
+
+            compare(master.badge, "", "auto scan is no longer labelled experimental");
+            compare(findChild(page, "autoScanNote"), null, "the experimental note is gone");
+            compare(chrome.badge, "");
+            compare(pdf.badge, qsTranslate("SettingsPopup", "Coming soon"));
+            compare(subtitles.badge, qsTranslate("SettingsPopup", "Coming soon"));
+            compare(pdf.interactive, false);
+            compare(subtitles.interactive, false);
+            compare(chrome.checked, Controller.settings.autoScanChrome);
+            verify(chrome.interactive, "the Chrome switch stays configurable with the master switch off");
+        }
+
+        function test_chromeSwitchWritesItsSetting() {
+            const page = makeAutoScanPage();
+            const chrome = child(page, "autoScanChrome");
+            Controller.captureDuty.setAutoScanChrome(false);
+            tryVerify(() => Controller.settings.autoScanChrome === false);
+            compare(chrome.checked, false);
+            Controller.captureDuty.setAutoScanChrome(true);
+            tryVerify(() => Controller.settings.autoScanChrome === true);
+            compare(chrome.checked, true);
         }
 
         /// The two paths are the reader's own Tesseract: they persist through the controller and
@@ -185,12 +220,11 @@ Item {
             tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
             const ocr = makeOcrPage();
             compare(child(ocr, "ocrCapture").interactive, Controller.settings.screenshotAvailable);
-            const page = make();
+            const page = makeAutoScanPage();
             // Auto scan reads Chrome through UI Automation, so no OCR runtime gates it.
             verify(child(page, "autoScan").interactive);
-            // Auto scan is switchable as an experiment, so the status has to travel with the row.
-            compare(child(page, "autoScan").badge, qsTranslate("SettingsPopup", "Experimental"));
-            verify(child(page, "autoScanNote").visible);
+            // It is a shipped setting now; no experimental badge or note travels with the row.
+            compare(child(page, "autoScan").badge, "");
         }
 
         /// Offline OCR offers exactly Auto, Tesseract and RapidOCR; the removed Windows choice
@@ -339,8 +373,8 @@ Item {
             compare(page.credentialLabel("secretKey"), "SecretKey");
         }
 
-        /// The trigger-channel group with the Experimental badge on Auto scan, for the offscreen
-        /// visual pass; skipped unless scripts/qa/qml-snapshot.ps1 sets LENS_QA_SNAPSHOT_DIR.
+        /// The capture page without the auto-scan row, for the offscreen visual pass; skipped
+        /// unless scripts/qa/qml-snapshot.ps1 sets LENS_QA_SNAPSHOT_DIR.
         function test_snapshotTheCapturePage() {
             if (!lensQaSnapshotDir) {
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshots");

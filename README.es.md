@@ -78,11 +78,11 @@ Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes › OCR), enmarca una zona de un
 
 - **Tesseract, incluido con Lens, es el motor automático.** También puedes descargar RapidOCR-json desde Ajustes, o apuntar a tu propia copia y, tras detectarla y confiar en ella, elegirla; la carpeta de modelos debe ser una ruta ASCII.
 - **El OCR en línea es opcional.** Pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space.
-- **El escaneo automático es otro canal y sigue siendo experimental.** No usa OCR; ahora solo funciona con Chrome en primer plano: dibuja una línea de puntos bajo las palabras que pueden estar por encima de tu nivel; mantén Alt para ver la señal del sentido, o deja el puntero sobre una palabra para que aparezca un botón **Dominado** que la retira. Sus resultados aún no son fiables.
+- **Escaneo automático**: con Chrome en primer plano, dibuja una línea de puntos bajo las palabras que pueden estar por encima de tu nivel; mantén Alt para ver la señal del sentido, o deja el puntero sobre una palabra para que aparezca un botón **Dominado** que la retira. Lee el texto de la página, sin OCR ni servicios en línea. Los ajustes incluyen un interruptor general y otro para Chrome; los lectores de PDF y los subtítulos de vídeo aún no son compatibles.
 
 ## Consulta al pasar el cursor
 
-Los enlaces y los titulares suelen no poder seleccionarse. Cambia a la consulta al pasar el cursor (por defecto `Ctrl+Alt+H`; puedes cambiarla en Ajustes › Captura y ventanas), deja el puntero sobre una palabra durante un segundo y Lens la traduce. Pulsa la tecla otra vez para volver a la selección. La consulta solo lee el texto bajo el puntero: no hace clic, no toca el portapapeles, no lee campos de contraseña y solo funciona en las aplicaciones de tu lista blanca de escaneo.
+Los enlaces y los titulares suelen no poder seleccionarse. Cambia a la consulta al pasar el cursor (por defecto `Ctrl+Alt+H`; puedes cambiarla en Ajustes › Captura y ventanas), deja el puntero sobre una palabra durante un segundo y Lens la traduce. Pulsa la tecla otra vez para volver a la selección. La consulta solo lee el texto bajo el puntero: no hace clic, no toca el portapapeles, no lee campos de contraseña y solo funciona en las aplicaciones permitidas.
 
 <p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="Tras cambiar a la consulta al pasar el cursor, el puntero se queda sobre serendipity en un enlace durante un segundo y una tarjeta da su significado"></p>
 
@@ -165,7 +165,7 @@ Lens no tiene firma de código y SmartScreen bloquea los programas que no recono
 Lens no tiene cuenta ni servidor propio.
 
 - **Lo que se envía.** El texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos. La interpretación semanal y el relato solo se envían cuando pulsas su botón, llevan solo recuentos y palabras, y estas se enmascaran igual.
-- **OCR.** Se ejecuta localmente por defecto. El OCR en línea es opcional: cada captura muestra el recorte congelado y el destino exacto, se sube solo cuando lo confirmas, y el escaneo automático experimental nunca lo usa.
+- **OCR.** Se ejecuta localmente por defecto. El OCR en línea es opcional: cada captura muestra el recorte congelado y el destino exacto, se sube solo cuando lo confirmas, y el escaneo automático nunca lo usa.
 - **El altavoz.** Lee en local con la voz del sistema o un modelo local descargado; cuando recurre a un audio en línea, solo esa palabra sale del dispositivo, y la grabación se guarda en `%APPDATA%\Lens\audio`.
 - **En este dispositivo.** Tu clave de API, las credenciales de OCR y tus datos de aprendizaje se quedan en `%APPDATA%\Lens\settings.json`.
 - **Sincronización.** Si la activas, la copia en la nube se cifra con tu frase de contraseña y se guarda en tu propio gist de GitHub; la clave se queda en este dispositivo.

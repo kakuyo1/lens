@@ -776,12 +776,6 @@ One small word at a time, the reading opens.</translation>
         <source>Minimum word length</source>
         <translation>最小詞長</translation>
     </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="201"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="212"/>
-        <source>Scan whitelist</source>
-        <translation>掃描白名單</translation>
-    </message>
 </context>
 <context>
     <name>SettingsPopup</name>
@@ -1422,16 +1416,6 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="67"/>
         <source>Auto scan</source>
         <translation>自動掃描</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="68"/>
-        <source>Experimental</source>
-        <translation>實驗性</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="83"/>
-        <source>Auto scan is still experimental and not released yet; its results are not reliable.</source>
-        <translation>自動掃描仍是實驗功能，尚未上線，結果尚不可靠。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="99"/>
@@ -2983,11 +2967,6 @@ One small word at a time, the reading opens.</translation>
         <translation>使用者自行安裝；模型目錄需為 ASCII 路徑</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
-        <source>Experimental auto scan always uses this local engine and never an online service.</source>
-        <translation>實驗性的自動掃描一律使用此本機引擎，絕不呼叫線上服務。</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="214"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="222"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="184"/>
@@ -3139,6 +3118,46 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="109"/>
         <source>Mail owl</source>
         <translation>送信</translation>
+    </message>
+    <message>
+        <source>Chrome, supported apps</source>
+        <translation>Chrome 與支援的軟體</translation>
+    </message>
+    <message>
+        <source>Enable auto scan</source>
+        <translation>開啟自動掃描</translation>
+    </message>
+    <message>
+        <source>Marks words above your level in supported apps. It reads page text through UI Automation, without OCR or an online service.</source>
+        <translation>在支援的軟體中標出超出你程度的字詞。它透過 UI Automation 讀取頁面文字，不使用 OCR，也不呼叫線上服務。</translation>
+    </message>
+    <message>
+        <source>Supported apps</source>
+        <translation>支援的軟體</translation>
+    </message>
+    <message>
+        <source>Chrome</source>
+        <translation>Chrome</translation>
+    </message>
+    <message>
+        <source>PDF reader</source>
+        <translation>PDF 閱讀器</translation>
+    </message>
+    <message>
+        <source>Video subtitles</source>
+        <translation>影片字幕</translation>
+    </message>
+    <message>
+        <source>Coming soon</source>
+        <translation>待上線</translation>
+    </message>
+    <message>
+        <source>Only Chrome web pages are supported today. PDF readers and video subtitles are not available yet.</source>
+        <translation>目前僅支援 Chrome 網頁；PDF 閱讀器與影片字幕尚未支援。</translation>
+    </message>
+    <message>
+        <source>Auto scan reads page text through UI Automation and never uses this engine or an online service.</source>
+        <translation>自動掃描透過 UI Automation 讀取頁面文字，不使用此引擎，也不呼叫線上服務。</translation>
     </message>
 </context>
 <context>

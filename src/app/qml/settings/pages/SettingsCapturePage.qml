@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls.Basic
 
 Item {
     id: root
@@ -61,28 +60,8 @@ Item {
                         checked: Controller.settings.selectionCapture
                         onToggled: (on) => Controller.setSetting("selectionCapture", on)
                     }
-                    SwitchRow {
-                        objectName: "autoScan"
-                        width: parent.width
-                        label: qsTranslate("SettingsPopup", "Auto scan")
-                        badge: qsTranslate("SettingsPopup", "Experimental")
-                        checked: Controller.settings.autoScan
-                        onToggled: (on) => Controller.captureDuty.setAutoScan(on)
-                    }
                 }
             }
-        }
-
-        // The scan switch stays usable as an experiment, so its warning belongs right under the
-        // group rather than in the README alone: the reader meets the "Experimental" badge here
-        // and learns what it means before flipping anything.
-        Text {
-            objectName: "autoScanNote"
-            width: parent.width
-            text: qsTranslate("SettingsPopup", "Auto scan is still experimental and not released yet; its results are not reliable.")
-            color: root.tokens.muted
-            font.pixelSize: 12
-            wrapMode: Text.WordWrap
         }
 
         // The hover lookup key moved here from the shortcuts page: it switches between the two ways
@@ -168,34 +147,6 @@ Item {
                 ]
                 currentValue: Controller.settings.minimumWordLength
                 onPicked: (value) => Controller.captureDuty.setMinimumWordLength(value)
-            }
-        }
-
-        Column {
-            width: parent.width
-            spacing: 7
-            Text { text: qsTr("Scan whitelist"); color: root.tokens.muted; font.pixelSize: 12 }
-            TextField {
-                id: whitelistField
-                objectName: "scanWhitelist"
-                width: parent.width
-                text: Controller.settings.scanWhitelist
-                font.pixelSize: 13
-                color: root.tokens.text
-                selectByMouse: true
-                activeFocusOnTab: true
-                maximumLength: 4096
-                Accessible.name: qsTr("Scan whitelist")
-                background: Rectangle {
-                    radius: root.tokens.radiusField
-                    color: root.tokens.panel2
-                    border.width: 1
-                    border.color: whitelistField.activeFocus ? root.tokens.ink : root.tokens.line
-                }
-                onEditingFinished: {
-                    Controller.captureDuty.setScanWhitelist(text);
-                    text = Qt.binding(() => Controller.settings.scanWhitelist);
-                }
             }
         }
     }

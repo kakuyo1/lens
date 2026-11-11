@@ -776,12 +776,6 @@ One small word at a time, the reading opens.</translation>
         <source>Minimum word length</source>
         <translation>Minimum word length</translation>
     </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="201"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="212"/>
-        <source>Scan whitelist</source>
-        <translation>Scan whitelist</translation>
-    </message>
 </context>
 <context>
     <name>SettingsPopup</name>
@@ -1422,16 +1416,6 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="67"/>
         <source>Auto scan</source>
         <translation>Auto scan</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="68"/>
-        <source>Experimental</source>
-        <translation>Experimental</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="83"/>
-        <source>Auto scan is still experimental and not released yet; its results are not reliable.</source>
-        <translation>Auto scan is still experimental and not released yet; its results are not reliable.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="99"/>
@@ -2983,11 +2967,6 @@ One small word at a time, the reading opens.</translation>
         <translation>User-installed; ASCII model folder required</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
-        <source>Experimental auto scan always uses this local engine and never an online service.</source>
-        <translation>Experimental auto scan always uses this local engine and never an online service.</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="214"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="222"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="184"/>
@@ -3139,6 +3118,46 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="109"/>
         <source>Mail owl</source>
         <translation>Mail owl</translation>
+    </message>
+    <message>
+        <source>Chrome, supported apps</source>
+        <translation>Chrome, supported apps</translation>
+    </message>
+    <message>
+        <source>Enable auto scan</source>
+        <translation>Enable auto scan</translation>
+    </message>
+    <message>
+        <source>Marks words above your level in supported apps. It reads page text through UI Automation, without OCR or an online service.</source>
+        <translation>Marks words above your level in supported apps. It reads page text through UI Automation, without OCR or an online service.</translation>
+    </message>
+    <message>
+        <source>Supported apps</source>
+        <translation>Supported apps</translation>
+    </message>
+    <message>
+        <source>Chrome</source>
+        <translation>Chrome</translation>
+    </message>
+    <message>
+        <source>PDF reader</source>
+        <translation>PDF reader</translation>
+    </message>
+    <message>
+        <source>Video subtitles</source>
+        <translation>Video subtitles</translation>
+    </message>
+    <message>
+        <source>Coming soon</source>
+        <translation>Coming soon</translation>
+    </message>
+    <message>
+        <source>Only Chrome web pages are supported today. PDF readers and video subtitles are not available yet.</source>
+        <translation>Only Chrome web pages are supported today. PDF readers and video subtitles are not available yet.</translation>
+    </message>
+    <message>
+        <source>Auto scan reads page text through UI Automation and never uses this engine or an online service.</source>
+        <translation>Auto scan reads page text through UI Automation and never uses this engine or an online service.</translation>
     </message>
 </context>
 <context>

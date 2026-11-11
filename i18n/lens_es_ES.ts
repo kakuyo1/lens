@@ -776,12 +776,6 @@ One small word at a time, the reading opens.</translation>
         <source>Minimum word length</source>
         <translation>Longitud mínima de palabra</translation>
     </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="201"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="212"/>
-        <source>Scan whitelist</source>
-        <translation>Lista blanca de escaneo</translation>
-    </message>
 </context>
 <context>
     <name>SettingsPopup</name>
@@ -839,16 +833,6 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="67"/>
         <source>Auto scan</source>
         <translation>Escaneo automático</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="68"/>
-        <source>Experimental</source>
-        <translation>Experimental</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="83"/>
-        <source>Auto scan is still experimental and not released yet; its results are not reliable.</source>
-        <translation>El escaneo automático sigue siendo experimental y aún no está disponible; sus resultados aún no son fiables.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="99"/>
@@ -2991,11 +2975,6 @@ One small word at a time, the reading opens.</translation>
         <translation>Instalado por el usuario; se requiere una carpeta de modelos ASCII</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
-        <source>Experimental auto scan always uses this local engine and never an online service.</source>
-        <translation>El escaneo automático experimental siempre usa este motor local y nunca un servicio en línea.</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="214"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="222"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="184"/>
@@ -3147,6 +3126,46 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="109"/>
         <source>Mail owl</source>
         <translation>Búho cartero</translation>
+    </message>
+    <message>
+        <source>Chrome, supported apps</source>
+        <translation>Chrome y apps compatibles</translation>
+    </message>
+    <message>
+        <source>Enable auto scan</source>
+        <translation>Activar el escaneo automático</translation>
+    </message>
+    <message>
+        <source>Marks words above your level in supported apps. It reads page text through UI Automation, without OCR or an online service.</source>
+        <translation>Marca las palabras por encima de tu nivel en las apps compatibles. Lee el texto de la página mediante UI Automation, sin OCR ni servicios en línea.</translation>
+    </message>
+    <message>
+        <source>Supported apps</source>
+        <translation>Apps compatibles</translation>
+    </message>
+    <message>
+        <source>Chrome</source>
+        <translation>Chrome</translation>
+    </message>
+    <message>
+        <source>PDF reader</source>
+        <translation>Lector de PDF</translation>
+    </message>
+    <message>
+        <source>Video subtitles</source>
+        <translation>Subtítulos de vídeo</translation>
+    </message>
+    <message>
+        <source>Coming soon</source>
+        <translation>Próximamente</translation>
+    </message>
+    <message>
+        <source>Only Chrome web pages are supported today. PDF readers and video subtitles are not available yet.</source>
+        <translation>Hoy solo se admiten páginas web de Chrome. Los lectores de PDF y los subtítulos de vídeo aún no están disponibles.</translation>
+    </message>
+    <message>
+        <source>Auto scan reads page text through UI Automation and never uses this engine or an online service.</source>
+        <translation>El escaneo automático lee el texto de la página mediante UI Automation y nunca usa este motor ni un servicio en línea.</translation>
     </message>
 </context>
 <context>
