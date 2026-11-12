@@ -77,6 +77,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/consent_preview_test.cpp
   unit/capture_test.cpp
   unit/track_core_test.cpp
+  unit/scintilla_words_test.cpp
   unit/scan_session_test.cpp
   unit/scan_emission_gate_test.cpp
   unit/ocr_tsv_test.cpp

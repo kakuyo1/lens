@@ -84,6 +84,7 @@ public:
     Q_INVOKABLE void setOcrCapture(bool on);
     Q_INVOKABLE void setAutoScan(bool on);
     Q_INVOKABLE void setAutoScanChrome(bool on);
+    Q_INVOKABLE void setAutoScanNotepad(bool on);
     Q_INVOKABLE void setMinimumWordLength(int length);
     Q_INVOKABLE bool setScanWhitelist(QString processes);
     /// @brief Point OCR at the reader's own Tesseract and probe it again; empty means the bundled one.
@@ -169,9 +170,9 @@ public:
     /// @brief The reader changed @p lemma's verdict; the scan session re-judges the surfaces it was
     ///        judged under, with no full scan invalidation (ScanSession::onVerdictChanged).
     void verdictChanged(QString lemma);
-    /// @brief True while the automatic scan is on and a Chrome window is in front, the only time a lone Alt tap
-    ///        is turned into a cancelled tap for the menu bar.
-    bool chromeScanActive();
+    /// @brief True while the automatic scan is on and a window it reads is in front, the only time a
+    ///        lone Alt tap is turned into a cancelled tap for the menu bar.
+    bool autoScanActive();
 
     /// @brief The facts a developer surface reports about the scan (docs/adr/0165).
     struct ScanDebugState {

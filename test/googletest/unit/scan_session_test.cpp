@@ -166,6 +166,29 @@ TEST(ScanSession, TheFirstChromeTickClearsAndStartsTheTrack)
     EXPECT_EQ(h.started, 1);
 }
 
+TEST(ScanSession, NotepadStartsATrackWithoutWarmingAnUiaTree)
+{
+    Harness h;
+    auto    facts             = h.chrome();
+    facts.foreground->kind    = ScanForeground::Kind::Notepad;
+    facts.foreground->context = QStringLiteral("notepad-doc");
+    auto const step           = h.session.tick(facts);
+    EXPECT_TRUE(step.cleared);
+    EXPECT_FALSE(step.warm);
+    EXPECT_EQ(h.started, 1);
+}
+
+TEST(ScanSession, LeavingNotepadTearsDownOnce)
+{
+    Harness h;
+    auto    notepad          = h.chrome();
+    notepad.foreground->kind = ScanForeground::Kind::Notepad;
+    h.session.tick(notepad);
+    ASSERT_EQ(h.started, 1);
+    EXPECT_TRUE(h.session.tick(foregroundOf(ScanForeground::Kind::Other)).cleared);
+    EXPECT_FALSE(h.session.tick(foregroundOf(ScanForeground::Kind::Other)).cleared);
+}
+
 TEST(ScanSession, ALevelDriftInvalidatesAndRescansInTheSameTick)
 {
     Harness h;

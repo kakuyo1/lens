@@ -200,7 +200,7 @@ Item {
             Text {
                 width: parent.width
                 visible: page.settings.ocrLocalEngine === "auto"
-                text: qsTranslate("SettingsPopup", "Auto scan reads page text through UI Automation and never uses this engine or an online service.")
+                text: qsTranslate("SettingsPopup", "Auto scan reads the text its apps expose and never uses this engine or an online service.")
                 color: page.tokens.muted
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap

@@ -3120,16 +3120,16 @@ One small word at a time, the reading opens.</translation>
         <translation>送信</translation>
     </message>
     <message>
-        <source>Chrome, supported apps</source>
-        <translation>Chrome 與支援的軟體</translation>
+        <source>Chrome, Notepad++, supported apps</source>
+        <translation>Chrome、Notepad++ 與支援的軟體</translation>
     </message>
     <message>
         <source>Enable auto scan</source>
         <translation>開啟自動掃描</translation>
     </message>
     <message>
-        <source>Marks words above your level in supported apps. It reads page text through UI Automation, without OCR or an online service.</source>
-        <translation>在支援的軟體中標出超出你程度的字詞。它透過 UI Automation 讀取頁面文字，不使用 OCR，也不呼叫線上服務。</translation>
+        <source>Marks words above your level in supported apps. It reads the text those apps expose, without OCR or an online service.</source>
+        <translation>在支援的軟體中標出超出你程度的字詞。它讀取這些軟體提供的文字，不使用 OCR，也不呼叫線上服務。</translation>
     </message>
     <message>
         <source>Supported apps</source>
@@ -3152,12 +3152,16 @@ One small word at a time, the reading opens.</translation>
         <translation>待上線</translation>
     </message>
     <message>
-        <source>Only Chrome web pages are supported today. PDF readers and video subtitles are not available yet.</source>
-        <translation>目前僅支援 Chrome 網頁；PDF 閱讀器與影片字幕尚未支援。</translation>
+        <source>Chrome web pages and Notepad++ documents are supported. PDF readers and video subtitles are not available yet.</source>
+        <translation>支援 Chrome 網頁與 Notepad++ 文件；PDF 閱讀器與影片字幕尚未支援。</translation>
     </message>
     <message>
-        <source>Auto scan reads page text through UI Automation and never uses this engine or an online service.</source>
-        <translation>自動掃描透過 UI Automation 讀取頁面文字，不使用此引擎，也不呼叫線上服務。</translation>
+        <source>Auto scan reads the text its apps expose and never uses this engine or an online service.</source>
+        <translation>自動掃描讀取這些軟體提供的文字，不使用此引擎，也不呼叫線上服務。</translation>
+    </message>
+    <message>
+        <source>Notepad++</source>
+        <translation>Notepad++</translation>
     </message>
 </context>
 <context>

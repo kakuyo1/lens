@@ -72,16 +72,17 @@ ScanStep ScanSession::tick(ScanFacts const& facts)
         invalidate();
         step.cleared = true;
     }
-    // The page text comes through UI Automation, which exposes a browser's page; no other window has text here.
-    // The scan is torn down once on leaving the page, not on every tick away from it: a lens card
-    // over the browser, or a momentary foreground blip, would otherwise keep rebuilding the track
-    // and take the mark button down under the reader's pointer (docs/adr/0161). invalidate
-    // clears scanContext_, so the next tick away is a no-op and the return re-scans.
-    if (not facts.foreground or facts.foreground->kind != ScanForeground::Kind::Chrome) {
-        // The reader's press on the mark button takes Chrome out of the foreground for the click's
-        // length, and the button hiding on a verdict can leave the system with no foreground at
-        // all -- neither is the page leaving, and a teardown here kills the click's own word list
-        // (docs/adr/0161). The hold keeps the gate open; the first tick after the release settles.
+    // The scan is torn down once on leaving a page it can read, not on every tick away from it: a
+    // lens card over the window, or a momentary foreground blip, would otherwise keep rebuilding
+    // the track and take the mark button down under the reader's pointer (docs/adr/0161).
+    // invalidate clears scanContext_, so the next tick away is a no-op and the return re-scans.
+    if (not facts.foreground or (facts.foreground->kind != ScanForeground::Kind::Chrome and
+                                 facts.foreground->kind != ScanForeground::Kind::Notepad)) {
+        // The reader's press on the mark button takes the page out of the foreground for the
+        // click's length, and the button hiding on a verdict can leave the system with no
+        // foreground at all -- neither is the page leaving, and a teardown here kills the click's
+        // own word list (docs/adr/0161). The hold keeps the gate open; the first tick after the
+        // release settles.
         if (markButtonHeld_ and (not facts.foreground or facts.foreground->kind == ScanForeground::Kind::OwnProcess)) return step;
         if (not scanContext_.isEmpty()) {
             invalidate();
@@ -93,8 +94,9 @@ ScanStep ScanSession::tick(ScanFacts const& facts)
         invalidate();
         step.cleared = true;
         scanContext_ = facts.foreground->context;
-        // The first query for a browser window makes it build its page tree, so the query runs ahead of the first read.
-        step.warm = facts.foreground->window;
+        // A browser builds its UIA tree on the first query, so that query runs ahead of the first
+        // read. An editor's own message protocol needs no tree and no warm-up.
+        if (facts.foreground->kind == ScanForeground::Kind::Chrome) step.warm = facts.foreground->window;
     }
     if (facts.jobOrUploadInFlight) return step;
     if (not facts.foreground->placement) return step;

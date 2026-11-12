@@ -3128,16 +3128,16 @@ One small word at a time, the reading opens.</translation>
         <translation>手紙配達</translation>
     </message>
     <message>
-        <source>Chrome, supported apps</source>
-        <translation>Chrome と対応アプリ</translation>
+        <source>Chrome, Notepad++, supported apps</source>
+        <translation>Chrome、Notepad++ と対応アプリ</translation>
     </message>
     <message>
         <source>Enable auto scan</source>
         <translation>自動スキャンを有効にする</translation>
     </message>
     <message>
-        <source>Marks words above your level in supported apps. It reads page text through UI Automation, without OCR or an online service.</source>
-        <translation>対応アプリで、あなたのレベルを超える単語に印をつけます。UI Automation でページの文字を読み取り、OCR やオンラインサービスは使いません。</translation>
+        <source>Marks words above your level in supported apps. It reads the text those apps expose, without OCR or an online service.</source>
+        <translation>対応アプリで、あなたのレベルを超える単語に印をつけます。アプリが公開する文字を読み取り、OCR やオンラインサービスは使いません。</translation>
     </message>
     <message>
         <source>Supported apps</source>
@@ -3160,12 +3160,16 @@ One small word at a time, the reading opens.</translation>
         <translation>近日対応</translation>
     </message>
     <message>
-        <source>Only Chrome web pages are supported today. PDF readers and video subtitles are not available yet.</source>
-        <translation>現在は Chrome のウェブページのみ対応しています。PDF リーダーと動画の字幕はまだ対応していません。</translation>
+        <source>Chrome web pages and Notepad++ documents are supported. PDF readers and video subtitles are not available yet.</source>
+        <translation>Chrome のウェブページと Notepad++ の文書に対応しています。PDF リーダーと動画の字幕はまだ対応していません。</translation>
     </message>
     <message>
-        <source>Auto scan reads page text through UI Automation and never uses this engine or an online service.</source>
-        <translation>自動スキャンは UI Automation でページの文字を読み取るため、このエンジンもオンラインサービスも使いません。</translation>
+        <source>Auto scan reads the text its apps expose and never uses this engine or an online service.</source>
+        <translation>自動スキャンは対応アプリが公開する文字を読み取るため、このエンジンもオンラインサービスも使いません。</translation>
+    </message>
+    <message>
+        <source>Notepad++</source>
+        <translation>Notepad++</translation>
     </message>
 </context>
 <context>

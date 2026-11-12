@@ -112,8 +112,8 @@ Item {
         }
 
         /// Auto scan is its own category now, and the app list is switches rather than a text
-        /// field of process names. Chrome is live; the two readers that are not shipped yet stay
-        /// on the page as dimmed rows that say so.
+        /// field of process names. Chrome and Notepad++ are live; the two readers that are not
+        /// shipped yet stay on the page as dimmed rows that say so.
         function test_autoScanAppsAreSwitchesWithComingSoonRows() {
             const capture = make();
             compare(findChild(capture, "autoScan"), null, "auto scan no longer lives on the capture page");
@@ -122,18 +122,22 @@ Item {
             const page = makeAutoScanPage();
             const master = child(page, "autoScan");
             const chrome = child(page, "autoScanChrome");
+            const notepad = child(page, "autoScanNotepad");
             const pdf = child(page, "autoScanPdf");
             const subtitles = child(page, "autoScanSubtitles");
 
             compare(master.badge, "", "auto scan is no longer labelled experimental");
             compare(findChild(page, "autoScanNote"), null, "the experimental note is gone");
             compare(chrome.badge, "");
+            compare(notepad.badge, "");
             compare(pdf.badge, qsTranslate("SettingsPopup", "Coming soon"));
             compare(subtitles.badge, qsTranslate("SettingsPopup", "Coming soon"));
             compare(pdf.interactive, false);
             compare(subtitles.interactive, false);
             compare(chrome.checked, Controller.settings.autoScanChrome);
+            compare(notepad.checked, Controller.settings.autoScanNotepad);
             verify(chrome.interactive, "the Chrome switch stays configurable with the master switch off");
+            verify(notepad.interactive, "the Notepad++ switch stays configurable with the master switch off");
         }
 
         function test_chromeSwitchWritesItsSetting() {
@@ -145,6 +149,17 @@ Item {
             Controller.captureDuty.setAutoScanChrome(true);
             tryVerify(() => Controller.settings.autoScanChrome === true);
             compare(chrome.checked, true);
+        }
+
+        function test_notepadSwitchWritesItsSetting() {
+            const page = makeAutoScanPage();
+            const notepad = child(page, "autoScanNotepad");
+            Controller.captureDuty.setAutoScanNotepad(false);
+            tryVerify(() => Controller.settings.autoScanNotepad === false);
+            compare(notepad.checked, false);
+            Controller.captureDuty.setAutoScanNotepad(true);
+            tryVerify(() => Controller.settings.autoScanNotepad === true);
+            compare(notepad.checked, true);
         }
 
         /// The two paths are the reader's own Tesseract: they persist through the controller and

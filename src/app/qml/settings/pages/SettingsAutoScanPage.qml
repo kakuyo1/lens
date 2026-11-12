@@ -2,9 +2,8 @@ import QtQuick
 
 /**
  * Auto scan has its own category: an on/off switch for the reader, and the apps it may read
- * (UI-SPEC.md 4.4). Chrome is the one supported app today; the two rows that are not shipped
- * yet stay on the page as dimmed switches with a "Coming soon" pill, so the boundary is visible
- * instead of being described in prose only.
+ * (UI-SPEC.md 4.4). Chrome and Notepad++ have their own switches; the two rows that are not
+ * shipped yet stay on the page as dimmed switches with a "Coming soon" pill.
  */
 Item {
     id: root
@@ -56,7 +55,7 @@ Item {
             }
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Marks words above your level in supported apps. It reads page text through UI Automation, without OCR or an online service.")
+                text: qsTranslate("SettingsPopup", "Marks words above your level in supported apps. It reads the text those apps expose, without OCR or an online service.")
                 color: root.tokens.muted
                 font.pixelSize: 12
                 wrapMode: Text.WordWrap
@@ -94,6 +93,13 @@ Item {
                         onToggled: (on) => Controller.captureDuty.setAutoScanChrome(on)
                     }
                     SwitchRow {
+                        objectName: "autoScanNotepad"
+                        width: parent.width
+                        label: qsTranslate("SettingsPopup", "Notepad++")
+                        checked: Controller.settings.autoScanNotepad
+                        onToggled: (on) => Controller.captureDuty.setAutoScanNotepad(on)
+                    }
+                    SwitchRow {
                         objectName: "autoScanPdf"
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "PDF reader")
@@ -113,7 +119,7 @@ Item {
             }
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Only Chrome web pages are supported today. PDF readers and video subtitles are not available yet.")
+                text: qsTranslate("SettingsPopup", "Chrome web pages and Notepad++ documents are supported. PDF readers and video subtitles are not available yet.")
                 color: root.tokens.muted
                 font.pixelSize: 12
                 wrapMode: Text.WordWrap

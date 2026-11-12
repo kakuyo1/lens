@@ -13,7 +13,7 @@
    `setting set pet <id>`，`state` 的 `pet` 报 `id` / `enabled` / `shown` / `action`，所以进场、换宠与
    告辞可以用 “关 → 等 → 开 → 等” 的剧本读阶段，不需要鼠标。扫描会话也离 Chrome 可驱动（ADR 0165）：
    `scan arm <x,y,w,h>` 备好注入帧的摆放几何，`scan frame <json>` 注入一帧走判定到铅笔层的全链路，
-   `scan clear` 收线，`state` 的 `scan` 报 `autoScan`（总开关与 Chrome 开关的合并结果）/ `tracking` / `generation` / `candidates`；
+   `scan clear` 收线，`state` 的 `scan` 报 `autoScan`（总开关与任一软件开关的合并结果）/ `tracking` / `generation` / `candidates`；
    一轮剧本见 `scripts/qa/scenarios/scan-session.txt`。开发面只存在于
    `LENS_ENABLE_DEV_SURFACE=ON` 的构建；`ui-run.ps1` 的 release 树默认没有它，要驱动就先建一棵带
    开关的树（`docs/adr/0068`）。宠物的一轮开关剧本见 `scripts/qa/scenarios/pet-ceremony.txt`。

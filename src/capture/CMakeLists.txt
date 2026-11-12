@@ -5,6 +5,8 @@ add_library(lens_capture STATIC
   page_alignment.h
   page_alignment.cpp
   page_reader.h
+  scintilla_words.h
+  scintilla_words.cpp
   track_core.h
   track_core.cpp
   word_track.h

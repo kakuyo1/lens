@@ -78,7 +78,7 @@ Press `Ctrl+Alt+S` (changeable in Settings › OCR), frame a region of a PDF, im
 
 - **The bundled Tesseract is the automatic engine.** You can also download RapidOCR-json in Settings, or point at your own copy, then detect and trust it before choosing it; its model folder must be an ASCII path.
 - **Online OCR is opt-in.** It asks before each upload and can be pointed at Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision, or OCR.space.
-- **Automatic scanning**: while Chrome is in front, it draws a dashed line under words that may sit above your level; hold Alt for a signpost, or rest the pointer on a word for a **Mastered** button that retires it. It reads page text, without OCR or an online service. Settings carry a master switch and a Chrome switch; PDF readers and video subtitles are not supported yet.
+- **Automatic scanning**: while Chrome or Notepad++ is in front, it draws a dashed line under words that may sit above your level; hold Alt for a signpost, or rest the pointer on a word for a **Mastered** button that retires it. It reads the text those apps expose, without OCR or an online service. Settings carry a master switch and one for each app; PDF readers and video subtitles are not supported yet.
 
 ## Hover to look up a word
 

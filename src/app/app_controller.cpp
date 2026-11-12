@@ -165,7 +165,7 @@ AppController::AppController(core::KnownStore&            store,
         pencil_.verdictChanged(lemma, verdict);
     });
     // A lone Alt tap never opens Chrome's menu bar while Chrome is the page being scanned (see AltKeyHook).
-    altHook.setMenuGuard([this] { return capture_.chromeScanActive(); });
+    altHook.setMenuGuard([this] { return capture_.autoScanActive(); });
     connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::notifySettingsChanged);
     connect(&capture_, &CaptureDuty::uploadPreviewReady, this, [this](qulonglong requestId, QImage const& image) {
         if (consentPreview_) consentPreview_->set(requestId, image);

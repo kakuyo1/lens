@@ -3128,16 +3128,16 @@ One small word at a time, the reading opens.</translation>
         <translation>Búho cartero</translation>
     </message>
     <message>
-        <source>Chrome, supported apps</source>
-        <translation>Chrome y apps compatibles</translation>
+        <source>Chrome, Notepad++, supported apps</source>
+        <translation>Chrome, Notepad++ y apps compatibles</translation>
     </message>
     <message>
         <source>Enable auto scan</source>
         <translation>Activar el escaneo automático</translation>
     </message>
     <message>
-        <source>Marks words above your level in supported apps. It reads page text through UI Automation, without OCR or an online service.</source>
-        <translation>Marca las palabras por encima de tu nivel en las apps compatibles. Lee el texto de la página mediante UI Automation, sin OCR ni servicios en línea.</translation>
+        <source>Marks words above your level in supported apps. It reads the text those apps expose, without OCR or an online service.</source>
+        <translation>Marca las palabras por encima de tu nivel en las apps compatibles. Lee el texto que exponen esas apps, sin OCR ni servicios en línea.</translation>
     </message>
     <message>
         <source>Supported apps</source>
@@ -3160,12 +3160,16 @@ One small word at a time, the reading opens.</translation>
         <translation>Próximamente</translation>
     </message>
     <message>
-        <source>Only Chrome web pages are supported today. PDF readers and video subtitles are not available yet.</source>
-        <translation>Hoy solo se admiten páginas web de Chrome. Los lectores de PDF y los subtítulos de vídeo aún no están disponibles.</translation>
+        <source>Chrome web pages and Notepad++ documents are supported. PDF readers and video subtitles are not available yet.</source>
+        <translation>Se admiten páginas web de Chrome y documentos de Notepad++. Los lectores de PDF y los subtítulos de vídeo aún no están disponibles.</translation>
     </message>
     <message>
-        <source>Auto scan reads page text through UI Automation and never uses this engine or an online service.</source>
-        <translation>El escaneo automático lee el texto de la página mediante UI Automation y nunca usa este motor ni un servicio en línea.</translation>
+        <source>Auto scan reads the text its apps expose and never uses this engine or an online service.</source>
+        <translation>El escaneo automático lee el texto que exponen sus apps y nunca usa este motor ni un servicio en línea.</translation>
+    </message>
+    <message>
+        <source>Notepad++</source>
+        <translation>Notepad++</translation>
     </message>
 </context>
 <context>

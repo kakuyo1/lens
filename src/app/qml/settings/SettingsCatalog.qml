@@ -31,7 +31,7 @@ Item {
         }
         SettingsCategoryRow {
             title: qsTranslate("SettingsPopup", "Auto scan")
-            summary: qsTranslate("SettingsPopup", "Chrome, supported apps")
+            summary: qsTranslate("SettingsPopup", "Chrome, Notepad++, supported apps")
             onPicked: root.categoryRequested("autoscan")
         }
         SettingsCategoryRow {

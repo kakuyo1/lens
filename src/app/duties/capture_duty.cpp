@@ -37,13 +37,13 @@
 namespace lens::app {
 namespace {
 
-/// @return Whether the page scan is allowed to run: the reader's master switch and the switch of
-///         the one shipped app (Chrome) both have to be on. Apps that are not shipped yet have no
-///         switch of their own, so the list cannot grow a half-on state by accident.
+/// @return Whether the page scan is allowed to run: the master switch and at least one app's own
+///         switch have to be on. Which app actually reads is decided by the foreground gate.
 bool autoScanOn(QVariantMap const& current)
 {
     return current.value(QStringLiteral("autoScan")).toBool() and
-           current.value(QStringLiteral("autoScanChrome")).toBool();
+           (current.value(QStringLiteral("autoScanChrome")).toBool() or
+            current.value(QStringLiteral("autoScanNotepad")).toBool());
 }
 
 /// @return The monitor behind a QScreen, in the same terms `capture::monitorAt` speaks.
@@ -236,6 +236,7 @@ QVariantMap CaptureDuty::settings() const
     return {{"ocrCapture", readOf("ocrCapture")},
             {"autoScan", readOf("autoScan")},
             {"autoScanChrome", readOf("autoScanChrome")},
+            {"autoScanNotepad", readOf("autoScanNotepad")},
             {"ocrAvailable", lifecycle_.status() == capture::OcrStatus::Ready},
             {"minimumWordLength", readOf("minimumWordLength")},
             {"ocrConfigVersion", readOf("ocrConfigVersion")},
@@ -316,6 +317,10 @@ bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
     }
     if (key == "autoScanChrome") {
         setAutoScanChrome(value.toBool());
+        return true;
+    }
+    if (key == "autoScanNotepad") {
+        setAutoScanNotepad(value.toBool());
         return true;
     }
     if (key == "minimumWordLength") {
@@ -407,6 +412,14 @@ void CaptureDuty::setAutoScan(bool const on)
 void CaptureDuty::setAutoScanChrome(bool const on)
 {
     if (not settings::write(storage_.section(), *core::settings::find("autoScanChrome"), on))
+        return;
+    invalidateScan();
+    emit settingsChanged();
+}
+
+void CaptureDuty::setAutoScanNotepad(bool const on)
+{
+    if (not settings::write(storage_.section(), *core::settings::find("autoScanNotepad"), on))
         return;
     invalidateScan();
     emit settingsChanged();
@@ -1075,16 +1088,21 @@ void CaptureDuty::scanTick()
     facts.minimumWordLength   = current.value("minimumWordLength").toInt();
     if (auto const foreground = capture::foregroundWindow()) {
         auto& view = facts.foreground.emplace();
-        // The page text comes through UI Automation, which exposes a browser's page; no other window has text here.
-        if (foreground->ownProcess)
+        if (foreground->ownProcess) {
             view.kind = ScanForeground::Kind::OwnProcess;
-        else if (foreground->processName.compare(QStringLiteral("chrome.exe"), Qt::CaseInsensitive) == 0)
+        } else if (foreground->processName.compare(QStringLiteral("chrome.exe"), Qt::CaseInsensitive) == 0 and
+                   current.value(QStringLiteral("autoScanChrome")).toBool()) {
             view.kind = ScanForeground::Kind::Chrome;
-        else
+        } else if (foreground->processName.compare(QStringLiteral("notepad++.exe"), Qt::CaseInsensitive) == 0 and
+                   current.value(QStringLiteral("autoScanNotepad")).toBool()) {
+            view.kind = ScanForeground::Kind::Notepad;
+        } else {
             view.kind = ScanForeground::Kind::Other;
+        }
         view.window  = foreground->window;
         view.context = foreground->context;
-        if (view.kind == ScanForeground::Kind::Chrome) view.placement = scanPlacementOf(*foreground);
+        if (view.kind == ScanForeground::Kind::Chrome or view.kind == ScanForeground::Kind::Notepad)
+            view.placement = scanPlacementOf(*foreground);
     }
 
     auto const step = session_.tick(facts);
@@ -1250,7 +1268,7 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
     }
 }
 
-bool CaptureDuty::chromeScanActive()
+bool CaptureDuty::autoScanActive()
 {
     return autoScanOn(settings()) and session_.trackingPage();
 }

@@ -14,6 +14,7 @@
 #include <thread>
 
 #include "capture/scan_pipeline.h"
+#include "page_reader_scintilla.h"
 #include "page_reader_uia.h"
 #include "util/log.h"
 
@@ -182,10 +183,13 @@ void PageTrack::setBand(QRect const band)
 
 void PageTrack::run(std::stop_token const stop)
 {
-    ComApartment                   apartment; // COM lives on this thread; the reader and its pages answer to it
-    page_reader_uia::UiaPageReader reader{window_};
-    capture::TrackCore             core{reader};
-    auto                           next = std::chrono::steady_clock::now();
+    ComApartment apartment; // COM lives on this thread; the UIA reader and its pages answer to it
+    // The reader is chosen by the window's own controls, not by the foreground gate: a Scintilla
+    // editor carries its document in its own messages, every other window goes through UIA.
+    auto reader = page_reader_scintilla::makeReader(window_);
+    if (not reader) reader = std::make_unique<page_reader_uia::UiaPageReader>(window_);
+    capture::TrackCore core{*reader};
+    auto               next = std::chrono::steady_clock::now();
     while (not stop.stop_requested()) {
         capture::Band band;
         {

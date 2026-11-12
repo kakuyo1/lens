@@ -183,9 +183,10 @@ inline constexpr Row kRows[]{
     {.key = "selectionCapture", .kind = Kind::Toggle, .signal = Signal::Logged, .fallback = true},
     {.key = "ocrCapture", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = false},
     {.key = "autoScan", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = false},
-    // The apps auto scan may read. Chrome is the only shipped reader; the other two are surfaced
-    // as "Coming soon" rows and have no setting of their own yet.
+    // The apps auto scan may read: Chrome pages through UI Automation, Notepad++ documents through
+    // the editor's own messages. PDF readers and video subtitles are "Coming soon" rows only.
     {.key = "autoScanChrome", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = true},
+    {.key = "autoScanNotepad", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = true},
     {.key = "minimumWordLength", .kind = Kind::Integer, .signal = Signal::Capture, .fallback = 3, .low = 2, .high = 5, .synced = true},
     {.key = "scanWhitelist", .kind = Kind::Text, .signal = Signal::Capture, .fallback = "chrome.exe;msedge.exe;firefox.exe;acrord32.exe"},
     {.key = "tesseractExecutable", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
