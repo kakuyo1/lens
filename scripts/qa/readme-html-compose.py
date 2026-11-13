@@ -80,6 +80,32 @@ def compose_feature_tour() -> None:
     )
 
 
+def compose_scan_gif() -> None:
+    """Auto scan over a paper in Chrome's PDF viewer: five frames at 960 x 600.
+
+    The page alone, the dashed lines under the words above the reader's level, the signposts while
+    Alt is held, the Mastered pill a resting pointer raises, and the word no longer drawn once it is
+    marked. The paper, the browser chrome and the marks are the scene's own; this only joins them.
+    """
+    durations = [900, 1500, 2100, 1700, 1600]
+    frames = []
+    for step in range(5):
+        # The frame carries the margin the screenshot asked for; the page is its top-left 960 x 600
+        # at 2x.
+        frame = Image.open(FRAMES / f"scan-{step}.png").convert("RGB")
+        frame = frame.crop((0, 0, 1920, 1200)).resize((960, 600), Image.Resampling.LANCZOS)
+        frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
+    frames[0].save(
+        OUT / "scan.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=durations,
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
 def compose_selection_styles() -> None:
     """Five action-bar shapes over one page, one frame each."""
     frames = []
@@ -470,6 +496,7 @@ def main() -> None:
     autocrop(OUT / "selection-bar.png", background=(255, 255, 255)).save(OUT / "selection-bar.png", optimize=True)
     compose_peek_gif()
     compose_feature_tour()
+    compose_scan_gif()
     compose_selection_styles()
     compose_themes()
     compose_learning_loop()
@@ -480,6 +507,7 @@ def main() -> None:
     for name in (
         "english-first.gif",
         "feature-tour.gif",
+        "scan.gif",
         "selection-styles.gif",
         "pets.gif",
         "pet-lantern.gif",

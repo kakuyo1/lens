@@ -78,7 +78,17 @@ Press `Ctrl+Alt+S` (changeable in Settings › OCR), frame a region of a PDF, im
 
 - **The bundled Tesseract is the automatic engine.** You can also download RapidOCR-json in Settings, or point at your own copy, then detect and trust it before choosing it; its model folder must be an ASCII path.
 - **Online OCR is opt-in.** It asks before each upload and can be pointed at Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision, or OCR.space.
-- **Automatic scanning**: while Chrome or Notepad++ is in front, it draws a dashed line under words that may sit above your level; hold Alt for a signpost, or rest the pointer on a word for a **Mastered** button that retires it. It reads the text those apps expose, without OCR or an online service. Settings carry a master switch and one for each app; PDF readers and video subtitles are not supported yet.
+
+## Automatic scanning
+
+<p align="center"><img src="docs/readme/scan.gif" width="900" alt="A paper opened in Chrome, a dashed line under each word above the reader's level; holding Alt raises a signpost, and a resting pointer raises a Mastered button"></p>
+
+Open a paper in Chrome and every word above your level grows a dashed line, with Alt held or not. Lens reads the text Chrome and Notepad++ hand to the system — no OCR, no upload.
+
+- **The line knows your verdicts.** A new word takes a faint dashed line; one you marked Known draws firmer, and a Mastered one is not drawn at all. A name that only appears capitalised in the sentence is left alone.
+- **Hold Alt for the signpost.** Two to four English words appear above the word's top-right corner, naming the sense it carries here; candidates with nothing cached are bought in batches, into the cache only, with no card.
+- **Retire a word.** Rest the pointer on a dashed word for about 0.4 seconds and a Mastered button rises on its top edge; one press and the scan and the pet's questions both leave that word alone.
+- **Which windows it reads.** Chrome's web pages and the PDFs Chrome opens itself, plus Notepad++ documents; standalone PDF readers and video subtitles are marked Coming soon. The master switch is off by default and the two app switches are on; both have to be on for a scan.
 
 ## Hover to look up a word
 

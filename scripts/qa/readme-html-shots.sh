@@ -78,6 +78,29 @@ HTML
     echo "  $name.png"
 }
 
+# screenshot_direct <name> <page under the repository> <query> <width> <height> <scale> <directory>
+#
+# For a page that is already laid out as the window itself: the scene is loaded as-is, with no iframe
+# around it. The window is asked for a margin beyond the page, because headless Chrome's viewport
+# comes out smaller than the window it is given (about 16 px narrow and 95 px short) and a page that
+# exactly fills the window leaves its last strip unpainted; compose_scan_gif crops the margin off.
+screenshot_direct() {
+    name=$1; page=$2; query=$3; width=$4; height=$5; scale=$6; dir=$7
+    url="file:///$url_root/$page"
+    [ -z "$query" ] || url="$url?$query"
+    "$chrome" --headless=new --disable-gpu --hide-scrollbars \
+        --force-device-scale-factor="$scale" \
+        --virtual-time-budget=1500 \
+        --window-size="$((width + 40)),$((height + 100))" \
+        --user-data-dir="$tmp/profile-$name" \
+        --screenshot="$dir/$name.png" "$url" >/dev/null 2>&1
+    if [ ! -s "$dir/$name.png" ]; then
+        echo "readme-html-shots: $name.png was not written" >&2
+        exit 1
+    fi
+    echo "  $name.png"
+}
+
 # The hero scene is designed at 1440 x 960 CSS pixels and rendered at 1x: the README shows it at
 # about 1000 px wide, so a second copy would only cost bytes.
 screenshot hero-light "docs/readme/scenes/hero.html" "" 1440 960 1 "$out"
@@ -112,6 +135,12 @@ screenshot breakdown "docs/readme/scenes/breakdown.html" "" 900 620 2 "$out"
 # etymology and the example on purpose; the frames are joined by compose_feature_tour.
 for i in 0 1 2 3 4 5; do
     screenshot "tour-$i" "docs/readme/scenes/feature-tour.html" "step=$i" 960 600 2 "$frames"
+done
+
+# The auto-scan GIF: a paper opened in Chrome's own PDF viewer, the pencil layer's dashed lines, the
+# Alt signposts, the Mastered pill, and the word retired. compose_scan_gif joins the frames.
+for i in 0 1 2 3 4; do
+    screenshot_direct "scan-$i" "docs/readme/scenes/scan.html" "step=$i" 960 600 2 "$frames"
 done
 
 # The mother-tongue peek GIF: the English card, the globe held part-way round its ring, the

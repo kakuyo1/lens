@@ -78,7 +78,17 @@ Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes › OCR), enmarca una zona de un
 
 - **Tesseract, incluido con Lens, es el motor automático.** También puedes descargar RapidOCR-json desde Ajustes, o apuntar a tu propia copia y, tras detectarla y confiar en ella, elegirla; la carpeta de modelos debe ser una ruta ASCII.
 - **El OCR en línea es opcional.** Pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space.
-- **Escaneo automático**: con Chrome o Notepad++ en primer plano, dibuja una línea de puntos bajo las palabras que pueden estar por encima de tu nivel; mantén Alt para ver la señal del sentido, o deja el puntero sobre una palabra para que aparezca un botón **Dominado** que la retira. Lee el texto que exponen esas apps, sin OCR ni servicios en línea. Los ajustes incluyen un interruptor general y otro para cada app; los lectores de PDF y los subtítulos de vídeo aún no son compatibles.
+
+## Escaneo automático
+
+<p align="center"><img src="docs/readme/scan.gif" width="900" alt="Un artículo abierto en Chrome, con una línea de puntos bajo cada palabra por encima de tu nivel; al mantener Alt aparece la señal del sentido y al dejar el puntero se levanta un botón Dominado"></p>
+
+Abre un artículo en Chrome y cada palabra por encima de tu nivel recibe una línea de puntos, con Alt pulsado o no. Lens lee el texto que Chrome y Notepad++ entregan al sistema: sin OCR y sin subir nada.
+
+- **La línea conoce tus veredictos.** Una palabra nueva lleva una línea de puntos tenue; una marcada como Conocida se dibuja más firme, y una Dominada no se dibuja. Un nombre que solo aparece en mayúscula dentro de la frase se deja en paz.
+- **Mantén Alt para la señal.** Dos a cuatro palabras en inglés aparecen sobre la esquina superior derecha de la palabra y nombran el sentido que tiene ahí; los candidatos sin caché se compran por lotes, solo a la caché y sin tarjeta.
+- **Retira una palabra.** Deja el puntero sobre una palabra con línea de puntos unos 0,4 segundos y un botón Dominado se levanta en su borde superior; con una pulsación, el escaneo y las preguntas de la mascota la dejan en paz.
+- **Qué ventanas lee.** Las páginas de Chrome y los PDF que Chrome abre por su cuenta, además de los documentos de Notepad++; los lectores de PDF independientes y los subtítulos de vídeo figuran como Próximamente. El interruptor general está apagado por defecto y los dos de las apps encendidos; hacen falta los dos para escanear.
 
 ## Consulta al pasar el cursor
 

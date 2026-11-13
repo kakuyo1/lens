@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · auto scan over a PDF in Chrome</title>
+<!--
+  A README-only scene for the auto-scan GIF: a paper opened in Chrome's own PDF viewer, the pencil
+  layer's dashed lines under the words above the reader's level, the Alt signposts, the Mastered pill
+  a resting pointer raises, and the word retired. Chrome is the app the scan reads here (the embedded
+  viewer is what the page reader's document search picks, page_reader_uia.cpp). ?step=0..4 picks one
+  frame; compose_scan_gif joins them. Line, signpost and pill follow UI-SPEC.md 4.20 and PencilLayer.qml.
+-->
+<style>
+:root{
+  --faint:#73737d; --ink:#1a1a1f; --ok:#1d7a52;
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --paper:#fff; --chrome-bg:#dee1e6; --omni:#f1f3f4; --viewer:#525659;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{width:960px;height:600px;overflow:hidden;background:var(--chrome-bg);color:var(--ink);
+  font-family:var(--f);-webkit-font-smoothing:antialiased;user-select:none}
+
+/* The browser window: tab strip, omnibox row, then the PDF viewer's grey field. */
+.chrome{position:absolute;left:0;top:0;width:960px;height:600px;display:flex;flex-direction:column;background:#fff}
+.tabbar{height:38px;flex:0 0 38px;display:flex;align-items:flex-end;background:var(--chrome-bg);padding-left:10px}
+.tab{width:272px;height:34px;display:flex;align-items:center;gap:8px;padding:0 8px 0 10px;
+  background:#fff;border-radius:9px 9px 0 0;font-size:11.5px;color:#202124}
+.tab .favicon{width:15px;height:15px;flex:0 0 15px;display:grid;place-items:center;color:#c8442f}
+.tab .favicon svg{width:13px;height:13px}
+.tab .label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab .close{width:13px;height:13px;color:#5f6368}
+.tab .close svg{width:13px;height:13px}
+.newtab{width:28px;height:28px;margin:0 0 3px 6px;display:grid;place-items:center;color:#5f6368;font-size:16px;line-height:1}
+.winbtns{margin-left:auto;display:flex;align-self:flex-start;height:38px;align-items:center;color:#3c4043}
+.winbtns span{width:44px;height:38px;display:grid;place-items:center}
+.winbtns svg{width:10px;height:10px}
+
+.toolbar{height:44px;flex:0 0 44px;display:flex;align-items:center;gap:12px;padding:0 14px;background:#fff;border-bottom:1px solid #e8eaed}
+.toolbar .icon{width:16px;height:16px;color:#5f6368}
+.toolbar .icon svg{width:16px;height:16px}
+.omni{flex:1;height:30px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:15px;background:var(--omni);
+  font-size:12px;color:#3c4043}
+.omni .lock{color:#5f6368;display:grid;place-items:center}
+.omni .lock svg{width:12px;height:12px}
+.avatar{width:24px;height:24px;border-radius:50%;background:#1d7a52;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600}
+
+/* The viewer: Chrome's own PDF field, a floating toolbar, and the page. */
+.viewer{position:relative;flex:1;background:var(--viewer);overflow:hidden}
+.pdftools{position:absolute;z-index:3;top:12px;left:50%;transform:translateX(-50%);
+  height:30px;display:flex;align-items:center;gap:13px;padding:0 14px;border-radius:15px;
+  background:rgba(38,41,44,.9);color:#e8eaed;font-size:11.5px}
+.pdftools .sep{width:1px;height:15px;background:rgba(232,234,237,.28)}
+.pdftools .num{font-variant-numeric:tabular-nums}
+.pdftools .tool{display:grid;place-items:center;color:#e8eaed}
+.pdftools .tool svg{width:13px;height:13px}
+
+.sheet{position:absolute;left:140px;top:22px;width:680px;min-height:900px;padding:46px 54px 60px;
+  background:var(--paper);box-shadow:0 6px 22px rgba(0,0,0,.45);color:#111318}
+h1{font-family:var(--read);font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-.01em}
+.authors{margin-top:10px;font-size:11.5px;color:#4a4f5e}
+.affil{margin-top:3px;font-size:10.5px;color:#73737d}
+.rule{margin:16px 0 0;height:1px;background:rgba(18,24,36,.14)}
+.abstract{margin-top:14px;font-family:var(--read);font-size:12.5px;line-height:1.62;color:#33343a}
+.abstract b{font-weight:600}
+h2{margin-top:20px;font-family:var(--f);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1d7a52}
+p{margin-top:9px;font-family:var(--read);font-size:14px;line-height:1.72;color:#33343a}
+
+/* The pencil layer's marks: dashes two pixels under the glyphs (UI-SPEC.md 4.20). */
+.w{position:relative;padding-bottom:2px;background-repeat:no-repeat;background-position:0 100%;background-size:100% 1.4px;
+  background-image:repeating-linear-gradient(90deg,var(--faint) 0 2px,transparent 2px 4px)}
+.w.known{background-image:repeating-linear-gradient(90deg,var(--ink) 0 3px,transparent 3px 5px)}
+.w.hot{background-image:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px)}
+.w.retired{background-image:none}
+
+/* Marks that are not part of the page's text flow: signposts, the Mastered pill, the pointer. */
+.overlay{position:absolute;inset:0;z-index:4;pointer-events:none}
+.sign{position:absolute;font-size:10px;font-weight:700;line-height:1.2;color:var(--ok);white-space:nowrap}
+.pill{position:absolute;display:flex;align-items:center;height:24px;padding:0 13px;border-radius:999px;
+  background:#f1f3f7;border:1px solid #d6dae1;color:var(--ink);font-size:11px;font-weight:700;white-space:nowrap;
+  box-shadow:0 2px 8px -2px rgba(10,14,24,.28)}
+.cursor{position:absolute;width:13px;height:19px}
+</style>
+</head>
+<body>
+<div class="chrome">
+  <div class="tabbar">
+    <div class="tab">
+      <span class="favicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg></span>
+      <span class="label">Attention and the Reading Mind.pdf</span>
+      <span class="close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+    </div>
+    <div class="newtab">+</div>
+    <div class="winbtns">
+      <span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 6h8"/></svg></span>
+      <span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2.4" y="2.4" width="7.2" height="7.2" rx="1"/></svg></span>
+      <span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2.6 2.6l6.8 6.8M9.4 2.6L2.6 9.4"/></svg></span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></span>
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span>
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/></svg></span>
+    <div class="omni">
+      <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+      <span>reading.studies.edu/papers/attention.pdf</span>
+    </div>
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 4.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4L4.2 10.2l5.4-.8z"/></svg></span>
+    <div class="avatar">M</div>
+  </div>
+
+  <div class="viewer" id="viewer">
+    <div class="pdftools">
+      <span class="num">1 / 12</span>
+      <span class="sep"></span>
+      <span class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></span>
+      <span class="num">100%</span>
+      <span class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></span>
+      <span class="sep"></span>
+      <span class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="6.5" width="12" height="12" rx="1.6"/><path d="M8 3.5h11a1.5 1.5 0 0 1 1.5 1.5v11"/></svg></span>
+      <span class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"/><path d="M8 10.5l4 4 4-4"/><path d="M4.5 18.5h15"/></svg></span>
+    </div>
+
+    <div class="sheet">
+      <h1>Attention and the Reading Mind</h1>
+      <div class="authors">Mara Ellison, Jonas Reiter</div>
+      <div class="affil">Institute of Reading Studies · Working paper 14 · October 2026</div>
+      <div class="rule"></div>
+      <p class="abstract"><b>Abstract.</b> Reading is not one act but a queue of small decisions: where to look, which word to trust, when to stop. This paper follows those decisions through a year of screen reading, and asks what a reader does with a word that is still out of reach.</p>
+
+      <h2>1 · Introduction</h2>
+      <p>Reading on a screen has become <span class="w" data-sign="everywhere" data-id="ubiquitous">ubiquitous</span>, and the eye moves over text that is often read once and never returned to. A page that would once have been marked in pencil now passes by untouched, so the words a reader does not yet own leave no trace at all.</p>
+      <p>Not every word in a paragraph is equally <span class="w" data-sign="standing out" data-id="salient">salient</span>. A rare word draws the eye while the common ones pass unnoticed, and the difference is measurable in the first two hundred milliseconds of a fixation. Attention, in turn, is <span class="w known" data-sign="made weaker" data-id="attenuated">attenuated</span> by fatigue, and the effect is strongest late in a session, when a reader is least able to notice that a word was missed.</p>
+
+      <h2>2 · What readers do instead</h2>
+      <p>Readers fall back on a <span class="w known" data-sign="rule of thumb" data-id="heuristic">heuristic</span>: skip the unknown word and let the sentence carry the meaning. It works often enough to be worth keeping, and it fails quietly — a paragraph is understood, a term is not, and nothing in the reading experience records the difference.</p>
+      <p>The problem is <span class="w" data-sign="widespread" data-id="pervasive">pervasive</span> in academic reading, where one unfamiliar term can hold a whole paragraph in place. Marking such words as they appear, rather than after the fact, is the intervention this paper tests.</p>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+  </div>
+</div>
+
+<script>
+const step = Number(new URLSearchParams(location.search).get('step') || 0);
+const overlay = document.getElementById('overlay');
+const viewer = document.getElementById('viewer');
+const words = [...document.querySelectorAll('.w')];
+
+/// The rect of an element in the viewer's own coordinates, which is where the overlay draws.
+function boxOf(el) {
+  const a = el.getBoundingClientRect(), b = viewer.getBoundingClientRect();
+  return { left: a.left - b.left, top: a.top - b.top, right: a.right - b.left, bottom: a.bottom - b.top,
+           width: a.width, height: a.height };
+}
+
+/// The pointer, drawn where the reader's would be: an arrow with a light edge so it reads over text.
+function pointerAt(x, y) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'cursor');
+  svg.setAttribute('viewBox', '0 0 13 19');
+  svg.style.left = x + 'px';
+  svg.style.top = y + 'px';
+  svg.innerHTML = '<path d="M1.2 1.2 L1.2 15.4 L4.9 11.9 L7.4 17.4 L9.8 16.3 L7.4 10.9 L12.3 10.9 Z" fill="#101319" stroke="#fff" stroke-width="1.1" stroke-linejoin="round"/>';
+  overlay.append(svg);
+}
+
+if (step === 0) {
+  // The page before Lens: no marks at all.
+  words.forEach(w => w.classList.add('retired'));
+}
+
+if (step >= 1) {
+  // The scan is on: every candidate carries its dashed line, the word marked known a firmer one.
+  if (step >= 4) {
+    document.querySelector('[data-id="salient"]').classList.add('retired');
+  }
+  if (step === 3) {
+    document.querySelector('[data-id="salient"]').classList.add('hot');
+  }
+}
+
+if (step === 2) {
+  // Alt held: each word's signpost, its left edge on the word box's right edge and its foot three
+  // pixels below the word box's top edge (UI-SPEC.md 4.20, PencilLayer.qml).
+  words.forEach(word => {
+    if (!word.dataset.sign || word.classList.contains('retired')) return;
+    const box = boxOf(word);
+    const sign = document.createElement('div');
+    sign.className = 'sign';
+    sign.textContent = word.dataset.sign;
+    overlay.append(sign);
+    sign.style.left = box.right + 'px';
+    sign.style.top = (box.top + 3 - sign.offsetHeight) + 'px';
+  });
+}
+
+if (step === 3) {
+  // A pointer at rest on the word: the Mastered pill sits flush on its top edge, centred over it.
+  const word = document.querySelector('[data-id="salient"]');
+  const box = boxOf(word);
+  const pill = document.createElement('div');
+  pill.className = 'pill';
+  pill.textContent = 'Mastered';
+  overlay.append(pill);
+  pill.style.left = (box.left + box.width / 2 - pill.offsetWidth / 2) + 'px';
+  pill.style.top = (box.top - pill.offsetHeight) + 'px';
+  pointerAt(box.left + box.width * 0.62, box.top + box.height * 0.55);
+}
+
+if (step >= 4) {
+  // Marked: the line under that word is gone, the pill with it, and the pointer is still where the
+  // press happened -- a mastered word simply stops being drawn.
+  const word = document.querySelector('[data-id="salient"]');
+  const box = boxOf(word);
+  pointerAt(box.left + box.width * 0.62, box.top + box.height * 0.55);
+}
+</script>
+</body>
+</html>
