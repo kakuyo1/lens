@@ -37,21 +37,17 @@
   </picture>
 </p>
 
-<p align="center"><sub>Las explicaciones son en inglés por defecto. Mantén pulsado el globo de la tarjeta para ver tu lengua materna; el cambio permanente está en Ajustes.</sub></p>
+<p align="center"><sub>Las explicaciones son en inglés por defecto: te dice qué hace la palabra aquí, con palabras que ya conoces.</sub></p>
 
 ## Por qué Lens
 
 La mayoría de las herramientas de consulta te sacan de la página y responden en tu idioma. Terminas el párrafo sin haberlo leído en inglés. Lens apuesta por lo contrario: la forma más rápida de leer mejor inglés es quedarte en inglés.
 
-- **Entra inglés, sale un inglés más claro.** Las explicaciones son en inglés por defecto: una definición en inglés sencillo, IPA y, si quieres, etimología y un ejemplo. Una selección en chino, japonés o español se traduce al inglés; una selección en inglés se responde en el idioma de las explicaciones, inglés por defecto. La traducción sigue ahí; simplemente no es la opción predeterminada.
-- **El idioma de las explicaciones es un ajuste, no un interruptor en la tarjeta.** Inglés, chino, chino tradicional, español o japonés: cámbialo una vez y todas las tarjetas lo siguen, respondidas desde la caché cuando esa palabra ya la tiene.
-- **La barra de acciones ofrece Traducir, Explicar y Copiar texto.** Lens gira alrededor de Explicar: te dice qué hace la palabra en ese contexto con palabras que ya conoces, en lugar de sustituirla por una palabra china que puedes saltarte.
-- **Una palabra que se puede oír.** Un altavoz junto a la pronunciación: púlsalo a él o a la propia pronunciación y la palabra se lee una vez. Las frases, los nombres y las traducciones no suenan.
-- **La respuesta se queda junto al texto.** Lens vive en la bandeja del sistema y no tiene ventana principal. La burbuja aparece junto a la selección, se queda mientras pasas el ratón y desaparece cuando sigues leyendo.
-- **Tres veredictos, una memoria tranquila.** Marca una palabra como Conocida, Dominado o Nueva. Conocida sigue en práctica y su línea de escaneo se dibuja más firme; Dominado la retira del escaneo y de las preguntas de la mascota; Nueva la mantiene en práctica. Sin rachas ni planes de estudio.
-- **Una mascota que pregunta.** Cuando toca repasar una palabra, aparece un cartel a los pies de la mascota. Si aciertas, la siguiente pausa es más larga; si fallas, vuelve antes. Una palabra dominada no vuelve a preguntarse. La mascota solo recibe tipos de evento y no puede leer tu pantalla, la selección ni las definiciones. Desactivada por defecto; actívala en Ajustes › Extensiones.
-- **Una definición por la que se puede entrar.** Las palabras de una definición que quedan por encima de tu nivel conservan el subrayado de puntos. Ábrela y la misma tarjeta baja un nivel, con una ruta para volver; la caché, el presupuesto y las reglas de veredicto acompañan cada paso.
-- **El globo es el único control de idioma que queda en la tarjeta.** Con el idioma de las explicaciones en inglés, mantenlo pulsado medio segundo y el significado en tu lengua materna aparece bajo la definición en inglés; al soltar, desaparece. La lengua materna es un ajuste propio, chino por defecto. Una palabra cuya explicación ya incluye ese idioma no cuesta nada; cualquier otra se pide una vez por sesión.
+- **Las explicaciones son en inglés por defecto.** Te dice qué hace la palabra aquí con palabras que ya conoces, y añade IPA, etimología y un ejemplo solo si quieres; una selección en chino, japonés o español se traduce al inglés primero.
+- **El idioma de las explicaciones es un ajuste.** Inglés, chino, chino tradicional, español o japonés: cámbialo una vez y todas las tarjetas lo siguen.
+- **La barra de acciones: Traducir, Explicar, Copiar.** Lens gira alrededor de Explicar: un sentido en inglés que entiendes, no una palabra china que puedes saltarte.
+- **La respuesta se queda junto al texto.** Lens vive en la bandeja del sistema y no tiene ventana principal; la burbuja aparece junto a la selección y desaparece cuando sigues leyendo. Una palabra de la definición por encima de tu nivel conserva el subrayado de puntos; ábrela y la tarjeta baja un nivel.
+- **Tres veredictos, sin rachas.** Marca una palabra como Conocida, Dominado o Nueva para registrar dónde estás; una Dominada queda fuera del escaneo y de las preguntas de la mascota.
 
 ## Un vistazo
 
@@ -126,11 +122,10 @@ Conocida, Dominado y Nueva viven en una sola lista de palabras, con un segmento 
 Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fantasma, Medusa, Nube y Perro. Están desactivadas por defecto; activa una en Ajustes › Extensiones.
 
 - Cada mascota tiene su propio vestuario de nueve piezas y seis escenas — cuatro propias y dos compartidas; una bufanda o unas gafas inclinan qué escena elige.
-- Su tamaño y su ropa se recuerdan por mascota, mientras la ventana se queda donde la dejas.
 - Deambulan, se esconden en el borde de la pantalla, notan el puntero y se pueden coger y lanzar; cuando la barra de tareas está fija, a veces saltan a ella, rebotan, caminan despacio hasta un extremo y vuelven.
 - Solo reciben tipos de evento — nunca tus selecciones, explicaciones o texto en pantalla — y los paquetes solo contienen datos.
 
-Las seis de Fantasma: el reloj de medianoche, la calabaza de Halloween, el espejo y el té de fantasmas son suyos; el escritorio y el baño los comparte con las demás mascotas — cada escena es una animación propia. La calabaza, en movimiento:
+Cada escena es una animación propia. La calabaza, en movimiento:
 
 <p align="center"><img src="docs/readme/pet-lantern.gif" width="420" alt="La escena de la calabaza de Fantasma, animada"></p>
 
@@ -144,16 +139,11 @@ Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del reposi
 - **Sincronización cuando la quieras.** Los veredictos, el historial, las estadísticas y los ajustes seleccionados se cifran con tu frase de contraseña y se guardan en un gist secreto de tu propia cuenta de GitHub. La clave de API se queda en este dispositivo.
 - **Listas de palabras de ida y vuelta.** La ventana de palabras importa y exporta `.txt` y `.json`, y exporta CSV y Anki TSV con las explicaciones ya guardadas; la fila Palabras dominadas de Ajustes › Lectura y aprendizaje importa una vez una lista con una palabra por línea y marca sus palabras como dominadas. Borra una palabra con una confirmación.
 - **Fotos cuando ayudan.** Si el modelo cree que una foto explica mejor un sentido, la tarjeta puede abrir tres imágenes de Wikimedia Commons. Se guardan en caché local y «Acerca de» muestra su tamaño y permite borrarla.
-- **Hazlo tuyo.** Cinco formas de barra de acciones; temas Claro, Oscuro, Vidrio mate y Vidrio líquido; y una tipografía inglesa con texto de burbuja de 12–18 px.
-- **Cinco idiomas.** La interfaz y las explicaciones ofrecen inglés, chino, chino tradicional, español y japonés. Las traducciones al chino tradicional, al español y al japonés están generadas por máquina y no han sido revisadas por un hablante nativo.
 
 ## Temas
 
 <p align="center"><img src="docs/readme/themes.png" width="900" alt="Claro, Oscuro, Vidrio mate y Vidrio líquido"></p>
 
-- **Claro y Oscuro** son sólidos.
-- **Vidrio mate y Vidrio líquido** dibujan cada tarjeta sobre una copia desenfocada del escritorio y mantienen a Lens fuera de las capturas de pantalla y del uso compartido mientras están activos.
-- **Las animaciones** siguen la configuración de animaciones de Windows.
 
 ## Descargar
 
@@ -166,7 +156,7 @@ Descarga `Lens-<version>-setup.exe` desde la [página de versiones](https://gith
 <details>
 <summary>Puede que Windows te avise antes de ejecutarlo</summary>
 
-Lens no tiene firma de código y SmartScreen bloquea los programas que no reconoce. Elige **Más información** y luego **Ejecutar de todos modos**. El aviso se debe a la falta de firma, no a un archivo dañado. Para comprobar que la descarga llegó intacta, compara su SHA-256 con la línea correspondiente del archivo `SHA256SUMS` de la versión; eso demuestra que el archivo no se alteró durante la transferencia, no quién lo publicó.
+Lens no tiene firma de código y SmartScreen bloquea los programas que no reconoce. Elige **Más información** y luego **Ejecutar de todos modos**.
 
 </details>
 
