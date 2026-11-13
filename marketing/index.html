@@ -287,11 +287,11 @@ p{max-width:40em}
 .foot-row .fine{margin-left:auto;font-size:13px;color:var(--muted)}
 
 /* ---------- 宠物精灵 ---------- */
+/* 一块画布逐帧绘制（见脚本）：换动作不清空、不重建节点，画面不会闪白 */
 .pet{position:relative;overflow:hidden;image-rendering:pixelated;flex:none}
-.pet img{position:absolute;top:0;left:0;max-width:none;image-rendering:pixelated;will-change:transform}
-.pet.s1{width:88px;height:88px}.pet.s1 img{width:88px;height:88px}
-.pet.s2{width:176px;height:176px}.pet.s2 img{width:176px;height:176px}
-.pet .acc{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+.pet canvas{position:absolute;left:0;top:0;display:block;width:100%;height:100%;image-rendering:pixelated}
+.pet.s1{width:88px;height:88px}
+.pet.s2{width:176px;height:176px}
 
 /* 复习牌 */
 .sign{position:relative;image-rendering:pixelated}
@@ -582,32 +582,79 @@ const META = {
   mochi:{idle:[5,5],walk:[6,9],edge_peek:[6,5],ask:[4,4],celebrate:[8,10],encourage:[5,8],look_around:[6,6],dizzy:[15,6],pickup:[4,6],thinking:[4,3]},
   owl:{idle:[5,5],walk:[6,8],edge_peek:[6,5],ask:[4,4],celebrate:[8,10],encourage:[5,8],look_around:[6,6],dizzy:[15,6],pickup:[4,6],thinking:[4,3]},
 };
-const SCALE = {s1:1, s2:2};
-const ACC = {cat:1, cloud:1, dog:1, ghost:1, jelly:1, mochi:1, owl:1};
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const players = new Set();
+/* 一帧 88px 见方。帧表整张预载，每只宠物画在自己的一块画布上：换动作只换帧源，
+   不重建节点、不清空画布，所以切动作和重新入场都不会闪出空白帧。 */
+const FRAME = 88;
+const DPR = Math.max(1, Math.min(3, devicePixelRatio || 1));
+const sheets = new Map(); // 路径 → 已开始加载的 Image
+function loadSheet(path){
+  let im = sheets.get(path);
+  if(im) return im;
+  im = new Image();
+  im.decoding = 'sync';
+  im.src = path;
+  sheets.set(path, im);
+  return im;
+}
+function petSurface(petEl, px){
+  if(petEl._surface) return petEl._surface;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(px * DPR); canvas.height = Math.round(px * DPR);
+  petEl.appendChild(canvas);
+  const surf = {canvas, ctx: canvas.getContext('2d')};
+  surf.ctx.imageSmoothingEnabled = false;
+  petEl._surface = surf;
+  return surf;
+}
+/* 画一帧。帧表还没到时返回 false 且不动画布——上一帧留在屏幕上，不闪白 */
+function paintPet(surf, pet, sheet, frame){
+  const body = sheets.get(`assets/pets/${pet}/${sheet}.png`);
+  if(!body || !body.complete || !body.naturalWidth) return false;
+  const {canvas, ctx} = surf;
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(body, frame * FRAME, 0, FRAME, FRAME, 0, 0, canvas.width, canvas.height);
+  const acc = sheets.get(`assets/pets/${pet}/acc.png`);
+  if(acc && acc.complete && acc.naturalWidth) ctx.drawImage(acc, 0, 0, FRAME, FRAME, 0, 0, canvas.width, canvas.height);
+  return true;
+}
+
 function makePlayer(petEl, pet, sheet, opts={}){
+  if(petEl._player) petEl._player.stop(); // 一个元素只留一个播放器在画
   const [frames, fps] = META[pet][sheet];
-  const px = 88 * SCALE[petEl.classList.contains('s2') ? 's2' : 's1'];
-  const accHtml = ACC[pet] ? `<img class="acc" src="assets/pets/${pet}/acc.png" alt="" aria-hidden="true">` : '';
-  petEl.innerHTML = `<img src="assets/pets/${pet}/${sheet}.png" alt="" style="width:${px*frames}px;height:${px}px">${accHtml}`;
-  const img = petEl.querySelector('img');
-  const once = !!opts.once;
-  let raf = 0, t0 = 0, done = opts.done || null;
+  const src = `assets/pets/${pet}/${sheet}.png`;
+  const surf = petSurface(petEl, FRAME * (petEl.classList.contains('s2') ? 2 : 1));
+  loadSheet(src);
+  loadSheet(`assets/pets/${pet}/acc.png`);
+  const once = !!opts.once, done = opts.done || null;
+  let raf = 0, t0 = 0, shown = -1;
+  const settle = (frame) => { // 定格一帧：帧表迟到就等它到了再补画
+    if(paintPet(surf, pet, sheet, frame)) return;
+    sheets.get(src).addEventListener('load', () => paintPet(surf, pet, sheet, frame), {once:true});
+  };
+  // 先落一帧，入场即有形；帧表还在路上就等它到了补上当前帧
+  if(!paintPet(surf, pet, sheet, 0)) sheets.get(src).addEventListener('load', () => paintPet(surf, pet, sheet, Math.max(0, shown)), {once:true});
   const tick = (t) => {
     if(!t0) t0 = t;
     let f = Math.floor((t - t0) / 1000 * fps);
-    if(once && f >= frames){ img.style.transform = `translateX(${-px*(frames-1)}px)`; raf=0; done && done(); return; }
+    if(once && f >= frames){ raf = 0; settle(frames - 1); done && done(); return; }
     f %= frames;
-    img.style.transform = `translateX(${-px*f}px)`;
+    if(f !== shown) shown = paintPet(surf, pet, sheet, f) ? f : -1;
     raf = requestAnimationFrame(tick);
   };
-  return {
-    play(){ if(raf || reduced){ if(reduced){img.style.transform='translateX(0)'; done&&done();} return; } t0=0; raf=requestAnimationFrame(tick); },
-    stop(){ if(raf){cancelAnimationFrame(raf); raf=0;} },
+  const player = {
+    play(){
+      if(raf || petEl._player !== player) return; // 被后一个播放器接管后不再画
+      if(reduced){ settle(0); done && done(); return; }
+      t0 = 0; raf = requestAnimationFrame(tick);
+    },
+    stop(){ if(raf){ cancelAnimationFrame(raf); raf = 0; } },
     swap(next, o={}){ this.stop(); const p = makePlayer(petEl, pet, next, o); p.play(); return p; }
   };
+  petEl._player = player;
+  return player;
 }
 
 /* 注册所有静态循环宠物 */
@@ -624,6 +671,17 @@ const vis = new IntersectionObserver(es => es.forEach(e => {
   e.isIntersecting ? p.play() : p.stop();
 }), {rootMargin:'80px'});
 loopPlayers.forEach((p, el) => vis.observe(el));
+
+/* 预载本页会播到的帧表（与下面各段剧本一致），动作切过去时不必等解码 */
+const PRELOAD = {
+  cat:['idle','pounce','catyarn','walk'], cloud:['idle','walk'], dog:['idle','walk','look_around'],
+  ghost:['edge_peek','walk'], jelly:['idle','thinking','walk'],
+  mochi:['idle','walk','pickup','dizzy'], owl:['idle','ask','celebrate','encourage','walk']
+};
+if(!reduced){
+  const warm = () => { for(const pet in PRELOAD) PRELOAD[pet].forEach(s => loadSheet(`assets/pets/${pet}/${s}.png`)); };
+  if('requestIdleCallback' in window) requestIdleCallback(warm, {timeout:1200}); else setTimeout(warm, 200);
+}
 
 /* ============ 剧本：每只宠物的一场戏 ============ */
 function scriptEnter(stageEl, petEl, pet){ // 狗：从词条卡左缘走入，张望，站定
