@@ -216,12 +216,16 @@ jobs:
       # Reconfigure in the same tree, the way the app job flips the developer surface: the Debug
       # flags CMake applies by default carry /RTC1 and incremental linking, both documented by
       # MSVC as incompatible with /fsanitize=address, so the two flag sets are replaced with
-      # their own minus that. Debug stays Debug on purpose -- the assertions and the TRACE log
-      # are the point; the ASan runtime DLLs are beside the compiler and on PATH once
-      # msvc-dev-cmd has run.
+      # their own minus that. Iterator debugging leaves too: at its Debug default of
+      # _ITERATOR_DEBUG_LEVEL=2 every container destruction walks a proxy list whose heap the
+      # sanitizer's own allocator does not keep straight -- the first run died in
+      # _Orphan_all on the unwinding of any pet-parse throw -- and IDL0 is the documented pair
+      # for /fsanitize=address, whose redzones cover what the proxies would. Debug stays Debug
+      # otherwise -- the assertions and the TRACE log are the point; the ASan runtime DLLs are
+      # beside the compiler and on PATH once msvc-dev-cmd has run.
       - name: Reconfigure with AddressSanitizer
         shell: pwsh
-        run: cmake -S . -B build-ninja "-DCMAKE_CXX_FLAGS=/fsanitize=address" "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od" "-DCMAKE_EXE_LINKER_FLAGS_DEBUG=/DEBUG /INCREMENTAL:NO"
+        run: cmake -S . -B build-ninja "-DCMAKE_CXX_FLAGS=/fsanitize=address" "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /D_ITERATOR_DEBUG_LEVEL=0 /D_CONTAINER_DEBUG_LEVEL=0" "-DCMAKE_EXE_LINKER_FLAGS_DEBUG=/DEBUG /INCREMENTAL:NO"
 
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_qtest_pet
