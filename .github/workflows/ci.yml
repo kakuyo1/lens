@@ -78,6 +78,7 @@ jobs:
       unit: ${{ steps.changes.outputs.unit }}
       app: ${{ steps.changes.outputs.app }}
       qml: ${{ steps.changes.outputs.qml }}
+      tidy: ${{ steps.changes.outputs.tidy }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -205,6 +206,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.unit == 'true'
     runs-on: windows-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v5
@@ -227,9 +229,12 @@ jobs:
       # Qt and the sherpa-onnx runtime are not instrumented; the ASan runtime hooks the process
       # allocator either way, so uninstrumented modules run as they always have, and what the
       # sanitizer loses is coverage of their internals, not the run. Leak detection is not part
-      # of MSVC ASan on Windows and is not gated here.
+      # of MSVC ASan on Windows and is not gated here. gtest's SEH translator is switched off so
+      # a fault the sanitizer turns into an access violation reaches the ASan runtime, which
+      # prints the report with the source line, instead of dying as a bare 0xC0000005 with no
+      # stack -- the first run's only visibility into the PetConfig fault.
       - name: Unit tests under ASan
-        run: ./build-ninja/test/googletest/lens_gtest_unit.exe
+        run: ./build-ninja/test/googletest/lens_gtest_unit.exe --gtest_catch_exceptions=0
         env:
           QT_FORCE_STDERR_LOGGING: 1
 
