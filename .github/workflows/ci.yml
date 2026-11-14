@@ -261,10 +261,10 @@ jobs:
             "=== killed at the hang; the suite's output up to it follows"
           }
           "=== the suite exited with $($suite.ExitCode)"
-          "=== stdout, last 40 lines:"
-          Get-Content "unit-asan-out.log" -Tail 40
-          "=== stderr, last 40 lines:"
-          Get-Content "unit-asan-err.log" -Tail 40
+          "=== stdout, last 160 lines:"
+          Get-Content "unit-asan-out.log" -Tail 160
+          "=== stderr, last 160 lines:"
+          Get-Content "unit-asan-err.log" -Tail 160
           exit $suite.ExitCode
 
       # The sanitizer's own report for a hard fault carries module offsets, and the in-process
