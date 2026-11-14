@@ -243,7 +243,7 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
     bodyText += dumpsDir;
 
     if (const auto setDpi = reinterpret_cast<SetProcessDpiAwarenessContextFn>(
-            reinterpret_cast<void*>(GetProcAddress(GetModuleHandleW(L"user32"), "SetProcessDpiAwarenessContext"))))
+            GetProcAddress(GetModuleHandleW(L"user32"), "SetProcessDpiAwarenessContext")))
         setDpi(reinterpret_cast<void*>(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2));
 
     WNDCLASSEXW windowClass{sizeof windowClass};

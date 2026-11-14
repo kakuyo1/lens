@@ -5,6 +5,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QString>
+#include <QTimer>
 #include <QVariant>
 
 #include <algorithm>

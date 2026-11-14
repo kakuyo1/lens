@@ -454,6 +454,7 @@ TEST(ExplanationQueue, AScanBatchTakesFiveAndLeavesTheRestQueued)
 {
     ExplanationQueue              queue;
     std::vector<PendingSelection> candidates;
+    candidates.reserve(7);
     for (int i = 0; i < 7; ++i)
         candidates.push_back(aWord(QStringLiteral("w%1").arg(i)));
     queue.addScan(QVector<PendingSelection>{candidates.begin(), candidates.end()});

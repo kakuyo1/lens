@@ -7,9 +7,9 @@
 # and a QML-only change skips the unit suite while still running the app and qml jobs.
 #
 # Usage: scripts/quality/ci-changes.sh <base> [head]
-#   Prints unit=, app=, qml= and coverage= as true or false, one per line, for $GITHUB_OUTPUT.
-#   A base that git cannot resolve falls back to head's parent; a diff that fails prints all
-#   four true rather than silently narrowing the gate.
+#   Prints unit=, app=, qml=, coverage= and tidy= as true or false, one per line, for
+#   $GITHUB_OUTPUT. A base that git cannot resolve falls back to head's parent; a diff that
+#   fails prints all five true rather than silently narrowing the gate.
 #
 # LENS_CI_FILES overrides the diff with a newline-separated file list, so the classification can
 # be exercised without a commit. It is a test seam only; the workflows never set it.
@@ -22,6 +22,7 @@
 #   qml       src, the qtest suite, data, translations, third_party, CMake, the QML lint and
 #             parallel-runner scripts, the configure action and the workflows
 #   coverage  src, test, data, CMake, and the coverage scripts
+#   tidy      our .cpp/.h under src and test, .clang-tidy, and the tidy script
 #
 # The classifier itself is in every list: a change to the map runs the jobs whose inclusion it
 # changes, so the new map is exercised by the run that introduces it.
@@ -39,7 +40,7 @@ else
     fi
     if ! files=$(git diff --name-only "$base" "$head"); then
         echo "ci-changes: cannot diff '$base'..'$head'; every job runs" >&2
-        printf 'unit=true\napp=true\nqml=true\ncoverage=true\n'
+        printf 'unit=true\napp=true\nqml=true\ncoverage=true\ntidy=true\n'
         exit 0
     fi
 fi
@@ -73,4 +74,12 @@ if has '^src/|^test/|^data/|^scripts/quality/(coverage\.sh|coverage-summary\.py|
     coverage=true
 fi
 
-printf 'unit=%s\napp=%s\nqml=%s\ncoverage=%s\n' "$unit" "$app" "$qml" "$coverage"
+# Only what clang-tidy can judge: our C++ sources, the config that governs them and the script
+# that runs them. A CMake change alone skips it -- tidy reads the compile commands the tree
+# already carries, and the build jobs are the gate for the build's own health.
+tidy=false
+if has '^src/.*\.(cpp|h)$|^test/.*\.(cpp|h)$|^\.clang-tidy$|^scripts/quality/(tidy\.sh|ci-changes\.sh)$'; then
+    tidy=true
+fi
+
+printf 'unit=%s\napp=%s\nqml=%s\ncoverage=%s\ntidy=%s\n' "$unit" "$app" "$qml" "$coverage" "$tidy"

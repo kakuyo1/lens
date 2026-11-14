@@ -24,6 +24,7 @@ namespace {
 std::vector<std::string> lemmas(std::size_t count)
 {
     std::vector<std::string> words;
+    words.reserve(count);
     for (std::size_t i = 0; i < count; ++i)
         words.push_back("word" + std::to_string(i));
     return words;

@@ -139,9 +139,9 @@ PetScenes PetScenes::load(std::filesystem::path const& directory)
             scene.backLayer  = integerOf(entry.at("layers"), "back", owner + ".layers");
             scene.frontLayer = integerOf(entry.at("layers"), "front", owner + ".layers");
 
-            auto const sheets = entry.at("sheets");
-            auto const back   = directory / sheets.at("back").get<std::string>();
-            auto const front  = directory / sheets.at("front").get<std::string>();
+            auto const& sheets = entry.at("sheets");
+            auto const  back   = directory / sheets.at("back").get<std::string>();
+            auto const  front  = directory / sheets.at("front").get<std::string>();
             requireSize(back, scene.frames * canvas, canvas, owner + " back sheet");
             requireSize(front, scene.frames * canvas, canvas, owner + " front sheet");
             scene.backSheet  = widen(back);

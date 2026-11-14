@@ -13,6 +13,7 @@
   "qtBin": "B:/qtt/6.9.0/msvc2022_64/bin",
   "vsRoot": "D:/VS 2022",
   "vsLlvmBin": "D:/VS 2022/VC/Tools/Llvm/x64/bin",
+  "llvmSystemBin": "C:/Program Files/LLVM/bin",
   "systemFonts": "C:/Windows/Fonts",
   "innoSetup": "C:/Program Files (x86)/Inno Setup 6/ISCC.exe",
   "tesseractRoot": "B:/tesseract",

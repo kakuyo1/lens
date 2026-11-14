@@ -8,6 +8,9 @@
 #   unit            the offline gtest suite and the pet controller QTest. The cheapest job in the
 #                   file: its targets do not pull in the QML module, and it runs on every piece of
 #                   C++ that can reach them.
+#   tidy            clang-tidy over the files the change touches, against a tree configured
+#                   without precompiled headers (clang cannot read the MSVC PCH format). The
+#                   checks live in .clang-tidy and the gate is held to zero, not to a baseline.
 #   app             the executable compiles and links, first as it ships and then with the developer
 #                   surface, which it smokes in the same tree. main.cpp, the translations and the
 #                   icon resources are compiled by no other target, so a break in any of them has
@@ -112,6 +115,47 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
+
+  tidy:
+    needs: changes
+    if: needs.changes.outputs.tidy == 'true'
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # Nothing is built here; the configure action runs for the compile commands, which are the
+      # flags clang-tidy reads. The reconfigure adds CMAKE_DISABLE_PRECOMPILE_HEADERS=ON, the
+      # second configure pass regenerates them, and clang-tidy gets a db whose every TU parses:
+      # the dev tree's db names the targets' PCH files, which clang cannot read.
+      - uses: ./.github/actions/configure
+      - name: Drop the precompiled headers from the compile commands
+        shell: pwsh
+        run: cmake -S . -B build-ninja -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON
+
+      # The runner image ships LLVM standalone (its clang-tidy is the version the gate judges
+      # against; a local 19.x may differ in the margins) and the VS-bundled toolset behind it.
+      # tidy.sh probes PATH first, and LENS_TIDY_STRICT makes a missing tool a red gate rather
+      # than a silent skip. The standard LLVM install path comes from config, the one file
+      # machine paths may live in.
+      - name: Put clang-tidy on PATH
+        shell: pwsh
+        run: |
+          if (-not (Get-Command clang-tidy -ErrorAction SilentlyContinue)) {
+            . ./scripts/build/paths.ps1
+            $llvm = (Get-LensPaths -Root $PWD).llvmSystemBin
+            if ($llvm -and (Test-Path (Join-Path $llvm 'clang-tidy.exe'))) { $llvm >> $env:GITHUB_PATH }
+            else { throw "clang-tidy is neither on PATH nor at config's llvmSystemBin" }
+          }
+
+      - name: clang-tidy
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          LENS_TIDY_STRICT: "1"
+        run: bash scripts/quality/tidy.sh "$BASE" HEAD
 
   app:
     needs: changes

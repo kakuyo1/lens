@@ -167,9 +167,10 @@ struct TesseractOcr final : OcrEngine {
         result.requestId            = request.requestId;
         result.actualEngine         = QStringLiteral("tesseract");
         result.languageUsed         = selection.spec;
-        result.timing.recognitionMs = static_cast<int>(timer.elapsed());
-        result.timing.totalMs       = result.timing.recognitionMs;
-        return withAttempt(std::move(result), QStringLiteral("tesseract"), result.timing.recognitionMs);
+        const int recognitionMs     = static_cast<int>(timer.elapsed());
+        result.timing.recognitionMs = recognitionMs;
+        result.timing.totalMs       = recognitionMs;
+        return withAttempt(std::move(result), QStringLiteral("tesseract"), recognitionMs);
     }
 
     TesseractConfig config;

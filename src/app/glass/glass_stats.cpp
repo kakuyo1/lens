@@ -49,7 +49,9 @@ double GlassStats::Samples::p95() const
     if (n == 0) return -1.0;
     auto sorted = std::vector<double>(kept.begin(), kept.end());
     std::sort(sorted.begin(), sorted.end());
-    return sorted[static_cast<std::size_t>(kPercentile * static_cast<double>(n - 1) + 0.5)];
+    // The +0.5 truncation is the round-half-up the percentile index means; the value is
+    // non-negative, which is what keeps it exact.
+    return sorted[static_cast<std::size_t>(kPercentile * static_cast<double>(n - 1) + 0.5)]; // NOLINT(bugprone-incorrect-roundings)
 }
 
 void GlassStats::Samples::clear()
