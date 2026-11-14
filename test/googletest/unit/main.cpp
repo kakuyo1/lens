@@ -31,6 +31,12 @@
 
 #include <gtest/gtest.h>
 
+#if defined(__SANITIZE_ADDRESS__)
+// The sanitizer's death callback, declared here rather than through <sanitizer/asan_interface.h>
+// so the file compiles unchanged against toolchains that ship the header in different places.
+extern "C" void __asan_set_death_callback(void (*callback)(void));
+#endif
+
 namespace {
 
 /// @brief Print the current thread's call stack, symbolized against the PDB beside the exe.
@@ -109,6 +115,19 @@ LONG WINAPI onAccessViolation(EXCEPTION_POINTERS* info)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+#if defined(__SANITIZE_ADDRESS__)
+/// @brief Symbolize the stack when the sanitizer dies on an error it found.
+/// @note The sanitizer's own report for a hard access violation carries module offsets only, and
+///       its vectored handler answers before the unhandled-exception filter can, so the death
+///       callback is where a symbolized stack becomes possible: it runs on the faulting thread,
+///       whose stack still carries the frames below the sanitizer's own.
+void onSanitizerDeath()
+{
+    std::fprintf(stderr, "\n=== sanitizer death, symbolized stack follows\n");
+    printStack();
+}
+#endif
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -125,6 +144,9 @@ int main(int argc, char** argv)
     std::signal(SIGABRT, onAbort);
     std::set_terminate(onTerminate);
     SetUnhandledExceptionFilter(onAccessViolation);
+#endif
+#if defined(__SANITIZE_ADDRESS__)
+    __asan_set_death_callback(onSanitizerDeath);
 #endif
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
