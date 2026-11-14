@@ -263,6 +263,18 @@ jobs:
           Get-Content "unit-asan-err.log" -Tail 40
           exit $suite.ExitCode
 
+      # The sanitizer's own report for a hard fault carries module offsets, and the in-process
+      # symbolizers cannot read the PDB from inside the dying process -- so the offsets are
+      # mapped offline, against the exe and its PDB from this very run.
+      - name: Upload the suite's symbols
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asan-suite-symbols
+          path: |
+            build-ninja/test/googletest/lens_gtest_unit.exe
+            build-ninja/test/googletest/lens_gtest_unit.pdb
+
       - name: Pet controller tests under ASan
         run: ./build-ninja/test/qtest/lens_qtest_pet.exe
         env:
