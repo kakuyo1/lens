@@ -229,14 +229,37 @@ jobs:
       # Qt and the sherpa-onnx runtime are not instrumented; the ASan runtime hooks the process
       # allocator either way, so uninstrumented modules run as they always have, and what the
       # sanitizer loses is coverage of their internals, not the run. Leak detection is not part
-      # of MSVC ASan on Windows and is not gated here. gtest's SEH translator is switched off so
-      # a fault the sanitizer turns into an access violation reaches the ASan runtime, which
-      # prints the report with the source line, instead of dying as a bare 0xC0000005 with no
-      # stack -- the first run's only visibility into the PetConfig fault.
+      # of MSVC ASan on Windows and is not gated here.
+      #
+      # The suite has hung on the runner, twice, at a different test each time and with no ASan
+      # report -- a nondeterministic deadlock, not a test that always trips. So the run is
+      # bounded: four minutes in, cdb attaches and prints every thread's stack before the
+      # process is killed, which is the evidence the next fix needs. A healthy run never meets
+      # the debugger at all.
       - name: Unit tests under ASan
-        run: ./build-ninja/test/googletest/lens_gtest_unit.exe --gtest_catch_exceptions=0
-        env:
-          QT_FORCE_STDERR_LOGGING: 1
+        shell: pwsh
+        run: |
+          $suite = Start-Process -FilePath "build-ninja/test/googletest/lens_gtest_unit.exe" `
+            -ArgumentList "--gtest_catch_exceptions=0" -NoNewWindow -PassThru `
+            -RedirectStandardOutput "unit-asan-out.log" -RedirectStandardError "unit-asan-err.log"
+          if (-not $suite.WaitForExit(240000)) {
+            "=== the suite is still running after 240 s; stacks of every thread follow"
+            . ./scripts/build/paths.ps1
+            $cdb = Get-LensPathList -Root $PWD -Key cdbFallbacks |
+                   Where-Object { Test-Path $_ } | Select-Object -First 1
+            if ($cdb) {
+              & $cdb -p $suite.Id -c "~*k200; qd"
+            } else {
+              "no cdb on the runner; only the process snapshot follows"
+              Get-Process -Id $suite.Id | Format-List *
+            }
+            $suite.Kill()
+            "=== the suite's own output, up to the hang:"
+            Get-Content "unit-asan-out.log" -Tail 40
+            exit 1
+          }
+          "=== the suite exited with $($suite.ExitCode)"
+          exit $suite.ExitCode
 
       - name: Pet controller tests under ASan
         run: ./build-ninja/test/qtest/lens_qtest_pet.exe
