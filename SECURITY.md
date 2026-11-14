@@ -23,7 +23,7 @@ Use GitHub's private vulnerability reporting if it is enabled. Otherwise, open a
 - `%APPDATA%\Lens\settings.json` holds your settings, learning data, caches, the API key, OCR credentials, the GitHub token and its refresh token, the WebDAV server, username and app password, and the sync key. It is plain JSON that Lens does not encrypt. Anyone who can read it can decrypt the cloud copy.
 - Pictures, pronunciation audio, and voice models are cached locally. None of them is synced or uploaded.
 - Logs can contain the words you looked up. Logs rotate, and for packaged launches they may be written inside the install folder.
-- When Lens crashes it writes a minidump, a small text summary, and a marker into the log directory's `dumps` folder. A dump is a snapshot of process memory: it can contain the text you were reading and the words you looked up. It stays on the machine and is never sent anywhere by Lens; the folder keeps the newest five, and an uninstall deletes it with the install-folder logs.
+- When Lens crashes it writes a minidump, a small text summary, and a marker into the log directory's `dumps` folder. A dump is a snapshot of process memory: it can contain the text you were reading and the words you looked up. It stays on the machine and is never sent anywhere by Lens; the folder keeps the newest five, and an uninstall deletes it with the install-folder logs. The companion dialog that appears right away reads only the interface language from the settings document.
 - Selection capture briefly replaces the clipboard and then tries to restore it. Another application can prevent a perfect restore.
 - Pet packages are read from `%APPDATA%\Lens\pets\` as data. Lens runs no code from them.
 

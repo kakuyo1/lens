@@ -7,7 +7,8 @@
  * once-flag: a second fault inside the first one's writer only escalates the death. The writer
  * touches Win32 file APIs and dbghelp alone, never spdlog or the Qt heap, because the heap a
  * crash would want to describe is the one the writer must not disturb. A crash therefore leaves
- * no log line; the next launch's reportStartupCrash() is the record that the chain ran.
+ * no log line: the spawned reporter (src/reporter/) is the record the reader sees right away,
+ * and the next launch's reportStartupCrash() is the one the facade raises.
  */
 
 #include "app/platform/crash_dump.h"
@@ -15,6 +16,7 @@
 #include <windows.h>
 #include <dbghelp.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
@@ -25,6 +27,7 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <thread>
 
 #include "util/crash.h"
 
@@ -111,6 +114,42 @@ void writeTextFile(const std::filesystem::path& path, std::string_view text)
     CloseHandle(file);
 }
 
+/// @brief Start the companion exe for the immediate dialog (docs/adr/0175).
+///
+/// The crashing process cannot draw one of its own -- its heap and its render loop are the
+/// things that just broke -- so the dialog belongs to lens_reporter.exe (src/reporter/). Package
+/// layout puts the reporter beside lens.exe; a build tree puts it in the sibling target
+/// directory. Neither found -- a payload assembled by hand, say -- spawns nothing, and the
+/// next-launch notice stays the whole story. A failure to spawn is equally silent: the artifacts
+/// are already on the disk, and this call must never make the crash worse.
+void spawnCrashReporter(const std::filesystem::path& marker)
+{
+    wchar_t     exePath[MAX_PATH];
+    const DWORD length = GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+    if (length == 0 || length >= MAX_PATH) return;
+    const std::filesystem::path exeDir    = std::filesystem::path(exePath).parent_path();
+    const std::filesystem::path package   = exeDir / L"lens_reporter.exe";
+    const std::filesystem::path buildTree = exeDir.parent_path() / L"reporter" / L"lens_reporter.exe";
+    std::error_code             ec;
+    std::filesystem::path       reporter;
+    if (std::filesystem::exists(package, ec))
+        reporter = package;
+    else if (std::filesystem::exists(buildTree, ec))
+        reporter = buildTree;
+    if (reporter.empty()) return;
+
+    // CreateProcessW may write into the command line it is handed, so the string stays mutable.
+    std::wstring command =
+        L"\"" + reporter.wstring() + L"\" \"" + marker.wstring() + L"\" \"" + g_dumpDir.wstring() + L"\"";
+    STARTUPINFOW startup{};
+    startup.cb = sizeof startup;
+    PROCESS_INFORMATION process{};
+    if (!CreateProcessW(reporter.c_str(), command.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startup, &process))
+        return;
+    CloseHandle(process.hThread);
+    CloseHandle(process.hProcess);
+}
+
 /// @brief The dump, then the summary, then the marker, in that order: the marker's presence is
 ///        the handoff, and it is only honest once what it points at is on the disk.
 void writeArtifacts(DWORD code, EXCEPTION_POINTERS* pointers)
@@ -162,6 +201,7 @@ void writeArtifacts(DWORD code, EXCEPTION_POINTERS* pointers)
 
     writeTextFile(summaryPath, summaryText);
     writeTextFile(g_dumpDir / lens::util::kCrashMarkerName, summaryText);
+    spawnCrashReporter(g_dumpDir / lens::util::kCrashMarkerName);
 }
 
 /// @brief The entry the four CRT funnels share: capture this thread's context and build the
@@ -232,13 +272,22 @@ void installCrashDumpHandler(const std::filesystem::path& logDir)
     _set_invalid_parameter_handler(&invalidParameterHandler);
     signal(SIGABRT, &sigabrtHandler);
 
-    // The QA round: LENS_CRASH_TEST makes this launch die at once through the real SEH path, so
-    // the whole chain -- dump, summary, marker, next-launch notice -- can be walked by hand
-    // (docs/qa.md). The store through a null pointer is the crash; volatile keeps the compiler
-    // from folding it away.
+    // The QA round: LENS_CRASH_TEST=<秒> makes this launch die <秒> seconds in, through the real
+    // SEH path and with the surfaces already up -- the whole chain (dump, summary, marker,
+    // reporter, next-launch notice) walks by hand (docs/qa.md). A value that parses to 0, or a
+    // bare presence with no number, dies immediately. The write through a null pointer is the
+    // crash; volatile keeps the compiler from folding it away, and the timer thread dies with
+    // the process when a run quits before its fuse burns down.
     if (GetEnvironmentVariableW(L"LENS_CRASH_TEST", nullptr, 0) != 0) {
-        volatile int* nowhere = nullptr;
-        *nowhere              = 1;
+        wchar_t secondsText[16] = L"";
+        GetEnvironmentVariableW(L"LENS_CRASH_TEST", secondsText, 16);
+        // windows.h's max macro eats std::max here, so the clamp is written out.
+        const int seconds = _wtoi(secondsText);
+        std::thread([seconds] {
+            Sleep(seconds > 0 ? seconds * 1000 : 0);
+            volatile int* nowhere = nullptr;
+            *nowhere              = 1;
+        }).detach();
     }
 }
 

@@ -60,4 +60,12 @@ CrashSummary parseCrashSummary(std::string_view text);
 /// @note A summary whose dump never landed carries nothing the marker does not, and goes too.
 std::size_t pruneCrashDumps(const std::filesystem::path& dumpDir, std::size_t keep = kCrashDumpsKept);
 
+/// @brief The prefilled GitHub issue URL a crash report opens, in both the facade and the reporter.
+/// @param summary The crash the issue is about; empty fields leave their line out.
+/// @return "https://github.com/kakuyo1/lens/issues/new?title=...&body=...", fully percent-encoded.
+/// @note Lives here rather than beside either caller so the facade and the reporter process share
+///       one template and cannot drift; the body quotes facts only, and the dump travels because
+///       the reader attaches it (SECURITY.md).
+std::string crashIssueUrl(const CrashSummary& summary);
+
 }

@@ -161,4 +161,57 @@ std::size_t pruneCrashDumps(const std::filesystem::path& dumpDir, std::size_t ke
     return removed;
 }
 
+namespace {
+
+/// Bytes a URL query may carry raw, RFC 3986 2.3's unreserved set; everything else in the
+/// template's text goes through as two hex digits, UTF-8 bytes included.
+std::string percentEncoded(std::string_view text)
+{
+    static constexpr const char* kDigits = "0123456789ABCDEF";
+    std::string                  out;
+    out.reserve(text.size());
+    for (const char c : text) {
+        const auto byte       = static_cast<unsigned char>(c);
+        const bool unreserved = (byte >= 'A' && byte <= 'Z') || (byte >= 'a' && byte <= 'z') || (byte >= '0' && byte <= '9') || byte == '-' || byte == '.' || byte == '_' || byte == '~';
+        if (unreserved) {
+            out += static_cast<char>(byte);
+        } else {
+            out += '%';
+            out += kDigits[byte >> 4];
+            out += kDigits[byte & 0xF];
+        }
+    }
+    return out;
+}
+
+}
+
+std::string crashIssueUrl(const CrashSummary& summary)
+{
+    // Facts only, straight from the summary; the steps stay the reader's to write. The same
+    // wording the facade used before the builder moved here, so both callers read alike.
+    std::string facts;
+    const auto  line = [&facts](const char* label, const std::string& value) {
+        if (value.empty()) return;
+        if (!facts.empty()) facts += '\n';
+        facts += "- ";
+        facts += label;
+        facts += ": ";
+        facts += value;
+    };
+    line("Lens version", summary.version);
+    line("Exception code", summary.code);
+    line("Faulting address", summary.address);
+    line("Module", summary.module);
+    line("Time", summary.time);
+
+    const std::string title = "Lens " + (summary.version.empty() ? std::string("unknown") : summary.version) + " crashed (" + (summary.code.empty() ? std::string("unknown") : summary.code) + ")";
+    const std::string body =
+        std::string("A crash dump (`.dmp`) and a summary (`.crash.txt`) were saved under the Lens log "
+                    "directory's `dumps` folder. Please attach the pair that matches this crash.\n\n"
+                    "### Crash\n\n") +
+        facts + "\n\n### Steps to reproduce\n\n1. ";
+    return "https://github.com/kakuyo1/lens/issues/new?title=" + percentEncoded(title) + "&body=" + percentEncoded(body);
+}
+
 }

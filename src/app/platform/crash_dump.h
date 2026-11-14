@@ -15,8 +15,9 @@ namespace lens::app {
  * @param logDir Directory the log lives in; dumps go to crashDumpDir(logDir), created here.
  * @note Windows only, like the rest of src/app. The SEH unhandled-exception filter and the four
  *       CRT funnels (terminate, pure call, invalid parameter, SIGABRT) all write the same set of
- *       artifacts; dbghelp is loaded with the process, never inside the crash. The marker the
- *       handler leaves is the next launch's news -- AppController::reportStartupCrash reads it.
+ *       artifacts; dbghelp is loaded with the process, never inside the crash. After writing, the
+ *       handler spawns lens_reporter.exe (src/reporter/) for the dialog the reader sees at once,
+ *       and leaves a marker that AppController::reportStartupCrash reads on the next launch.
  */
 void installCrashDumpHandler(const std::filesystem::path& logDir);
 

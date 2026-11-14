@@ -120,6 +120,9 @@ add_subdirectory(src/sync)
 add_subdirectory(src/pictures)
 add_subdirectory(src/speech)
 add_subdirectory(src/app)
+# The crash reporter joins the default builds like the app does: the payload copies it beside
+# lens.exe, and a crash in a build tree spawns it from the sibling target directory.
+add_subdirectory(src/reporter)
 
 if(LENS_ENABLE_QML_DEBUG)
   target_compile_definitions(lens PRIVATE QT_QML_DEBUG)
@@ -188,6 +191,9 @@ add_custom_target(installer
           --skip-plugin-types qmltooling
           "$<TARGET_FILE:lens>"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:lens>" "${LENS_PAYLOAD_DIR}"
+  # The reporter sits beside lens.exe, which is where the crash handler looks for it
+  # (src/app/platform/crash_dump.cpp); the .iss glob carries it like anything else in the payload.
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:lens_reporter>" "${LENS_PAYLOAD_DIR}"
   COMMAND ${CMAKE_COMMAND}
           "-DLENS_PAYLOAD_DIR=${LENS_PAYLOAD_DIR}"
           -P "${CMAKE_SOURCE_DIR}/installer/strip_media_plugins.cmake"
@@ -219,6 +225,7 @@ add_custom_target(installer
           ${CMAKE_COMMAND} -E tar cf "../Lens-${PROJECT_VERSION}-portable.zip" --format=zip
           "Lens-${PROJECT_VERSION}"
   DEPENDS lens
+          lens_reporter
           "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
           "${CMAKE_SOURCE_DIR}/installer/strip_media_plugins.cmake"
           "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"

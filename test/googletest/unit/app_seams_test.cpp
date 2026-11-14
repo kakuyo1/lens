@@ -107,19 +107,20 @@ CacheContext aContext(char const* language = "en", bool multipleSenses = false)
 
 /// The shape is the contract the notice surface is built against, so it is pinned here
 /// rather than left to whatever the controller happens to put in the map.
-TEST(NoticePayload, CarriesAReasonAndAtMostOneAction)
+TEST(NoticePayload, CarriesAReasonAndAtMostTwoActions)
 {
     const QVariantMap notice = noticePayload(QStringLiteral("ubiquitous"),
                                              QString::fromUtf8("这张卡片没有可解释的单词"),
                                              QString::fromUtf8(kNoticeInfo));
 
-    EXPECT_EQ(notice.size(), 5) << "a sixth key would be one no surface reads";
+    EXPECT_EQ(notice.size(), 6) << "a seventh key would be one no surface reads";
     EXPECT_EQ(notice.value("title").toString(), QStringLiteral("ubiquitous"));
     EXPECT_EQ(notice.value("body").toString(), QString::fromUtf8("这张卡片没有可解释的单词"));
     EXPECT_EQ(notice.value("kind").toString(), QStringLiteral("info"));
     // Most notices are the end of the road: nothing to press, and no word to press it about.
     EXPECT_TRUE(notice.value("action").toString().isEmpty());
     EXPECT_TRUE(notice.value("lemma").toString().isEmpty());
+    EXPECT_TRUE(notice.value("secondaryAction").toString().isEmpty());
 }
 
 /// A notice that does offer one names the word it would act on, because the surface that draws the

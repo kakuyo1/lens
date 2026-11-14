@@ -217,3 +217,42 @@ TEST(CrashRetention, PruneLeavesTheMarkerAlone)
     EXPECT_EQ(lens::util::pruneCrashDumps(scratch.path(), 5), 0u);
     EXPECT_TRUE(fs::exists(scratch.path() / lens::util::kCrashMarkerName));
 }
+
+/// The facade and the reporter process open the same URL, so the template's shape is pinned
+/// here: base, encoded title, and the facts the body quotes, spaces and all.
+TEST(CrashIssueUrl, TheTemplateCarriesTheBaseTheTitleAndTheFacts)
+{
+    lens::util::CrashSummary summary;
+    summary.version = "1.0.0";
+    summary.time    = "2026-11-14 11:01:51";
+    summary.code    = "0xC0000005";
+    summary.address = "0x00007FF68EA44BF6";
+    summary.module  = "lens.exe";
+
+    const std::string url = lens::util::crashIssueUrl(summary);
+    EXPECT_TRUE(url.starts_with("https://github.com/kakuyo1/lens/issues/new?title="))
+        << "the issue URL does not open the repository's new-issue form: " << url;
+    EXPECT_NE(url.find("Lens%201.0.0%20crashed%20%280xC0000005%29"), std::string::npos)
+        << "the title is not the encoded form the issue list shows";
+    EXPECT_NE(url.find("&body="), std::string::npos);
+    EXPECT_NE(url.find("-%20Lens%20version%3A%201.0.0"), std::string::npos)
+        << "the version fact is missing from the encoded body";
+    EXPECT_NE(url.find("Time%3A%202026-11-14%2011%3A01%3A51"), std::string::npos)
+        << "the time fact is missing from the encoded body";
+    EXPECT_NE(url.find("Steps%20to%20reproduce"), std::string::npos);
+    // Nothing the body carries rides raw: a stray space would cut the URL at the browser.
+    EXPECT_EQ(url.find(' '), std::string::npos);
+}
+
+/// A summary missing fields says "unknown" where the title needs one and drops the empty lines
+/// where the body carries none, so the issue never opens with half a sentence.
+TEST(CrashIssueUrl, EmptyFieldsSayUnknownAndLeaveNoLine)
+{
+    lens::util::CrashSummary summary;
+    summary.code = "0xE0000001";
+
+    const std::string url = lens::util::crashIssueUrl(summary);
+    EXPECT_NE(url.find("Lens%20unknown%20crashed%20%280xE0000001%29"), std::string::npos);
+    EXPECT_EQ(url.find("Lens%20version"), std::string::npos)
+        << "an empty version still produced a fact line";
+}

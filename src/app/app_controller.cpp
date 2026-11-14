@@ -25,7 +25,6 @@
 #include <QSoundEffect>
 #include <QQmlEngine>
 #include <QJSEngine>
-#include <QUrlQuery>
 
 #include <algorithm>
 #include <fstream>
@@ -646,36 +645,10 @@ void AppController::openCrashDumpFolder()
 
 void AppController::reportCrashIssue()
 {
-    // Facts only, straight from the summary; the steps stay the reader's to write, and the dump
-    // and its summary leave the machine only because the reader attaches them by hand
-    // (SECURITY.md: nothing Lens holds is uploaded on its own).
-    QStringList facts;
-    const auto  fact = [&facts](const char* label, const std::string& value) {
-        if (!value.empty())
-            facts << QStringLiteral("- %1: %2").arg(QString::fromUtf8(label), QString::fromStdString(value));
-    };
-    fact("Lens version", crashSummary_.version);
-    fact("Exception code", crashSummary_.code);
-    fact("Faulting address", crashSummary_.address);
-    fact("Module", crashSummary_.module);
-    fact("Time", crashSummary_.time);
-
-    const QString body = QStringLiteral(
-                             "A crash dump (`.dmp`) and a summary (`.crash.txt`) were saved under the Lens log "
-                             "directory's `dumps` folder. Please attach the pair that matches this crash.\n\n"
-                             "### Crash\n\n%1\n\n### Steps to reproduce\n\n1. ")
-                             .arg(facts.join(QLatin1Char('\n')));
-    QUrl      url(QStringLiteral("https://github.com/kakuyo1/lens/issues/new"));
-    QUrlQuery query;
-    query.addQueryItem(QStringLiteral("title"),
-                       QStringLiteral("Lens %1 crashed (%2)")
-                           .arg(crashSummary_.version.empty() ? QStringLiteral("unknown")
-                                                              : QString::fromStdString(crashSummary_.version),
-                                crashSummary_.code.empty() ? QStringLiteral("unknown")
-                                                           : QString::fromStdString(crashSummary_.code)));
-    query.addQueryItem(QStringLiteral("body"), body);
-    url.setQuery(query);
-    QDesktopServices::openUrl(url);
+    // The URL is the pure builder's (docs/adr/0175), shared with the reporter process so the
+    // template cannot drift between them; the dump leaves the machine only because the reader
+    // attaches it by hand (SECURITY.md: nothing Lens holds is uploaded on its own).
+    QDesktopServices::openUrl(QUrl(QString::fromStdString(lens::util::crashIssueUrl(crashSummary_))));
 }
 
 QString AppController::reviewQuestion() const

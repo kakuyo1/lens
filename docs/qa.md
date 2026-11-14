@@ -77,13 +77,16 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
 崩溃转储（`docs/adr/0174`）的整条链路用一次真实崩溃走：
 
 ```
-$env:LENS_CRASH_TEST = "1"; powershell -File scripts/qa/ui-run.ps1 -Restart
+$env:LENS_CRASH_TEST = "5"; powershell -File scripts/qa/ui-run.ps1 -Restart
 ```
 
-应用一启动就经真实的 SEH 路径死掉，`logs/dumps\` 下应出现 `lens-<版本>-<时间戳>-<pid>.dmp`、同名
-`.crash.txt` 与 `last-crash.txt`；转储配构建树的 PDB 可在 WinDbg 里 `!analyze -v` 定位。去掉环境变量
-再起一次，崩溃通知应带两枚胶囊——“打开转储文件夹” 打开该目录，“报告问题” 打开预填了摘要事实的
-GitHub issue；展示后标记已删，再起一次不再通知。转储保留最近 5 份、启动时修剪；
+应用启动 5 秒后经真实的 SEH 路径死掉（秒数写在变量里，0 或空值立即崩），`logs/dumps\` 下应出现
+`lens-<版本>-<时间戳>-<pid>.dmp`、同名 `.crash.txt` 与 `last-crash.txt`；转储配构建树的 PDB 可在
+WinDbg 里 `!analyze -v` 定位。崩溃的当下，随包的 `lens_reporter.exe` 应在主屏正中弹出原生对话框
+（`docs/adr/0175`）：语言随界面语言，两枚按钮分别打开转储文件夹与预填 issue，Esc 或关闭键收掉。
+开发树里 reporter 在 `src/reporter\` 的目标目录，崩溃路径按 exe 同目录与相邻目录两个候选找它。去掉
+环境变量再起一次，崩溃通知应带两枚胶囊——“打开转储文件夹” 打开该目录，“报告问题” 打开预填了摘要
+事实的 GitHub issue；展示后标记已删，再起一次不再通知。转储保留最近 5 份、启动时修剪；
 `LENS_CRASH_FULL_DUMP=1` 把默认的 `MiniDumpNormal` 换成带间接引用内存的深转储，只用于按需排查。
 
 ## 一轮以上的驱动
