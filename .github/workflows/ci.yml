@@ -221,7 +221,7 @@ jobs:
       # msvc-dev-cmd has run.
       - name: Reconfigure with AddressSanitizer
         shell: pwsh
-        run: cmake -S . -B build-ninja "-DCMAKE_CXX_FLAGS=/fsanitize=address" "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od" "-DCMAKE_EXE_LINKER_FLAGS_DEBUG=/INCREMENTAL:NO"
+        run: cmake -S . -B build-ninja "-DCMAKE_CXX_FLAGS=/fsanitize=address" "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od" "-DCMAKE_EXE_LINKER_FLAGS_DEBUG=/DEBUG /INCREMENTAL:NO"
 
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_qtest_pet
