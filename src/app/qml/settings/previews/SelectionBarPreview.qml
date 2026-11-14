@@ -71,17 +71,15 @@ Window {
 
     /// The sentence each form is drawn against: one line, with the sample selection in it.
     /// Separate properties rather than one nested ternary: `lupdate` reads a literal `qsTranslate`
-    /// reliably when it stands on its own, and the five strings stay visible to the extractor.
+    /// reliably when it stands on its own, and the four strings stay visible to the extractor.
     readonly property string noteBar: qsTranslate("SelectionBarPreview", "The original flat bar")
     readonly property string noteTab: qsTranslate("SelectionBarPreview", "Stands at the selection's side")
     readonly property string noteHand: qsTranslate("SelectionBarPreview", "Spread above the selection")
     readonly property string noteTag: qsTranslate("SelectionBarPreview", "Hangs from the selection on a string")
-    readonly property string noteFan: qsTranslate("SelectionBarPreview", "Opens above the selection")
     readonly property string note: root.style === "bar" ? root.noteBar
                                    : root.style === "tab" ? root.noteTab
                                    : root.style === "hand" ? root.noteHand
-                                   : root.style === "tag" ? root.noteTag
-                                   : root.noteFan
+                                   : root.noteTag
 
     GlassHost {
         window: root
@@ -148,8 +146,8 @@ Window {
                 clip: true
 
                 // The sentence, with the word that stands for the reader's selection. Its place
-                // moves with the form: the hand and the fan need the room above the line, the
-                // tag the room below it, and the tab stands beside it.
+                // moves with the form: the hand needs the room above the line, the tag the room
+                // below it, and the tab stands beside it.
                 Row {
                     id: sample
                     x: 10
@@ -448,134 +446,6 @@ Window {
                                 color: root.iconColor
                             }
                         }
-                    }
-                }
-
-                // F · the fan, opened above the line.
-                Item {
-                    id: miniFan
-                    visible: root.style === "fan"
-                    x: 43
-                    y: 2
-                    width: 146
-                    height: 106
-                    scale: 0.78
-                    transformOrigin: Item.TopLeft
-
-                    Shape {
-                        anchors.fill: parent
-                        // The stage draws this one at 0.78, so its edges never land on the pixel
-                        // grid; see the tab's fold above.
-                        preferredRendererType: Shape.CurveRenderer
-
-                        // The three blades share one fill (UI-SPEC.md 4.10); the seams below are
-                        // the only boundary between them.
-                        ShapePath {
-                            fillColor: root.barFill
-                            strokeColor: "transparent"
-                            startX: 73
-                            startY: 88
-                            PathLine { x: 5; y: 47 }
-                            PathLine { x: 43; y: 10 }
-                            PathLine { x: 73; y: 88 }
-                        }
-                        ShapePath {
-                            fillColor: root.barFill
-                            strokeColor: "transparent"
-                            startX: 73
-                            startY: 88
-                            PathLine { x: 43; y: 10 }
-                            PathLine { x: 103; y: 10 }
-                            PathLine { x: 73; y: 88 }
-                        }
-                        ShapePath {
-                            fillColor: root.barFill
-                            strokeColor: "transparent"
-                            startX: 73
-                            startY: 88
-                            PathLine { x: 103; y: 10 }
-                            PathLine { x: 141; y: 47 }
-                            PathLine { x: 73; y: 88 }
-                        }
-                    }
-
-                    Shape {
-                        anchors.fill: parent
-                        // The outline over the fills above; same reason.
-                        preferredRendererType: Shape.CurveRenderer
-
-                        ShapePath {
-                            fillColor: "transparent"
-                            strokeColor: root.lineColor
-                            strokeWidth: 1
-                            startX: 73
-                            startY: 88
-                            PathLine { x: 5; y: 47 }
-                            PathLine { x: 43; y: 10 }
-                            PathLine { x: 103; y: 10 }
-                            PathLine { x: 141; y: 47 }
-                            PathLine { x: 73; y: 88 }
-                        }
-                        ShapePath {
-                            fillColor: "transparent"
-                            strokeColor: root.lineColor
-                            strokeWidth: 1
-                            startX: 73
-                            startY: 88
-                            PathLine { x: 43; y: 10 }
-                        }
-                        ShapePath {
-                            fillColor: "transparent"
-                            strokeColor: root.lineColor
-                            strokeWidth: 1
-                            startX: 73
-                            startY: 88
-                            PathLine { x: 103; y: 10 }
-                        }
-                    }
-
-                    Icon {
-                        x: 30
-                        y: 41
-                        width: 11
-                        height: 11
-                        source: root.actionIcons[0]
-                        color: root.iconColor
-                    }
-                    Icon {
-                        x: 67.5
-                        y: 38
-                        width: 11
-                        height: 11
-                        source: root.actionIcons[1]
-                        color: root.iconColor
-                    }
-                    Icon {
-                        x: 105
-                        y: 41
-                        width: 11
-                        height: 11
-                        source: root.actionIcons[2]
-                        color: root.iconColor
-                    }
-
-                    Rectangle {
-                        x: 70
-                        y: 91
-                        width: 6
-                        height: 11
-                        radius: 3
-                        color: root.lineColor
-                    }
-                    Rectangle {
-                        x: 69
-                        y: 85
-                        width: 8
-                        height: 8
-                        radius: 4
-                        color: root.barFill
-                        border.width: 1
-                        border.color: root.lineColor
                     }
                 }
             }

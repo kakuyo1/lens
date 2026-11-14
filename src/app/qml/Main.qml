@@ -319,10 +319,10 @@ Window {
                 const at = points.toDip(payload);
                 bubble.show(at);
                 // An answer arrives a field at a time, so this runs several times for one card; a card
-                // being dragged must not be pulled back to its anchor (repositionVisible keeps the
-                // same rule for a screen change).
+                // being dragged must not be pulled back to its anchor, and neither may one the reader
+                // has already moved (repositionVisible keeps the same rule for a screen change).
                 Qt.callLater(() => {
-                    if (!bubble.dragging)
+                    if (!bubble.dragging && !bubble.dragged)
                         surfaceHost.placeBubble(bubble, at);
                 });
             } else {

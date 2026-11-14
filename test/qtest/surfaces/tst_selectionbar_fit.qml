@@ -152,7 +152,7 @@ Item {
                 const drawer = drawers[0];
                 drawer.open = true;
                 tryCompare(drawer, "opacity", 1, 1000);
-                // The fan-out and the unfold run for the bubble's 220 ms after the fade: measure the settled pose.
+                // The fan-out runs for the bubble's 220 ms after the fade: measure the settled pose.
                 wait(300);
 
                 const frame = bar.contentItem;
@@ -248,7 +248,7 @@ Item {
             const failing = [];
             let total = 0;
             try {
-                for (const style of ["bar", "tab", "hand", "tag", "fan"]) {
+                for (const style of ["bar", "tab", "hand", "tag"]) {
                     for (const scenario of scenarios) {
                         for (const language of ["en", "zh", "ja", "es"]) {
                             const measured = measureCombo(style, scenario, language, dir);

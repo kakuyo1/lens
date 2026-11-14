@@ -112,9 +112,7 @@ Item {
                     {value: "hand", label: qsTranslate("SettingsPopup", "Hand of cards"),
                      group: "", note: "", previewStyle: "hand"},
                     {value: "tag", label: qsTranslate("SettingsPopup", "Hang tag"),
-                     group: "", note: "", previewStyle: "tag"},
-                    {value: "fan", label: qsTranslate("SettingsPopup", "Fan"),
-                     group: "", note: "", previewStyle: "fan"}
+                     group: "", note: "", previewStyle: "tag"}
                 ]
                 currentValue: Controller.settings.selectionBarStyle
                 optionPreview: stylePreviewComponent

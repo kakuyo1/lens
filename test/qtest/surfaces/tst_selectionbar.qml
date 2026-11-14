@@ -119,14 +119,6 @@ Item {
             bar.dismiss();
             bar.open();
             compare(bar.entranceFactor, 0.5, "the second tag entrance was not halved");
-
-            Controller.setSetting("selectionBarStyle", "fan");
-            bar.open();
-            compare(bar.entranceFactor, 1, "a different shape's first entrance was halved");
-
-            bar.dismiss();
-            bar.open();
-            compare(bar.entranceFactor, 0.5, "the second fan entrance was not halved");
             Controller.setSetting("selectionBarStyle", "bar");
         }
 
@@ -155,7 +147,7 @@ Item {
         /// The window takes no focus, so the actions cannot be Tabbed to; the screen reader still
         /// has to find all three in every form. The names are the action labels themselves.
         function test_everyFormNamesItsThreeActions() {
-            for (const style of ["bar", "tab", "hand", "tag", "fan"]) {
+            for (const style of ["bar", "tab", "hand", "tag"]) {
                 const bar = openedWithStyle(style);
                 wait(500);
                 const names = Util.findAll(bar, function (o) {
@@ -173,7 +165,7 @@ Item {
         }
 
         /// Bar, tab and tag draw each drawer item with its icon and label on one line, the icon to the left of the
-        /// label and centred on it; hand and fan keep their labels under the icon.
+        /// label and centred on it; the hand keeps its labels under the icon.
         function test_theDrawerItemsKeepTheirIconAndLabelOnOneLine() {
             for (const style of ["bar", "tab", "tag"]) {
                 Controller.setSetting("selectionBarStyle", style);
@@ -205,7 +197,7 @@ Item {
             Controller.setSetting("selectionBarStyle", "bar");
         }
 
-        /// The copy drawer anywhere in the bar. The hand's and the fan's drawers stand beside the copy item, not inside it.
+        /// The copy drawer anywhere in the bar. The hand's drawer stands beside the copy item, not inside it.
         function drawerIn(bar) {
             return Util.findAll(bar, function (o) {
                 return o.expand !== undefined && o.form !== undefined;
@@ -226,24 +218,9 @@ Item {
             return bar;
         }
 
-        /// The fan's hinge is the outer corner of its right blade, (250, 87) in the body's own coordinates. The drawer's
-        /// lower blade starts at its bottom-left corner, so that corner must land on the hinge (UI-SPEC.md 4.10).
-        function test_theFanDrawerHingesOnTheFansRightBladeCorner() {
-            const bar = sentenceBarIn("fan");
-            const drawer = drawerIn(bar);
-            verify(drawer && drawer.applies, "the fan drew no drawer");
-            const body = Util.findAll(bar, function (o) { return o.bladeRight !== undefined; })[0];
-            verify(body, "the fan drew no body");
-            const hinge = drawer.mapToItem(body, 0, 140);
-            verify(Math.abs(hinge.x - 250) < 0.5 && Math.abs(hinge.y - 87) < 0.5,
-                   "the drawer hinges at " + hinge.x + ", " + hinge.y + " rather than 250, 87");
-            bar.visible = false;
-            Controller.setSetting("selectionBarStyle", "bar");
-        }
-
-        /// Under a glass theme the hand's cards and the fan's blades are glass, as the bar's own are: each card carries a
-        /// GlassSurface, and the fan one GlassSurface cut to its two blades (UI-SPEC.md 4.10).
-        function test_theHandAndFanDrawersAreGlassUnderAGlassTheme() {
+        /// Under a glass theme the hand's cards are glass, as the bar's own are: each card carries a
+        /// GlassSurface (UI-SPEC.md 4.10).
+        function test_theHandDrawerIsGlassUnderAGlassTheme() {
             const saved = Tokens.theme;
             Tokens.theme = "frosted";
 
@@ -256,15 +233,6 @@ Item {
             for (const glass of cardGlass)
                 verify(glass.visible, "a hand's drawer card draws no glass");
             hand.visible = false;
-
-            const fan = sentenceBarIn("fan");
-            const fanDrawer = drawerIn(fan);
-            fanDrawer.open = true;
-            wait(300);
-            const bladeGlass = Util.findAll(fanDrawer, function (o) { return o.objectName === "drawerBladeGlass"; });
-            compare(bladeGlass.length, 1, "the fan's drawer has no glass under its blades");
-            verify(bladeGlass[0].visible, "the fan's drawer draws no glass under its blades");
-            fan.visible = false;
 
             Tokens.theme = saved;
             Controller.setSetting("selectionBarStyle", "bar");
@@ -295,110 +263,6 @@ Item {
             tryCompare(breakdown, "grow", 1.035, 1000, "the card under the pointer did not grow");
             compare(breakdown.turn, 0, "the card under the pointer did not straighten");
             bar.visible = false;
-            Controller.setSetting("selectionBarStyle", "bar");
-        }
-
-        /// The fan's drawer unfolds from its hinge as it opens, and the blade under the pointer takes the hover tint.
-        function test_theFanDrawerUnfoldsFromItsHingeAndLightsTheBladeUnderThePointer() {
-            const bar = sentenceBarIn("fan");
-            const drawer = drawerIn(bar);
-            compare(drawer.scale, 0.9, "a shut fan drawer is not folded small");
-            drawer.open = true;
-            tryCompare(drawer, "scale", 1, 1000, "the fan drawer did not unfold to full size");
-
-            mouseMove(drawer, 120, 110);
-            compare(drawer.hoveredBlade, 0, "the lower blade did not light under the pointer");
-            mouseMove(drawer, 30, 30);
-            compare(drawer.hoveredBlade, 1, "the upper blade did not light under the pointer");
-            bar.visible = false;
-            Controller.setSetting("selectionBarStyle", "bar");
-        }
-
-        /// A single-word bar in one form, with the spelling correction as its only drawer item.
-        function wordBarIn(style) {
-            Controller.setSetting("selectionBarStyle", style);
-            const bar = createTemporaryObject(barComponent, root);
-            verify(bar);
-            bar.selectionKind = "word";
-            bar.spellable = true;
-            bar.placeAt(Qt.point(300, 300), {left: 0, top: 0, right: 800, bottom: 600}, 8);
-            bar.open();
-            wait(50);
-            return bar;
-        }
-
-        /// @return Whether two grabbed pixels match, alpha included.
-        function samePixel(actual, expected) {
-            const a = Qt.color(actual);
-            const e = Qt.color(expected);
-            return Math.abs(a.r - e.r) < 0.02 && Math.abs(a.g - e.g) < 0.02 && Math.abs(a.b - e.b) < 0.02
-                   && Math.abs(a.a - e.a) < 0.02;
-        }
-
-        /// One drawer item is one blade, the lower one, and the upper blade's place stays empty. Checked by the pixels in the
-        /// solid theme, where the blades are painted; the glass theme's cut is checked by its own case below.
-        function test_aLoneFanItemDrawsOnlyItsBlade() {
-            const saved = Tokens.theme;
-            for (const theme of ["light"]) {
-                Tokens.theme = theme;
-                const bar = wordBarIn("fan");
-                const drawer = drawerIn(bar);
-                drawer.open = true;
-                wait(300);
-                const surface = bar.contentItem;
-                const grab = testCase.grabImage(surface);
-                const at = function (x, y) {
-                    const p = drawer.mapToItem(surface, x, y);
-                    return grab.pixel(Math.round(p.x), Math.round(p.y));
-                };
-                // The corner of the window is outside the drawer, so it is what nothing drawn looks like.
-                const nothing = grab.pixel(2, 2);
-                verify(!samePixel(at(120, 125), nothing), theme + ": the lone item's lower blade is not drawn");
-                verify(samePixel(at(14, 100), nothing), theme + ": the lone item draws the upper blade it does not use");
-                bar.visible = false;
-            }
-            Tokens.theme = saved;
-            Controller.setSetting("selectionBarStyle", "bar");
-        }
-
-        /// Two drawer items draw both blades: the upper blade is drawn with the lower one, so its place is not empty.
-        function test_twoFanItemsDrawBothBlades() {
-            const saved = Tokens.theme;
-            for (const theme of ["light"]) {
-                Tokens.theme = theme;
-                const bar = sentenceBarIn("fan");
-                const drawer = drawerIn(bar);
-                drawer.open = true;
-                wait(300);
-                const surface = bar.contentItem;
-                const grab = testCase.grabImage(surface);
-                const p = drawer.mapToItem(surface, 14, 100);
-                verify(!samePixel(grab.pixel(Math.round(p.x), Math.round(p.y)), grab.pixel(2, 2)),
-                       theme + ": two items left the upper blade's place empty");
-                bar.visible = false;
-            }
-            Tokens.theme = saved;
-            Controller.setSetting("selectionBarStyle", "bar");
-        }
-
-        /// Under glass the drawer's blades are one glass fan cut to the blades it draws: the cut covers both blades for two
-        /// items and the lower blade alone for one (UI-SPEC.md 4.10). Read from the cut's own parameter, since an offscreen
-        /// grab does not show glass.
-        function test_aLoneFanItemCutsItsGlassToItsBlade() {
-            const saved = Tokens.theme;
-            Tokens.theme = "frosted";
-            const lone = wordBarIn("fan");
-            const loneCut = Util.findAll(drawerIn(lone), function (o) { return o.objectName === "drawerBladeCut"; })[0];
-            verify(loneCut, "the fan drew no glass cut");
-            compare(loneCut.solo, 1, "a lone item's glass still covers the upper blade");
-            lone.visible = false;
-
-            const pair = sentenceBarIn("fan");
-            const pairCut = Util.findAll(drawerIn(pair), function (o) { return o.objectName === "drawerBladeCut"; })[0];
-            compare(pairCut.solo, 0, "two items' glass is cut to one blade");
-            pair.visible = false;
-
-            Tokens.theme = saved;
             Controller.setSetting("selectionBarStyle", "bar");
         }
 
@@ -451,24 +315,6 @@ Item {
             })[0];
             verify(fold, "the tab has no fold");
             compare(fold.strokeColor, tokens.line, "the fold should carry its own edge");
-            Controller.setSetting("selectionBarStyle", "bar");
-        }
-
-        function test_theFanRibsReadAtRest() {
-            const bar = openedWithStyle("fan");
-            wait(800);
-            const tokens = bar.tokens;
-            // The fill paths carry a transparent stroke at the default width; only the drawn
-            // outline and the two ribs have ink in the stroke.
-            const paths = Util.findAll(bar, function (o) {
-                return o.strokeColor !== undefined && o.strokeWidth === 1 && o.strokeColor.a > 0;
-            });
-            const ribs = paths.filter(function (path) {
-                return String(path.strokeColor) === String(tokens.muted);
-            });
-
-            compare(paths.length, 3, "the fan should draw an outline and two ribs");
-            compare(ribs.length, 2, "the two ribs should read before hover");
             Controller.setSetting("selectionBarStyle", "bar");
         }
 

@@ -107,9 +107,9 @@ def compose_scan_gif() -> None:
 
 
 def compose_selection_styles() -> None:
-    """Five action-bar shapes over one page, one frame each."""
+    """Four action-bar shapes over one page, one frame each."""
     frames = []
-    for style in ("classic", "side", "cards", "tag", "fan"):
+    for style in ("classic", "side", "cards", "tag"):
         frame = Image.open(FRAMES / f"sel-style-{style}.png").convert("RGB").resize((900, 620), Image.Resampling.LANCZOS)
         frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
     frames[0].save(

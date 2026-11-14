@@ -384,7 +384,6 @@ qt_add_qml_module(lens_app
     qml/selection/bodies/SelectionBarTabBody.qml
     qml/selection/bodies/SelectionBarHandBody.qml
     qml/selection/bodies/SelectionBarTagBody.qml
-    qml/selection/bodies/SelectionBarFanBody.qml
     qml/bubble/Bubble.qml
     qml/bubble/BubbleCard.qml
     qml/panels/Notice.qml
@@ -555,8 +554,6 @@ qt_add_shaders(lens_app "lens_shaders"
   FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/glass_hblur.frag
-    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fan.frag
-    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fan_drawer.frag
 )
 
 # The .ts files, run through lrelease and embedded at :/i18n/. Rebuilding after a string

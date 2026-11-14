@@ -42,93 +42,93 @@
 <context>
     <name>BubbleCard</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="80"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="90"/>
         <source>The pet may ask about it again any time now.</source>
         <translation>寵物隨時可能再問它。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="81"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="91"/>
         <source>The pet may ask about it again soon.</source>
         <translation>寵物可能很快再問它。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="82"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="92"/>
         <source>The pet may ask about it again around this time tomorrow.</source>
         <translation>寵物可能明天這個時候再問它。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="83"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="93"/>
         <source>The pet may ask about it again in about %1 days.</source>
         <translation>寵物可能約 %1 天後再問它。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="84"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="94"/>
         <source>The pet may ask about it again in about %1 weeks.</source>
         <translation>寵物可能約 %1 週後再問它。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="85"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="95"/>
         <source>The pet may ask about it again in about %1 months.</source>
         <translation>寵物可能約 %1 個月後再問它。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="268"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="278"/>
         <source>Preview</source>
         <translation>預覽</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="269"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="279"/>
         <source>Spelling</source>
         <translation>拼寫</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="270"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="280"/>
         <source>Grammar</source>
         <translation>語法</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="271"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="281"/>
         <source>Breakdown</source>
         <translation>拆解</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="272"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="282"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="273"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="283"/>
         <source>Known</source>
         <translation>已會</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="273"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="283"/>
         <source>New</source>
         <translation>新詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="273"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="283"/>
         <source>Mastered</source>
         <translation>掌握</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="446"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="456"/>
         <source>Etymology</source>
         <translation>詞源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="485"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="495"/>
         <source>Example</source>
         <translation>例句</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="549"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="592"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="559"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="602"/>
         <source>Not the Sense?</source>
         <translation>不是這個義項？</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="620"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="630"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後自動消失</translation>
     </message>
@@ -198,7 +198,7 @@
 <context>
     <name>BubbleWaitingRows</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleWaitingRows.qml" line="61"/>
+        <location filename="../src/app/qml/bubble/BubbleWaitingRows.qml" line="62"/>
         <source>Explaining…</source>
         <translation>正在解釋…</translation>
     </message>
@@ -674,12 +674,12 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>ReviewCard</name>
     <message>
-        <location filename="../src/app/qml/pet/ReviewCard.qml" line="73"/>
+        <location filename="../src/app/qml/pet/ReviewCard.qml" line="87"/>
         <source>Forgot</source>
         <translation>忘了</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/pet/ReviewCard.qml" line="112"/>
+        <location filename="../src/app/qml/pet/ReviewCard.qml" line="126"/>
         <source>Remembered</source>
         <translation>記得</translation>
     </message>
@@ -740,11 +740,6 @@ One small word at a time, the reading opens.</translation>
         <source>Hangs from the selection on a string</source>
         <translation>用細線掛在選取範圍下方</translation>
     </message>
-    <message>
-        <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="79"/>
-        <source>Opens above the selection</source>
-        <translation>在選取範圍上方展開</translation>
-    </message>
 </context>
 <context>
     <name>SenseRows</name>
@@ -762,15 +757,7 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>SettingsCapturePage</name>
     <message>
-        <source>Checking OCR</source>
-        <translation type="vanished">正在檢查 OCR</translation>
-    </message>
-    <message>
-        <source>OCR runtime is unavailable</source>
-        <translation type="vanished">OCR 執行環境不可用</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="136"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="134"/>
         <source>Minimum word length</source>
         <translation>最小詞長</translation>
     </message>
@@ -1374,13 +1361,13 @@ One small word at a time, the reading opens.</translation>
         <translation>Windows 協助工具設定已關閉動畫效果。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="129"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="127"/>
         <location filename="../src/app/qml/settings/pages/SettingsClipboardPage.qml" line="99"/>
         <source>Raise to top</source>
         <translation>強制置頂</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="128"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="126"/>
         <location filename="../src/app/qml/settings/pages/SettingsClipboardPage.qml" line="99"/>
         <source>Give up silently</source>
         <translation>靜默放棄</translation>
@@ -1423,14 +1410,6 @@ One small word at a time, the reading opens.</translation>
         <translation>缺少 OCR 語言資料</translation>
     </message>
     <message>
-        <source>RapidOCR&apos;s model folder path must contain only ASCII characters</source>
-        <translation type="vanished">RapidOCR 的模型目錄路徑只能包含 ASCII 字元</translation>
-    </message>
-    <message>
-        <source>RapidOCR is not trusted yet</source>
-        <translation type="vanished">RapidOCR 尚未受信任</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="98"/>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="106"/>
         <source>Selection bar style</source>
@@ -1457,11 +1436,6 @@ One small word at a time, the reading opens.</translation>
         <translation>吊牌</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="116"/>
-        <source>Fan</source>
-        <translation>扇面</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="117"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="122"/>
         <source>OCR trigger key</source>
@@ -1479,7 +1453,7 @@ One small word at a time, the reading opens.</translation>
         <translation>在選取取詞與懸浮取詞之間切換。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="124"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="88"/>
         <source>Popup &amp; clipboard</source>
         <translation>彈出視窗與剪貼簿</translation>
@@ -1490,7 +1464,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Tesseract</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="141"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="139"/>
         <source>Minimum word length</source>
         <translation>最小詞長</translation>
     </message>
@@ -2505,13 +2479,13 @@ One small word at a time, the reading opens.</translation>
         <translation>%1：%2</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="125"/>
+        <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="123"/>
         <source>Selection bar</source>
         <translation>動作列</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="414"/>
-        <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="134"/>
+        <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="132"/>
         <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="121"/>
         <source>Preview</source>
         <translation>預覽</translation>
@@ -3459,57 +3433,57 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="198"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="196"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="200"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="198"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="328"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="326"/>
         <source>Words</source>
         <translation>詞彙</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="390"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="388"/>
         <source>Year in words</source>
         <translation>單字年度記錄</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="418"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="416"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="425"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="423"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="443"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="441"/>
         <source>%1 words</source>
         <translation>共 %1 詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="466"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="464"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="466"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="464"/>
         <source>Known</source>
         <translation>已會</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="466"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="464"/>
         <source>New</source>
         <translation>新詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="466"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="464"/>
         <source>Mastered</source>
         <translation>掌握</translation>
     </message>
@@ -3525,7 +3499,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="23"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
         <source>JSON files (*.json)</source>
         <translation>JSON 檔案 (*.json)</translation>
     </message>
@@ -3540,18 +3514,18 @@ One small word at a time, the reading opens.</translation>
         <translation>含釋義的 Anki TSV 檔案 (*.tsv)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="527"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
         <source>Words imported</source>
         <translation>詞彙已匯入</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="527"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
         <source>Import failed</source>
         <translation>匯入失敗</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="408"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="521"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="406"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
         <source>Import words</source>
         <translation>匯入詞彙</translation>
     </message>
@@ -3572,19 +3546,19 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="17"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="401"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="399"/>
         <source>Export words</source>
         <translation>匯出詞彙</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="22"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
         <source>Text files (*.txt)</source>
         <translation>文字檔 (*.txt)</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="26"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
         <source>All files (*)</source>
         <translation>所有檔案 (*)</translation>
     </message>

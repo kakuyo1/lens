@@ -889,6 +889,11 @@ void ExplanationDuty::mark(QString lemma, QString verdict)
     storage_.save();
     if (bubble_.value("title").toString() == lemma)
         bubble_["status"] = verdictToken(state);
+    // Whatever word the verdict named, the card standing is the one re-presented. The view keys its
+    // fresh-card resets on sameCard, and a refresh that reads as a raise would pull a dragged card
+    // back to its anchor; a card raised out of the cache carries false here for its whole life.
+    if (not bubble_.isEmpty())
+        bubble_["sameCard"] = true;
     emit bubbleChanged();
     emit statsChanged();
     emit verdictChanged(lemma, verdict);

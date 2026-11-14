@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lens · selection bar styles</title>
 <!--
-  A README-only gallery of the five action-bar shapes over one reading page. The bar markup and
+  A README-only gallery of the four action-bar shapes over one reading page. The bar markup and
   glass treatment follow ui-prototypes/selection-bar.html and selection-bar-variants.html; the
-  page itself is the same warm paper used by the other README demos. ?style=classic|side|cards|tag|fan
+  page itself is the same warm paper used by the other README demos. ?style=classic|side|cards|tag
   picks one shape, and the label under the page names it for the GIF frame.
 -->
 <style>
@@ -78,23 +78,6 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
 .bar-h .hole::after{content:"";position:absolute;inset:3px;border-radius:50%;background:rgba(18,24,36,.08)}
 .bar-h .act{padding:7px 9px;border-radius:8px}
 
-/* F · fan */
-.bar-f{display:block;width:260px;height:170px;padding:0;border-color:transparent;background:transparent;box-shadow:none;backdrop-filter:none}
-.bar-f .blade{position:absolute;inset:0;padding:0;border:0;background:var(--glass-card);cursor:pointer;z-index:1;backdrop-filter:blur(20px) saturate(1.2)}
-.bar-f .blade-l{clip-path:polygon(130px 150px,10px 87px,78px 26px)}
-.bar-f .blade-c{clip-path:polygon(130px 150px,78px 26px,182px 26px);background:var(--glass-fill);z-index:2}
-.bar-f .blade-r{clip-path:polygon(130px 150px,182px 26px,250px 87px)}
-.bar-f .blade-face{position:absolute;display:flex;flex-direction:column;align-items:center;gap:5px;width:66px;transform:translate(-50%,-50%);pointer-events:none;text-align:center}
-.bar-f .blade-l .blade-face{left:62px;top:80px}
-.bar-f .blade-c .blade-face{left:130px;top:76px;width:54px}
-.bar-f .blade-r .blade-face{left:198px;top:80px}
-.bar-f .blade-face svg{width:16px;height:16px;color:var(--muted)}
-.bar-f .blade-face .label{font-size:11.5px;line-height:1.2;color:var(--text)}
-.bar-f .fan-edge{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
-.bar-f .fan-edge path{fill:none;stroke:var(--glass-edge);stroke-width:1}
-.bar-f .handle{position:absolute;left:50%;bottom:-4px;width:8px;height:18px;border-radius:4px;background:var(--line);transform:translateX(-50%);z-index:3;pointer-events:none}
-.bar-f .rivet{position:absolute;left:50%;bottom:13px;width:11px;height:11px;border:1px solid var(--glass-edge);border-radius:50%;background:var(--glass-fill);transform:translateX(-50%);z-index:4;pointer-events:none}
-
 .style-label{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.55);color:var(--muted);font:600 14px var(--f);backdrop-filter:blur(12px)}
 .style-label::before{content:"";width:7px;height:7px;border-radius:50%;background:#2f9e6e}
 </style>
@@ -121,27 +104,24 @@ const ICON = {
 const label = {translate:"Translate", explain:"Explain", copy:"Copy text"};
 const button = id => `<button class="act" type="button">${ICON[id]}<span class="label">${label[id]}</span></button>`;
 const slot = id => `<button class="slot" type="button"><span class="face">${ICON[id]}<span class="label">${label[id]}</span></span></button>`;
-const wedge = (id, cls) => `<button class="blade ${cls}" type="button"><span class="blade-face">${ICON[id]}<span class="label">${label[id]}</span></span></button>`;
 const markup = {
   classic: button("translate") + button("explain") + button("copy"),
   side: '<span class="spine"></span>' + button("translate") + button("explain") + button("copy") + '<span class="fold"></span>',
   cards: '<div class="hand">' + slot("translate") + slot("explain") + slot("copy") + '</div>',
-  tag: '<span class="string"></span><span class="hole"></span>' + button("translate") + button("explain") + button("copy"),
-  fan: wedge("translate","blade-l") + wedge("explain","blade-c") + wedge("copy","blade-r") +
-       '<svg class="fan-edge" viewBox="0 0 260 170"><path d="M130 150 L10 87 L78 26 L182 26 L250 87 Z"/><path d="M130 150 L78 26 M130 150 L182 26"/></svg><span class="rivet"></span><span class="handle"></span>'
+  tag: '<span class="string"></span><span class="hole"></span>' + button("translate") + button("explain") + button("copy")
 };
-const names = {classic:"Classic bar", side:"Side tab", cards:"Three cards", tag:"Hang tag", fan:"Fan"};
-const classes = {classic:"bar-classic", side:"bar-a", cards:"bar-e", tag:"bar-h", fan:"bar-f"};
-const style = ["classic","side","cards","tag","fan"].includes(new URLSearchParams(location.search).get("style"))
+const names = {classic:"Classic bar", side:"Side tab", cards:"Three cards", tag:"Hang tag"};
+const classes = {classic:"bar-classic", side:"bar-a", cards:"bar-e", tag:"bar-h"};
+const style = ["classic","side","cards","tag"].includes(new URLSearchParams(location.search).get("style"))
   ? new URLSearchParams(location.search).get("style") : "classic";
 
 const bar = document.getElementById("bar");
 const selected = document.getElementById("selected");
 bar.className = "bar " + classes[style];
 bar.innerHTML = markup[style];
-// The container of the three cards and the fan is only a frame; each card and blade is the glass.
-bar.toggleAttribute("data-glass", !["cards", "fan"].includes(style));
-bar.querySelectorAll(".face, .blade").forEach(el => el.setAttribute("data-glass", ""));
+// The container of the three cards is only a frame; each card is the glass.
+bar.toggleAttribute("data-glass", style !== "cards");
+bar.querySelectorAll(".face").forEach(el => el.setAttribute("data-glass", ""));
 liquidGlass();
 document.getElementById("styleLabel").textContent = names[style];
 
@@ -164,9 +144,6 @@ requestAnimationFrame(() => {
   } else if (style === "tag") {
     left = r.left;
     top = r.top - h - 18;
-  } else if (style === "fan") {
-    left = r.left + r.width / 2 - 130;
-    top = r.top - h - 12;
   }
 
   left = Math.max(24, Math.min(left, page.right - w - 24));

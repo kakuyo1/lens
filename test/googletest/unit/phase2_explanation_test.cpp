@@ -364,8 +364,8 @@ TEST_F(LlmTest, Phase2TheClickPutsTheCardUpBeforeTheAnswerIsWritten)
     // verdict is on offer -- a word nothing has explained is not yet a word being judged (ADR 0146).
     auto const waiting = rig.duty.bubble();
     EXPECT_TRUE(waiting.value("waiting").toBool());
-    // The card also reserves the height its answer is expected to reach, and keeps reserving it through
-    // every preview, so nothing on screen moves until the whole answer lands (docs/adr/0146).
+    // The card also reserves a compact ask's height against this estimate -- the view caps what it
+    // keeps (BubbleCard.maxWaitingLines) -- and holds it through every preview (docs/adr/0146).
     EXPECT_TRUE(waiting.value("hold").toBool());
     EXPECT_GT(waiting.value("waitingLines").toInt(), 2);
     EXPECT_EQ(waiting.value("title").toString(), QStringLiteral("bank"));

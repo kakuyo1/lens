@@ -5,7 +5,7 @@
 
 ## 1 模块与目录
 
-`src/app/qml/` 按表面家族分组：`bubble/`、`selection/`（`bodies/` 是动作条的五个身体）、`settings/`
+`src/app/qml/` 按表面家族分组：`bubble/`、`selection/`（`bodies/` 是动作条的四个身体）、`settings/`
 （`pages/` 是设置页，`previews/` 是设置页里嵌的预览）、`pet/`（宠物窗口、复习牌与宠物包确认）、
 `panels/`（托盘菜单、统计 / 词汇 / 年度 / 花费面板、通知 / 更新卡 / 首次引导向导；`WordsListRow` 是词汇列表的行）、
 `capture/`（取词蒙版）。一个家族
@@ -22,8 +22,8 @@
 揭示、释义行）、`preview/`（预览框与样例数据）。只被一个家族使用的件跟着家族走——`BubbleTitleRow` /
 `BubbleVerdictRow` / `BubbleHeaderActions` 在 `bubble/`，`MenuRow` / `StatRow` 在 `panels/`。
 
-`selection/bodies/` 下是动作条的五个身体——经典长条、页边签、手牌签、吊牌签、扇面。它们不是可复用件：
-同一个表面按读者设置换一具身体，拆开是为了不让 `SelectionBar.qml` 逼近 32768 字符的上限，五个身体各自
+`selection/bodies/` 下是动作条的四个身体——经典长条、页边签、手牌签、吊牌签。它们不是可复用件：
+同一个表面按读者设置换一具身体，拆开是为了不让 `SelectionBar.qml` 逼近 32768 字符的上限，四个身体各自
 只认识自己那一种形态。
 
 `src/app/qml/theme/` 拥有全部值表：基表 `TokenTable`、单例 `Tokens`、每窗一份的 `SurfaceTokens`，以及
@@ -75,8 +75,9 @@
   `review` / `reviewAnswer`），`SurfaceHost.placeBubble()` 与 `ReviewSignWindow.repositionAnswerCard()`
   从它分支；`countsDown` 与 `verdictButtons` 是它结算后的显示值，验证行的展开只读后者，QML 不再推导
   规则（`docs/adr/0114`）。`waiting` / `hold` / `waitingLines` 同处结算：点击升起的那张卡由 `waiting` 表示，
-  整份答案到达之前 `hold` 为真，`waitingLines` 是那次答案预计要写的行数——视图按它们预留卡片高度，
-  流式的字段长进预留里，卡片本身不动（`docs/adr/0146`）。设置预览不走 duty，仍由 `Bubble.preview` 标志自己表示。
+  整份答案到达之前 `hold` 为真，`waitingLines` 是那次答案预计要写的行数——视图只按它预留一张紧凑等待卡
+  的高度（`BubbleCard.maxWaitingLines`，说明行加三条呼吸线），流式的字段长进预留里，长满后卡片随字段闭合
+  向上长；整份到达收掉预留，收到内容高（`docs/adr/0146`）。设置预览不走 duty，仍由 `Bubble.preview` 标志自己表示。
 - **表面的根窗口带 `objectName`，名字与表面表的 `name` 逐字一致**：`src/core/domain/surface_table.h` 的一行与这里的 `objectName` 改名时同改（`docs/adr/0084`、`docs/adr/0068`）。玻璃幕布、开发面的 `state` 与 opener 都从那张表读名字，名字写错不会再静默地取不到幕布。出厂构建也带这些名字，它们不影响行为。`Bubble` 的实例标在 `Main.qml` 上，因为 `Bubble.qml` 同时也是设置页的预览，在它里面标会重名。
 - **显示一张表面是两步**：`visible = true` 不够，还要 `raise()`。实机反馈是托盘菜单被任务栏压住一角
   ——`placePanel` 把卡片的右下角对齐图标中心，卡片下缘本就在 48 DIP 任务栏里进了一半，而点托盘图标
@@ -121,7 +122,7 @@
 
 ## 4 定位
 
-- **跨表面的落点算术只有一份**：锚点、卡尺寸、间距、阴影与工作区进去，窗口左上角出来——`src/app/geometry/surface_geometry.h` 的 `SurfaceGeometry`。它是无状态的 QML singleton，不读窗口、不问屏幕、不持状态；`SurfaceHost.qml` 只读窗口与屏幕、取工作区、写 `x` / `y`，`ScreenPoints.qml` 只找屏与复制 payload（`docs/adr/0116`）。带自己形态的表面（`SelectionBar` 的五个身体、`ReviewSignLayout` 的签与卡）保留各自的边与对齐规则。规则由 `surface_geometry_test` 的值用例钉住，原来要搭起整个 `Main.qml` 才测得到的落点断言搬了过去；`tst_main` 保留交接用的 adapter 用例与面板增长、路由的行为。
+- **跨表面的落点算术只有一份**：锚点、卡尺寸、间距、阴影与工作区进去，窗口左上角出来——`src/app/geometry/surface_geometry.h` 的 `SurfaceGeometry`。它是无状态的 QML singleton，不读窗口、不问屏幕、不持状态；`SurfaceHost.qml` 只读窗口与屏幕、取工作区、写 `x` / `y`，`ScreenPoints.qml` 只找屏与复制 payload（`docs/adr/0116`）。带自己形态的表面（`SelectionBar` 的四个身体、`ReviewSignLayout` 的签与卡）保留各自的边与对齐规则。规则由 `surface_geometry_test` 的值用例钉住，原来要搭起整个 `Main.qml` 才测得到的落点断言搬了过去；`tst_main` 保留交接用的 adapter 用例与面板增长、路由的行为。
 - **贴合按卡片算，不按窗口**：每个表面都是卡片加四边各 26 px 透明阴影边距的窗口，早先拿窗口去贴锚点，
   卡片实际偏出一个边距（气泡纵向还多偏一个 gap），看着就是没贴住选区。气泡与动作条的 `transient()`
   现在把 `shadowMargin` 减掉再算。定位与边缘检测合成一处（`surface_geometry.cpp` 的 `besideAnchor()`：把卡片的右下角放在
@@ -225,7 +226,7 @@
   `text` 属性，`testutil.js` 的 `textsUnder()` 按 “有字符串型 `text`” 找 Text，会把探针一起收进去，
   排序在前的探针顶掉真正的行。
 - **`Shape` 上单写 `antialiasing: true` 没用，要换渲染器**：`Shape` 默认走 geometry 渲染器，它把路径三角化，
-  **根本不看 `antialiasing`**——动作条扇面、页边签的折角、动作条样式的下拉预览里那几片斜边因此都是一级级
+  **根本不看 `antialiasing`**——页边签的折角、动作条样式的下拉预览里那几片斜边因此都是一级级
   台阶（本机 125%，一步 1.25 设备像素）。同一枚三角形在真窗口上量中间灰度像素：默认 0 个，
   `antialiasing: true` 也是 0 个，`preferredRendererType: Shape.CurveRenderer` 是 293 个——curve 渲染器
   自己做解析式覆盖，加不加 `antialiasing` 结果一样。所以凡是有斜边的 `Shape` 都显式写

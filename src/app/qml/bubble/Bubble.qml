@@ -72,6 +72,8 @@ Window {
             peekLine = "";
             // And the height the click reserved: the next card reserves its own.
             content.reservedHeight = 0;
+            // Whatever frame the reader dragged this one to went with it.
+            dragged = false;
         }
     }
     HeightHold {
@@ -136,6 +138,13 @@ Window {
 
     property bool dragging: false
 
+    /// Whether the reader has moved this card since it was raised. The drag latches it and the
+    /// card's life keeps it: later emissions re-present the standing card (a verdict press, the
+    /// answer arriving) and must not pull it back to its anchor. Cleared when a different card
+    /// arrives (show()'s sameCard) and when the window goes, so the next card places at its own
+    /// anchor (UI-SPEC.md 4.3).
+    property bool dragged: false
+
     /// Milliseconds left before the countdown takes the bubble down. The display's number comes
     /// from here rather than from the timer's interval: hovering and dragging stop the clock, and
     /// the number has to stand still with it. `show()` refills it from `dismissAfterMs`.
@@ -173,11 +182,13 @@ Window {
     property bool waiting: false
 
     /// Whether the answer this card is waiting for is still on its way: the card then keeps the height
-    /// it reserved at the click, so the fields land into space the surface already holds rather than
-    /// moving it (docs/adr/0146, BubbleCard.reservedHeight).
+    /// it reserved at the click, so the first fields land into space the surface already holds rather
+    /// than moving it (docs/adr/0146, BubbleCard.reservedHeight).
     property bool holding: false
     /// How many lines the awaited answer is expected to write, as the duty counted them from the
-    /// reader's own switches. Read once, on the waiting card's first layout.
+    /// reader's own switches. The waiting card reserves only a compact ask's worth of them
+    /// (BubbleCard.maxWaitingLines); the rest of the estimate bounds the settle when the whole answer
+    /// lands. Read once, on the waiting card's first layout.
     property int waitingLines: 0
 
     /// Whether the answer is written out a character at a time (RevealText). A card raised whole out
@@ -260,6 +271,9 @@ Window {
         if (payload.sameCard !== true) {
             peekLine = payload.peekLine || "";
             senseSwappedOnce = false;
+            // A different card places at its own anchor: the frame the reader gave the old one
+            // was the old one's.
+            dragged = false;
         }
         pendingPayload = payload;
         pendingWasVisible = wasVisible;
@@ -310,8 +324,8 @@ Window {
         holding = payload.hold === true;
         waitingLines = payload.waitingLines || 0;
         // The whole answer is in hand (or this card never waited for one): the reservation is spent.
-        // Otherwise the card takes the height that answer is expected to reach, once the ask's own rows
-        // have laid themselves out on this turn (docs/adr/0146).
+        // Otherwise the card takes the compact ask's height, once the ask's own rows have laid
+        // themselves out on this turn (docs/adr/0146).
         if (!holding)
             content.reservedHeight = 0;
         else
@@ -344,8 +358,10 @@ Window {
             surfaceShown = false;
         }
 
-        // Growing content re-asks for placement; a dragged card keeps its frame.
-        if (!dragging) {
+        // Growing content re-asks for placement; a card being dragged keeps its frame, and so
+        // does one the reader has already moved -- the frame outlives the drag until a different
+        // card takes its place.
+        if (!dragging && !dragged) {
             showPending = true;
             placement.restart();
         }
@@ -433,7 +449,12 @@ Window {
             rowHold.begin(content.implicitHeight + (hovering ? content.verdictRowHeight : -content.verdictRowHeight));
     }
 
-    onDraggingChanged: updateCountdown()
+    onDraggingChanged: {
+        // The latch outlives the gesture: it is what holds the reader's frame after the release.
+        if (dragging)
+            dragged = true;
+        updateCountdown();
+    }
 
     /// The clock starts when the reveal ends, not while the answer is still being written.
     onRevealingChanged: updateCountdown()

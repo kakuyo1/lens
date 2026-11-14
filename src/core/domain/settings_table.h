@@ -87,7 +87,7 @@ struct Row {
 /// The three sets of members a Choice row names. They are the stored values, so a member is what the
 /// document holds, not what the surface labels it.
 inline constexpr std::string_view kPlacements[]{"above", "below"};
-inline constexpr std::string_view kBarStyles[]{"bar", "tab", "hand", "tag", "fan"};
+inline constexpr std::string_view kBarStyles[]{"bar", "tab", "hand", "tag"};
 inline constexpr std::string_view kClipboardPolicies[]{"topmost", "silent"};
 /// The two ways a manual capture may leave the machine, and the local engines the first release
 /// offers.

@@ -153,8 +153,8 @@ screenshot fb-page-hold "ui-prototypes/bubble.html" \
 screenshot fb-page-peek "ui-prototypes/bubble.html" \
     "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4&peek=1" 760 760 2 "$frames"
 
-# Five action-bar shapes over the same reading page, one frame each.
-for style in classic side cards tag fan; do
+# Four action-bar shapes over the same reading page, one frame each.
+for style in classic side cards tag; do
     screenshot "sel-style-$style" "docs/readme/scenes/selection-styles.html" \
         "style=$style" 900 620 2 "$frames"
 done

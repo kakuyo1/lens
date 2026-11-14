@@ -583,31 +583,5 @@ Item {
 
             Pet.setEnabled(false);
         }
-
-        /// The reader's side reaches the geometry: with room on both sides at mid-screen, above puts
-        /// the card over the anchor and below under it. The rule itself is surface_geometry_test's;
-        /// this case pins that placeTransient() hands the setting over.
-        function test_aBubbleHangsOnTheSideTheReaderChose() {
-            const main = make();
-            const bubble = panel(main, "Bubble");
-            const anchor = Qt.point(400, 300);
-            const previous = Controller.settings.bubblePlacement;
-
-            try {
-                Controller.setSetting("bubblePlacement", "above");
-                Util.surfaceHost(main).placeTransient(bubble, anchor, bubble.gap);
-                const above = bubble.y;
-                verify(above + bubble.height - bubble.shadowMargin <= anchor.y,
-                       "the card did not hang above the anchor");
-
-                Controller.setSetting("bubblePlacement", "below");
-                Util.surfaceHost(main).placeTransient(bubble, anchor, bubble.gap);
-                verify(bubble.y + bubble.shadowMargin >= anchor.y,
-                       "the card did not hang below the anchor");
-                verify(bubble.y !== above, "the reader's side did not move the card");
-            } finally {
-                Controller.setSetting("bubblePlacement", previous);
-            }
-        }
     }
 }

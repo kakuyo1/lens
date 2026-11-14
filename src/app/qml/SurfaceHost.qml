@@ -213,7 +213,8 @@ QtObject {
     /// it changes, because a card that grew after placement would otherwise creep down over the
     /// word and every word would end up with a different gap. Near the top of the screen it flips
     /// below the word; near either side edge it is clamped, so the gap survives the edge and only
-    /// the horizontal alignment gives way.
+    /// the horizontal alignment gives way. A card the reader has dragged keeps the frame it was
+    /// left at, so the pin does not reach it.
     ///
     /// The gap is measured on the card, not the window: the window's 26 px shadow margin dips over
     /// the word instead of hanging clear of it, so the visible gap is the plain `gap` and the
@@ -224,7 +225,7 @@ QtObject {
     /// @param surface The bubble, already sized to its content.
     /// @param payload The anchor rectangle in DIPs: the word's x, y, anchorWidth and anchorHeight.
     function placeReviewCard(surface, payload) {
-        if (!surface || surface.dragging)
+        if (!surface || surface.dragging || surface.dragged)
             return;
         placeAgainstWord(surface, payload);
         reviewHold.restart();
@@ -278,10 +279,12 @@ QtObject {
     ///
     /// A review card is pinned by its bottom edge, so growing content must move the top, not the
     /// gap to the word. Every other bubble keeps the top it was placed at and is only pulled back
-    /// on screen, which is the old behaviour.
+    /// on screen, which is the old behaviour. A card the reader has dragged joins that second
+    /// rule whatever kind raised it: its frame stands, and only the screen pulls it back.
     function bubbleGeometryChanged(surface) {
         const placement = placements.find(function (candidate) { return candidate.surface === surface; });
-        if (placement && placement.kind === "review" && surface.surfaceShown && !surface.dragging)
+        if (placement && placement.kind === "review" && surface.surfaceShown
+                && !surface.dragging && !surface.dragged)
             placeReviewCard(surface, placement.anchor);
         else
             keepOnScreen(surface);
@@ -366,7 +369,7 @@ QtObject {
                 placeReviewCard(placement.surface, placement.anchor);
             else if (placement.surface === bar)
                 placeSelectionBar(bar, placement.anchor);
-            else if (!placement.surface.dragging)
+            else if (!placement.surface.dragging && !placement.surface.dragged)
                 placeTransient(placement.surface, placement.anchor, placement.surface.gap);
         }
         reviewSign.repositionAnswerCard();

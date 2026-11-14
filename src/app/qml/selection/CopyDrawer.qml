@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Shapes
 
 /**
  * The copy text's drawer (UI-SPEC.md 4.10): the actions this selection can take, out while the pointer
@@ -13,11 +12,11 @@ import QtQuick.Shapes
 Item {
     id: root
 
-    /// "bar", "tab", "hand", "tag" or "fan": the bar's form, which picks the shape.
+    /// "bar", "tab", "hand" or "tag": the bar's form, which picks the shape.
     required property string form
     /// The actions that apply, as the bar lists them. Empty hides the drawer.
     required property var items
-    /// "up" or "down" for the vertical forms, "right" for the fan; empty until the bar is placed.
+    /// "up" or "down"; empty until the bar is placed.
     required property string side
     /// Whether the pointer is on the copy text.
     required property bool copyHovered
@@ -49,25 +48,8 @@ Item {
     readonly property real cardGap: form === "tag" ? 16 : 6
     /// The tag's card is the prototype's 168 px; its items sit right of the grommet column.
     readonly property int tagWidth: 168
-    /// Whether the drawer is on glass: its cards and the fan's blades are glass then, as the bar's own are.
+    /// Whether the drawer is on glass: its cards are glass then, as the bar's own are.
     readonly property bool underGlass: root.tokens.glassMode !== ""
-    /// The glass rim, as GlassSurface draws it: the theme's setting in percent of white.
-    readonly property color rimColor: Qt.rgba(1, 1, 1, (root.tokens.glassMode === "liquid" ? Controller.glassParameters.liquidRim : Controller.glassParameters.frostedRim) / 100)
-    readonly property color hoverTint: Qt.rgba(18 / 255, 24 / 255, 36 / 255, 0.12)
-    /// The fan's hinge in the body's own coordinates: the outer corner of its right blade (SelectionBarFanBody). The
-    /// drawer's lower blade starts at its bottom-left corner, so the drawer stands with that corner on the hinge.
-    readonly property real fanHingeX: 250
-    readonly property real fanHingeY: 87
-    /// The blade under the pointer, 0 for the lower and 1 for the upper, or -1 off the blades.
-    property int hoveredBlade: -1
-
-    /// The blade's fill: a glass blade rests clear and the one under the pointer takes the hover tint; a solid one rests
-    /// in the panel and lights to panel2, as the bar's own fan does (UI-SPEC.md 4.10).
-    function bladeFill(index) {
-        if (root.underGlass)
-            return root.hoveredBlade === index ? root.hoverTint : "transparent";
-        return root.hoveredBlade === index ? root.tokens.panel2 : root.tokens.panel;
-    }
     /// The longest word of each tab label, unwrapped, to measure the drawer's width by: the drawer grows to fit a word
     /// rather than breaking it, and no further, so a long label wraps onto a second line instead of widening the card.
     /// Hidden, and not for a reader.
@@ -191,8 +173,6 @@ Item {
         required property var modelData
         property bool vertical: false
         property bool card: false
-        /// Whether the action lights up under the pointer. The fan's blades light up as one shape instead.
-        property bool hoverable: true
         property int labelPixels: 13
         /// The width the label column gives up to the item's edges, in total; the prototype's padding for the form.
         property int labelInset: 10
@@ -235,7 +215,7 @@ Item {
         signal pressed(string action)
 
         implicitWidth: act.card ? 84 : labelRow.implicitWidth + 18
-        implicitHeight: act.card ? 64 : act.vertical ? column.implicitHeight + (act.hoverable ? 14 : 0)
+        implicitHeight: act.card ? 64 : act.vertical ? column.implicitHeight + 14
                         : labelRow.implicitHeight + 14
 
         Accessible.role: Accessible.Button
@@ -244,7 +224,6 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            visible: act.card || act.hoverable
             radius: act.card ? root.tokens.radiusGroup : root.tokens.radiusField
             color: act.card ? (root.underGlass ? "transparent" : hover.hovered ? root.tokens.panel : root.tokens.panel2)
                  : hover.hovered ? root.tokens.panel2 : "transparent"
@@ -334,23 +313,20 @@ Item {
     }
 
     width: form === "hand" ? items.length * 84
-         : form === "fan" ? 140
          : form === "tab" ? trayItemWidth + 8
          : form === "tag" ? tagWidth
          : trayColumn.width + 8
     height: form === "hand" ? 64
-          : form === "fan" ? 140
           : form === "tab" ? trayColumn.height + 8
           : form === "tag" ? trayColumn.height + 12
           : trayColumn.height + 8
 
     x: form === "bar" ? anchorX + anchorW - width
      : form === "hand" ? anchorX + (anchorW - width) / 2
-     : form === "fan" ? anchorX + fanHingeX
      : anchorX
-    /// The two places a vertical drawer can take, above the copy item and below it. The fan has one, hinged in place.
-    readonly property real yUp: form === "fan" ? anchorY + fanHingeY - height : anchorY - height - cardGap
-    readonly property real yDown: form === "fan" ? yUp : anchorY + anchorH + cardGap
+    /// The two places a vertical drawer can take, above the copy item and below it.
+    readonly property real yUp: anchorY - height - cardGap
+    readonly property real yDown: anchorY + anchorH + cardGap
     y: side === "up" ? yUp : yDown
 
     visible: applies
@@ -359,16 +335,6 @@ Item {
     Behavior on opacity {
         NumberAnimation {
             duration: root.tokens.motion.pop
-            easing.type: root.tokens.motion.easing
-        }
-    }
-
-    /// The fan's drawer unfolds from its hinge, the bottom-left corner, as it opens.
-    transformOrigin: root.form === "fan" ? Item.BottomLeft : Item.Center
-    scale: root.form === "fan" && !root.open ? 0.9 : 1
-    Behavior on scale {
-        NumberAnimation {
-            duration: root.tokens.motion.bubble
             easing.type: root.tokens.motion.easing
         }
     }
@@ -401,16 +367,11 @@ Item {
 
     HoverHandler {
         id: pointer
-        onPointChanged: root.hoveredBlade = root.form === "fan" ? root.bladeUnder(pointer.point.position) : -1
-        onHoveredChanged: {
-            if (!pointer.hovered)
-                root.hoveredBlade = -1;
-        }
     }
 
     Rectangle {
         id: card
-        visible: root.form !== "hand" && root.form !== "fan"
+        visible: root.form !== "hand"
         anchors.fill: parent
         radius: root.form === "bar" ? root.tokens.radiusGroup : root.tokens.radiusMenu
         color: root.tokens.glassMode === "" ? root.tokens.panel : "transparent"
@@ -498,104 +459,6 @@ Item {
                 vertical: true
                 labelPixels: 12
                 order: index
-                onPressed: (action) => root.picked(action)
-            }
-        }
-    }
-
-    // The fan's blades: the two triangles from the hinge to the outer edge, split by the one diagonal, as the
-    // prototype draws them. The first item takes the lower blade and the second the upper one; a lone item
-    // takes the lower blade. Each blade's action stands at the blade's centroid.
-    readonly property var bladePoints: [[[0, 140], [140, 140], [99, 41]], [[0, 140], [99, 41], [0, 0]]]
-    readonly property var bladeCentres: [Qt.point(78, 115), Qt.point(36, 54)]
-
-    /// @return The blade whose triangle holds @p point, 0 for the lower and 1 for the upper, or -1 off the fan.
-    function bladeUnder(point) {
-        for (let i = 0; i < root.bladePoints.length; ++i) {
-            const t = root.bladePoints[i];
-            const side = (a, b) => (b[0] - a[0]) * (point.y - a[1]) - (b[1] - a[1]) * (point.x - a[0]);
-            const sides = [side(t[0], t[1]), side(t[1], t[2]), side(t[2], t[0])];
-            if (sides.every(s => s >= 0) || sides.every(s => s <= 0))
-                return i;
-        }
-        return -1;
-    }
-
-    // Under glass the drawn blades are one glass fan, cut from a GlassSurface as the bar's own fan is (fan_drawer.frag).
-    // The cut takes the blades the items draw: both for two items, the lower one alone for one.
-    Item {
-        id: bladeLayer
-        anchors.fill: parent
-        visible: root.form === "fan" && root.underGlass
-
-        GlassSurface {
-            id: bladeGlass
-            objectName: "drawerBladeGlass"
-            anchors.fill: parent
-            sheet: root.glassSheet
-            mode: root.tokens.glassMode
-            radius: 0
-            rim: 0
-        }
-
-        ShaderEffectSource {
-            id: bladeGlassSource
-            anchors.fill: bladeGlass
-            sourceItem: bladeGlass
-            hideSource: true
-            visible: false
-            live: true
-        }
-
-        ShaderEffect {
-            objectName: "drawerBladeCut"
-            anchors.fill: parent
-            fragmentShader: "qrc:/shaders/fan_drawer.frag.qsb"
-            property variant glass: bladeGlassSource
-            property vector2d size: Qt.vector2d(width, height)
-            property real solo: root.items.length === 1 ? 1 : 0
-        }
-    }
-
-    Repeater {
-        model: root.form === "fan" ? root.items : []
-
-        delegate: Item {
-            id: blade
-            required property var modelData
-            required property int index
-
-            readonly property var points: root.bladePoints[blade.index]
-            readonly property point centre: root.bladeCentres[blade.index]
-            width: 140
-            height: 140
-
-            Shape {
-                anchors.fill: parent
-                preferredRendererType: Shape.CurveRenderer
-
-                ShapePath {
-                    fillColor: root.bladeFill(blade.index)
-                    strokeColor: root.underGlass ? root.rimColor : root.tokens.line
-                    strokeWidth: root.underGlass ? 2 : 1
-                    startX: blade.points[0][0]
-                    startY: blade.points[0][1]
-
-                    PathLine { x: blade.points[1][0]; y: blade.points[1][1] }
-                    PathLine { x: blade.points[2][0]; y: blade.points[2][1] }
-                    PathLine { x: blade.points[0][0]; y: blade.points[0][1] }
-                }
-            }
-
-            Act {
-                modelData: blade.modelData
-                width: 68
-                x: blade.centre.x - width / 2
-                y: blade.centre.y - height / 2
-                vertical: true
-                hoverable: false
-                labelPixels: 11
-                labelInset: 0
                 onPressed: (action) => root.picked(action)
             }
         }

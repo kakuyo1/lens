@@ -22,6 +22,10 @@ Item {
     required property var sheet
     /// Whether the card is being dragged. A drag moves the sheet with the window and takes no capture until it ends.
     property bool dragging: false
+    /// Whether the window stays out of captures whenever it shows, glass or not: the pet's sign and its card are
+    /// excluded by the pet's native bridge at every theme (ADR 0053), and the glass must not take that back between
+    /// shows or on a theme change while the card is up.
+    property bool alwaysExcluded: false
     /// Whether the window is kept out of captures right now, so the sheet is taken without hiding the card.
     property bool excludedFromCapture: false
     /// The theme the picture was taken under. Only a change of theme takes a new one: any other settings write, such as a
@@ -51,8 +55,10 @@ Item {
     /// only when the sheet no longer covers the window.
     function capture() {
         host.pictureTheme = Controller.settings.theme;
-        // Excluded only while the glass shows: a window kept out of captures is missing from screenshots too.
-        host.excludedFromCapture = host.sheet.keepOutOfCapture(host.window, host.window.visible && host.glass);
+        // Excluded only while the glass shows, or always for a window that never belongs in a capture: a window kept
+        // out of captures is missing from screenshots too.
+        host.excludedFromCapture = host.sheet.keepOutOfCapture(host.window,
+                                                               host.window.visible && (host.glass || host.alwaysExcluded));
         if (!host.glass || !host.window.visible) {
             host.sheet.clear();
             return;
@@ -83,7 +89,9 @@ Item {
     /// desktop is read.
     function followWindow() {
         moveSettle.restart();
-        if (host.excludedFromCapture && host.window.visible)
+        // The glass gate keeps an always-excluded window from retaking a sheet nothing draws: under a theme
+        // without glass the exclusion stays, but no backdrop is wanted (capture() clears it).
+        if (host.glass && host.excludedFromCapture && host.window.visible)
             host.sheet.followDeferred(host.windowRect(), host.fillAlpha);
     }
 

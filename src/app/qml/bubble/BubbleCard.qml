@@ -26,22 +26,32 @@ Item {
     implicitHeight: card.height
 
     /// The height the card keeps while the reader's answer is on its way (docs/adr/0146): captured once,
-    /// when the waiting card first lays itself out, and given up when the whole answer lands. The card
-    /// neither shrinks when the first field arrives nor grows as the rest do, so its top edge and every
-    /// row already written never move -- the answer fills space the surface already holds.
+    /// when the waiting card first lays itself out, and given up when the whole answer lands. The
+    /// reservation is the compact ask -- the caption and a few standing lines (maxWaitingLines), not the
+    /// answer's estimated size -- so the first fields land without moving the card and the rest of the
+    /// answer grows it as each field closes. What is written never shrinks or reflows; growth only
+    /// opens room below the rows already on the card.
     property int reservedHeight: 0
     /// The line box one standing line of the answer takes: the definition's own leading, which is the
     /// unit the payload counts its expected lines in.
     readonly property int lineHeight: Math.round(root.bubble.sizeAt(13) * 1.55)
 
-    /// @brief Hold the card at the height its answer is expected to reach: the rows the ask has laid,
-    ///        plus the lines the duty says that answer will need.
+    /// The most standing lines a waiting card reserves (UI-SPEC.md 4.3): the waiting card is the
+    /// reader's ask made visible, not a forecast of the answer's length, so it stands at the caption
+    /// and three breathing bars whatever the estimate says -- the caption claims the first of the
+    /// four reserved lines. A translation or sentence card estimates fewer and keeps its own smaller ask.
+    readonly property int maxWaitingLines: 4
+
+    /// @brief Hold the card at the compact ask's height: the rows the ask has laid, plus the standing
+    ///        lines the waiting rows draw, capped at maxWaitingLines whatever the duty's whole-answer
+    ///        estimate says.
     ///
     /// Called once, from Bubble.show() on the turn after the waiting card went up. It reads the column
     /// rather than the card, because the card's own height is what this result feeds.
     function reserveAnswerSpace() {
         if (root.bubble.holding && root.reservedHeight === 0)
-            root.reservedHeight = Math.round(column.height + 26 + root.bubble.waitingLines * lineHeight);
+            root.reservedHeight = Math.round(column.height + 26
+                                             + Math.min(root.bubble.waitingLines, root.maxWaitingLines) * lineHeight);
     }
 
     /// True while any field is still being written out: what holds the countdown (Bubble.qml).
@@ -643,7 +653,7 @@ Item {
         // What the answer has not written yet, standing in the space reserved for it under the rows it
         // has already written (UI-SPEC.md 4.3). The card the reader's click raised goes up before the
         // model has a word ready, and this is what the card shows while it waits: the lines give way to
-        // the fields one by one, and the card itself does not move.
+        // the fields one by one, and the card stands still until the answer outgrows the compact ask.
         BubbleWaitingRows {
             x: column.x
             width: column.width

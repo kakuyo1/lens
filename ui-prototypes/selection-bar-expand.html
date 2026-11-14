@@ -169,8 +169,7 @@ html[data-theme=liquid] .tray{background:rgba(248,250,254,.34);backdrop-filter:b
 .copy-wrap.open .tray-hand.solo .act[data-n="0"]{transform:none}
 .copy-wrap.open .tray-hand .act:hover,.copy-wrap.open .tray-hand.solo .act:hover{transform:translateY(-6px) scale(1.035);background:var(--panel);border-color:var(--muted)}
 html[data-theme=frosted] .bar-hand .tray-hand,html[data-theme=liquid] .bar-hand .tray-hand{background:none;border:0;box-shadow:none;backdrop-filter:none}
-html[data-theme=frosted] .bar-hand,html[data-theme=liquid] .bar-hand,
-html[data-theme=frosted] .bar-fan,html[data-theme=liquid] .bar-fan{background:transparent;border-color:transparent;box-shadow:none;backdrop-filter:none}
+html[data-theme=frosted] .bar-hand,html[data-theme=liquid] .bar-hand{background:transparent;border-color:transparent;box-shadow:none;backdrop-filter:none}
 
 /* D · 吊牌签：一根细线系到选区，整张牌微微倾斜 */
 .bar-tag{--tilt:1.4deg;padding:6px 8px 6px 31px;border-radius:12px;transform:rotate(var(--tilt));transform-origin:15px 11px}
@@ -187,50 +186,6 @@ html[data-theme=frosted] .bar-fan,html[data-theme=liquid] .bar-fan{background:tr
 .bar-tag .copy-wrap.up .tray-tag .string{top:auto;bottom:-16px}
 .bar-tag .copy-wrap.up .tray-tag .string::before{top:auto;bottom:-2px}
 .bar-tag .copy-wrap.up .tray-tag .hole{top:auto;bottom:4px}
-
-/* E · 扇面：三片扇骨，复制是右片，抽屉以右片为轴 */
-.bar-fan{display:block;width:260px;height:170px;padding:0;border-color:transparent;background:transparent;box-shadow:none;filter:drop-shadow(0 2px 6px rgba(20,20,26,.10)) drop-shadow(0 0 .8px var(--line))}
-.bar-fan .blade{position:absolute;inset:0;padding:0;border:0;background:var(--panel2);cursor:pointer;transition:background-color .15s;z-index:1}
-.bar-fan .blade-l{clip-path:polygon(130px 150px,10px 87px,78px 26px)}
-.bar-fan .blade-c{clip-path:polygon(130px 150px,78px 26px,182px 26px);background:var(--panel);z-index:2}
-.bar-fan .blade-r{clip-path:polygon(130px 150px,182px 26px,250px 87px)}
-html[data-theme=light] .bar-fan .blade-l,html[data-theme=light] .bar-fan .blade-r{background:var(--bg)}
-html[data-theme=light] .bar-fan .blade-l:hover,html[data-theme=light] .bar-fan .blade-r:hover{background:var(--panel)}
-html[data-theme=light] .bar-fan .blade-c:hover{background:var(--panel2)}
-.bar-fan .blade:hover{background:var(--panel)}
-.bar-fan .blade:active{filter:brightness(.96)}
-.bar-fan .blade:focus-visible{outline:none;background:var(--panel)}
-.bar-fan .blade-face{position:absolute;display:flex;flex-direction:column;align-items:center;gap:5px;width:66px;transform:translate(-50%,-50%);pointer-events:none;text-align:center}
-.bar-fan .blade-l .blade-face{left:62px;top:80px}
-.bar-fan .blade-c .blade-face{left:130px;top:76px;width:54px}
-.bar-fan .blade-r .blade-face{left:198px;top:80px}
-.bar-fan .blade-face svg{width:16px;height:16px;color:var(--muted)}
-.bar-fan .blade-face .label{font-size:11.5px;line-height:1.2;font-weight:700;color:var(--text)}
-.bar-fan .blade:hover .blade-face{transform:translate(-50%,-50%) translateY(-2px)}
-.bar-fan .fan-edge{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
-.bar-fan .fan-edge path{fill:none;stroke:var(--line);stroke-width:1}
-.bar-fan .handle{position:absolute;left:50%;bottom:-4px;width:8px;height:18px;border-radius:4px;background:var(--line);transform:translateX(-50%);z-index:3;pointer-events:none}
-.bar-fan .rivet{position:absolute;left:50%;bottom:13px;width:11px;height:11px;border:1px solid var(--line);border-radius:50%;background:var(--panel);transform:translateX(-50%);z-index:4;pointer-events:none}
-/* 扇面的复制层铺满整把扇子但不接指针；真正接指针的是右片本身，抽屉另算。 */
-.bar-fan .copy-wrap{position:absolute;inset:0;pointer-events:none;display:block}
-.bar-fan .copy-wrap .blade{pointer-events:auto}
-/* 抽屉是一把小扇，铆在复制右片的外角（右下），朝右侧展开；两片扇骨沿用大扇的线，只有一项时是一片。 */
-.bar-fan .copy-wrap .tray-fan{left:250px;top:auto;bottom:83px;right:auto;width:140px;height:140px;padding:0;border:0;background:none;box-shadow:none;backdrop-filter:none;gap:0;filter:drop-shadow(0 2px 6px rgba(20,20,26,.10)) drop-shadow(0 0 .8px var(--line))}
-.bar-fan .copy-wrap .tray-fan::before{top:0;bottom:0;left:-12px;right:auto;width:12px;height:auto}
-.bar-fan .copy-wrap .tray-fan .sub-edge{position:absolute;inset:0;width:140px;height:140px;pointer-events:none}
-.bar-fan .copy-wrap .tray-fan .sub-edge path{fill:none;stroke:var(--line);stroke-width:1}
-.bar-fan .copy-wrap .tray-fan.solo .sub-edge{display:none}
-.bar-fan .copy-wrap .tray-fan .sub-rivet{position:absolute;left:-5px;bottom:-5px;width:10px;height:10px;border:1px solid var(--line);border-radius:50%;background:var(--panel);pointer-events:none}
-.bar-fan .copy-wrap .tray-fan .act{position:absolute;inset:0;width:140px;height:140px;padding:0;border:0;border-radius:0;background:none;box-shadow:none}
-/* The blade is painted by a clipped pseudo-element, so the label is never clipped with it. */
-.bar-fan .copy-wrap .tray-fan .act::before{content:"";position:absolute;inset:0;background:var(--panel);clip-path:polygon(0 140px,140px 140px,99px 41px);transition:background-color .15s}
-.bar-fan .copy-wrap .tray-fan .act:hover::before{background:var(--panel2)}
-.bar-fan .copy-wrap .tray-fan .act[data-n="0"]{--cx:78px;--cy:118px}
-.bar-fan .copy-wrap .tray-fan .act[data-n="1"]{--cx:36px;--cy:54px}
-.bar-fan .copy-wrap .tray-fan .act[data-n="1"]::before{clip-path:polygon(0 140px,99px 41px,0 0)}
-.bar-fan .copy-wrap .tray-fan .stack{position:absolute;left:var(--cx);top:var(--cy);transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;width:68px;white-space:normal;font-size:11px;font-weight:700;line-height:1.2;color:var(--text);text-align:center;pointer-events:none}
-html[data-theme=frosted] .bar-fan .copy-wrap .tray-fan,html[data-theme=liquid] .bar-fan .copy-wrap .tray-fan{background:none;border:0;box-shadow:none;backdrop-filter:none}
-.bar-fan .copy-wrap .caret{display:none}
 
 /* 玻璃主题：卡片取玻璃，同 selection-bar-variants.html */
 html[data-theme=frosted] .bar{border-color:rgba(255,255,255,var(--glass-rim));backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat))}
@@ -338,29 +293,24 @@ const ITEM_KINDS = { fixSpelling: "word unknown", fixSyntax: "sentence", breakdo
 function act(id) {
   return `<button type="button" class="act" data-action="${id}">${ICON[id]}<span data-l="${id}"></span></button>`;
 }
-function item(id, stacked = false) {
+function item(id) {
   const inner = `${ICON[id]}<span data-l="${id}"></span>`;
-  return `<button type="button" class="act" data-action="${id}" data-kinds="${ITEM_KINDS[id]}">${stacked ? `<span class="stack">${inner}</span>` : inner}</button>`;
+  return `<button type="button" class="act" data-action="${id}" data-kinds="${ITEM_KINDS[id]}">${inner}</button>`;
 }
 /// The drawer under the copy button. Each form draws its own (tray-<form>); the classic bar keeps the plain menu.
 function tray(form = "") {
   const extra = {
     tab: '<span class="spine" aria-hidden="true"></span><span class="fold" aria-hidden="true"></span>',
-    tag: '<span class="string" aria-hidden="true"></span><span class="hole" aria-hidden="true"></span>',
-    fan: '<svg class="sub-edge" viewBox="0 0 140 140" aria-hidden="true"><path d="M0 140 L99 41"/></svg><span class="sub-rivet" aria-hidden="true"></span>'
+    tag: '<span class="string" aria-hidden="true"></span><span class="hole" aria-hidden="true"></span>'
   }[form] || "";
   const cls = form ? ` tray-${form}` : "";
-  const stacked = form === "fan";
-  return `<div class="tray${cls}" role="menu">${extra}${item("fixSpelling", stacked)}${item("fixSyntax", stacked)}${item("breakdown", stacked)}</div>`;
+  return `<div class="tray${cls}" role="menu">${extra}${item("fixSpelling")}${item("fixSyntax")}${item("breakdown")}</div>`;
 }
 function copyAct() {
   return `<button type="button" class="act" data-copy data-action="copy">${ICON.copy}<span data-l="copy"></span>${CARET}</button>`;
 }
 function slot(id) {
   return `<div class="slot-wrap"><button type="button" class="slot" data-action="${id}"><span class="face">${ICON[id]}<span class="label" data-l="${id}"></span></span></button></div>`;
-}
-function blade(id, cls) {
-  return `<button type="button" class="blade ${cls}" data-action="${id}"><span class="blade-face">${ICON[id]}<span class="label" data-l="${id}"></span></span></button>`;
 }
 
 /// One stage per form. `pt` is the room above the selection the form needs for its tray.
@@ -380,11 +330,7 @@ const FORMS = {
   tag:  { letter: "D", name: "吊牌签", idea: "复制下方再挂一张小签，用同样的细线系着，两张吊牌一起倾斜。", pt: 150, mh: 410,
           notes: [["适合", "下方有空位时最像吊牌；抽屉垂下去，和吊牌的线是一套语法。"], ["代价", "抽屉的一端会挡住下一行文字；下方不够时翻到上方。"], ["展开", "细线从复制下缘垂下，小签贴复制左缘，跟着吊牌一起倾斜 1.4°。"]],
           markup: () => `<span class="string" aria-hidden="true"></span><span class="hole" aria-hidden="true"></span>${act("translate")}${act("explain")}<div class="copy-wrap end">${copyAct()}${tray("tag")}</div>`,
-          cls: "bar-tag" },
-  fan:  { letter: "E", name: "扇面", idea: "复制那一片的外角再铆一把小扇，朝右侧展开，两片扇骨沿用大扇的线。", pt: 250, mh: 470,
-          notes: [["适合", "三个动作等权；小扇只往右伸，不压住选区的上下两行。"], ["代价", "小扇伸到右侧 110 px；选区靠近舞台右缘时，落点要把它算进去，否则会被裁掉。"], ["展开", "从复制右片的外角（右下铆钉）展开，朝右侧伸出，不随上下翻转。"]],
-          markup: () => `${blade("translate", "blade-l")}${blade("explain", "blade-c")}<div class="copy-wrap">${blade("copy", "blade-r").replace('class="blade blade-r"', 'class="blade blade-r" data-copy')}${tray("fan")}</div><svg class="fan-edge" viewBox="0 0 260 170" aria-hidden="true"><path d="M130 150 L10 87 L78 26 L182 26 L250 87 Z"/><path d="M130 150 L78 26 M130 150 L182 26"/></svg><span class="rivet" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span>`,
-          cls: "bar-fan" }
+          cls: "bar-tag" }
 };
 
 const main = document.getElementById("main");
@@ -423,7 +369,7 @@ function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(v, hi));
 }
 
-/// Places the bar: the same rules as the app (classic flips above/below; tab beside; hand and fan centred; tag hangs below).
+/// Places the bar: the same rules as the app (classic flips above/below; tab beside; hand centred; tag hangs below).
 function placeBar(stage) {
   const bar = stage.querySelector("[data-bar]");
   const v = bar.dataset.bar;
@@ -438,7 +384,7 @@ function placeBar(stage) {
     left = rect.right + 10;
     if (left + w > hiX) left = rect.left - w - 10;
     top = clamp(rect.top - 2, 8, Math.max(8, hiY - h));
-  } else if (v === "hand" || v === "fan") {
+  } else if (v === "hand") {
     left = clamp(rect.left + rect.width / 2 - w / 2, lo, Math.max(lo, hiX - w));
     top = rect.top - h - 8;
     if (top < 8) top = rect.bottom + 8;
@@ -464,7 +410,7 @@ function placeBar(stage) {
 function placeTray(stage) {
   const bar = stage.querySelector("[data-bar]");
   const wrap = bar.querySelector(".copy-wrap");
-  if (wrap.classList.contains("none") || bar.dataset.bar === "fan") return;
+  if (wrap.classList.contains("none")) return;
   const tray = wrap.querySelector(".tray");
   const sr = stage.getBoundingClientRect();
   const box = wrap.getBoundingClientRect();

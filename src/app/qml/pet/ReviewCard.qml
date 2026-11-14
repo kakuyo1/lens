@@ -7,6 +7,7 @@ import QtQuick
  */
 Window {
     id: card
+    objectName: "reviewSignCard"
 
     /// A button was pressed: true for Remembered, false for Forgot.
     signal answered(bool remembered)
@@ -14,7 +15,12 @@ Window {
     /// hover is counted too, otherwise the card would close the moment the pointer reached a button.
     readonly property bool hovered: hover.hovered || forgotHover.hovered || rememberedHover.hovered
 
-    readonly property SurfaceTokens tokens: SurfaceTokens {}
+    /// The desktop under this window, which its glass draws (docs/adr/0041).
+    readonly property var glass: Controller.glassBackdrop.surface("reviewSignCard")
+    readonly property SurfaceTokens tokens: SurfaceTokens {
+        glassEnabled: true
+        glassLightText: card.glass.lightText
+    }
     readonly property int padding: 8
 
     // The padding and the 1 px border on each side, as .ask-pop in pet-review.html sizes it.
@@ -29,9 +35,17 @@ Window {
     Rectangle {
         anchors.fill: parent
         radius: card.tokens.radiusCard
-        color: card.tokens.panel
+        // Under a glass theme the card is the glass: the GlassSurface below draws the fill and the
+        // rim, and a filled rectangle here would hide the backdrop (DESIGN.md 3.1c and 3.1d).
+        color: card.tokens.glassMode === "" ? card.tokens.panel : "transparent"
         border.width: 1
-        border.color: card.tokens.line
+        border.color: card.tokens.glassMode === "" ? card.tokens.line : "transparent"
+    }
+
+    GlassSurface {
+        anchors.fill: parent
+        sheet: card.glass
+        mode: card.tokens.glassMode
     }
 
     // The pointer on any part of the window, the buttons included, counts as on the card.
@@ -128,5 +142,13 @@ Window {
             Accessible.role: Accessible.Button
             Accessible.name: rememberedLabel.text
         }
+    }
+
+    GlassHost {
+        window: card
+        sheet: card.glass
+        // The card stays out of captures at every theme, like the sign it belongs to (ADR 0053);
+        // without this the glass lifecycle would take the exclusion back when a glass theme is off.
+        alwaysExcluded: true
     }
 }

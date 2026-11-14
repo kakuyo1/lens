@@ -108,15 +108,28 @@ Item {
             compare(rows.visible, true);
             compare(Util.findAll(bubble, function (o) {
                 return o.objectName === "waitingBar";
-            }).length >= 3, true, "the waiting card did not reserve its lines");
+            }).length, 3, "the waiting card did not stand at the compact ask's caption and three bars");
             verify(Util.textWith(Util.textsUnder(bubble), ["Explaining…"]), "the card does not say it is waiting");
             compare(metaVisible(bubble), false, "a card nothing has answered is already counting down");
             bubble.visible = false;
         }
 
-        /// The reservation is what the waiting card is for: a field landing must not move the surface the
-        /// reader is already looking at, and the card must not shrink when the first one arrives
-        /// (docs/adr/0146). The measured alternative travelled 235 px in six jumps.
+        /// The waiting card is the ask, not a forecast of the answer's length (UI-SPEC.md 4.3): whatever
+        /// the duty estimates for the whole answer, the card reserves only the caption and three bars,
+        /// so a card whose every block is switched on opens no taller than a bare one.
+        function test_theWaitingCardIsCompactWhateverTheAnswerWeighs() {
+            const bare = waiting({waitingLines: 6});
+            const weighed = waiting({waitingLines: 14});
+            compare(weighed.height, bare.height,
+                    "the waiting card reserved the whole answer instead of the compact ask");
+            bare.visible = false;
+            weighed.visible = false;
+        }
+
+        /// The compact reservation still covers the answer's first fields: a definition landing must not
+        /// move the surface the reader is already looking at, and the card must not shrink when it
+        /// arrives (docs/adr/0146). The unreserved alternative travelled 235 px in six jumps, the first
+        /// of them backwards.
         function test_theCardHoldsItsHeightWhileTheAnswerStreamsIn() {
             const bubble = waiting();
             const reserved = bubble.height;

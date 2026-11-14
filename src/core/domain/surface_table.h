@@ -79,6 +79,9 @@ inline constexpr Row kRows[]{
     // The review sign: the dev surface reports it, but the review flow raises it and it holds no
     // sheet of its own -- its answer card is a Bubble, which has one (docs/adr/0067).
     {"reviewSign", false, true, nullptr, false, 0, nullptr},
+    // The sign's hover card, the Forgot/Remembered pair beside the board (UI-SPEC.md 4.13): the
+    // hover raises it, and it is a glass card like any other floating one, so a sheet of its own.
+    {"reviewSignCard", true, true, nullptr, false, 0, nullptr},
     // The preview cards: glass-only. The settings preview's card is a second Bubble window; the
     // theme, level and action-bar dropdowns are transient cards beside their panel; the refresh
     // tier's note is a fifth; the pet picker's postcard a sixth; the onboarding wizard's demo

@@ -7,8 +7,8 @@ import "../util/Numbers.js" as Numbers
 /**
  * The bar that comes up when the reader finishes selecting text (UI-SPEC.md 4.10).
  *
- * Its form is the reader's setting (`selectionBarStyle`): a page tab beside the selection, a
- * hand of three cards, a hanging tag, or a fan. All four offer the same three actions and the
+ * Its form is the reader's setting (`selectionBarStyle`): the classic bar, a page tab beside the
+ * selection, a hand of three cards, or a hanging tag. All four offer the same three actions and the
  * same contract -- it never takes focus, so clicking one of its items leaves the reader's
  * application in front and the next injected copy keystroke still lands in the right place.
  */
@@ -47,7 +47,7 @@ Window {
     /// back to it rather than to a bar with no body at all.
     readonly property string barStyle: {
         const value = Controller.settings.selectionBarStyle;
-        return ["bar", "tab", "hand", "tag", "fan"].indexOf(value) >= 0 ? value : "bar";
+        return ["bar", "tab", "hand", "tag"].indexOf(value) >= 0 ? value : "bar";
     }
 
     /// The body in force, whichever form that is: the surface-level tests reach the press
@@ -71,7 +71,7 @@ Window {
     /// The shapes this run has already introduced. The first arrival of a shape is the one that
     /// teaches it; later arrivals halve the entrance (UI-SPEC 4.17, ADR 0109).
     property var introducedStyles: ({})
-    /// Read by the fan and the tag when they start their entrance; set by open().
+    /// Read by the tag when it starts its entrance; set by open().
     property real entranceFactor: 1
 
     /// The three actions, in every form. The `qsTr` calls live here, on the surface, so the
@@ -128,7 +128,7 @@ Window {
         bar.heldOriginY = Math.round(bar.originY);
     }
 
-    /// Which edge the drawer opens from: "up" or "down" for the vertical forms, "right" for the fan.
+    /// Which edge the drawer opens from: "up" or "down".
     /// Set by placeAt() once the bar is placed; empty while it is not.
     property string drawerSide: ""
 
@@ -172,8 +172,8 @@ Window {
     /// @param area The work area of the anchor's screen, in virtual DIPs.
     /// @param margin The 8 px every surface keeps clear of the work area's edges.
     ///
-    /// The five forms do not share an edge: the classic bar's left edge sits at the anchor; the
-    /// tab stands beside it; the hand and the fan centre on it; the tag hangs from a grommet 15 px
+    /// The four forms do not share an edge: the classic bar's left edge sits at the anchor; the
+    /// tab stands beside it; the hand centres on it; the tag hangs from a grommet 15 px
     /// in from its card. Each rule also decides which way it flips when the preferred side has no
     /// room, and the result is clamped into the work area. `sideLeft` and `tagAbove` tell the
     /// body which way it ended up leaning, and `drawerSide` which way the drawer opens.
@@ -222,7 +222,7 @@ Window {
             bar.tagAbove = aboveFirst;
             y = aboveFirst ? above : below;
         } else {
-            // The hand and the fan centre on the anchor and share the bubble's preferred side.
+            // The hand centres on the anchor and shares the bubble's preferred side.
             x = anchor.x - bodyWidth / 2 - ox;
             const below = anchor.y + bar.gap - oy;
             const above = anchor.y - bar.gap - bodyHeight - oy;
@@ -235,8 +235,8 @@ Window {
         bar.raise();
 
         // The drawer opens away from the selection where it can (the classic bar), up for the
-        // hand, down for the tab and the tag, and to the right for the fan; it flips when its side
-        // has no room. The reserved room above is what the window already holds for it.
+        // hand, down for the tab and the tag; it flips when its side has no room. The reserved
+        // room above is what the window already holds for it.
         const bodyTop = bar.y + oy;
         const roomAbove = bodyTop - top >= bar.reach.top;
         const roomBelow = bottom - (bodyTop + bodyHeight) >= bar.reach.bottom;
@@ -246,7 +246,6 @@ Window {
         else if (!up && !roomBelow)
             up = true;
         bar.drawerSide = bar.drawerItems.length === 0 ? ""
-                       : bar.barStyle === "fan" ? "right"
                        : up ? "up" : "down";
     }
 
@@ -331,8 +330,7 @@ Window {
             sourceComponent: bar.barStyle === "bar" ? classicComponent
                              : bar.barStyle === "tab" ? tabComponent
                              : bar.barStyle === "hand" ? handComponent
-                             : bar.barStyle === "tag" ? tagComponent
-                             : fanComponent
+                             : tagComponent
         }
     }
 
@@ -381,19 +379,6 @@ Window {
             drawerSide: bar.drawerSide
             shown: bar.surfaceShown
             above: bar.tagAbove
-            entranceFactor: bar.entranceFactor
-            glassSheet: bar.glass
-            onPicked: (action) => bar.pick(action)
-        }
-    }
-
-    Component {
-        id: fanComponent
-        SelectionBarFanBody {
-            actions: bar.actions
-            drawerItems: bar.drawerItems
-            drawerSide: bar.drawerSide
-            shown: bar.surfaceShown
             entranceFactor: bar.entranceFactor
             glassSheet: bar.glass
             onPicked: (action) => bar.pick(action)

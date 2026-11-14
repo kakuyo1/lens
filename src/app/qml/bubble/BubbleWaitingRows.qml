@@ -7,11 +7,12 @@ import QtQuick
  * waiting for, and under it the lines the answer will be written on, breathed out in the card's
  * hairline token.
  *
- * The card goes up at the reader's own click, before the model has written anything, and keeps the
- * height its answer is expected to reach until the whole of it lands (docs/adr/0146). So what is
- * drawn here is not a fixed picture but the remainder: the block stands under the rows the answer has
- * already written, and as each field lands the space left for these lines shrinks around them. The
- * card itself never moves while that happens -- which is the whole point.
+ * The card goes up at the reader's own click, before the model has written anything, and keeps a
+ * compact ask's worth of standing lines until the whole answer lands (docs/adr/0146, capped by
+ * BubbleCard.maxWaitingLines). So what is drawn here is not a fixed picture but the remainder: the
+ * block stands under the rows the answer has already written, and as each field lands the space left
+ * for these lines shrinks around them; once the fields outgrow the block, the card grows with them
+ * and nothing already written shrinks or reflows.
  *
  * The lines are the same idiom as the picture strip's skeleton (PictureStrip.qml): the interface's one
  * looping animation, `Tokens.motion.pulse`, and it rests at full opacity when motion is reduced.

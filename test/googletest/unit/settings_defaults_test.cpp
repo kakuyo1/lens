@@ -113,7 +113,7 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     a.setSetting(QStringLiteral("clipboardPolicy"), QStringLiteral("silent"));
     a.setSetting(QStringLiteral("bubbleDismissSeconds"), 12);
     a.setSetting(QStringLiteral("bubblePlacement"), QStringLiteral("below"));
-    a.setSetting(QStringLiteral("selectionBarStyle"), QStringLiteral("fan"));
+    a.setSetting(QStringLiteral("selectionBarStyle"), QStringLiteral("tag"));
     a.setSetting(QStringLiteral("frostedBlur"), 50);
     a.setSetting(QStringLiteral("frostedSaturation"), 10);
     a.setSetting(QStringLiteral("frostedRim"), 90);
