@@ -24,6 +24,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <exception>
+#include <typeinfo>
 
 #include <dbghelp.h>
 
@@ -31,11 +33,10 @@
 
 namespace {
 
-/// @brief Print the aborting thread's call stack, symbolized against the PDB beside the exe, and exit.
-/// @param signal Unused; the handler only ever fires for SIGABRT.
-/// @note Abort cannot return, so the handler ends the process itself; the runtime's own exit
-///       path would re-enter abort and lose the stack this prints.
-void onAbort(int /*signal*/)
+/// @brief Print the current thread's call stack, symbolized against the PDB beside the exe.
+/// @note Shared by both handlers; MSVC's runtime never says what an uncaught exception was, so
+///       the stack is the only locator either of them can offer.
+void printStack()
 {
     HANDLE const process = GetCurrentProcess();
     SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
@@ -43,7 +44,7 @@ void onAbort(int /*signal*/)
 
     void*      frames[62] = {};
     WORD const count      = CaptureStackBackTrace(0, 62, frames, nullptr);
-    std::fprintf(stderr, "\n=== SIGABRT stack, %u frames:\n", static_cast<unsigned>(count));
+    std::fprintf(stderr, "\n=== stack, %u frames:\n", static_cast<unsigned>(count));
 
     alignas(SYMBOL_INFO) char buffer[sizeof(SYMBOL_INFO) + 256] = {};
     auto*                     symbol                            = reinterpret_cast<SYMBOL_INFO*>(buffer);
@@ -61,6 +62,35 @@ void onAbort(int /*signal*/)
     _exit(3);
 }
 
+/// @brief Print the aborting thread's call stack and exit.
+/// @param signal Unused; the handler only ever fires for SIGABRT.
+/// @note Abort cannot return, so the handler ends the process itself; the runtime's own exit
+///       path would re-enter abort and lose the stack this prints.
+void onAbort(int /*signal*/)
+{
+    std::fprintf(stderr, "\n=== SIGABRT\n");
+    printStack();
+}
+
+/// @brief Name the exception terminate was called for, then print the stack and exit.
+/// @note MSVC's uncaught-exception path prints nothing of its own, so this is the one place the
+///       type and the message of an escaping exception become visible.
+void onTerminate()
+{
+    if (std::current_exception()) {
+        try {
+            std::rethrow_exception(std::current_exception());
+        } catch (std::exception const& e) {
+            std::fprintf(stderr, "\n=== terminate on %s: %s\n", typeid(e).name(), e.what());
+        } catch (...) {
+            std::fprintf(stderr, "\n=== terminate on a non-std exception\n");
+        }
+    } else {
+        std::fprintf(stderr, "\n=== terminate with no active exception\n");
+    }
+    printStack();
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -75,6 +105,7 @@ int main(int argc, char** argv)
     _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
     _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
     std::signal(SIGABRT, onAbort);
+    std::set_terminate(onTerminate);
 #endif
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
