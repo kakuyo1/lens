@@ -256,6 +256,8 @@ jobs:
             $suite.Kill()
             "=== the suite's own output, up to the hang:"
             Get-Content "unit-asan-out.log" -Tail 40
+            "=== stderr, up to the hang:"
+            Get-Content "unit-asan-err.log" -Tail 40
             exit 1
           }
           "=== the suite exited with $($suite.ExitCode)"
