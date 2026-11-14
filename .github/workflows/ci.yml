@@ -15,11 +15,12 @@
 #                   surface, which it smokes in the same tree. main.cpp, the translations and the
 #                   icon resources are compiled by no other target, so a break in any of them has
 #                   no other job to fail in.
-#   sanitizer       the unit and pet suites again, built with /fsanitize=address in the same
-#                   Debug tree the unit job uses minus what ASan refuses (/RTC1, incremental
-#                   linking). Qt and the sherpa-onnx runtime are not instrumented; the ASan
-#                   runtime intercepts the process allocator either way. Leak detection is not
-#                   part of MSVC ASan on Windows and is not gated here.
+#   sanitizer       the unit and pet suites again, built with /fsanitize=address over
+#                   RelWithDebInfo -- the configuration pair whose CRT and Qt DLLs agree, the
+#                   Debug one having died three different deaths on the runner. Qt and the
+#                   sherpa-onnx runtime are not instrumented; the ASan runtime intercepts the
+#                   process allocator either way. Leak detection is not part of MSVC ASan on
+#                   Windows and is not gated here.
 #   qml-components  the QML module and the component suite, with the lint after the build.
 #   qml-surfaces    the same module and the surface suite, sharded by case file. It is the gate's
 #                   longest step, which is why the component half got a runner of its own: both
@@ -213,19 +214,19 @@ jobs:
 
       - uses: ./.github/actions/configure
 
-      # Reconfigure in the same tree, the way the app job flips the developer surface: the Debug
-      # flags CMake applies by default carry /RTC1 and incremental linking, both documented by
-      # MSVC as incompatible with /fsanitize=address, so the two flag sets are replaced with
-      # their own minus that. Iterator debugging leaves too: at its Debug default of
-      # _ITERATOR_DEBUG_LEVEL=2 every container destruction walks a proxy list whose heap the
-      # sanitizer's own allocator does not keep straight -- the first run died in
-      # _Orphan_all on the unwinding of any pet-parse throw -- and IDL0 is the documented pair
-      # for /fsanitize=address, whose redzones cover what the proxies would. Debug stays Debug
-      # otherwise -- the assertions and the TRACE log are the point; the ASan runtime DLLs are
-      # beside the compiler and on PATH once msvc-dev-cmd has run.
+      # Reconfigure in the same tree as a RelWithDebInfo build with the sanitizer -- the standard
+      # pair for it, and the third configuration this job tried: the first was Debug, and its
+      # Debug-only machinery died three different deaths on the runner (a CRT iterator-debugging
+      # proxy walk on the unwinding of any pet-parse throw, the /EHsc that the flag override had
+      # swallowed, and a memcpy inside Qt6Cored that read across a redzone in the instrumented
+      # frame of Pricing::load). The release Qt DLLs the install ships match /MD, the CRT the
+      # tree links is the one Qt was built against, and the Debug-only machinery is gone by
+      # construction. What NDEBUG costs is the asserts, which the unit job checks; the redzones
+      # stay, and they are the point. The ASan runtime DLLs are beside the compiler and on PATH
+      # once msvc-dev-cmd has run.
       - name: Reconfigure with AddressSanitizer
         shell: pwsh
-        run: cmake -S . -B build-ninja "-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /fsanitize=address" "-DCMAKE_CXX_FLAGS_DEBUG=/MDd /Zi /Ob0 /Od /D_ITERATOR_DEBUG_LEVEL=0" "-DCMAKE_EXE_LINKER_FLAGS_DEBUG=/DEBUG /INCREMENTAL:NO"
+        run: cmake -S . -B build-ninja "-DCMAKE_BUILD_TYPE=RelWithDebInfo" "-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /fsanitize=address"
 
       - name: Build
         run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_qtest_pet
