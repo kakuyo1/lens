@@ -116,9 +116,24 @@ Item {
             return null;
         }
 
+        function bringIntoView(item) {
+            const body = scrollerOf(item);
+            if (body && body.contentHeight > body.height) {
+                const bottom = item.mapToItem(body, 0, item.height).y;
+                if (bottom > body.height)
+                    body.contentY = Math.min(bottom - body.height, body.contentHeight - body.height);
+                wait(20);
+            }
+        }
+
         function openCategory(panel, title) {
             const row = categoryRow(panel, title);
             verify(row, "the settings catalog has no " + title + " category");
+
+            // The catalog is longer than the body, so the last categories start below the fold:
+            // a press on a row that is not on screen goes past the panel. Bring it up first.
+            bringIntoView(row);
+
             mouseClick(row, row.width / 2, row.height / 2);
             wait(20);
         }

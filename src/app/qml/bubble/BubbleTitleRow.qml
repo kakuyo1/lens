@@ -36,6 +36,37 @@ Item {
     property string pos: ""
     /// The family the word is drawn in (UI-SPEC.md 4.4); the caller's own face is an empty name.
     property string family: ""
+    /// Whether that family keeps the phonetic marks (ˈ ˌ ː) in their own space. A family whose
+    /// shaping attaches them to the neighbour adds them no width, and the per-character layout
+    /// then draws each one under the letter that follows -- Tahoma does this on Windows, and the
+    /// reader loses the stress without ever seeing a wrong glyph. The pronunciation alone falls
+    /// back to the application font, the one an unset font setting already uses; the word and
+    /// the definitions keep the family the reader picked.
+    readonly property bool familyCarriesPhonetics:
+        root.family === ""
+        || (stressProbe.advanceWidth > plainProbe.advanceWidth
+            && lengthProbe.advanceWidth > plainProbe.advanceWidth)
+
+    TextMetrics {
+        id: plainProbe
+        text: "bb"
+        font.family: root.family
+        font.pixelSize: Math.round(13 * root.scale)
+    }
+
+    TextMetrics {
+        id: stressProbe
+        text: "bˈb"
+        font.family: root.family
+        font.pixelSize: Math.round(13 * root.scale)
+    }
+
+    TextMetrics {
+        id: lengthProbe
+        text: "bːb"
+        font.family: root.family
+        font.pixelSize: Math.round(13 * root.scale)
+    }
     /// The multiple the pair is drawn at, from the reader's font-size setting (UI-SPEC.md 4.4): the
     /// card decides the scale and this block follows it, as every block on it does.
     property real scale: 1
@@ -120,7 +151,7 @@ Item {
         wrapMode: Text.NoWrap
         text: root.ipa
         color: root.tokens.faint
-        family: root.family
+        family: root.familyCarriesPhonetics ? root.family : ""
         pixelSize: Math.round(13 * root.scale) // the prototype's 12.5 px, as the definition line rounds it
     }
 
