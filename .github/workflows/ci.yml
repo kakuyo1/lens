@@ -268,12 +268,17 @@ jobs:
       # mapped offline, against the exe and its PDB from this very run.
       - name: Upload the suite's symbols
         if: failure()
+        shell: pwsh
+        run: |
+          Get-ChildItem build-ninja/test/googletest -Filter lens_gtest_unit.* | Select-Object Name, Length
+          Get-ChildItem "build-ninja/test/googletest/lens_gtest_unit.*" |
+            Compress-Archive -DestinationPath asan-suite-symbols.zip -Force
+      - name: Upload the archive
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: asan-suite-symbols
-          path: |
-            build-ninja/test/googletest/lens_gtest_unit.exe
-            build-ninja/test/googletest/lens_gtest_unit.pdb
+          path: asan-suite-symbols.zip
 
       - name: Pet controller tests under ASan
         run: ./build-ninja/test/qtest/lens_qtest_pet.exe
