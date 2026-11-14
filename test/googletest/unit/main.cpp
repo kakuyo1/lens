@@ -91,6 +91,24 @@ void onTerminate()
     printStack();
 }
 
+/// @brief Print a symbolized stack for an unhandled access violation and end the process.
+/// @param info The fault the OS raised.
+/// @return Never returns for an access violation; every other code searches on unchanged.
+/// @note Registered in main, after the sanitizer runtime has installed its own filter, so this
+///       one answers first -- the sanitizer's report for a hard fault carries only module
+///       offsets, while dbghelp here reads the PDB beside the executable and names the source
+///       line. The sanitizer's software-detected errors (heap overflow, use-after-free) print
+///       through its own reporting path and are untouched by this.
+LONG WINAPI onAccessViolation(EXCEPTION_POINTERS* info)
+{
+    if (info != nullptr && info->ExceptionRecord != nullptr &&
+        info->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
+        std::fprintf(stderr, "\n=== unhandled access violation\n");
+        printStack();
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -106,6 +124,7 @@ int main(int argc, char** argv)
     _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
     std::signal(SIGABRT, onAbort);
     std::set_terminate(onTerminate);
+    SetUnhandledExceptionFilter(onAccessViolation);
 #endif
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
