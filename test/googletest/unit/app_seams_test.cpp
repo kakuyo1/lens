@@ -409,6 +409,36 @@ TEST(SettingsPath, CarriesTheLegacyDocumentOverOnceAndOnlyOnce)
     std::filesystem::remove_all(profile.parent_path());
 }
 
+/// The other boundary: an installed launch starts in the install folder, so the log -- which can
+/// carry looked-up words -- belongs to the profile, never to Program Files (docs/adr/0178).
+TEST(LogDirectory, AnInstalledBuildKeepsTheLogInTheProfile)
+{
+    const std::filesystem::path dir = lens::app::logDirectory(true);
+
+    EXPECT_EQ(dir.filename(), "logs");
+    EXPECT_EQ(dir.parent_path().filename(), "Lens")
+        << "the leaf matches the applicationName main() sets, which is what settingsPath() resolves";
+    // Said against the tree this binary was built from: the install tree is never the profile
+    // location, so a resolver that reached for the executable's own directory fails here.
+    const std::filesystem::path under = dir.lexically_relative(lens::test::sourceDir());
+    EXPECT_TRUE(under.empty() || under.string().starts_with(".."))
+        << "the log resolved under the tree it was built from: " << dir.string();
+}
+
+/// A development tree keeps the repository's logs/, relative to where the run starts, so
+/// `tail -f logs/lens.log` and the QA runners keep reading where they always have.
+TEST(LogDirectory, ADevelopmentTreeKeepsTheRepositoryLogs)
+{
+    EXPECT_EQ(lens::app::logDirectory(false), std::filesystem::path{"logs"});
+}
+
+/// The marker both install-tree questions read: no data/ sits beside a test executable, so this
+/// binary is not an installed build.
+TEST(InstalledBuild, ABuildTreeIsNotAnInstalledOne)
+{
+    EXPECT_FALSE(lens::app::installedBuild());
+}
+
 /// The conversion every Qt file handle goes through: a narrow round trip is where a non-ASCII
 /// install path is lost.
 TEST(PathText, WidensANonAsciiPathWithoutLosingIt)

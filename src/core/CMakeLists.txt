@@ -35,5 +35,6 @@ target_include_directories(lens_core PUBLIC
 # lens_util is PUBLIC: it carries util/log.h, util/profile.h and spdlog, which every consumer of lens_core uses.
 target_link_libraries(lens_core PUBLIC lens_util)
 
-# vault.cpp calls the Windows CNG provider. PRIVATE: vault.h names no BCrypt type, so consumers do not need it.
-target_link_libraries(lens_core PRIVATE bcrypt)
+# vault.cpp calls the Windows CNG provider and DPAPI. PRIVATE: vault.h names no BCrypt or DPAPI
+# type, so consumers do not need either.
+target_link_libraries(lens_core PRIVATE bcrypt crypt32)

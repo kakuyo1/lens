@@ -20,10 +20,10 @@ Use GitHub's private vulnerability reporting if it is enabled. Otherwise, open a
 
 ## Local data
 
-- `%APPDATA%\Lens\settings.json` holds your settings, learning data, caches, the API key, OCR credentials, the GitHub token and its refresh token, the WebDAV server, username and app password, and the sync key. It is plain JSON that Lens does not encrypt. Anyone who can read it can decrypt the cloud copy.
+- `%APPDATA%\Lens\settings.json` holds your settings, learning data, caches, the API key, OCR credentials, the sync key, and the sync's server, username and device id. It is plain JSON that Lens does not encrypt, and anyone who can read it can decrypt the cloud copy. The GitHub token and its refresh token, and the WebDAV app password, are sealed to your Windows account with DPAPI before they are written.
 - Pictures, pronunciation audio, and voice models are cached locally. None of them is synced or uploaded.
-- Logs can contain the words you looked up. Logs rotate, and for packaged launches they may be written inside the install folder.
-- When Lens crashes it writes a minidump, a small text summary, and a marker into the log directory's `dumps` folder. A dump is a snapshot of process memory: it can contain the text you were reading and the words you looked up. It stays on the machine and is never sent anywhere by Lens; the folder keeps the newest five, and an uninstall deletes it with the install-folder logs. The companion dialog that appears right away reads only the interface language from the settings document.
+- Logs can contain the words you looked up. Logs rotate, and they live in `%APPDATA%\Lens\logs` -- never in the install folder.
+- When Lens crashes it writes a minidump, a small text summary, and a marker into the log directory's `dumps` folder. A dump is a snapshot of process memory: it can contain the text you were reading and the words you looked up. It stays on the machine and is never sent anywhere by Lens; the folder keeps the newest five, and it survives an uninstall -- delete `%APPDATA%\Lens` to remove it. The companion dialog that appears right away reads only the interface language from the settings document.
 - Selection capture briefly replaces the clipboard and then tries to restore it. Another application can prevent a perfect restore.
 - Pet packages are read from `%APPDATA%\Lens\pets\` as data. Lens runs no code from them.
 
@@ -32,6 +32,7 @@ Use GitHub's private vulnerability reporting if it is enabled. Otherwise, open a
 - Lens classifies text locally and sends only what a request needs. It never sends a full-screen image to the explanation API.
 - Before sending, URLs, email addresses, and digit strings of six or more are masked. This is pattern masking, not full personal-data detection.
 - The API key stays in your per-user profile, not the install folder. Lens does not log it on purpose.
+- The sync tokens and the WebDAV app password are sealed with DPAPI, so a backup or a copy of the settings document does not carry usable credentials. Anything running as your account can open the seal; it defends the file at rest, not the account.
 - The sync passphrase is never stored. The key is derived with PBKDF2-HMAC-SHA256 at 600000 iterations and used with AES-256-GCM. Explanation caches are never uploaded.
 - Model answers stream onto the card before the full check finishes. Nothing is cached, counted, or marked until the whole answer passes validation.
 - An update installer runs only after you press Install, and only if its SHA-256 matches `SHA256SUMS`. That checksum shows the file arrived intact, not who published it. The installer is not code-signed.

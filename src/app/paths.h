@@ -7,12 +7,12 @@
 
 /**
  * @file paths.h
- * @brief The path helpers src/app needs, and the one of them that draws a boundary.
+ * @brief The path helpers src/app needs, and the two boundaries among them.
  *
  * These live here rather than in main.cpp's anonymous namespace because nothing in there can be
- * reached from a test. The boundary settingsPath() draws -- the reader's API key rides in that
- * document, so the document belongs to the profile and never to the install tree -- is the one a
- * case locks.
+ * reached from a test. The boundaries the cases lock: settingsPath() keeps the reader's API key
+ * in the profile and never in the install tree, and logDirectory() keeps the log -- which can
+ * carry looked-up words -- out of an installed build's install folder the same way.
  */
 
 namespace lens::app {
@@ -53,5 +53,31 @@ inline std::string narrow(const std::filesystem::path& path)
  *         created at all.
  */
 std::filesystem::path settingsPath(const std::filesystem::path& legacy);
+
+/// @brief Whether this is an installed build: `data/` sits beside the executable.
+///
+/// The one marker both install-tree questions read -- where the word list comes from, and where
+/// the log goes (docs/adr/0178). A build tree has no `data/` next to its executable, because
+/// nothing writes one.
+bool installedBuild();
+
+/**
+ * @brief The directory the rotating log and the crash dumps live in.
+ *
+ * An installed build keeps them in the profile, `%APPDATA%\Lens\logs`, for the three reasons the
+ * install folder is wrong for the log: a launch there starts in it, so a relative name lands the
+ * log under Program Files; that folder may be read-only; it is shared by every account, while the
+ * log can carry the words the reader looked up. The directory is resolved before main() builds a
+ * QCoreApplication -- the crash handler is installed first -- so it cannot go through
+ * QStandardPaths. A development tree keeps the repository's `logs/`, relative to the working
+ * directory the run starts in, so `tail -f logs/lens.log` and the QA runners keep reading where
+ * they always have.
+ *
+ * @param installedBuild The answer installedBuild() gives, named rather than resolved here so a
+ *                       test drives both branches.
+ * @return The directory. It is not created; log::init() and the crash handler make it when they
+ *         run.
+ */
+std::filesystem::path logDirectory(bool installedBuild);
 
 }

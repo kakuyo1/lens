@@ -64,12 +64,14 @@ inline constexpr const char* kLogDirName = "logs";
  * @param level  Verbosity. The `LENS_LOG_LEVEL` environment variable ("trace", "debug",
  *               "info", "warn", "error", "critical", "off") overrides it when set; an
  *               unrecognised name leaves @p level in force.
- * @param logDir Directory holding the rotating file. Relative paths resolve against the
- *               process working directory. An empty path drops the file sink and keeps
- *               stderr only.
+ * @param logDir Directory holding the rotating file. The application resolves it (app/paths.h):
+ *               the profile's `logs` for an installed build, the repository's relative `logs/`
+ *               in a development tree -- relative paths resolve against the process working
+ *               directory, which is why no default names one: a relative default would follow
+ *               whatever directory a launch starts in, the install folder included. An empty
+ *               path drops the file sink and keeps stderr only.
  * @note Safe to call more than once; the newest call wins.
  */
-void init(spdlog::level::level_enum    level  = kDefaultLevel,
-          const std::filesystem::path& logDir = std::filesystem::path{kLogDirName});
+void init(spdlog::level::level_enum level, const std::filesystem::path& logDir);
 
 }

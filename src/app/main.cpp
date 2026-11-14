@@ -33,6 +33,7 @@
 #include "app/settings_access.h"
 #include "core/domain/filter_core.h"
 #include "core/domain/settings_table.h"
+#include "core/domain/sync_partition.h"
 #include "core/document/known_store.h"
 #if defined(LENS_DEV_SURFACE)
 #include "core/dev/dev_command.h"
@@ -56,6 +57,8 @@ using lens::app::GlobalHotkey;
 using lens::app::AltKeyHook;
 using lens::app::MouseSelectionHook;
 using lens::app::Tray;
+using lens::app::installedBuild;
+using lens::app::logDirectory;
 using lens::app::narrow;
 using lens::app::settingsPath;
 using lens::app::toPath;
@@ -87,14 +90,13 @@ constexpr bool kForceOnboarding = false;
  * relocatable and compiles nothing about the machine into it. A build tree has no `data/` next
  * to `build-ninja/src/app/lens.exe` (nothing writes one), so it reads the path configure baked in.
  *
- * @return `<applicationDirPath>/data` when that is a directory, else the baked-in path.
+ * @return `<applicationDirPath>/data` when installedBuild() holds -- the one marker of an
+ *         installed build, which logDirectory() reads too -- else the baked-in path.
  */
 std::filesystem::path dataDirectory()
 {
-    const std::filesystem::path installed = toPath(QCoreApplication::applicationDirPath()) / "data";
-    std::error_code             ec;
-    if (std::filesystem::is_directory(installed, ec))
-        return installed;
+    if (installedBuild())
+        return toPath(QCoreApplication::applicationDirPath()) / "data";
     return toPath(QString::fromUtf8(kBuildDataDir));
 }
 
@@ -212,10 +214,13 @@ void releaseHiddenSurfaces(QObject* root)
 
 int main(int argc, char* argv[])
 {
-    // Crash forensics before anything that could crash the process: the handlers need only the
-    // log directory's name, and from this line on every later death -- QApplication included --
-    // leaves a dump, a summary and a marker in logs/dumps (docs/adr/0174).
-    lens::app::installCrashDumpHandler(std::filesystem::path{lens::log::kLogDirName});
+    // Crash forensics before anything that could crash the process. The log directory is
+    // resolved here, before QStandardPaths has an application object to ask (app/paths.h): an
+    // installed launch starts in the install folder, and a relative name would send the log and
+    // these artifacts into Program Files. From this line on every later death -- QApplication
+    // included -- leaves a dump, a summary and a marker in logs/dumps (docs/adr/0174).
+    const std::filesystem::path logDir = logDirectory(installedBuild());
+    lens::app::installCrashDumpHandler(logDir);
 
     // The Windows media backend, and only it (installer/lens.iss): the FFmpeg backend is 17.5 MB of
     // DLLs that a word's 20 KB recording does not need, so the package does not carry it and this
@@ -247,7 +252,7 @@ int main(int argc, char* argv[])
         uiFont.setFamilies({QStringLiteral("Segoe UI Variable"), QStringLiteral("Microsoft YaHei UI Light")});
     QGuiApplication::setFont(uiFont);
 
-    lens::log::init();
+    lens::log::init(lens::log::kDefaultLevel, logDir);
     lens::log::installQtMessageHandler();
 
     // The Run entry names a path, and this launch is the truth about where the executable is.
@@ -295,6 +300,11 @@ int main(int argc, char* argv[])
 #endif
     LENS_INFO("settings document: {}", narrow(settings));
     KnownStore store = KnownStore::load(settings);
+
+    // The secrets a build before the seal wrote in the clear are sealed to this account once,
+    // here rather than inside the duty, so it happens before anything reads the document
+    // concurrently (docs/adr/0177). A document already sealed writes nothing.
+    lens::core::sync::SyncPartition{store}.sealBareSecrets();
 
     // The custom wordbook (docs/adr/0158) retired into a one-time import (docs/adr/0159): a path
     // left over from an earlier build is read once, its words are written into the verdict store
@@ -440,7 +450,7 @@ int main(int argc, char* argv[])
     // cannot reach the source does not retry on every launch.
     // The crash notice goes first among the news: it is about the run that just ended, and the
     // translators are up, so the card reads in the UI language.
-    controller.reportStartupCrash(std::filesystem::path{lens::log::kLogDirName});
+    controller.reportStartupCrash(logDir);
     controller.updateDuty()->checkAtStartup();
     controller.syncDuty()->startAtLaunch();
     // The first-run wizard is a surface too, so it waits for the same moment as the update check.

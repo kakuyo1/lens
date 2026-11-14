@@ -164,3 +164,28 @@ TEST(Vault, DefaultIterationsDeriveAKey)
     EXPECT_EQ(params.iterations, vault::kIterations);
     EXPECT_EQ(vault::deriveKey("correct horse", params).size(), 32u);
 }
+
+TEST(Vault, DpapiSealRoundTripsThroughTheSameAccount)
+{
+    const Bytes sealed = vault::dpapiSeal("access-token");
+    const auto  opened = vault::dpapiOpen(sealed);
+
+    ASSERT_TRUE(opened.has_value());
+    EXPECT_EQ(*opened, "access-token");
+    // The bytes are the seal, not the secret: a document that carries them in the clear stores
+    // nothing that reads back as the plaintext.
+    const std::string stored{sealed.begin(), sealed.end()};
+    EXPECT_NE(stored, std::string{"access-token"});
+}
+
+TEST(Vault, DpapiSealingTheSameSecretTwiceGivesDifferentBytes)
+{
+    EXPECT_NE(vault::encodeBase64(vault::dpapiSeal("secret")), vault::encodeBase64(vault::dpapiSeal("secret")));
+}
+
+TEST(Vault, DpapiOpenRefusesBytesItDidNotSeal)
+{
+    const Bytes garbage{0x01, 0x02, 0x03};
+    EXPECT_FALSE(vault::dpapiOpen(garbage).has_value());
+    EXPECT_FALSE(vault::dpapiOpen(Bytes{}).has_value());
+}

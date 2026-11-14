@@ -48,7 +48,8 @@ public:
     [[nodiscard]] std::string username() const;
     void                      setUsername(std::string username);
     /// @return The WebDAV app password, or empty when none is stored. A secret: written once, never
-    ///         read back to a surface, and it lives in the settings document like the GitHub token.
+    ///         read back to a surface, and sealed to this account before it reaches the document
+    ///         like the sync tokens (docs/adr/0177).
     [[nodiscard]] std::string appPassword() const;
     void                      setAppPassword(std::string appPassword);
 
@@ -58,6 +59,7 @@ public:
     [[nodiscard]] bool        hasRefreshToken() const;
     [[nodiscard]] std::string refreshToken() const;
     /// @brief Keep the pair a sign-in or a refresh produced; an empty refresh removes the key.
+    ///        Both values are sealed to this account before they reach the document (docs/adr/0177).
     void storeTokens(std::string access, std::string refresh);
     /// @brief Forget both tokens, as after a refusal that proves the sign-in is dead.
     void forgetTokens();
@@ -92,7 +94,24 @@ public:
     /// @brief Forget everything a sign-out takes, leaving this device's id in place.
     void forgetAll();
 
+    /// @brief Seal the secrets a build before the seal wrote in the clear (docs/adr/0177).
+    ///
+    /// A bare value is sealed on the spot; a value already carrying the seal, or an absent one,
+    /// writes nothing. Runs once at startup, before the duties read the document, so the write
+    /// never races a sync round.
+    void sealBareSecrets();
+
 private:
+    /// @brief Read one secret back. A value carrying the seal is opened; a bare one is the
+    ///        plaintext a build before the seal wrote, answered as-is until the next write seals it.
+    /// @param key One of the secret keys: kToken, kRefreshToken or kAppPassword.
+    /// @return The secret, or empty when the key is absent or this account cannot open the seal.
+    [[nodiscard]] std::string readSecret(const char* key) const;
+
+    /// @brief Store one secret under @p key: the seal and the DPAPI blob in base64. An empty
+    ///        secret stores an empty value -- nothing to protect, and the emptiness reads back.
+    void writeSecret(const char* key, std::string_view secret);
+
     /// @return The `sync` object as a section of the document.
     SettingsSection section() const;
 

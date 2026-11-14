@@ -133,6 +133,122 @@ TEST(SyncDuty, ProviderDefaultsToGithubAndReadsBack)
     std::filesystem::remove_all(dir);
 }
 
+/// The tokens and the app password are the secrets the settings document holds at rest, so the
+/// document carries the DPAPI seal (docs/adr/0177), and the plaintext only ever answers through
+/// the partition's own reads.
+TEST(SyncPartition, StoresTheSecretsSealedAndReadsThemBack)
+{
+    QtApplication qt;
+    const auto    dir = std::filesystem::temp_directory_path() / "lens-sync-seal-test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    const auto settingsPath = dir / "settings.json";
+    std::filesystem::remove(settingsPath);
+
+    KnownStore    store = KnownStore::load(settingsPath);
+    SyncPartition seeded(store);
+    seeded.storeTokens("access-1", "refresh-1");
+    seeded.setAppPassword("app-pass");
+
+    const nlohmann::json& sync = store.document().at("sync");
+    EXPECT_EQ(seeded.token(), "access-1");
+    EXPECT_EQ(seeded.refreshToken(), "refresh-1");
+    EXPECT_EQ(seeded.appPassword(), "app-pass");
+
+    // The stored value carries the seal, not the plaintext.
+    const std::string token       = sync.at("token").get<std::string>();
+    const std::string refresh     = sync.at("refreshToken").get<std::string>();
+    const std::string appPassword = sync.at("appPassword").get<std::string>();
+    EXPECT_EQ(token.rfind("dpapi:", 0), 0);
+    EXPECT_EQ(refresh.rfind("dpapi:", 0), 0);
+    EXPECT_EQ(appPassword.rfind("dpapi:", 0), 0);
+    EXPECT_EQ(token.find("access-1"), std::string::npos)
+        << "the document never carries the plaintext";
+
+    std::filesystem::remove_all(dir);
+}
+
+/// A build before the seal wrote the secrets in the clear, and an upgraded document still carries
+/// them: the reads answer the plaintext until the next write seals it, so nothing breaks between.
+TEST(SyncPartition, AnswersABareValueALegacyBuildWrote)
+{
+    QtApplication qt;
+    const auto    dir = std::filesystem::temp_directory_path() / "lens-sync-bare-test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    const auto settingsPath = dir / "settings.json";
+    std::filesystem::remove(settingsPath);
+
+    KnownStore store = KnownStore::load(settingsPath);
+    store.section("sync").set<std::string>("token", "bare-token");
+    store.section("sync").set<std::string>("refreshToken", "bare-refresh");
+    store.section("sync").set<std::string>("appPassword", "app-pass");
+
+    SyncPartition partition(store);
+    EXPECT_EQ(partition.token(), "bare-token");
+    EXPECT_EQ(partition.refreshToken(), "bare-refresh");
+    EXPECT_EQ(partition.appPassword(), "app-pass");
+    EXPECT_TRUE(partition.signedIn());
+
+    std::filesystem::remove_all(dir);
+}
+
+/// The startup pass seals the bare values once, keeps an absent secret absent, and passes over a
+/// value already sealed -- a second seal would only nest one around another.
+TEST(SyncPartition, SealsTheBareSecretsWhenStartupAsks)
+{
+    QtApplication qt;
+    const auto    dir = std::filesystem::temp_directory_path() / "lens-sync-migrate-test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    const auto settingsPath = dir / "settings.json";
+    std::filesystem::remove(settingsPath);
+
+    KnownStore store = KnownStore::load(settingsPath);
+    store.section("sync").set<std::string>("token", "bare-token");
+    store.section("sync").set<std::string>("appPassword", "app-pass");
+
+    SyncPartition partition(store);
+    partition.sealBareSecrets();
+
+    const nlohmann::json& sync        = store.document().at("sync");
+    const std::string     token       = sync.at("token").get<std::string>();
+    const std::string     appPassword = sync.at("appPassword").get<std::string>();
+    EXPECT_EQ(partition.token(), "bare-token");
+    EXPECT_EQ(partition.appPassword(), "app-pass");
+    EXPECT_EQ(token.rfind("dpapi:", 0), 0);
+    EXPECT_EQ(appPassword.rfind("dpapi:", 0), 0);
+    EXPECT_FALSE(sync.contains("refreshToken")) << "an absent secret stays absent";
+
+    partition.sealBareSecrets();
+    EXPECT_EQ(partition.token(), "bare-token") << "the second pass did not seal the seal again";
+
+    std::filesystem::remove_all(dir);
+}
+
+/// A seal another account wrote opens to nothing: the reads answer empty, so the page reads as
+/// signed out -- the honest state under an account the seal does not cover.
+TEST(SyncPartition, ASealThisAccountCannotOpenReadsAsEmpty)
+{
+    QtApplication qt;
+    const auto    dir = std::filesystem::temp_directory_path() / "lens-sync-deadseal-test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    const auto settingsPath = dir / "settings.json";
+    std::filesystem::remove(settingsPath);
+
+    KnownStore         store = KnownStore::load(settingsPath);
+    const vault::Bytes garbage{0x01, 0x02, 0x03};
+    store.section("sync").set<std::string>("token", "dpapi:" + vault::encodeBase64(garbage));
+
+    SyncPartition partition(store);
+    EXPECT_EQ(partition.token(), "");
+    EXPECT_FALSE(partition.signedIn());
+    EXPECT_FALSE(partition.hasRefreshToken());
+
+    std::filesystem::remove_all(dir);
+}
+
 /// A provider the factory does not know falls back to GitHub instead of leaving the duty without a backend.
 TEST(SyncDuty, UnknownProviderFallsBackToGithub)
 {

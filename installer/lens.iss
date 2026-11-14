@@ -62,14 +62,15 @@ Source: "{#PayloadDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubd
 Source: "{#DataDir}\*"; DestDir: "{app}\data"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
-; WorkingDir is named rather than left to the default: the app writes its rotating log to logs/
-; below the directory it is started in (src/util/log.cpp), and a shortcut that does not say which
-; that is leaves the file wherever the shell happened to choose.
+; WorkingDir is named rather than left to the default, so the CWD a launch starts in is the
+; install folder and not whatever the shell happened to choose. The log no longer follows it
+; (docs/adr/0178): an installed build writes to %APPDATA%\Lens\logs whatever the CWD is.
 Name: "{group}\Lens"; Filename: "{app}\lens.exe"; WorkingDir: "{app}"
 
 [UninstallDelete]
-; The log directory the app creates at run time. It is not in the [Files] list, so nothing else
-; would remove it and an uninstall would leave it behind.
+; The log directory older builds created at run time, before the log moved to the reader's
+; profile (docs/adr/0178). It is not in the [Files] list, so nothing else would remove it and an
+; uninstall would leave it behind. Current builds write nothing here.
 Type: filesandordirs; Name: "{app}\logs"
 ; The plugin directories windeployqt lays out. Inno removes directories it created, but an
 ; install laid over an earlier version does not own those that were already there, and an

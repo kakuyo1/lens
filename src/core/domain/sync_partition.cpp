@@ -9,6 +9,7 @@
 #include <random>
 
 #include "core/crypto/vault.h"
+#include "util/log.h"
 
 namespace lens::core::sync {
 namespace {
@@ -29,6 +30,12 @@ constexpr auto kProvider     = "provider";
 constexpr auto kServer       = "server";
 constexpr auto kUsername     = "username";
 constexpr auto kAppPassword  = "appPassword";
+
+/// Prefix on a stored secret: the rest is the DPAPI blob in base64 (docs/adr/0177).
+constexpr std::string_view kSealedPrefix = "dpapi:";
+
+/// The keys whose values are secrets: what sealBareSecrets() seals and what the doc never shows.
+constexpr const char* kSecretKeys[] = {kToken, kRefreshToken, kAppPassword};
 
 /// @return A fresh device id in the shape QUuid::WithoutBraces wrote: 8-4-4-4-12 lower-case hex.
 /// @note The id is opaque and not a secret; the shape is kept so a document written by either
@@ -91,14 +98,43 @@ void SyncPartition::setUsername(std::string username)
     section().set<std::string>(kUsername, std::move(username));
 }
 
+std::string SyncPartition::readSecret(const char* key) const
+{
+    const std::string stored = section().value<std::string>(key, "");
+    if (stored.empty())
+        return {};
+    if (!stored.starts_with(kSealedPrefix))
+        return stored; // A value a build before the seal wrote; the next write seals it.
+
+    const auto                 blob = vault::decodeBase64(stored.substr(kSealedPrefix.size()));
+    std::optional<std::string> open;
+    if (blob)
+        open = vault::dpapiOpen(*blob);
+    if (!open)
+        // A seal another account wrote, or text that was never a blob. The value is never shown;
+        // an empty answer reads as signed out, which is the truth under either cause.
+        LENS_WARN("the stored {} carries a seal this account cannot open; sign in again", key);
+    return open.value_or(std::string{});
+}
+
+void SyncPartition::writeSecret(const char* key, std::string_view secret)
+{
+    // Nothing to protect, and an empty value reads back as empty either way.
+    if (secret.empty()) {
+        section().set<std::string>(key, "");
+        return;
+    }
+    section().set<std::string>(key, std::string{kSealedPrefix} + vault::encodeBase64(vault::dpapiSeal(secret)));
+}
+
 std::string SyncPartition::appPassword() const
 {
-    return section().value<std::string>(kAppPassword, "");
+    return readSecret(kAppPassword);
 }
 
 void SyncPartition::setAppPassword(std::string appPassword)
 {
-    section().set<std::string>(kAppPassword, std::move(appPassword));
+    writeSecret(kAppPassword, appPassword);
 }
 
 bool SyncPartition::signedIn() const
@@ -108,7 +144,7 @@ bool SyncPartition::signedIn() const
 
 std::string SyncPartition::token() const
 {
-    return section().value<std::string>(kToken, "");
+    return readSecret(kToken);
 }
 
 bool SyncPartition::hasRefreshToken() const
@@ -118,19 +154,19 @@ bool SyncPartition::hasRefreshToken() const
 
 std::string SyncPartition::refreshToken() const
 {
-    return section().value<std::string>(kRefreshToken, "");
+    return readSecret(kRefreshToken);
 }
 
 void SyncPartition::storeTokens(std::string access, std::string refresh)
 {
-    auto token = section();
-    token.set<std::string>(kToken, access);
     // An app whose user tokens do not expire sends no refresh token, and an empty one would make
     // the next 401 look renewable when it is not.
+    auto token = section();
+    writeSecret(kToken, access);
     if (refresh.empty())
         token.remove(kRefreshToken);
     else
-        token.set<std::string>(kRefreshToken, refresh);
+        writeSecret(kRefreshToken, refresh);
 }
 
 void SyncPartition::forgetTokens()
@@ -243,6 +279,18 @@ void SyncPartition::forgetAll()
     auto section = this->section();
     for (const char* key : {kToken, kRefreshToken, kLogin, kGistId, kKey, kSalt, kIterations, kSnapshot, kLastSyncedAt, kServer, kUsername, kAppPassword})
         section.remove(key);
+}
+
+void SyncPartition::sealBareSecrets()
+{
+    const auto section = this->section();
+    for (const char* key : kSecretKeys) {
+        const std::string stored = section.value<std::string>(key, "");
+        if (stored.empty() || stored.starts_with(kSealedPrefix))
+            continue;
+        LENS_INFO("sealing the stored {} to this account", key);
+        writeSecret(key, stored);
+    }
 }
 
 }

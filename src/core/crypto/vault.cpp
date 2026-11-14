@@ -7,6 +7,7 @@
 
 #include <windows.h>
 #include <bcrypt.h>
+#include <dpapi.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -62,6 +63,21 @@ void check(NTSTATUS status, const char* what)
     char code[16];
     std::snprintf(code, sizeof code, "0x%08lX", static_cast<unsigned long>(status));
     throw std::runtime_error(std::string{"vault: BCrypt "} + what + " failed, NTSTATUS " + code);
+}
+
+/**
+ * @brief Turn a failed Win32 BOOL into an exception that names only the code.
+ * @param ok   The call's return value.
+ * @param what The step that failed, for the message.
+ * @throws std::runtime_error If @p ok is false.
+ */
+void checkWin32(BOOL ok, const char* what)
+{
+    if (ok)
+        return;
+    char code[16];
+    std::snprintf(code, sizeof code, "0x%08lX", static_cast<unsigned long>(GetLastError()));
+    throw std::runtime_error(std::string{"vault: DPAPI "} + what + " failed, error " + code);
 }
 
 /// @return @p count bytes from the system random source.
@@ -208,6 +224,20 @@ int sextet(char c)
     return -1;
 }
 
+/// The DPAPI blobs a failed CryptProtectData or CryptUnprotectData leaves behind, freed with
+/// LocalFree as the API allocates them.
+struct LocalMemFreer {
+    void operator()(void* memory) const
+    {
+        LocalFree(memory);
+    }
+};
+using LocalMem = std::unique_ptr<BYTE, LocalMemFreer>;
+
+/// @brief The flags both DPAPI calls take. A tray app has no window for the prompt the flag
+///        otherwise allows, and a seal must never block on one.
+constexpr DWORD kDpapiFlags = CRYPTPROTECT_UI_FORBIDDEN;
+
 } // namespace
 
 KdfParams newParams()
@@ -264,6 +294,29 @@ std::optional<KdfParams> paramsOf(const nlohmann::json& envelope)
     if (!parsed)
         return std::nullopt;
     return parsed->params;
+}
+
+Bytes dpapiSeal(std::string_view plaintext)
+{
+    // The API takes the blob by a non-const pointer but never writes into it, the same read-only
+    // use BCrypt's const-drop below makes. BCrypt reads its buffers the same way.
+    DATA_BLOB in{static_cast<DWORD>(plaintext.size()),
+                 reinterpret_cast<BYTE*>(const_cast<char*>(plaintext.data()))};
+    DATA_BLOB out{};
+    checkWin32(CryptProtectData(&in, nullptr, nullptr, nullptr, nullptr, kDpapiFlags, &out), "protect data");
+    const LocalMem owned{out.pbData};
+    return Bytes{out.pbData, out.pbData + out.cbData};
+}
+
+std::optional<std::string> dpapiOpen(const Bytes& sealed)
+{
+    // Non-const by signature, read-only in fact; see dpapiSeal().
+    DATA_BLOB in{static_cast<DWORD>(sealed.size()), const_cast<BYTE*>(sealed.data())};
+    DATA_BLOB out{};
+    if (!CryptUnprotectData(&in, nullptr, nullptr, nullptr, nullptr, kDpapiFlags, &out))
+        return std::nullopt;
+    const LocalMem owned{out.pbData};
+    return std::string{reinterpret_cast<const char*>(out.pbData), out.cbData};
 }
 
 std::string encodeBase64(const Bytes& bytes)
