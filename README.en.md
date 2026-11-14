@@ -43,11 +43,10 @@
 
 Most lookup tools pull you out of the page and answer in your first language. You finish the paragraph without ever reading it in English. Lens makes the opposite bet: the fastest way to read better English is to stay in English.
 
-- **Explanations default to English.** It tells you what the word does here in words you already know, adding IPA, etymology, and an example only when you want them; a Chinese, Japanese, or Spanish selection is translated into English first.
-- **The explanation language is a setting.** English, Chinese, Traditional Chinese, Spanish, or Japanese — change it once and every card follows.
-- **The action bar: Translate, Explain, Copy.** Lens is built around Explain — a readable English sense, not a Chinese word you can skip.
-- **The answer stays on the page.** Lens lives in the system tray with no main window; the bubble opens beside your selection and is gone when you keep reading. A word in a definition above your level stays dotted; open it and the card steps down one layer.
-- **Three verdicts, no streaks.** Mark a word Known, Mastered, or New to record where you are; a Mastered word is left out of the scan and the pet's questions.
+- **Built around English.** The explanation defaults to English you already know — what the word does here — and your mother tongue appears only while you hold the globe.
+- **The pet system.** When a word comes due, the desktop pet holds up its review sign, and a mastered word is never asked again.
+- **Automatic scanning.** Read normally in Chrome and the words above your level grow dashed lines on their own; you never have to select anything.
+- **Deeply customizable.** Everything the card draws — senses, etymology, an example, IPA, collocations, pictures — is a toggle in Settings.
 
 ## A quick look
 
@@ -58,15 +57,6 @@ The answer is English. Hold the globe for your mother tongue, let go, and the ca
 <p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="Pressing Pictures on the word crane loads its photos; Not the Sense? swaps the card to the machine sense, photos and all"></p>
 
 Press Pictures on a word to load its photos. Not the Sense? swaps the card in place to the word's other sense, photos and all.
-
-## Say it out loud
-
-Every word card carries a speaker beside its pronunciation; pressing either one reads the headword once. Nothing else on the card is spoken — not the definition, not a sentence, not a name.
-
-- **The Windows voice speaks first**, in the accent you pick: American by default, British on request.
-- **When the machine has no voice for that accent**, Lens falls back to the one you chose in Settings › Reading & learning: an online recording (Youdao by default, or Google Translate), a local model you download once (Kokoro, about 180 MB, or LJSpeech, about 41 MB), or silence. The choice is explicit — Lens does not quietly move between online and local.
-- **Auto-play is off by default.** When it is on, the card a lookup opens reads once, and the same word does not repeat.
-- **A recording is cached under `%APPDATA%\Lens\audio`**, capped at 50 MB, and never counts against the daily budget.
 
 ## Text you can't select
 
@@ -139,6 +129,7 @@ Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Cl
 - **Sync when you want it.** Verdicts, lookup history, statistics, and selected settings are encrypted with your passphrase and kept in a secret gist in your own GitHub account. The API key stays on this device.
 - **Word lists in and out.** The words popup imports and exports `.txt` and `.json`, and exports CSV and Anki TSV with the explanations already stored; the Mastered words row in Settings › Reading & learning imports a one-word-per-line list once, marking its words mastered. Delete a word with one confirmation.
 - **Pictures when they help.** A sense the model thinks a photo explains better can open three Wikimedia Commons pictures. They are cached locally, and About shows the cache size and clears it in place.
+- **Say the word.** The speaker beside a card's pronunciation reads the headword once per press; the Windows voice speaks first, your chosen fallback covers a missing accent, and auto-play is off by default.
 
 ## Themes
 

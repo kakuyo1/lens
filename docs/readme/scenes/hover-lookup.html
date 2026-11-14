@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · hover lookup</title>
+<!--
+  A README-only scene for the hover-lookup GIF: hover mode is on, the pointer rests on "serendipity"
+  in a link, the waiting card breathes at the word (UI-SPEC.md 4.3's waiting rows -- tag row and the
+  title from the reader's own selection only), then the card fills and the verdict pills open under
+  the pointer. ?step=0..4 picks one frame; compose_hover_gif joins them.
+-->
+<style>
+:root{
+  --paper:#f4ecd9; --text:#101319; --muted:#333846; --faint:#4a4f5e; --ok:#2f9e6e; --ok-ink:#1d7a52;
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11); --panel2:rgba(18,24,36,.075);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --glass-fill:rgba(250,252,255,.5); --glass-edge:rgba(255,255,255,.8);
+  --glass-sheen:linear-gradient(115deg,rgba(255,255,255,.55),rgba(255,255,255,.08) 45%,rgba(255,255,255,0) 65%);
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{width:960px;height:600px;overflow:hidden;position:relative;background:var(--paper);color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased}
+.page{position:absolute;left:72px;top:56px;width:600px}
+.kicker{font:700 11px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--ok-ink)}
+h1{font-family:var(--read);font-size:36px;line-height:1.08;letter-spacing:-.025em;font-weight:600;margin-top:14px}
+.byline{margin-top:12px;color:var(--faint);font-size:12px}
+p{font-family:var(--read);font-size:18px;line-height:1.8;color:#33343a;margin-top:18px}
+p+p{margin-top:14px;color:#66666f;font-size:16px}
+a{color:#1a58c8;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+
+.card{position:absolute;z-index:6;left:72px;top:332px;width:372px;padding:16px 18px 12px;
+  background:var(--glass-fill);background-image:var(--glass-sheen);border:1px solid var(--glass-edge);border-radius:20px;box-shadow:var(--sh2)}
+.bub-top{display:flex;align-items:center;height:20px;margin-bottom:8px}
+.bub-head{margin-left:auto;display:flex;align-items:center;gap:6px}
+.bub-peek{width:20px;height:20px;display:grid;place-items:center;color:var(--faint)}
+.bub-peek svg{width:13px;height:13px}
+.bub-close{width:14px;height:14px;color:var(--faint)}
+.tag{font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(47,158,110,.12);color:var(--ok-ink);font-weight:650}
+.word{display:flex;align-items:baseline;gap:8px;font-size:26px;font-weight:650;letter-spacing:-.015em}
+.word .speaker{display:inline-flex;align-self:center;position:relative;top:1px;color:var(--faint)}
+.word .speaker svg{width:12px;height:12px}
+.ipa{font-size:12.5px;font-weight:400;color:var(--faint)}
+.pos{font-family:"Cascadia Code",Consolas,monospace;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.signpost{font-size:11px;font-weight:700;color:var(--ok-ink);margin-top:6px}
+.def{font-size:14px;color:var(--muted);line-height:1.55;margin-top:6px}
+.chain{text-decoration:underline dotted 1px;text-underline-offset:3px;text-decoration-color:var(--faint);cursor:pointer;border-radius:3px}
+.colloc{margin-top:9px;font-family:"Cascadia Code",Consolas,monospace;font-size:10.5px;color:var(--faint)}
+.actions{display:none;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2)}
+.actions.open{display:flex}
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel2);color:var(--text)}
+.btn.ink{background:var(--ink,#12151b);color:#fff;border-color:transparent}
+.btn.hot{border-color:rgba(18,24,36,.4)}
+.foot-meta{margin-top:9px;font-size:10px;color:var(--faint)}
+/* The waiting rows (UI-SPEC.md 4.3): "Explaining…" over three breathing bars, each standing in one
+   definition line's height, widths cycling 100% / 100% / 62%. Nothing else draws while waiting. */
+.waiting{margin-top:8px}
+.wait-label{font-size:11px;color:var(--muted)}
+.bars{margin-top:7px}
+.bar{height:10px;border-radius:999px;background:var(--line2);margin-top:9px}
+.bar.w1{width:100%}
+.bar.w2{width:100%}
+.bar.w3{width:62%}
+
+/* The pointer, drawn so the frames carry the gesture the product answers. */
+.cursor{position:absolute;z-index:9;width:22px;height:22px;color:#1c1c22;filter:drop-shadow(0 1px 1px rgba(255,255,255,.9))}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="kicker">Urban design · 4 min read</div>
+  <h1>Researchers find that chance encounters shape how cities are built</h1>
+  <p>A study of three European cities suggests that much of what people call <a href="#" id="word">serendipity</a> is really a product of street layout. Blocks that funnel foot traffic past shops, benches and small squares produced far more unplanned meetings than wide, car-oriented avenues.</p>
+  <p>The authors tracked more than two thousand volunteers over a year, using phones that logged where they walked and who they passed. Their conclusion is modest: planners cannot schedule luck, but they can make it likelier.</p>
+</div>
+
+<div class="card" id="card" data-glass hidden>
+  <div class="bub-top">
+    <span class="tag">New</span>
+    <span class="bub-head" id="cardHead">
+      <span class="bub-peek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></span>
+      <svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </span>
+  </div>
+  <div class="word" id="titleRow"><span class="word-text">serendipity</span><span class="meta"><span class="ipa">/ˌserənˈdɪpəti/</span><span class="speaker" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.4h3.1L12 5.6v12.8L7.1 14.6H4a.9.9 0 0 1-.9-.9V10.3a.9.9 0 0 1 .9-.9Z"/><path d="M15.4 9.3a4 4 0 0 1 0 5.4"/><path d="M18 6.9a7.6 7.6 0 0 1 0 10.2"/></svg></span><span class="pos">noun</span></span></div>
+  <div class="signpost">happy accident</div>
+  <div class="def">the <span class="chain">occurrence</span> of events by chance in a happy or <span class="chain">beneficial</span> way</div>
+  <div class="waiting" id="waiting" hidden>
+    <div class="wait-label">Explaining…</div>
+    <div class="bars">
+      <div class="bar w1"></div>
+      <div class="bar w2"></div>
+      <div class="bar w3"></div>
+    </div>
+  </div>
+  <div class="colloc">~ encounter · pure ~</div>
+  <div class="actions" id="actions">
+    <button class="btn hot" id="knownBtn" type="button">Known</button>
+    <button class="btn" type="button">Mastered</button>
+    <button class="btn ink" type="button">New</button>
+  </div>
+  <div class="foot-meta">Disappears in 5s</div>
+</div>
+
+<svg class="cursor" id="cursor" viewBox="0 0 24 24" aria-hidden="true">
+  <path fill="#fff" stroke="currentColor" stroke-width="1.2" d="M9.2 11.5V4.6a1.5 1.5 0 0 1 3 0v5l4.5 1.2a2.4 2.4 0 0 1 1.8 2.3v2.6a4.8 4.8 0 0 1-1.4 3.4l-1.2 1.2a3.4 3.4 0 0 1-2.4 1H11a3.4 3.4 0 0 1-2.6-1.2l-3.2-3.8a1.4 1.4 0 0 1 .1-1.9 1.5 1.5 0 0 1 1.9-.1l2 1.5Z"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" d="M12.2 11.7v-2.2"/>
+</svg>
+
+<script src="liquid-glass.js"></script>
+<script>
+const step = Number(new URLSearchParams(location.search).get('step') || 0);
+const card = document.getElementById('card');
+const waiting = document.getElementById('waiting');
+const actions = document.getElementById('actions');
+const knownBtn = document.getElementById('knownBtn');
+const head = document.getElementById('cardHead');
+const meta = document.querySelector('.foot-meta');
+const signpost = document.querySelector('.signpost');
+const def = document.querySelector('.def');
+const colloc = document.querySelector('.colloc');
+const cursor = document.getElementById('cursor');
+
+/// step 0: the page alone. 1: the pointer resting on the link. 2: the waiting card at the word --
+/// the tag row and the title are the reader's own selection; no globe, no meta, no pills. 3: the
+/// card filled. 4: the pointer on Known, the verdict pills open.
+card.hidden = step < 2;
+if (step === 2) {
+  waiting.hidden = false;
+  head.style.visibility = 'hidden';
+  signpost.style.visibility = 'hidden';
+  def.style.visibility = 'hidden';
+  colloc.style.visibility = 'hidden';
+  meta.style.visibility = 'hidden';
+  // The waiting card is compact: nothing below the bars keeps its reserved height. The title is
+  // the reader's own selection, so the pronunciation, speaker and part of speech -- the answer's
+  // fields -- stand off until they arrive (BubbleTitleRow's speakerVisible ties them to the IPA).
+  document.querySelector('.word .meta').style.display = 'none';
+  document.querySelectorAll('.signpost, .def, .colloc, .foot-meta').forEach(el => el.style.display = 'none');
+}
+if (step === 4) actions.classList.add('open');
+
+// The pointer: on the word for steps 1 and 2, on the Known pill for step 4.
+const word = document.getElementById('word');
+const placeCursor = (x, y) => {
+  cursor.style.left = x + 'px';
+  cursor.style.top = y + 'px';
+};
+if (step === 1 || step === 2) {
+  const r = word.getBoundingClientRect();
+  placeCursor(r.left + r.width * 0.45, r.bottom - 8);
+} else if (step === 4) {
+  const r = knownBtn.getBoundingClientRect();
+  placeCursor(r.left + r.width * 0.4, r.bottom - 6);
+} else {
+  cursor.style.display = 'none';
+}
+</script>
+</body>
+</html>

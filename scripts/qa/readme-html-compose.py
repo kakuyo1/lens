@@ -80,6 +80,24 @@ def compose_feature_tour() -> None:
     )
 
 
+def compose_hover_gif() -> None:
+    """Hover lookup: the pointer rests on a link word, the waiting card breathes, the card fills, the pills open: five frames at 960 x 600."""
+    durations = [900, 1900, 1500, 1900, 2100]
+    frames = []
+    for step in range(5):
+        frame = Image.open(FRAMES / f"hover-{step}.png").convert("RGB").resize((960, 600), Image.Resampling.LANCZOS)
+        frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
+    frames[0].save(
+        OUT / "hover-lookup.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=durations,
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
 def compose_scan_gif() -> None:
     """Auto scan over a paper in Chrome's PDF viewer: five frames at 960 x 600.
 
@@ -496,6 +514,7 @@ def main() -> None:
     autocrop(OUT / "selection-bar.png", background=(255, 255, 255)).save(OUT / "selection-bar.png", optimize=True)
     compose_peek_gif()
     compose_feature_tour()
+    compose_hover_gif()
     compose_scan_gif()
     compose_selection_styles()
     compose_themes()
@@ -507,6 +526,7 @@ def main() -> None:
     for name in (
         "english-first.gif",
         "feature-tour.gif",
+        "hover-lookup.gif",
         "scan.gif",
         "selection-styles.gif",
         "pets.gif",

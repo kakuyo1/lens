@@ -43,11 +43,10 @@
 
 La mayoría de las herramientas de consulta te sacan de la página y responden en tu idioma. Terminas el párrafo sin haberlo leído en inglés. Lens apuesta por lo contrario: la forma más rápida de leer mejor inglés es quedarte en inglés.
 
-- **Las explicaciones son en inglés por defecto.** Te dice qué hace la palabra aquí con palabras que ya conoces, y añade IPA, etimología y un ejemplo solo si quieres; una selección en chino, japonés o español se traduce al inglés primero.
-- **El idioma de las explicaciones es un ajuste.** Inglés, chino, chino tradicional, español o japonés: cámbialo una vez y todas las tarjetas lo siguen.
-- **La barra de acciones: Traducir, Explicar, Copiar.** Lens gira alrededor de Explicar: un sentido en inglés que entiendes, no una palabra china que puedes saltarte.
-- **La respuesta se queda junto al texto.** Lens vive en la bandeja del sistema y no tiene ventana principal; la burbuja aparece junto a la selección y desaparece cuando sigues leyendo. Una palabra de la definición por encima de tu nivel conserva el subrayado de puntos; ábrela y la tarjeta baja un nivel.
-- **Tres veredictos, sin rachas.** Marca una palabra como Conocida, Dominado o Nueva para registrar dónde estás; una Dominada queda fuera del escaneo y de las preguntas de la mascota.
+- **Centrado en el inglés.** La explicación por defecto te dice qué hace la palabra aquí con inglés que ya conoces, y tu lengua materna solo aparece mientras mantienes el globo.
+- **El sistema de mascotas.** Cuando a una palabra le toca repasar, la mascota del escritorio levanta su cartel; una dominada no se vuelve a preguntar.
+- **Escaneo automático.** Lees con normalidad en Chrome y las palabras por encima de tu nivel ganan un subrayado de puntos por sí solas; no tienes que seleccionar nada.
+- **Muy personalizable.** Todo lo que dibuja la tarjeta —varios sentidos, etimología, ejemplo, IPA, colocaciones, imágenes— se activa o desactiva en Ajustes.
 
 ## Un vistazo
 
@@ -58,15 +57,6 @@ La respuesta sigue en inglés. Mantén el globo para ver tu lengua materna; al s
 <p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="Pulsar Imágenes en la palabra crane carga sus fotos; «¿No es este sentido?» cambia la tarjeta al sentido de grúa, con sus fotos"></p>
 
 Pulsa Imágenes en una palabra para cargar sus fotos. «¿No es este sentido?» cambia la tarjeta en su sitio al otro sentido de la palabra, con sus fotos.
-
-## Dilo en voz alta
-
-Cada tarjeta de palabra lleva un altavoz junto a la pronunciación; pulsa uno u otra y la palabra se lee una vez. Nada más de la tarjeta suena: ni la definición, ni una frase, ni un nombre.
-
-- **Por defecto habla primero la voz de Windows**, con el acento que elijas: estadounidense por defecto, británico si lo pides.
-- **Cuando la máquina no tiene voz para ese acento**, Lens usa lo que hayas elegido en Ajustes › Lectura y aprendizaje: un audio en línea (Youdao por defecto, o Google Translate), un modelo local que descargas una vez (Kokoro, unos 180 MB, o LJSpeech, unos 41 MB) o silencio. La elección es explícita: Lens no cambia en silencio entre en línea y local.
-- **La reproducción automática está desactivada por defecto.** Cuando la activas, la tarjeta que abre una consulta se lee una vez y la misma palabra no se repite.
-- **La grabación se guarda en `%APPDATA%\Lens\audio`**, con un límite de 50 MB, y nunca cuenta para el presupuesto diario.
 
 ## Texto que no se puede seleccionar
 
@@ -139,6 +129,7 @@ Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del reposi
 - **Sincronización cuando la quieras.** Los veredictos, el historial, las estadísticas y los ajustes seleccionados se cifran con tu frase de contraseña y se guardan en un gist secreto de tu propia cuenta de GitHub. La clave de API se queda en este dispositivo.
 - **Listas de palabras de ida y vuelta.** La ventana de palabras importa y exporta `.txt` y `.json`, y exporta CSV y Anki TSV con las explicaciones ya guardadas; la fila Palabras dominadas de Ajustes › Lectura y aprendizaje importa una vez una lista con una palabra por línea y marca sus palabras como dominadas. Borra una palabra con una confirmación.
 - **Fotos cuando ayudan.** Si el modelo cree que una foto explica mejor un sentido, la tarjeta puede abrir tres imágenes de Wikimedia Commons. Se guardan en caché local y «Acerca de» muestra su tamaño y permite borrarla.
+- **Palabras en voz alta.** El altavoz junto a la pronunciación lee la palabra una vez por pulsación; primero habla la voz de Windows y, si falta el acento, entra la alternativa que hayas elegido; la reproducción automática está desactivada por defecto.
 
 ## Temas
 

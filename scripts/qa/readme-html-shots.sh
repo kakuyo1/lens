@@ -137,6 +137,13 @@ for i in 0 1 2 3 4 5; do
     screenshot "tour-$i" "docs/readme/scenes/feature-tour.html" "step=$i" 960 600 2 "$frames"
 done
 
+# The hover-lookup GIF: the pointer rests on a link word, the compact waiting card breathes at the
+# word (UI-SPEC.md 4.3), the card fills, and the verdict pills open under the pointer.
+# compose_hover_gif joins the frames.
+for i in 0 1 2 3 4; do
+    screenshot "hover-$i" "docs/readme/scenes/hover-lookup.html" "step=$i" 960 600 2 "$frames"
+done
+
 # The auto-scan GIF: a paper opened in Chrome's own PDF viewer, the pencil layer's dashed lines, the
 # Alt signposts, the Mastered pill, and the word retired. compose_scan_gif joins the frames.
 for i in 0 1 2 3 4; do
