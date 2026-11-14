@@ -39,7 +39,7 @@ test/
 
 | 目标 | 内容 | 何时跑 |
 | --- | --- | --- |
-| `lens_gtest_unit` | 样例集 / KnownStore 与 StatsStore 往返 / LLM 纯函数 / 词汇导入导出与日期标签 / app 接缝的纯部分 / 选区手势阈值 / 扫描会话与上传事务（`ScanSession.*` 走脚本化 ScanTrack） / 桌面宠物的状态机、数据解析与配饰 | 每次改动，可进 CI |
+| `lens_gtest_unit` | 样例集 / KnownStore 与 StatsStore 往返 / LLM 纯函数 / 词汇导入导出与日期标签 / app 接缝的纯部分 / 选区手势阈值 / 扫描会话与上传事务（`ScanSession.*` 走脚本化 ScanTrack） / 桌面宠物的状态机、数据解析与配饰 / 崩溃转储的纯逻辑（`CrashPaths`、`CrashSummary`、`CrashRetention`） | 每次改动，可进 CI |
 | `lens_gtest_integration` | 选区捕获：终端排除 / 钩子与剪贴板的真机往返；玻璃幕布：读屏的紧循环与按节奏对照 / 桌面复制的裁剪与旋转 | 动选区入口或玻璃采集时，人工执行 |
 | `lens_gtest_perf` | FilterCore 吞吐 + profiling 报告 | 动内核时 |
 | `lens_gtest_glass_probe` | 玻璃幕布的采集上限：适配器与输出归属 / 桌面复制可用性与一帧的代价 / GDI 读屏对照 / 抓屏排除在复制帧里是否生效 | 动玻璃采集或画质档位时，人工执行（CI 没有可复制的桌面会话） |

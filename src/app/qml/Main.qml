@@ -88,9 +88,17 @@ Window {
     Notice {
         id: notice
         // The word the notice is about, and the cost of asking for it, are both the controller's.
-        // A notice's action is always an explanation: the first-run guidance went to the wizard
-        // (docs/adr/0148), and every other card is a failure with nothing left to press.
-        onActionTriggered: Controller.explainLemma(notice.noticeLemma)
+        // A notice's action is normally an explanation -- the first-run guidance went to the wizard
+        // (docs/adr/0148), and every other card is a failure with nothing left to press. The crash
+        // notice (docs/adr/0174) is the exception: its kind is what tells the two apart, and its
+        // two pills act on the dump artifacts, not on a word.
+        onActionTriggered: {
+            if (notice.noticeKind === "crash")
+                Controller.openCrashDumpFolder()
+            else
+                Controller.explainLemma(notice.noticeLemma)
+        }
+        onSecondaryActionTriggered: Controller.reportCrashIssue()
     }
 
     /// A word's hint: the list's answer for a word with nothing stored (UI-SPEC.md 4.8). SurfaceHost places it against

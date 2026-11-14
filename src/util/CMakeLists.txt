@@ -2,6 +2,7 @@ add_library(lens_util STATIC
   text.cpp
   semver.cpp
   log.cpp
+  crash.cpp
   profile.cpp
 )
 

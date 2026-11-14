@@ -116,6 +116,54 @@ Item {
             compare(pressed, 1, "pressing the action did not raise actionTriggered");
         }
 
+        /// The crash notice is the one with two pills: the dumps folder and the issue prefill
+        /// (UI-SPEC.md 4.5). Each pill raises its own signal for Main to route, and the two act on
+        /// artifacts rather than a word.
+        function test_theCrashNoticePressesThroughBothPills() {
+            const notice = createTemporaryObject(noticeComponent, root);
+            verify(!!notice, "Component exists");
+            notice.show({title: "Crash", body: "The previous run crashed.", kind: "crash",
+                         action: "Open dump folder", secondaryAction: "Report issue"});
+            wait(50);
+
+            let opened = 0;
+            let reported = 0;
+            notice.actionTriggered.connect(function () { ++opened; });
+            notice.secondaryActionTriggered.connect(function () { ++reported; });
+            const openPill = Util.textWith(Util.textsUnder(notice), ["Open dump folder"]);
+            const reportPill = Util.textWith(Util.textsUnder(notice), ["Report issue"]);
+            verify(openPill, "the open-folder pill was not drawn");
+            verify(reportPill, "the report pill was not drawn");
+            mouseClick(openPill.parent, openPill.parent.width / 2, openPill.parent.height / 2);
+            wait(50);
+            compare(opened, 1, "pressing the first pill did not raise actionTriggered");
+            mouseClick(reportPill.parent, reportPill.parent.width / 2, reportPill.parent.height / 2);
+            wait(50);
+            compare(reported, 1, "pressing the second pill did not raise secondaryActionTriggered");
+
+            notice.visible = false;
+        }
+
+        /// Every other notice has at most one action, so a payload without a second draws one pill
+        /// and no second press exists to press.
+        function test_aNoticeWithoutASecondActionDrawsOnePill() {
+            const notice = createTemporaryObject(noticeComponent, root);
+            verify(!!notice, "Component exists");
+            notice.show({title: "Word", body: "No explanation is stored.", kind: "info",
+                         action: "Explain now"});
+            wait(50);
+
+            const openPill = Util.textWith(Util.textsUnder(notice), ["Explain now"]);
+            verify(openPill, "the action pill was not drawn");
+            const extras = Util.findAll(notice, function (object) {
+                return object.visible !== undefined && object.visible
+                    && object.label !== undefined && object.label !== "";
+            });
+            compare(extras.length, 1, "a second pill was drawn without a second action");
+
+            notice.visible = false;
+        }
+
         function test_captureTheNotice() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the snapshot");

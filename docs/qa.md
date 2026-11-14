@@ -72,6 +72,20 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
 - **取词只认发生变化的剪贴板**。重选同一段文本之前要先用 `Set-Clipboard` 换掉剪贴板内容，否则钩子读回来
   的还是上一次的字符串，日志只会说 `did not change within 250 ms`，看着像钩子没触发。
 
+## 崩溃回路
+
+崩溃转储（`docs/adr/0174`）的整条链路用一次真实崩溃走：
+
+```
+$env:LENS_CRASH_TEST = "1"; powershell -File scripts/qa/ui-run.ps1 -Restart
+```
+
+应用一启动就经真实的 SEH 路径死掉，`logs/dumps\` 下应出现 `lens-<版本>-<时间戳>-<pid>.dmp`、同名
+`.crash.txt` 与 `last-crash.txt`；转储配构建树的 PDB 可在 WinDbg 里 `!analyze -v` 定位。去掉环境变量
+再起一次，崩溃通知应带两枚胶囊——“打开转储文件夹” 打开该目录，“报告问题” 打开预填了摘要事实的
+GitHub issue；展示后标记已删，再起一次不再通知。转储保留最近 5 份、启动时修剪；
+`LENS_CRASH_FULL_DUMP=1` 把默认的 `MiniDumpNormal` 换成带间接引用内存的深转储，只用于按需排查。
+
 ## 一轮以上的驱动
 
 上面那些剧本都是一轮：`scripts/qa/scenarios/` 里的 `five-surfaces.txt` 五面各开合一次，

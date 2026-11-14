@@ -1,5 +1,8 @@
 import QtQuick
 import QtQuick.Window
+// Bound: the Pill component reaches the window's id from inside, and every other read here is
+// qualified already.
+pragma ComponentBehavior: Bound
 
 /**
  * A reason card for work that could not produce an explanation.
@@ -36,11 +39,57 @@ Window {
     /// The one thing the reader can do about this notice, empty when there is nothing to do. Most
     /// notices are a failure with nothing left to press; an action explains noticeLemma.
     property string noticeAction: ""
+    /// The second thing, so far only the crash notice carries two (UI-SPEC.md 4.5). Same contract
+    /// as noticeAction: the surface does not know what it means; the raiser does.
+    property string noticeSecondaryAction: ""
     /// The word that action acts on. The surface does not know what the action means; the one that
     /// raised the notice does, and it reads this back off the controller.
     property string noticeLemma: ""
 
     signal actionTriggered()
+    signal secondaryActionTriggered()
+
+    /// One pill of the action row: the ink capsule with the press. `label` is the text it shows;
+    /// `tapped()` is what a press raises for Main to route.
+    component Pill: Rectangle {
+        id: pill
+
+        property string label: ""
+        signal tapped()
+
+        width: pillLabel.width + 26
+        height: pillLabel.height + 12
+        radius: notice.tokens.radiusPill
+        color: notice.tokens.ink
+        scale: pillTap.pressed ? 0.97 : 1.0
+        Behavior on scale {
+            NumberAnimation {
+                duration: notice.tokens.motion.press
+                easing.type: notice.tokens.motion.easing
+            }
+        }
+
+        // This window takes no focus, so the pill carries a name and a press for the screen
+        // reader but no tab stop or ring.
+        Accessible.role: Accessible.Button
+        Accessible.name: pillLabel.text
+        Accessible.onPressAction: pillTap.tapped()
+
+        Text {
+            id: pillLabel
+            anchors.centerIn: parent
+            text: pill.label
+            color: notice.tokens.on
+            font.pixelSize: 12
+            font.weight: Font.Bold
+        }
+
+        HoverHandler { cursorShape: Qt.PointingHandCursor }
+        TapHandler {
+            id: pillTap
+            onTapped: pill.tapped()
+        }
+    }
 
     width: cardWidth + 2 * shadowMargin
     height: column.implicitHeight + 36 + 2 * shadowMargin
@@ -51,6 +100,7 @@ Window {
         noticeBody = payload.body || ""
         noticeKind = payload.kind || "info"
         noticeAction = payload.action || ""
+        noticeSecondaryAction = payload.secondaryAction || ""
         noticeLemma = payload.lemma || ""
         x = Math.round(Screen.virtualX + (Screen.width - width) / 2)
         y = Math.round(Screen.virtualY + (Screen.height - height) / 2)
@@ -133,43 +183,26 @@ Window {
             // Invisible rather than zero-height when there is nothing to press: a positioner skips an
             // invisible child whole, spacing included, and a zero-height one still opens a gap.
             Item {
-                visible: notice.noticeAction !== ""
+                visible: notice.noticeAction !== "" || notice.noticeSecondaryAction !== ""
                 width: parent.width
-                height: visible ? action.height : 0
+                height: visible ? pills.height : 0
 
-                Rectangle {
-                    id: action
-                    width: actionLabel.width + 26
-                    height: actionLabel.height + 12
-                    radius: notice.tokens.radiusPill
-                    color: notice.tokens.ink
-                    scale: actionTap.pressed ? 0.97 : 1.0
-                    Behavior on scale {
-                        NumberAnimation {
-                            duration: notice.tokens.motion.press
-                            easing.type: notice.tokens.motion.easing
-                        }
-                    }
+                // One pill per action. The crash notice (UI-SPEC.md 4.5) is the one with two; Flow
+                // keeps a long label in a narrow card from clipping, wrapping to a second line.
+                Flow {
+                    id: pills
+                    width: parent.width
+                    spacing: 10
 
-                    // This window takes no focus, so the pill carries a name and a press for the
-                    // screen reader but no tab stop or ring.
-                    Accessible.role: Accessible.Button
-                    Accessible.name: actionLabel.text
-                    Accessible.onPressAction: actionTap.tapped()
-
-                    Text {
-                        id: actionLabel
-                        anchors.centerIn: parent
-                        text: notice.noticeAction
-                        color: notice.tokens.on
-                        font.pixelSize: 12
-                        font.weight: Font.Bold
-                    }
-
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        id: actionTap
+                    Pill {
+                        visible: notice.noticeAction !== ""
+                        label: notice.noticeAction
                         onTapped: notice.actionTriggered()
+                    }
+                    Pill {
+                        visible: notice.noticeSecondaryAction !== ""
+                        label: notice.noticeSecondaryAction
+                        onTapped: notice.secondaryActionTriggered()
                     }
                 }
             }

@@ -50,6 +50,10 @@ inline constexpr std::size_t kLogFileCount = 3;
 /// Name of the rotating file inside the log directory.
 inline constexpr const char* kLogFileName = "lens.log";
 
+/// Name of the directory the rotating file lives in. The crash dumps
+/// (app/platform/crash_dump.h) take their directory from the same name.
+inline constexpr const char* kLogDirName = "logs";
+
 /**
  * @brief Install the process-wide logger.
  *
@@ -66,6 +70,6 @@ inline constexpr const char* kLogFileName = "lens.log";
  * @note Safe to call more than once; the newest call wins.
  */
 void init(spdlog::level::level_enum    level  = kDefaultLevel,
-          const std::filesystem::path& logDir = std::filesystem::path{"logs"});
+          const std::filesystem::path& logDir = std::filesystem::path{kLogDirName});
 
 }

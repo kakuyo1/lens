@@ -89,6 +89,8 @@ add_library(lens_app STATIC
 
   # Platform: Win32 and shell integration.
   platform/autostart.cpp
+  platform/crash_dump.h
+  platform/crash_dump.cpp
   platform/global_hotkey.h
   platform/global_hotkey.cpp
   platform/hover_word_lookup.h
@@ -215,7 +217,14 @@ target_link_libraries(lens_app PRIVATE sherpa_onnx_c_api)
 # platform. The clipboard's OLE round trip is deliberately not used -- ClipboardSnapshot records why. UIAutomationCore and
 # the COM base (ole32, oleaut32) are for the hover lookup's read of the text under the pointer and the UIA page reader
 # (platform/hover_word_lookup.cpp, platform/page_reader_uia.cpp). The Scintilla reader uses user32 messages only.
-target_link_libraries(lens_app PRIVATE user32 gdi32 shell32 dxgi d3d11 windowsapp runtimeobject UIAutomationCore ole32 oleaut32)
+# dbghelp is the crash path's MiniDumpWriteDump (platform/crash_dump.cpp): the static import loads
+# it when the process starts, so the crash itself never loads a library.
+target_link_libraries(lens_app PRIVATE user32 gdi32 shell32 dxgi d3d11 windowsapp runtimeobject UIAutomationCore ole32 oleaut32 dbghelp)
+
+# The version reaches the crash summary and the dump file names (platform/crash_dump.cpp); the
+# update, sync, speech and picture modules carry the same define from their own CMakeLists for
+# their user agents.
+target_compile_definitions(lens_app PRIVATE LENS_VERSION="${PROJECT_VERSION}")
 
 # The C++/WinRT projection headers ship beside the SDK's ABI headers, not on the include path vcvars sets. The
 # documented build path runs vcvars first (scripts/build/build.bat), which names the SDK version; an IDE configure

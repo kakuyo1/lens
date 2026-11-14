@@ -17,23 +17,29 @@
 
 namespace lens::app {
 
-/// @brief Kinds a notice carries. Nothing depends on a particular rendering of them yet; the
-///        surface that arrives later decides whether it distinguishes them.
+/// @brief Kinds a notice carries. The router in Main.qml keys the action off the kind: every
+///        notice but the crash one explains a word.
 inline constexpr const char* kNoticeInfo  = "info";
 inline constexpr const char* kNoticeError = "error";
+/// A crash notice, raised by the facade at the launch after a crash. Its two actions act on the
+/// dump artifacts, not on a word.
+inline constexpr const char* kNoticeCrash = "crash";
 
 /**
  * @brief The map a notice surface reads.
- * @param title  What the notice is about -- normally the selection it answers.
- * @param body   Reader-facing reason, already translated.
- * @param kind   kNoticeInfo or kNoticeError.
- * @param action Label for the one thing the reader can do about it, empty when there is none.
- * @param lemma  The word that action would explain, when the notice is about a word.
- * @return {title, body, kind, action, lemma}. An empty map is not a notice: it means there is none.
+ * @param title           What the notice is about -- normally the selection it answers.
+ * @param body            Reader-facing reason, already translated.
+ * @param kind            kNoticeInfo, kNoticeError or kNoticeCrash.
+ * @param action          Label for the one thing the reader can do about it, empty when there is none.
+ * @param lemma           The word that action would explain, when the notice is about a word.
+ * @param secondaryAction Label for the second thing, empty when there is none; the crash notice
+ *                        is so far the only one that carries two.
+ * @return {title, body, kind, action, lemma, secondaryAction}. An empty map is not a notice: it
+ *         means there is none.
  */
-inline QVariantMap noticePayload(const QString& title, const QString& body, const QString& kind, const QString& action = {}, const QString& lemma = {})
+inline QVariantMap noticePayload(const QString& title, const QString& body, const QString& kind, const QString& action = {}, const QString& lemma = {}, const QString& secondaryAction = {})
 {
-    return QVariantMap{{"title", title}, {"body", body}, {"kind", kind}, {"action", action}, {"lemma", lemma}};
+    return QVariantMap{{"title", title}, {"body", body}, {"kind", kind}, {"action", action}, {"lemma", lemma}, {"secondaryAction", secondaryAction}};
 }
 
 }

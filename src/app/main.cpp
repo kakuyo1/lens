@@ -28,6 +28,7 @@
 #include "app_controller.h"
 #include "consent_preview.h"
 #include "app/platform/autostart.h"
+#include "app/platform/crash_dump.h"
 #include "app/platform/running_instance.h"
 #include "app/settings_access.h"
 #include "core/domain/filter_core.h"
@@ -211,6 +212,11 @@ void releaseHiddenSurfaces(QObject* root)
 
 int main(int argc, char* argv[])
 {
+    // Crash forensics before anything that could crash the process: the handlers need only the
+    // log directory's name, and from this line on every later death -- QApplication included --
+    // leaves a dump, a summary and a marker in logs/dumps (docs/adr/0174).
+    lens::app::installCrashDumpHandler(std::filesystem::path{lens::log::kLogDirName});
+
     // The Windows media backend, and only it (installer/lens.iss): the FFmpeg backend is 17.5 MB of
     // DLLs that a word's 20 KB recording does not need, so the package does not carry it and this
     // names the one it does. Set before the application is built, because the backend is chosen
@@ -432,6 +438,9 @@ int main(int argc, char* argv[])
     // take the machine -- the mouse hook and the trigger key -- have had their moment. Once a
     // local date at most: the duty writes the date when the check starts, so a machine that
     // cannot reach the source does not retry on every launch.
+    // The crash notice goes first among the news: it is about the run that just ended, and the
+    // translators are up, so the card reads in the UI language.
+    controller.reportStartupCrash(std::filesystem::path{lens::log::kLogDirName});
     controller.updateDuty()->checkAtStartup();
     controller.syncDuty()->startAtLaunch();
     // The first-run wizard is a surface too, so it waits for the same moment as the update check.

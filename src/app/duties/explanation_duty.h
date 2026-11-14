@@ -136,13 +136,15 @@ public:
     Q_INVOKABLE void ensureNextSense();
     /**
      * @brief Put a reason card up where no explanation can be.
-     * @param title  What the notice is about.
-     * @param body   Reader-facing reason, already translated.
-     * @param kind   kNoticeInfo or kNoticeError.
-     * @param action Label for the one thing the reader can do about it, empty for none.
-     * @param lemma  The word that action would explain, when there is one.
+     * @param title           What the notice is about.
+     * @param body            Reader-facing reason, already translated.
+     * @param kind            kNoticeInfo, kNoticeError or kNoticeCrash.
+     * @param action          Label for the one thing the reader can do about it, empty for none.
+     * @param lemma           The word that action would explain, when there is one.
+     * @param secondaryAction Label for the second thing, empty for none; so far only the crash
+     *                        notice carries two.
      */
-    void        showNotice(QString const& title, QString const& body, QString const& kind, QString const& action = {}, QString const& lemma = {});
+    void        showNotice(QString const& title, QString const& body, QString const& kind, QString const& action = {}, QString const& lemma = {}, QString const& secondaryAction = {});
     QVariantMap bubble() const;
     QVariantMap notice() const;
     /// @return The word's hint as the view places it: the lemma, the body and the anchor in physical pixels.

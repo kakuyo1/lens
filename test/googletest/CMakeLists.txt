@@ -73,6 +73,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/phase2_explanation_test.cpp
   unit/upload_transaction_test.cpp
   unit/log_test.cpp
+  unit/crash_test.cpp
   unit/util_test.cpp
   unit/consent_preview_test.cpp
   unit/capture_test.cpp

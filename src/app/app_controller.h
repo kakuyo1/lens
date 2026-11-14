@@ -49,6 +49,7 @@
 #include "app/words_model.h"
 #include "pictures/picture_sources/commons_source.h"
 #include "speech/online_sources.h"
+#include "util/crash.h"
 
 class QQmlEngine;
 class QJSEngine;
@@ -187,6 +188,17 @@ public:
     Q_INVOKABLE void reviewWord(QString lemma, int x, int y, int width, int height);
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
     Q_INVOKABLE void explainLemma(QString lemma);
+    /// @brief Open the crash dumps folder, where the last crash's dump and summary sit (docs/adr/0174).
+    Q_INVOKABLE void openCrashDumpFolder();
+    /// @brief Open a new GitHub issue prefilled with the last crash's facts; the dump travels
+    ///        only because the reader attaches it.
+    Q_INVOKABLE void reportCrashIssue();
+    /// @brief The launch after a crash: prune the dumps, turn the marker the crash handler left
+    ///        into a notice, and remove the marker so one crash is announced once.
+    /// @param logDir Directory the log lives in; the dumps sit under it. main() reaches it after
+    ///               the translators are up, so the notice reads in the UI language. A no-op when
+    ///               the marker is absent.
+    void reportStartupCrash(std::filesystem::path logDir);
     /// @brief Capture a region the reader dragged on the mask.
     /// @return Empty once the capture is under way; otherwise the reason, which is also reported.
     Q_INVOKABLE QString captureRegion(QRect region);
@@ -407,6 +419,11 @@ private:
     pet::PetController* pet_{nullptr};
     /// The engine-owned preview provider, bound after the QML engine exists; not owned here.
     ConsentPreview* consentPreview_{nullptr};
+    /// Where the crash dumps live, recorded when the startup report ran; the two actions of the
+    /// crash notice act on it. Empty until a launch with a crash marker has happened.
+    std::filesystem::path crashDumpDir_;
+    /// The summary the crash marker carried, quoted by the issue prefill.
+    util::CrashSummary crashSummary_;
 };
 
 }

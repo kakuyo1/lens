@@ -12,6 +12,7 @@
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
+#include <QDesktopServices>
 #include <QFile>
 #include <QFontDatabase>
 #include <QJsonDocument>
@@ -24,8 +25,11 @@
 #include <QSoundEffect>
 #include <QQmlEngine>
 #include <QJSEngine>
+#include <QUrlQuery>
 
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <utility>
 
 #include "app/platform/autostart.h"
@@ -37,6 +41,7 @@
 #include "reveal_settings.h"
 #include "settings_access.h"
 #include "settings_defaults.h"
+#include "util/crash.h"
 #include "util/text.h"
 #include "update/update_client.h"
 #include "util/log.h"
@@ -598,6 +603,79 @@ void AppController::reportCaptureRefusal(CaptureRefusal const refusal)
     }
     LENS_INFO("OCR capture was not started ({})", refusalKey(refusal));
     explanation_.showNotice(QCoreApplication::translate("SettingsPopup", "OCR"), body, QString::fromLatin1(kNoticeError));
+}
+
+void AppController::reportStartupCrash(std::filesystem::path logDir)
+{
+    crashDumpDir_                      = lens::util::crashDumpDir(logDir);
+    const std::filesystem::path marker = crashDumpDir_ / lens::util::kCrashMarkerName;
+    std::error_code             ec;
+    if (!std::filesystem::exists(marker, ec)) return;
+
+    // The marker carries the newest crash's summary verbatim; it is read before the notice's
+    // actions can need it and before it is removed. The read handle closes before that removal:
+    // an open file cannot be removed on Windows, and the marker would survive its own notice.
+    std::string markerText;
+    {
+        std::ifstream      markerFile(marker);
+        std::ostringstream text;
+        text << markerFile.rdbuf();
+        markerText = text.str();
+    }
+    crashSummary_ = lens::util::parseCrashSummary(markerText);
+    lens::util::pruneCrashDumps(crashDumpDir_);
+
+    // The crash path could not log -- its writer runs on a heap that may be the problem -- so
+    // this line is the one record that the chain from crash to artifacts completed.
+    LENS_INFO("the previous run crashed ({}); the notice offers the dump folder and an issue prefill",
+              crashSummary_.code.empty() ? "unknown" : crashSummary_.code);
+    explanation_.showNotice(tr("The previous run crashed"),
+                            tr("A crash dump was saved in the log's dumps folder. Nothing in it leaves this machine; attach it when you report the crash."),
+                            QString::fromLatin1(kNoticeCrash),
+                            tr("Open dump folder"),
+                            {},
+                            tr("Report issue"));
+    std::filesystem::remove(marker, ec);
+}
+
+void AppController::openCrashDumpFolder()
+{
+    // The folder, not a picked file: the reader attaches what they choose.
+    QDesktopServices::openUrl(QUrl::fromLocalFile(widen(crashDumpDir_)));
+}
+
+void AppController::reportCrashIssue()
+{
+    // Facts only, straight from the summary; the steps stay the reader's to write, and the dump
+    // and its summary leave the machine only because the reader attaches them by hand
+    // (SECURITY.md: nothing Lens holds is uploaded on its own).
+    QStringList facts;
+    const auto  fact = [&facts](const char* label, const std::string& value) {
+        if (!value.empty())
+            facts << QStringLiteral("- %1: %2").arg(QString::fromUtf8(label), QString::fromStdString(value));
+    };
+    fact("Lens version", crashSummary_.version);
+    fact("Exception code", crashSummary_.code);
+    fact("Faulting address", crashSummary_.address);
+    fact("Module", crashSummary_.module);
+    fact("Time", crashSummary_.time);
+
+    const QString body = QStringLiteral(
+                             "A crash dump (`.dmp`) and a summary (`.crash.txt`) were saved under the Lens log "
+                             "directory's `dumps` folder. Please attach the pair that matches this crash.\n\n"
+                             "### Crash\n\n%1\n\n### Steps to reproduce\n\n1. ")
+                             .arg(facts.join(QLatin1Char('\n')));
+    QUrl      url(QStringLiteral("https://github.com/kakuyo1/lens/issues/new"));
+    QUrlQuery query;
+    query.addQueryItem(QStringLiteral("title"),
+                       QStringLiteral("Lens %1 crashed (%2)")
+                           .arg(crashSummary_.version.empty() ? QStringLiteral("unknown")
+                                                              : QString::fromStdString(crashSummary_.version),
+                                crashSummary_.code.empty() ? QStringLiteral("unknown")
+                                                           : QString::fromStdString(crashSummary_.code)));
+    query.addQueryItem(QStringLiteral("body"), body);
+    url.setQuery(query);
+    QDesktopServices::openUrl(url);
 }
 
 QString AppController::reviewQuestion() const
