@@ -86,7 +86,7 @@ void WordsModel::setFilter(int value)
     filter_ = value;
     emit filterChanged();
 
-    auto next = filtered(all_, filter_);
+    auto next = filtered(all_, filter_, query_);
     if (swapMs_ <= 0) {
         diffVisible(std::move(next));
         return;
@@ -100,6 +100,20 @@ void WordsModel::setFilter(int value)
     pending_    = std::move(next);
     hasPending_ = true;
     swap_.start(swapMs_);
+}
+
+void WordsModel::setQuery(QString const& value)
+{
+    const QString next = value.trimmed();
+    if (next == query_)
+        return;
+    if (hasPending_)
+        finishSwitch(); // a keystroke before a switch landed: land that one now
+    query_ = next;
+    emit queryChanged();
+    // A keystroke lands in place rather than through the switch's two phases: the rows the
+    // word drops close at once, the rows it brings back open at once.
+    diffVisible(filtered(all_, filter_, query_));
 }
 
 void WordsModel::finishSwitch()
@@ -121,7 +135,7 @@ void WordsModel::update(QDate const&                           today,
     if (hasPending_)
         finishSwitch(); // a row cannot arrive under a statistics change meant for the set before it
     std::vector<WordRow> nextAll     = wordRowList(today, history, knownLemmas, masteredLemmas);
-    std::vector<WordRow> nextVisible = filtered(nextAll, filter_);
+    std::vector<WordRow> nextVisible = filtered(nextAll, filter_, query_);
     const int            oldCount    = allCount();
 
     // A row that is in both lists keeps its place in the difference below. When the common
@@ -167,12 +181,16 @@ bool WordsModel::matches(WordRow const& row, int filter)
     return rowInScope(row, static_cast<core::ExportScope>(filter));
 }
 
-std::vector<WordRow> WordsModel::filtered(std::vector<WordRow> const& rows, int filter)
+std::vector<WordRow> WordsModel::filtered(std::vector<WordRow> const& rows, int filter, QString const& query)
 {
     std::vector<WordRow> visible;
     visible.reserve(rows.size());
     for (const WordRow& row : rows)
-        if (matches(row, filter))
+        // The query searches the whole vocabulary and suspends the segment while it stands:
+        // a word outside the reader's current slice must stay findable, or the miss hint
+        // would invite a paid re-explain of a word the list already holds (docs/adr/0176).
+        if (query.isEmpty() ? matches(row, filter)
+                            : row.word.contains(query, Qt::CaseInsensitive))
             visible.push_back(row);
     return visible;
 }

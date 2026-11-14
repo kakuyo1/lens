@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 词汇搜索行候选</title>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#73737d;
+  --ink:#1a1a1f; --on:#fff; --r-lg:18px;
+  --mono:"Cascadia Code",Consolas,monospace;
+  --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+html[data-theme=dark]{
+  --bg:#131316; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
+  --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;padding:56px 24px 72px}
+button{font-family:var(--f)}
+
+.pagehead{max-width:1140px;margin:0 auto}
+h1{font-size:34px;line-height:1.15;letter-spacing:-.02em;font-weight:650}
+.lead{margin-top:14px;font-size:15px;line-height:1.6;color:var(--muted);max-width:60ch}
+.trio{max-width:1140px;margin:56px auto 0;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:64px 48px}
+.cell{min-width:320px;animation:rise .5s cubic-bezier(.2,.7,.3,1) both}
+.cell:nth-child(2){animation-delay:.08s}
+.cell:nth-child(3){animation-delay:.16s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.cap{width:340px;margin-top:16px}
+.cap h3{font-size:14.5px;font-weight:650}
+.cap p{margin-top:6px;font-size:12.5px;line-height:1.6;color:var(--muted)}
+.cap .cost{color:var(--muted)}
+.fine{max-width:1140px;margin:72px auto 0;font-size:12px;color:var(--muted)}
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:11.5px;cursor:pointer}
+.themebtn:hover{color:var(--text)}
+@media (max-width:480px){h1{font-size:24px}.lead{font-size:14px}}
+
+/* The popup card: tokens and chrome follow words.html; only the search row differs per candidate. */
+.words{position:relative;width:max-content;min-width:320px;max-width:560px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:18px 20px 16px}
+.wd-h{display:flex;align-items:center;font-size:14px;font-weight:650}
+.hdr-ico{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--faint)}
+.hdr-ico svg{width:15px;height:15px;flex:none}
+.ws-magbtn{border:0;background:none;padding:0;color:inherit;cursor:pointer;display:flex}
+.ws-magbtn:hover,.ws-magbtn:focus-visible{color:var(--text)}
+.seg{display:flex;margin-top:12px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg span{flex:1;text-align:center;padding:5.5px 0;font-size:12px;color:var(--muted);cursor:default}
+.seg span.on{background:var(--ink);color:var(--on);font-weight:600}
+
+/* The search row: DESIGN.md 输入框 -- panel2 ground, line stroke, 9 px corners, ink border on focus. */
+.wsrow{position:relative;margin-top:10px}
+.ws-in{width:100%;padding:6.5px 28px 6.5px 30px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);font-family:var(--f);font-size:12px;outline:none}
+.ws-in::placeholder{color:var(--faint)}
+.ws-in:focus{border-color:var(--ink)}
+.ws-mag{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--faint);pointer-events:none}
+.ws-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--faint);cursor:pointer;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6'%3E%3Cpath d='M5 5l14 14M19 5L5 19'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6'%3E%3Cpath d='M5 5l14 14M19 5L5 19'/%3E%3C/svg%3E") center/contain no-repeat}
+.ws-x:hover{color:var(--text)}
+.wsrow.b .ws-in{padding-right:64px}
+.ws-go{position:absolute;right:3px;top:3px;bottom:3px;border:0;border-radius:99px;background:var(--ink);color:var(--on);font-size:11.5px;font-weight:600;padding:0 12px;cursor:pointer}
+.ws-go:disabled{opacity:.45;cursor:default}
+.ws-go:active{transform:scale(.97)}
+/* Candidate C folds the row away: grid 0fr->1fr keeps the reveal a height animation. */
+.wsfold{display:grid;grid-template-rows:0fr;overflow:hidden;transition:grid-template-rows .18s ease}
+.wsfold>.wsrow{overflow:hidden;min-height:0}
+.searching .wsfold{grid-template-rows:1fr}
+.ws-wait{display:none;align-items:center;gap:7px;margin-top:8px;font-size:11.5px;color:var(--faint)}
+.ws-wait.show{display:flex}
+.dots{display:flex;gap:3px}
+.dots i{width:3px;height:3px;border-radius:50%;background:var(--faint);animation:blink 1s infinite}
+.dots i:nth-child(2){animation-delay:.18s}
+.dots i:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,60%,100%{opacity:.35}30%{opacity:1}}
+
+.wd-total{display:flex;align-items:center;margin-top:12px;font-size:11.5px;color:var(--faint)}
+.wd-list-wrap{position:relative;margin-top:12px;padding-top:7px;border-top:1px solid var(--line2)}
+.wd-list{height:279px;overflow:hidden auto;scrollbar-width:none}
+.wd-list::-webkit-scrollbar{display:none}
+.wd-scroll{position:absolute;right:-12px;top:10px;width:6px;height:72px;border-radius:3px;background:var(--line)}
+.wd-item{display:flex;align-items:center;gap:8px;min-width:0;padding:6px 0;font-size:13px}
+.wd-item.fresh{animation:rowin .22s ease-out}
+@keyframes rowin{from{opacity:0;transform:translateY(-6px)}}
+.wd-w{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wd-side{display:flex;align-items:center;gap:8px;flex:none}
+.wd-meta{display:flex;gap:5px;font-size:11px;color:var(--faint);font-family:var(--mono);white-space:nowrap}
+.wd-pills{display:flex;gap:4px}
+.wd-tag{font-size:10.5px;padding:3px 7px;border:1px solid var(--line);border-radius:99px;background:var(--panel2);color:var(--muted);white-space:nowrap}
+.wd-tag.on{background:var(--ink);border-color:var(--ink);color:var(--on);font-weight:600}
+/* The miss hint mirrors the 现在解释 pill of the hover hint (ADR 0145): panel2 chip, ink on hover. */
+.ws-hint{display:flex;align-items:center;gap:8px;padding:9px 0}
+.ws-hw{font-size:11.5px;color:var(--faint);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-pill{margin-left:auto;flex:none;border:1px solid var(--line);border-radius:99px;background:var(--panel2);color:var(--text);font-size:11px;font-weight:600;padding:3.5px 10px;cursor:pointer}
+.ws-pill:hover{background:var(--ink);border-color:var(--ink);color:var(--on)}
+.ws-pill:active{transform:scale(.97)}
+.ws-empty{padding:9px 0;font-size:11px;color:var(--faint)}
+.ws-pill:focus-visible,.ws-go:focus-visible,.ws-magbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+html.shot *{animation:none!important;transition:none!important}
+</style>
+</head>
+<body>
+<button class="themebtn" id="tb"></button>
+<div class="pagehead">
+  <h1>词汇弹窗的搜索行：三个候选</h1>
+  <p class="lead">主动输入查词落进词汇弹窗的三种摆法。三块卡都可以直接用：键入即过滤；A 与 C 在词表无匹配时给一枚 “现在解释”，B 的回车永远发解释。点胶囊看查词回环：等待行落定后，词以新词身份进表。只做明暗两套主题，玻璃等选定后再对。</p>
+</div>
+
+<div class="trio">
+  <!-- 候选 A：常驻行，过滤优先 -->
+  <div class="cell" data-cand="a">
+    <div class="words" data-ui data-kind="a">
+      <div class="wd-h"><span data-l="words"></span><span class="hdr-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7A2.5 2.5 0 0 1 7 4.5h10A2.5 2.5 0 0 1 19.5 7v10A2.5 2.5 0 0 1 17 19.5H7A2.5 2.5 0 0 1 4.5 17Z"/><path d="M4.5 9.5h15M8 3v3M16 3v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V13M8 9l4 4 4-4M4.5 15.5V18A2.5 2.5 0 0 0 7 20.5H17A2.5 2.5 0 0 0 19.5 18V15.5"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13V3.5M8 7.5l4-4 4 4M4.5 15.5V18A2.5 2.5 0 0 0 7 20.5H17A2.5 2.5 0 0 0 19.5 18V15.5"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></span></div>
+      <div class="seg"><span class="on" data-v="all" data-l="all"></span><span data-v="known" data-l="known"></span><span data-v="mastered" data-l="mastered"></span><span data-v="new" data-l="new"></span></div>
+      <div class="wsrow">
+        <svg class="ws-mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 20 20"/></svg>
+        <input class="ws-in" type="text" data-ph="searchPh" spellcheck="false" autocomplete="off">
+        <span class="ws-x" style="display:none"></span>
+      </div>
+      <div class="wd-total"><span data-l="total"></span></div>
+      <div class="wd-list-wrap"><div class="wd-list"></div><span class="wd-scroll" aria-hidden="true"></span></div>
+    </div>
+    <div class="cap">
+      <h3>候选 A · 常驻行，过滤优先</h3>
+      <p>搜索行常驻在分段筛选之下。键入即过滤词表，无匹配时列表里给一行提示，带一枚 “现在解释”，查词是找不到时的出路，最贴这块卡 “复习与整理” 的身份。</p>
+      <p class="cost">代价：两行筛选叠着，卡片比现在重一层；查词要先落空一步。</p>
+    </div>
+  </div>
+
+  <!-- 候选 B：常驻行，查词优先 -->
+  <div class="cell" data-cand="b">
+    <div class="words" data-ui data-kind="b">
+      <div class="wd-h"><span data-l="words"></span><span class="hdr-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7A2.5 2.5 0 0 1 7 4.5h10A2.5 2.5 0 0 1 19.5 7v10A2.5 2.5 0 0 1 17 19.5H7A2.5 2.5 0 0 1 4.5 17Z"/><path d="M4.5 9.5h15M8 3v3M16 3v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V13M8 9l4 4 4-4M4.5 15.5V18A2.5 2.5 0 0 0 7 20.5H17A2.5 2.5 0 0 0 19.5 18V15.5"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13V3.5M8 7.5l4-4 4 4M4.5 15.5V18A2.5 2.5 0 0 0 7 20.5H17A2.5 2.5 0 0 0 19.5 18V15.5"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></span></div>
+      <div class="seg"><span class="on" data-v="all" data-l="all"></span><span data-v="known" data-l="known"></span><span data-v="mastered" data-l="mastered"></span><span data-v="new" data-l="new"></span></div>
+      <div class="wsrow b" style="margin-top:10px">
+        <svg class="ws-mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 20 20"/></svg>
+        <input class="ws-in" type="text" data-ph="lookupPh" spellcheck="false" autocomplete="off">
+        <button class="ws-go" data-l="lookupBtn" disabled></button>
+      </div>
+      <div class="ws-wait"><span data-l="waiting"></span><span class="dots"><i></i><i></i><i></i></span></div>
+      <div class="wd-total"><span data-l="total"></span></div>
+      <div class="wd-list-wrap"><div class="wd-list"></div><span class="wd-scroll" aria-hidden="true"></span></div>
+    </div>
+    <div class="cap">
+      <h3>候选 B · 常驻行，查词优先</h3>
+      <p>同一位置，字段本身就是查词框：回车或 “查词” 永远发解释，过滤只是顺手。词表里没有的词一击直达，主动查词最直接。</p>
+      <p class="cost">代价：与行内悬浮复习重叠，词表里已有的词再回车一次，就是一次重复计费。</p>
+    </div>
+  </div>
+
+  <!-- 候选 C：折叠，按需展开 -->
+  <div class="cell" data-cand="c">
+    <div class="words" data-ui data-kind="c">
+      <div class="wd-h"><span data-l="words"></span><span class="hdr-ico"><button class="ws-magbtn" type="button" aria-label="搜索"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 20 20"/></svg></button><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7A2.5 2.5 0 0 1 7 4.5h10A2.5 2.5 0 0 1 19.5 7v10A2.5 2.5 0 0 1 17 19.5H7A2.5 2.5 0 0 1 4.5 17Z"/><path d="M4.5 9.5h15M8 3v3M16 3v3"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V13M8 9l4 4 4-4M4.5 15.5V18A2.5 2.5 0 0 0 7 20.5H17A2.5 2.5 0 0 0 19.5 18V15.5"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13V3.5M8 7.5l4-4 4 4M4.5 15.5V18A2.5 2.5 0 0 0 7 20.5H17A2.5 2.5 0 0 0 19.5 18V15.5"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></span></span></div>
+      <div class="seg"><span class="on" data-v="all" data-l="all"></span><span data-v="known" data-l="known"></span><span data-v="mastered" data-l="mastered"></span><span data-v="new" data-l="new"></span></div>
+      <div class="wsfold"><div class="wsrow">
+        <svg class="ws-mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 20 20"/></svg>
+        <input class="ws-in" type="text" data-ph="searchPh" spellcheck="false" autocomplete="off">
+        <span class="ws-x" style="display:none"></span>
+      </div></div>
+      <div class="wd-total"><span data-l="total"></span></div>
+      <div class="wd-list-wrap"><div class="wd-list"></div><span class="wd-scroll" aria-hidden="true"></span></div>
+    </div>
+    <div class="cap">
+      <h3>候选 C · 折叠，按需展开</h3>
+      <p>标题行加一枚放大镜，搜索行默认不画：点开才展开并落焦，Esc 收起。卡片保持原来的轻，不搜索的读者一分屏幕都不用付。</p>
+      <p class="cost">代价：可发现性最弱，查词比 A 多一击。</p>
+    </div>
+  </div>
+</div>
+
+<p class="fine">共用令牌照 words.html；标题图标、四段筛选与三枚判定胶囊按 UI-SPEC 4.8 现行口径。?v=a|b|c 单看一个，?q=vacillate 预填查询，?lang=en|ja|es 切界面语言，?shot 隐去控件。</p>
+
+<script>
+/// The reader-facing strings, one column per language, taken from i18n/lens_*.ts so the
+/// prototype and the application say the same thing (Explain now、Known/Mastered/New 都照抄
+/// 现有词条，不另造文案). The word column and the look-up counts stay as they are.
+const L = {
+  en: { words:"Words", all:"All", known:"Known", mastered:"Mastered", new:"New", total:"612 words",
+        searchPh:"Search words", lookupPh:"Type a word, Enter to look up", lookupBtn:"Look up",
+        miss:"No record of \u201C%1\u201D", nowExplain:"Explain now", empty:"No words under this filter.",
+        waiting:"Explaining\u2026", justNow:"just now", today:"Today", yesterday:"Yesterday",
+        themeLight:"Light", themeDark:"Dark" },
+  zh: { words:"词汇", all:"全部", known:"已会", mastered:"掌握", new:"新词", total:"共 612 词",
+        searchPh:"在词汇里查找", lookupPh:"键入单词，回车即查", lookupBtn:"查词",
+        miss:"没有 “%1” 的记录", nowExplain:"现在解释", empty:"这个筛选下没有词。",
+        waiting:"正在解释…", justNow:"刚刚", today:"今天", yesterday:"昨天",
+        themeLight:"晴朗白昼", themeDark:"静谧暗夜" },
+  ja: { words:"単語", all:"すべて", known:"覚えた", mastered:"習得済み", new:"初見", total:"612 語",
+        searchPh:"単語を検索", lookupPh:"単語を入力して Enter で検索", lookupBtn:"調べる",
+        miss:"“%1” の記録はありません", nowExplain:"今すぐ解説", empty:"この絞り込みに単語はありません。",
+        waiting:"解説を準備中…", justNow:"たった今", today:"今日", yesterday:"昨日",
+        themeLight:"ライト", themeDark:"ダーク" },
+  es: { words:"Palabras", all:"Todas", known:"Conocida", mastered:"Dominado", new:"Nueva", total:"612 palabras",
+        searchPh:"Buscar palabras", lookupPh:"Escribe una palabra y pulsa Intro", lookupBtn:"Definir",
+        miss:"Sin registro de «%1»", nowExplain:"Explicar ahora", empty:"No hay palabras con este filtro.",
+        waiting:"Explicando…", justNow:"ahora mismo", today:"Hoy", yesterday:"Ayer",
+        themeLight:"Claro", themeDark:"Oscuro" }
+};
+const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
+const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
+const t = L[lang];
+document.documentElement.lang = { en:'en', zh:'zh-CN', ja:'ja', es:'es' }[lang];
+function tr(node){
+  for (const el of node.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
+  for (const el of node.querySelectorAll('[data-ph]')) el.placeholder = t[el.dataset.ph];
+}
+tr(document);
+
+/// Sample rows: the words are the material being learned, not interface text; verdicts cover
+/// all three pills so every state is on view. Times follow UI-SPEC 4.8 (今天 / 昨天 / MM-DD).
+const BASE = [
+  { w:'serendipity',    v:'known',    t:'today',     c:'14:20', n:2 },
+  { w:'ephemeral',      v:'new',      t:'today',     c:'11:05', n:1 },
+  { w:'ubiquitous',     v:'mastered', t:'yesterday', c:'21:48', n:3 },
+  { w:'juxtapose',      v:'known',    t:'yesterday', c:'09:12', n:1 },
+  { w:'quintessential', v:'new',      t:'10-01',     c:'18:30', n:2 },
+  { w:'idiosyncratic',  v:'known',    t:'10-01',     c:'10:22', n:1 },
+  { w:'pernicious',     v:'mastered', t:'09-30',     c:'20:15', n:4 },
+  { w:'obfuscate',      v:'known',    t:'09-30',     c:'14:02', n:1 },
+  { w:'laconic',        v:'new',      t:'09-29',     c:'16:40', n:1 },
+  { w:'magnanimous',    v:'known',    t:'09-29',     c:'08:55', n:2 },
+  { w:'ostensibly',     v:'new',      t:'09-28',     c:'19:21', n:1 },
+  { w:'recalcitrant',   v:'mastered', t:'09-28',     c:'12:08', n:1 },
+  { w:'vicissitude',    v:'new',      t:'09-27',     c:'15:33', n:2 },
+  { w:'sycophant',      v:'known',    t:'09-27',     c:'09:47', n:1 }
+];
+
+function initPopup(root){
+  const kind = root.dataset.kind;
+  const input = root.querySelector('.ws-in');
+  const list = root.querySelector('.wd-list');
+  const clear = root.querySelector('.ws-x');
+  const go = root.querySelector('.ws-go');
+  const wait = root.querySelector('.ws-wait');
+  const items = BASE.map(x => ({ ...x }));
+  let seg = 'all', q = '', busy = false, freshW = null;
+
+  function render(){
+    const q2 = q.toLowerCase();
+    const vis = items.filter(it => (seg === 'all' || it.v === seg) && (!q2 || it.w.toLowerCase().includes(q2)));
+    list.querySelectorAll('.wd-item,.ws-hint,.ws-empty').forEach(n => n.remove());
+    if (!vis.length){
+      if (q && kind !== 'b'){
+        // The miss is the lookup's doorway: a hint line plus the Explain-now pill.
+        const h = document.createElement('div');
+        h.className = 'ws-hint';
+        h.innerHTML = '<span class="ws-hw"></span><button class="ws-pill" data-l="nowExplain" type="button"></button>';
+        h.querySelector('.ws-hw').textContent = t.miss.replace('%1', q);
+        h.querySelector('.ws-pill').onclick = () => lookup();
+        tr(h);
+        list.appendChild(h);
+      } else {
+        // tr() only walks descendants, so a node carrying data-l itself never gets translated:
+        // set the text directly.
+        const e = document.createElement('div');
+        e.className = 'ws-empty';
+        e.textContent = t.empty;
+        list.appendChild(e);
+      }
+      return;
+    }
+    for (const it of vis){
+      const d = document.createElement('div');
+      d.className = 'wd-item' + (it.w === freshW ? ' fresh' : '');
+      const meta = it.justNow ? '<span data-l="justNow"></span>' : `<span data-l="${it.t}"></span> ${it.c}`;
+      const tag = v => `<span class="wd-tag${it.v === v ? ' on' : ''}" data-l="${v}"></span>`;
+      d.innerHTML = `<span class="wd-w">${it.w}</span><span class="wd-side"><span class="wd-meta"><span>${meta}</span><span>${it.n}\u00D7</span></span><span class="wd-pills">${tag('known')}${tag('mastered')}${tag('new')}</span></span>`;
+      tr(d);
+      list.appendChild(d);
+    }
+    freshW = null;
+  }
+
+  function syncRow(){
+    if (clear) clear.style.display = q ? '' : 'none';
+    if (go) go.disabled = !q;
+  }
+
+  /// One shared resolve: the waiting line lands, then the word enters the list as a new row --
+  /// the real request goes through the explanation channel and lands as the bubble card.
+  function lookup(){
+    if (busy || !q) return;
+    busy = true;
+    const word = q;
+    list.querySelectorAll('.ws-hint,.ws-empty').forEach(n => n.remove());
+    if (wait){ wait.classList.add('show'); }
+    else {
+      const w = document.createElement('div');
+      w.className = 'ws-wait show';
+      w.innerHTML = '<span data-l="waiting"></span><span class="dots"><i></i><i></i><i></i></span>';
+      tr(w);
+      list.insertBefore(w, list.firstChild);
+      w.dataset.tmp = '1';
+    }
+    setTimeout(() => {
+      busy = false;
+      if (wait) wait.classList.remove('show');
+      else list.querySelectorAll('.ws-wait').forEach(n => n.remove());
+      if (!items.some(it => it.w.toLowerCase() === word.toLowerCase())){
+        items.unshift({ w:word, v:'new', justNow:true, n:1 });
+        freshW = word;
+      }
+      render();
+    }, 1400);
+  }
+
+  function clearQ(){
+    q = ''; input.value = '';
+    syncRow(); render();
+    input.focus();
+  }
+
+  const segs = [...root.querySelector('.seg').children];
+  segs.forEach(s => s.onclick = () => {
+    segs.forEach(x => x.classList.remove('on'));
+    s.classList.add('on');
+    seg = s.dataset.v;
+    render();
+  });
+  input.addEventListener('input', () => { q = input.value.trim(); syncRow(); render(); });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape'){ clearQ(); if (kind === 'c') root.classList.remove('searching'); }
+    else if (e.key === 'Enter') lookup();
+  });
+  if (clear) clear.onclick = clearQ;
+  if (go) go.onclick = lookup;
+  const magbtn = root.querySelector('.ws-magbtn');
+  if (magbtn) magbtn.onclick = () => {
+    root.classList.toggle('searching');
+    if (root.classList.contains('searching')) setTimeout(() => input.focus(), 190);
+  };
+  root._lookup = lookup;
+  render();
+}
+
+const params = new URLSearchParams(location.search);
+const only = (params.get('v') || '').toLowerCase();
+if (['a','b','c'].includes(only))
+  document.querySelectorAll('.cell').forEach(c => { if (c.dataset.cand !== only) c.remove(); });
+document.querySelectorAll('.words').forEach(initPopup);
+if (params.get('q')){
+  const qw = params.get('q').trim();
+  for (const root of document.querySelectorAll('.words')){
+    if (root.dataset.kind === 'c') root.classList.add('searching');
+    const input = root.querySelector('.ws-in');
+    input.value = qw;
+    input.dispatchEvent(new Event('input'));
+  }
+}
+
+/// Themes: light and dark only on this proposal sheet; the glass pair is judged once a
+/// candidate lands and words.html carries it.
+const tb = document.getElementById('tb');
+const THEMES = ['light','dark'];
+function applyTheme(v){
+  document.documentElement.dataset.theme = v;
+  tb.textContent = { light:t.themeLight, dark:t.themeDark }[v];
+}
+applyTheme(['dark'].includes(params.get('theme')) ? 'dark' : 'light');
+tb.onclick = () => applyTheme(THEMES[(THEMES.indexOf(document.documentElement.dataset.theme) + 1) % THEMES.length]);
+if (params.has('shot')){ tb.remove(); document.documentElement.classList.add('shot'); }
+if (params.has('wait')) setTimeout(() => document.querySelectorAll('.words').forEach(r => r._lookup && r._lookup()), 250);
+</script>
+</body>
+</html>

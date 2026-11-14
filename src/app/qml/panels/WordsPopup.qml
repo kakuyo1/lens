@@ -9,6 +9,10 @@ import QtQuick.Window
  * top. The controller works out which day a word was last shown on, relative to today, and hands
  * over the raw date and time; the labels are drawn here, in the reader's language.
  *
+ * A search row under the segment narrows the list to the words holding a hand-typed query, and a
+ * query that matches nothing is the one doorway to asking the model about a word the reader typed
+ * rather than pointed at (docs/adr/0176).
+ *
  * Also where a word is settled: each row carries the bubble's two verdict pills, so a word the
  * reader did not mark while the bubble was up (or the countdown took away) is marked here.
  *
@@ -68,19 +72,25 @@ Window {
     readonly property int rowHeight: 31
     /// The filter's rows close over a motion token; until that settles, a list with no rows is
     /// still collapsing, not empty -- and a switch holds its arriving rows for a token more.
+    /// The box watches the filter and settles it; this only states the result.
     property bool filterSettled: true
     readonly property bool filterEmpty: filter !== 0 && Controller.wordsModel.allCount > 0
                                         && filterSettled && !listBox.holding
-                                        && !Controller.wordsModel.filterSwitching && list.count === 0
-    onFilterChanged: {
-        filterSettled = false;
-        filterSettle.restart();
-        // A scrolled list keeps the rows that stay at their old offsets and draws blank, so the
-        // new list is read from its first row (docs/adr/0122).
-        list.contentY = 0;
-    }
+                                        && !Controller.wordsModel.filterSwitching && listBox.listEmpty
+                                        && searchQuery === ""
     /// The unfiltered list's line waits for the last row's remove transition too.
     readonly property bool showEmpty: Controller.wordsModel.allCount === 0 && !listBox.holding
+                                      && searchQuery === ""
+    /// The search row's word; the model narrows on it through the Binding below.
+    readonly property string searchQuery: searchRow.query
+    /// @brief The query matches no row: the miss the hint fills and Enter asks from
+    ///        (docs/adr/0176). The query suspends the segment, so a miss is final the moment
+    ///        the query is -- no settle or hold waits, which would blank the list while the
+    ///        reader types toward a word that is not there.
+    readonly property bool searchMiss: searchQuery !== "" && listBox.listEmpty
+    /// With a word in the focused field, Escape clears it; the panel's close stands down rather
+    /// than answering the same key ambiguously.
+    readonly property bool searchHoldsEscape: searchRow.fieldFocus && searchQuery !== ""
 
     /// The word the question is asking about, "" when it is not up.
     property string pendingRemoval: ""
@@ -105,6 +115,9 @@ Window {
     /// the reading goes too, held or not.
     onVisibleChanged: if (!visible) {
         closeChild();
+        // A fresh panel opens on the whole list, the way the segment does: a query left behind
+        // would keep rows hidden under a list that reads as unfiltered.
+        searchRow.clear();
         Controller.explanationDuty.dismissReviewNow();
     }
 
@@ -140,10 +153,10 @@ Window {
             Controller.removeWord(word);
             return;
         }
-        if (list.contentY + list.height >= list.contentHeight - 1)
-            list.bottomMargin = words.rowHeight;
+        if (listBox.view.contentY + listBox.view.height >= listBox.view.contentHeight - 1)
+            listBox.view.bottomMargin = words.rowHeight;
         Controller.removeWord(word);
-        if (list.bottomMargin > 0)
+        if (listBox.view.bottomMargin > 0)
             bottomMarginBack.restart();
     }
 
@@ -151,7 +164,7 @@ Window {
     /// contentY to the shorter content at once, and the row closes below the viewport.
     NumberAnimation {
         id: bottomMarginBack
-        target: list
+        target: listBox.view
         property: "bottomMargin"
         from: words.rowHeight
         to: 0
@@ -169,6 +182,14 @@ Window {
         value: words.tokens.motion.pop + 30
     }
 
+    /// The model owns what the list shows; the search row's word is its query, and it narrows
+    /// whatever the segment already chose.
+    Binding {
+        target: Controller.wordsModel
+        property: "query"
+        value: words.searchQuery
+    }
+
     /// @brief The time label of a row, in the reader's language. Empty when the row has no day.
     function whenLabel(day, date, time) {
         if (day === "today")
@@ -183,6 +204,24 @@ Window {
     /// @brief Put the question down without answering it.
     function closeChild() {
         question.dismiss();
+    }
+
+    /// @brief Ask the model about the word in the search row, through the gate explainLemma()
+    ///        keeps on the facade. The card anchors beside the row, in the native pixels the
+    ///        other anchors speak (docs/QML.md section 4) -- not at the last review position.
+    function lookUpTyped() {
+        // Untrimmed: the duty trims what it receives, the way explainLemma() does.
+        const word = searchRow.query;
+        if (word === "")
+            return;
+        const ratio = Screen.devicePixelRatio || 1;
+        const at = searchRow.mapToGlobal(0, 0);
+        const nativeAt = SurfaceGeometry.nativeFromDipPoint(Qt.point(at.x, at.y),
+                                                            Qt.point(Screen.virtualX, Screen.virtualY),
+                                                            ratio);
+        Controller.explainTypedWord(word, nativeAt.x, nativeAt.y,
+                                    SurfaceGeometry.nativeFromDipLength(searchRow.width, ratio),
+                                    SurfaceGeometry.nativeFromDipLength(searchRow.height, ratio));
     }
 
     /// The question's card in screen coordinates, or null when it is not up. SurfaceHost.qml.s
@@ -202,9 +241,10 @@ Window {
     /// one key would be ambiguous. Once the question is on its way out this one takes over, so
     /// a second Escape during its fade still closes the panel.
     Shortcut {
+        objectName: "wordsEscape"
         sequence: "Escape"
         context: Qt.ApplicationShortcut
-        enabled: words.visible && question.phase !== "asking"
+        enabled: words.visible && question.phase !== "asking" && !words.searchHoldsEscape
         onActivated: words.visible = false
     }
 
@@ -252,15 +292,15 @@ Window {
         WheelHandler {
             acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
             onWheel: (event) => {
-                if (list.contentHeight <= list.height)
+                if (listBox.view.contentHeight <= listBox.view.height)
                     return;
                 let step = event.pixelDelta.y;
                 if (step === 0)
                     step = -event.angleDelta.y / 120 * 72;
-                const next = Math.max(0, Math.min(list.contentY + step,
-                                                  list.contentHeight - list.height));
-                if (next !== list.contentY) {
-                    list.contentY = next;
+                const next = Math.max(0, Math.min(listBox.view.contentY + step,
+                                                  listBox.view.contentHeight - listBox.view.height));
+                if (next !== listBox.view.contentY) {
+                    listBox.view.contentY = next;
                     event.accepted = true;
                 }
             }
@@ -424,219 +464,25 @@ Window {
                 labels: [qsTr("All"), qsTr("Known"), qsTr("Mastered"), qsTr("New")]
                 currentIndex: words.filter
                 onPicked: (index) => Controller.wordsModel.filter = index
+                // A query suspends the segment: the search spans the whole vocabulary, and the
+                // reader's slice comes back when the query clears (docs/adr/0176).
+                enabled: words.searchQuery === ""
+                opacity: words.searchQuery === "" ? 1 : 0.45
+            }
+
+            Item { width: 1; height: 10 }
+            WordsSearchRow {
+                id: searchRow
+                host: words
             }
 
             Item { width: 1; height: 13 }
             Rectangle { width: parent.width; height: 1; color: words.tokens.line2 }
             Item { width: 1; height: 6 }
 
-            Item {
+            WordsListBox {
                 id: listBox
-                width: parent.width
-                // UI-SPEC.md 4.8 gives the list a *maximum* of nine rows: a handful of words leaves a
-                // panel sized to those words, not a panel with a hole under them; an empty list,
-                // and a filter with no rows, keep one line of room for the line that fills it.
-                //
-                // The viewport is the model's row count times the row height, never the view's own
-                // contentHeight -- a lazily-filled view estimates that from the rows it holds, and
-                // a viewport bound to it feeds the revisions back. A decrease waits for the remove
-                // transition below, so a short list does not cut the folding row out of its view.
-                //
-                // The cap is a whole number of rows: the spec's 306 px was nine 34 px rows, and a
-                // raw cap against the 31 px row cuts the row that straddles it -- the row a mark
-                // just appended at the list's end, every time (docs/adr/0161's list work).
-                readonly property int maxViewport: Math.floor(306 / words.rowHeight) * words.rowHeight
-                property int viewportRows: 0
-                property bool holding: false
-
-                height: words.showEmpty ? emptyText.implicitHeight + 6
-                      : words.filterEmpty ? filteredEmptyText.implicitHeight + 6
-                      : Math.min(maxViewport, viewportRows * words.rowHeight)
-
-                Component.onCompleted: viewportRows = list.count
-
-                ListView {
-                    id: list
-                    width: parent.width
-                    height: parent.height
-                    clip: true
-                    model: Controller.wordsModel
-                    boundsBehavior: Flickable.StopAtBounds
-                    // Every row stays instantiated, not for the viewport (that is the model's
-                    // count now) but for the width handshake: a row outside the cache has not
-                    // measured its word yet, and the card would widen under the reader's scroll
-                    // when it finally does (docs/adr/0122 carries the measurement).
-                    cacheBuffer: 6000
-                    // The viewport above is a number the view itself never computes, so nothing
-                    // in its own layout obliges it to build the rows: a view that first shows up
-                    // already sized waits for its first rendered frame to fill in, and a reader
-                    // (or a case) looking the instant the panel lands finds no rows. One
-                    // synchronous layout here builds them at birth instead.
-                    Component.onCompleted: forceLayout()
-
-                    // The model removes a row at once; these are what make the leave and the
-                    // arrival visible. A closing row shrinks to zero while the rows below move up
-                    // by the same amount on the same curve, so their edges meet at every frame; an
-                    // arriving row grows into the space the closing ones left. The model holds a
-                    // switch's arrivals for one token (wordsModel.swapMs), so the two never share
-                    // a line. The durations are the fold token, not second ones.
-                    //
-                    // Both directions ride their opacity too: a row clips its own content (the
-                    // cross's ring stays inside the list), so a closing height slices the word at a
-                    // hard edge that walks up the glyphs. Fading with the fold leaves that edge
-                    // nothing to cut, and the two land together -- a 180 ms fold has no second beat.
-                    add: Transition {
-                        NumberAnimation {
-                            property: "height"
-                            from: 0
-                            to: words.rowHeight
-                            duration: words.tokens.motion.pop
-                            easing.type: words.tokens.motion.easing
-                        }
-                        NumberAnimation {
-                            property: "opacity"
-                            from: 0
-                            to: 1
-                            duration: words.tokens.motion.pop
-                            easing.type: words.tokens.motion.easing
-                        }
-                    }
-                    // No fold, no transition: a zero-length one is still one the view runs, and it
-                    // left the last row of each removal run drawn over the rows that stayed
-                    // (docs/adr/0122).
-                    remove: Transition {
-                        enabled: !words.tokens.motion.reduced
-                        NumberAnimation {
-                            property: "height"
-                            to: 0
-                            duration: words.tokens.motion.pop
-                            easing.type: words.tokens.motion.easing
-                        }
-                        NumberAnimation {
-                            property: "opacity"
-                            to: 0
-                            duration: words.tokens.motion.pop
-                            easing.type: words.tokens.motion.easing
-                        }
-                    }
-                    displaced: Transition {
-                        NumberAnimation {
-                            property: "y"
-                            duration: words.tokens.motion.pop
-                            easing.type: words.tokens.motion.easing
-                        }
-                    }
-
-                    onCountChanged: {
-                        // A switch holds its arrivals with no fold too, so the viewport holds.
-                        if (list.count > listBox.viewportRows
-                            || (words.tokens.motion.pop === 0 && !Controller.wordsModel.filterSwitching)) {
-                            listBox.viewportRows = list.count;
-                            listBox.holding = false;
-                        } else {
-                            listBox.holding = true;
-                            viewHold.restart();
-                        }
-                    }
-
-                    // A model removal shortens contentHeight without a gesture, and the view
-                    // does not always clamp a contentY the removals left behind -- a bulk
-                    // removal measured 1120 against a settled 558, and a filter 868 against 93.
-                    // The bottom margin is part of the scroll's range; clamping to it is what
-                    // keeps a fold at the end in view while the margin animation closes, and
-                    // settles the view after it. Checking on contentY itself catches the view's
-                    // own pinned position after a refill, which a contentHeight handler misses.
-                    // The negative half recalls a touchpad's momentum parked past the top, which
-                    // StopAtBounds stops from crossing but does not bring back after the gesture.
-                    onContentYChanged: if (!moving)
-                        clampScroll()
-                    onMovementEnded: clampScroll()
-                    onContentHeightChanged: clampScroll()
-                    onHeightChanged: clampScroll()
-                    onBottomMarginChanged: clampScroll()
-                    function clampScroll() {
-                        const lowest = Math.max(0, contentHeight + bottomMargin - height);
-                        if (contentY < 0)
-                            contentY = 0;
-                        else if (contentY > lowest)
-                            contentY = lowest;
-                    }
-
-                    delegate: WordsListRow {
-                        host: words
-                    }
-
-                }
-
-                /// Holds the viewport at the height it had before a removal, through the remove
-                /// transition that closes the rows; then the count is the settled one.
-                ///
-                /// It outlasts the model's swap and defers while a switch runs at all, even one
-                /// that started after it did: the count it would take there is the intersection's,
-                /// which for two verdicts is no rows at all -- 183 px on the way to 276, a blink
-                /// the reader saw.
-                Timer {
-                    id: viewHold
-                    interval: Controller.wordsModel.swapMs + 20
-                    onTriggered: {
-                        if (Controller.wordsModel.filterSwitching) {
-                            restart();
-                            return;
-                        }
-                        listBox.viewportRows = list.count;
-                        listBox.holding = false;
-                    }
-                }
-
-                Text {
-                    id: emptyText
-                    anchors.top: parent.top
-                    width: parent.width
-                    visible: words.showEmpty
-                    text: qsTr("Words you look up will appear here.")
-                    color: words.tokens.faint
-                    font.pixelSize: 11
-                    wrapMode: Text.WordWrap
-                }
-
-                Text {
-                    id: filteredEmptyText
-                    objectName: "filteredEmptyText"
-                    anchors.top: parent.top
-                    width: parent.width
-                    visible: words.filterEmpty
-                    text: qsTr("No words in this filter.")
-                    color: words.tokens.faint
-                    font.pixelSize: 11
-                    wrapMode: Text.WordWrap
-                }
-
-                Timer {
-                    id: filterSettle
-                    interval: words.tokens.motion.pop + 20
-                    onTriggered: words.filterSettled = true
-                }
-
-                // The six-pixel scrollbar UI-SPEC.md 4.8 asks for, drawn rather than imported so the
-                // module needs no widget styling. It sits in the card's right padding: a bar
-                // against the edge would draw its rounded end over a verdict pill.
-                Rectangle {
-                    visible: list.contentHeight > list.height
-                    width: 6
-                    radius: 3
-                    color: words.tokens.line
-                    x: parent.width + 6
-                    height: Math.max(24, list.height * list.height / list.contentHeight)
-                    // Held inside the track rather than mapped straight off contentY. A removal
-                    // shortens the content under a contentY the Flickable leaves where it was,
-                    // and the unclamped ratio then draws the thumb below the card.
-                    y: {
-                        if (list.contentHeight <= list.height)
-                            return 0;
-                        const at = list.contentY / (list.contentHeight - list.height);
-                        return (list.height - height) * Math.min(1, Math.max(0, at));
-                    }
-                }
+                host: words
             }
         }
 

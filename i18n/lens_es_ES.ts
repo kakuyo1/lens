@@ -282,7 +282,7 @@
 <context>
     <name>Notice</name>
     <message>
-        <location filename="../src/app/qml/panels/Notice.qml" line="165"/>
+        <location filename="../src/app/qml/panels/Notice.qml" line="168"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
@@ -823,7 +823,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="108"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
-        <location filename="../src/app/app_controller.cpp" line="605"/>
+        <location filename="../src/app/app_controller.cpp" line="604"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -835,7 +835,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Escaneo automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="595"/>
+        <location filename="../src/app/app_controller.cpp" line="594"/>
         <source>The OCR language data is missing</source>
         <translation>Faltan los datos de idioma de OCR</translation>
     </message>
@@ -1726,12 +1726,12 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="46"/>
-        <location filename="../src/app/app_controller.cpp" line="594"/>
+        <location filename="../src/app/app_controller.cpp" line="593"/>
         <source>Checking OCR</source>
         <translation>Comprobando el OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="602"/>
+        <location filename="../src/app/app_controller.cpp" line="601"/>
         <source>OCR runtime is unavailable</source>
         <translation>El entorno de OCR no está disponible</translation>
     </message>
@@ -3467,73 +3467,73 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="424"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="466"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="424"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="466"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="286"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="328"/>
         <source>Words</source>
         <translation>Palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="175"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="198"/>
         <source>Today %1</source>
         <translation>Hoy %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="177"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="200"/>
         <source>Yesterday %1</source>
         <translation>Ayer %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="348"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="390"/>
         <source>Year in words</source>
         <translation>Año en palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="376"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="418"/>
         <source>Back</source>
         <translation>Atrás</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="383"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="425"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="401"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="443"/>
         <source>%1 words</source>
         <translation>%1 palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="424"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="466"/>
         <source>All</source>
         <translation>Todas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="424"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="466"/>
         <source>Mastered</source>
         <translation>Dominado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="596"/>
+        <location filename="../src/app/qml/panels/WordsListBox.qml" line="213"/>
         <source>Words you look up will appear here.</source>
         <translation>Las palabras que consultes aparecerán aquí.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="608"/>
+        <location filename="../src/app/qml/panels/WordsListBox.qml" line="225"/>
         <source>No words in this filter.</source>
         <translation>No hay palabras con este filtro.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="23"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="679"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
         <source>JSON files (*.json)</source>
         <translation>Archivos JSON (*.json)</translation>
     </message>
@@ -3548,18 +3548,18 @@ One small word at a time, the reading opens.</translation>
         <translation>TSV de Anki con explicaciones (*.tsv)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="683"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="527"/>
         <source>Words imported</source>
         <translation>Palabras importadas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="683"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="527"/>
         <source>Import failed</source>
         <translation>Error al importar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="366"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="677"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="408"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="521"/>
         <source>Import words</source>
         <translation>Importar palabras</translation>
     </message>
@@ -3580,19 +3580,19 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="17"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="359"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="401"/>
         <source>Export words</source>
         <translation>Exportar palabras</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="22"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="679"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
         <source>Text files (*.txt)</source>
         <translation>Archivos de texto (*.txt)</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="26"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="679"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
         <source>All files (*)</source>
         <translation>Todos los archivos (*)</translation>
     </message>
@@ -3605,6 +3605,27 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="169"/>
         <source>Remove %1 from your word list and history?</source>
         <translation>¿Eliminar %1 de tu lista de palabras y del historial?</translation>
+    </message>
+</context>
+<context>
+    <name>WordsSearchHint</name>
+    <message>
+        <location filename="../src/app/qml/panels/WordsSearchHint.qml" line="26"/>
+        <source>No record of %1</source>
+        <translation>Sin registro de %1</translation>
+    </message>
+</context>
+<context>
+    <name>WordsSearchRow</name>
+    <message>
+        <location filename="../src/app/qml/panels/WordsSearchRow.qml" line="57"/>
+        <source>Search words</source>
+        <translation>Buscar palabras</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/panels/WordsSearchRow.qml" line="102"/>
+        <source>Clear search</source>
+        <translation>Borrar la búsqueda</translation>
     </message>
 </context>
 <context>
@@ -3773,175 +3794,177 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="351"/>
+        <location filename="../src/app/app_controller.cpp" line="350"/>
         <source>The file could not be read.</source>
         <translation>No se pudo leer el archivo.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="362"/>
+        <location filename="../src/app/app_controller.cpp" line="361"/>
         <source>Imported %1 word(s).</source>
         <translation>Se importaron %1 palabra(s).</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="585"/>
+        <location filename="../src/app/app_controller.cpp" line="584"/>
         <source>Screenshot capture is off.</source>
         <translation>La captura de pantalla está desactivada.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="586"/>
+        <location filename="../src/app/app_controller.cpp" line="585"/>
         <source>Online OCR is not configured.</source>
         <translation>El OCR en línea no está configurado.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="587"/>
-        <location filename="../src/app/app_controller.cpp" line="840"/>
+        <location filename="../src/app/app_controller.cpp" line="586"/>
+        <location filename="../src/app/app_controller.cpp" line="820"/>
+        <location filename="../src/app/app_controller.cpp" line="831"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>El presupuesto de hoy se ha agotado.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="588"/>
+        <location filename="../src/app/app_controller.cpp" line="587"/>
         <source>A recognition is already running.</source>
         <translation>Ya hay un reconocimiento en curso.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="590"/>
+        <location filename="../src/app/app_controller.cpp" line="589"/>
         <source>That region cannot be captured.</source>
         <translation>Esa región no se puede capturar.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="591"/>
+        <location filename="../src/app/app_controller.cpp" line="590"/>
         <source>No text was found in that region.</source>
         <translation>No se encontró texto en esa región.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="592"/>
+        <location filename="../src/app/app_controller.cpp" line="591"/>
         <source>That region could not be read.</source>
         <translation>No se pudo leer esa región.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="593"/>
+        <location filename="../src/app/app_controller.cpp" line="592"/>
         <source>The recognition was cancelled.</source>
         <translation>Se canceló el reconocimiento.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="596"/>
+        <location filename="../src/app/app_controller.cpp" line="595"/>
         <source>The OCR result could not be read.</source>
         <translation>No se pudo leer el resultado de OCR.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="597"/>
+        <location filename="../src/app/app_controller.cpp" line="596"/>
         <source>The online OCR service could not be reached.</source>
         <translation>No se pudo contactar con el servicio de OCR en línea.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="598"/>
+        <location filename="../src/app/app_controller.cpp" line="597"/>
         <source>The online OCR service returned an incomplete result.</source>
         <translation>El servicio de OCR en línea devolvió un resultado incompleto.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="627"/>
+        <location filename="../src/app/app_controller.cpp" line="631"/>
         <source>The previous run crashed</source>
         <translation>La ejecución anterior se interrumpió</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="628"/>
+        <location filename="../src/app/app_controller.cpp" line="632"/>
         <source>A crash dump was saved in the log&apos;s dumps folder. Nothing in it leaves this machine; attach it when you report the crash.</source>
         <translation>Se guardó un volcado de memoria en la carpeta dumps del registro. Nada de su contenido sale de este equipo; adjúntalo al informar del fallo.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="630"/>
+        <location filename="../src/app/app_controller.cpp" line="634"/>
         <source>Open dump folder</source>
         <translation>Abrir carpeta de volcados</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="630"/>
+        <location filename="../src/app/app_controller.cpp" line="636"/>
         <source>Report issue</source>
         <translation>Informar del problema</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="721"/>
+        <location filename="../src/app/app_controller.cpp" line="701"/>
         <source>%1 px</source>
         <translation>%1 px</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="723"/>
+        <location filename="../src/app/app_controller.cpp" line="703"/>
         <source>Default</source>
         <translation>Predeterminado</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="925"/>
+        <location filename="../src/app/app_controller.cpp" line="916"/>
         <source>American</source>
         <translation>Estadounidense</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="927"/>
+        <location filename="../src/app/app_controller.cpp" line="918"/>
         <source>British</source>
         <translation>Británico</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="932"/>
+        <location filename="../src/app/app_controller.cpp" line="923"/>
         <source>System voice</source>
         <translation>Voz del sistema</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="934"/>
-        <location filename="../src/app/app_controller.cpp" line="941"/>
+        <location filename="../src/app/app_controller.cpp" line="925"/>
+        <location filename="../src/app/app_controller.cpp" line="932"/>
         <source>Online audio</source>
         <translation>Audio en línea</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="936"/>
-        <location filename="../src/app/app_controller.cpp" line="943"/>
+        <location filename="../src/app/app_controller.cpp" line="927"/>
+        <location filename="../src/app/app_controller.cpp" line="934"/>
         <source>Local model</source>
         <translation>Modelo local</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="945"/>
+        <location filename="../src/app/app_controller.cpp" line="936"/>
         <source>Silent</source>
         <translation>Sin sonido</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="963"/>
+        <location filename="../src/app/app_controller.cpp" line="954"/>
         <source>Automatic</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="965"/>
+        <location filename="../src/app/app_controller.cpp" line="956"/>
         <source>Kokoro</source>
         <translation>Kokoro</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="967"/>
+        <location filename="../src/app/app_controller.cpp" line="958"/>
         <source>LJSpeech</source>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="1209"/>
+        <location filename="../src/app/app_controller.cpp" line="1200"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="1209"/>
+        <location filename="../src/app/app_controller.cpp" line="1200"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="826"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="834"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No hay ninguna explicación guardada para esta palabra en el idioma actual.</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="584"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="592"/>
         <source>Explaining…</source>
         <translation>Explicando…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="809"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="817"/>
         <source>Request failed</source>
         <translation>La solicitud ha fallado</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="827"/>
+        <location filename="../src/app/qml/panels/WordsSearchHint.qml" line="69"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="835"/>
         <source>Explain now</source>
         <translation>Explicar ahora</translation>
     </message>

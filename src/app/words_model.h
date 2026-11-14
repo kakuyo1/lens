@@ -9,8 +9,9 @@
  * -- resets the model; QAbstractListModel's move bookkeeping is not worth it for a change the
  * old list rebuilt every delegate for anyway.
  *
- * The filter is the popup's segment, and its values are core::ExportScope's: a row the list
- * shows is a row an export carries (docs/adr/0122).
+ * The filters are the popup's segment and its search row. The segment's values are
+ * core::ExportScope's, so a row the list shows is a row an export carries (docs/adr/0122); the
+ * query narrows those rows further by what the reader typed (docs/adr/0176).
  */
 
 #pragma once
@@ -36,6 +37,9 @@ class WordsModel : public QAbstractListModel {
     QML_ANONYMOUS
     QML_UNCREATABLE("Owned by Controller; reached as Controller.wordsModel")
     Q_PROPERTY(int filter READ filter WRITE setFilter NOTIFY filterChanged)
+    /// @brief What the search row narrows the rows to: rows whose lemma holds it, case-insensitively.
+    ///        Empty means no query. It filters beside the segment, and the two compose.
+    Q_PROPERTY(QString query READ query WRITE setQuery NOTIFY queryChanged)
     Q_PROPERTY(int allCount READ allCount NOTIFY allCountChanged)
     /// @brief How long the view takes to close a row. A filter switch waits that long between the
     ///        rows leaving and the rows arriving, so the two never share a line. Zero, the default,
@@ -70,7 +74,14 @@ public:
     }
     /// @brief Show the rows one segment names: the rows the new filter hides close first, and the
     ///        rows it wants arrive after @c swapMs, so no word is drawn under a closing one.
-    void setFilter(int value);
+    void    setFilter(int value);
+    QString query() const
+    {
+        return query_;
+    }
+    /// @brief Narrow the rows to the ones @p value names, in place: no two-phase swap, the way
+    ///        the segment switches run -- the reader is watching the list answer the typing.
+    void setQuery(QString const& value);
     int  allCount() const
     {
         return static_cast<int>(all_.size());
@@ -95,6 +106,7 @@ public:
 
 signals:
     void filterChanged();
+    void queryChanged();
     void allCountChanged();
     void swapMsChanged();
     void filterSwitchingChanged();
@@ -106,7 +118,7 @@ private:
                   New      = 3 };
 
     static bool                 matches(WordRow const& row, int filter);
-    static std::vector<WordRow> filtered(std::vector<WordRow> const& rows, int filter);
+    static std::vector<WordRow> filtered(std::vector<WordRow> const& rows, int filter, QString const& query);
     /// @brief Emit the difference between the visible rows and @p next, whose common rows keep their order.
     /// @param insertRows Whether the rows @p next adds may arrive; a switch's first phase holds them.
     void diffVisible(std::vector<WordRow> next, bool insertRows = true);
@@ -120,7 +132,8 @@ private:
     bool                 hasPending_ = false;
     bool                 switching_  = false;
     int                  filter_     = All;
-    int                  swapMs_     = 0;
+    QString              query_;
+    int                  swapMs_ = 0;
     QTimer               swap_;
 };
 

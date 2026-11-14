@@ -103,7 +103,10 @@ public:
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
     ///
     /// This is the one path from a hover to a request: the word hint's button calls it.
-    void             explainLemma(QString lemma);
+    void explainLemma(QString lemma);
+    /// @brief Ask the model about a word the reader typed by hand (the words panel's search
+    ///        row), with the card anchored beside that row rather than at the last review spot.
+    void             explainTypedWord(QString lemma, QPoint anchor, QSize anchorSize);
     Q_INVOKABLE void dismissBubble();
     Q_INVOKABLE void dismissNotice();
     /**

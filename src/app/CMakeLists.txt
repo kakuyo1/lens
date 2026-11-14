@@ -421,6 +421,9 @@ qt_add_qml_module(lens_app
      qml/panels/WordsPopup.qml
      qml/panels/WordsExportDialog.qml
     qml/panels/WordsListRow.qml
+    qml/panels/WordsListBox.qml
+    qml/panels/WordsSearchRow.qml
+    qml/panels/WordsSearchHint.qml
      qml/panels/YearWordsPopup.qml
     qml/panels/YearPalette.qml
      qml/panels/RemovalQuestion.qml
@@ -519,6 +522,7 @@ set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/data/icons/ui-language.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-pictures.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-quit.svg
+  ${CMAKE_SOURCE_DIR}/data/icons/ui-search.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-settings.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-stats.svg
   ${CMAKE_SOURCE_DIR}/data/icons/ui-translate.svg

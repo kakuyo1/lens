@@ -823,6 +823,17 @@ void AppController::explainLemma(QString lemma)
     explanation_.explainLemma(std::move(lemma));
 }
 
+void AppController::explainTypedWord(QString lemma, int x, int y, int width, int height)
+{
+    // The search row is the second path a word list can spend money through, and like the hint's
+    // button it is a press the reader made, so it keeps the same gate explainLemma() does.
+    if (not cost_.canRequest()) {
+        explanation_.showNotice(lemma, tr("Today's budget is used up."), QString::fromLatin1(kNoticeError));
+        return;
+    }
+    explanation_.explainTypedWord(std::move(lemma), QPoint(x, y), QSize(width, height));
+}
+
 QVariantMap AppController::settings()
 {
     // Once per change, not once per read: a binding that reads one key would otherwise rebuild the whole map, and the

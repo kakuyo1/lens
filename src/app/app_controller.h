@@ -188,6 +188,10 @@ public:
     Q_INVOKABLE void reviewWord(QString lemma, int x, int y, int width, int height);
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
     Q_INVOKABLE void explainLemma(QString lemma);
+    /// @brief Ask the model about a word the reader typed into the words panel's search row.
+    /// @param x,y          The search row's top-left, in the physical pixels the other anchors use.
+    /// @param width,height The row's size in those pixels, so the card can be placed against it.
+    Q_INVOKABLE void explainTypedWord(QString lemma, int x, int y, int width, int height);
     /// @brief Open the crash dumps folder, where the last crash's dump and summary sit (docs/adr/0174).
     Q_INVOKABLE void openCrashDumpFolder();
     /// @brief Open a new GitHub issue prefilled with the last crash's facts; the dump travels

@@ -9,7 +9,8 @@
 | `tray-menu.html` | 托盘菜单，含语言子菜单 |
 | `first-run-onboarding.html` | 首次运行引导：三步向导（档位 / 服务商与 key / 试一次，第三步拖选 quiet 出演示气泡）、托盘菜单首行的未设 key 态、设置占位面板；`?state=first\|dismissed\|keyed` 选启动前状态，`?menu`、`?settings`、`?wizard` 直接打开面板，`?shot` 隐去演示控件 |
 | `stats.html` | 统计弹窗 |
-| `words.html` | 词汇弹窗 |
+| `words.html` | 词汇弹窗，含搜索行（ADR 0176：键入即过滤，落空提示行带 “现在解释”，点胶囊或回车看等待落定、词以新词进表） |
+| `words-search-candidates.html` | 词汇弹窗搜索行的三个候选（A 常驻行过滤优先 / B 常驻行查词优先 / C 折叠放大镜）；**A 已选定并落成 QML 与 `words.html`**，B、C 留作对照。只做明暗两套主题；`?v=a|b|c` 单看一个，`?q=vacillate` 预填查询，`?lang=` 照旧，`?wait` 演示查词回环，`?shot` 隐去控件 |
 | `year-in-words.html` | 单词年度记录弹窗 |
 | `cost.html` | 花费弹窗 |
 | `settings.html` | 设置浮层 |

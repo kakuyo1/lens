@@ -282,6 +282,14 @@ void ExplanationDuty::explainLemma(QString lemma)
     explain(pending);
 }
 
+void ExplanationDuty::explainTypedWord(QString lemma, QPoint const anchor, QSize const anchorSize)
+{
+    const QString value = lemma.trimmed();
+    if (value.isEmpty()) return;
+    PendingSelection pending{.anchor = anchor, .anchorSize = anchorSize, .kind = core::SelectionKind::Word, .surface = value, .lemma = value};
+    explain(pending);
+}
+
 void ExplanationDuty::explainChainWord(QString lemma)
 {
     const QString value = lemma.trimmed();
