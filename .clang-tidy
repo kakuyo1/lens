@@ -24,42 +24,35 @@ Checks: >
   performance-*,
   modernize-use-override,
   -bugprone-branch-clone,
-  -bugprone-empty-catch,
   -bugprone-exception-escape,
   -bugprone-easily-swappable-parameters,
   -bugprone-implicit-widening-of-multiplication-result,
   -bugprone-lambda-function-name,
   -bugprone-narrowing-conversions,
-  -bugprone-multi-level-implicit-pointer-conversion,
   -bugprone-unchecked-optional-access,
   -clang-analyzer-cplusplus.NewDeleteLeaks,
   -performance-enum-size,
-  -performance-implicit-conversion-in-loop,
-  -performance-inefficient-string-concatenation,
   -performance-move-const-arg,
   -performance-no-automatic-move,
   -performance-no-int-to-ptr,
   -performance-unnecessary-value-param
 
-# The excluded ones, with the counts the probe found on this tree and why each waits:
-#   bugprone-branch-clone 4 -- identical consecutive cases are often deliberate; each wants a look
-#   bugprone-empty-catch 3 -- winrt teardown only; CheckOptions re-enables it for that type below
-#   bugprone-exception-escape 8 -- value-type moves and one destructor that may throw; per-instance review
+# The excluded ones, with the counts the tree-wide probe found and why each waits:
+#   bugprone-branch-clone 18 -- identical consecutive cases are often deliberate; each wants a look
+#   bugprone-exception-escape 29 -- value-type moves and destructors that may throw; per-instance review
 #   bugprone-easily-swappable-parameters 26 -- an API-design judgement, not a mechanical fix
-#   bugprone-implicit-widening-of-multiplication-result 51 -- a real overflow class with a backlog of its own
-#   bugprone-lambda-function-name 15
-#   bugprone-narrowing-conversions 3
-#   bugprone-multi-level-implicit-pointer-conversion 2
+#   bugprone-implicit-widening-of-multiplication-result 133 -- a real overflow class with a backlog of its own
+#   bugprone-lambda-function-name 50
+#   bugprone-narrowing-conversions 32
 #   bugprone-unchecked-optional-access 486 -- the tree's optional invariants span functions the
 #     analyzer cannot see; each of the 486 wants human eyes before the check comes back
 #   clang-analyzer-cplusplus.NewDeleteLeaks 8 -- every one is QMetaObject::invokeMethod with a
 #     lambda; the ownership transfer into QMetaCallEvent is invisible to the analyzer
-#   performance-enum-size 42
-#   performance-implicit-conversion-in-loop 2
-#   performance-inefficient-string-concatenation 6
-#   performance-move-const-arg 7
-#   performance-no-automatic-move 7
-#   performance-no-int-to-ptr 5
+#   performance-enum-size 586 -- an underlying type per enum, and the data-bearing ones want
+#     their storage semantics argued, not defaulted
+#   performance-move-const-arg 25
+#   performance-no-automatic-move 11
+#   performance-no-int-to-ptr 15
 #   performance-unnecessary-value-param 36 -- Qt's shared classes make pass-by-value the idiom
 
 CheckOptions:

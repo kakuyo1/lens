@@ -78,7 +78,7 @@ std::optional<QString> findGistId(const QByteArray& listBody, const QString& des
     // ISO 8601 timestamps sort as text, so the newest is the greatest string among the matches.
     std::optional<QString> newestId;
     QString                newestAt;
-    for (const QJsonValue& value : document.array()) {
+    for (const auto& value : document.array()) {
         const QJsonObject item = value.toObject();
         if (item.value("description").toString() != description)
             continue;
@@ -280,7 +280,7 @@ void GistClient::listPage(quint64 const callId, const QString& token, const QUrl
             emit failed(callId, GistFailure::Generic);
             return;
         }
-        for (const QJsonValue& item : document.array())
+        for (const auto& item : document.array())
             merged.append(item);
 
         // A missing or exhausted link, or the page cap, ends the list with what has been read.
