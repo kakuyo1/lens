@@ -25,6 +25,11 @@ Item {
             onPicked: root.categoryRequested("learning")
         }
         SettingsCategoryRow {
+            title: qsTranslate("SettingsPopup", "Pronunciation")
+            summary: qsTranslate("SettingsPopup", "Auto-play, accent, engines, local voices")
+            onPicked: root.categoryRequested("speech")
+        }
+        SettingsCategoryRow {
             title: qsTranslate("SettingsPopup", "Capture & popups")
             summary: qsTranslate("SettingsPopup", "Trigger channels")
             onPicked: root.categoryRequested("capture")

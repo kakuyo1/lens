@@ -31,11 +31,9 @@ Window {
     /// Which setting's preview the pointer is asking for, by key, or "" for none (UI-SPEC.md 4.4). Main
     /// reads the key, puts the demo card up beside this window's card, and takes it down again.
     property string previewKey: ""
-    /// The family the font dropdown's row asks the preview to draw in, when previewKey is "font".
-    /// Null for every other preview, which follows the stored font.
+    /// The family the font preview draws in when previewKey is "font"; null follows the stored font.
     property var previewFont: null
-    /// The size the font-size dropdown's row asks the preview to draw at, when previewKey is
-    /// "fontSize". Null for every other preview, which follows the stored size.
+    /// The size the font-size preview draws at when previewKey is "fontSize"; null follows the stored size.
     property var previewFontSize: null
     /// The language the explanation-language or mother-tongue dropdown's row asks the preview to
     /// draw with, when previewKey is "language" or "motherTongue" -- the card's own language for
@@ -73,6 +71,7 @@ Window {
     function categoryTitle(value) {
         if (value === "general") return qsTranslate("SettingsPopup", "General");
         if (value === "learning") return qsTranslate("SettingsPopup", "Reading & learning");
+        if (value === "speech") return qsTranslate("SettingsPopup", "Pronunciation");
         if (value === "capture") return qsTranslate("SettingsPopup", "Capture & popups");
         if (value === "autoscan") return qsTranslate("SettingsPopup", "Auto scan");
         if (value === "ocr") return qsTranslate("SettingsPopup", "OCR");
@@ -123,15 +122,13 @@ Window {
     }
 
     /// @brief Open a category page, or a sub-page under it, by "category" or "category/page" -- the path the
-    ///        dev surface's `surface route` names (docs/adr/0103), which has no pointer to click the rows with.
-    ///        Both steps are the calls a click makes -- openCategory for the catalog's row, openRoute for the
-    ///        page's link row -- so the state reached is the reader's, like the pet's right-click that lands on
-    ///        the extensions category (Main.qml).
+    ///        dev surface's `surface route` names (docs/adr/0103). Both steps are the calls a click makes,
+    ///        so the state reached is the reader's, like the pet's right-click that lands on extensions.
     /// @return False when the panel is down or the path's category is not one the catalog offers.
     function routeTo(path) {
         if (!settings.visible)
             return false;
-        const categories = ["general", "learning", "capture", "autoscan", "ocr", "model",
+        const categories = ["general", "learning", "speech", "capture", "autoscan", "ocr", "model",
                             "extensions", "sync", "about"];
         const steps = path.split("/");
         if (!categories.includes(steps[0]))
@@ -554,6 +551,7 @@ Window {
                                  : settings.category === "" ? catalogComponent
                                   : settings.category === "general" ? generalComponent
                                   : settings.category === "learning" ? learningComponent
+                                  : settings.category === "speech" ? speechComponent
                                   : settings.category === "capture" ? captureComponent
                                   : settings.category === "autoscan" ? autoScanComponent
                                   : settings.category === "ocr" ? ocrComponent
@@ -695,6 +693,7 @@ Window {
         }
     }
     Component { id: aboutComponent; SettingsAboutPage {} }
+    Component { id: speechComponent; SettingsSpeechPage {} }
     Component {
         id: learningComponent
         SettingsLearningPage {

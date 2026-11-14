@@ -797,7 +797,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="37"/>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="29"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="34"/>
         <source>Trigger channels</source>
         <translation>取得のきっかけ</translation>
     </message>
@@ -808,16 +808,16 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="108"/>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="43"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
         <location filename="../src/app/app_controller.cpp" line="604"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="28"/>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
         <source>Auto scan</source>
         <translation>自動スキャン</translation>
     </message>
@@ -871,7 +871,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="124"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="88"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="89"/>
         <source>Popup &amp; clipboard</source>
         <translation>ポップアップとクリップボード</translation>
     </message>
@@ -920,53 +920,58 @@ One small word at a time, the reading opens.</translation>
         <translation>語彙レベル、解説の言語、複数の語義</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="29"/>
+        <source>Auto-play, accent, engines, local voices</source>
+        <translation>自動再生、アクセント、エンジン、ローカル音声</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="33"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
         <source>Capture &amp; popups</source>
         <translation>取得とポップアップ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
         <source>Screenshot capture, its key and engine</source>
         <translation>スクリーンショット取得、そのキー、エンジン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="48"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="80"/>
         <source>Model service</source>
         <translation>モデルサービス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="49"/>
         <source>Provider, model, API configuration</source>
         <translation>プロバイダー、モデル、API 設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="80"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="53"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="81"/>
         <source>Extensions</source>
         <translation>拡張</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="54"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="59"/>
         <source>GitHub sign-in, encrypted cloud copy</source>
         <translation>GitHub ログイン、暗号化されたクラウドコピー</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="272"/>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="49"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="54"/>
         <location filename="../src/app/pet/pet_controller.cpp" line="1153"/>
         <source>Desktop companion</source>
         <translation>デスクトップの相棒</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="58"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="82"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="63"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="83"/>
         <source>About</source>
         <translation>情報</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="59"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="64"/>
         <source>Version, updates, repository</source>
         <translation>バージョン、更新、リポジトリ</translation>
     </message>
@@ -1211,7 +1216,7 @@ One small word at a time, the reading opens.</translation>
         <translation>背景の更新</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="398"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="60"/>
         <source>Accent</source>
         <translation>アクセント</translation>
     </message>
@@ -1243,8 +1248,8 @@ One small word at a time, the reading opens.</translation>
         <translation>起動時に更新を確認</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="53"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="81"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="58"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="82"/>
         <source>Account &amp; sync</source>
         <translation>アカウントと同期</translation>
     </message>
@@ -1254,214 +1259,215 @@ One small word at a time, the reading opens.</translation>
         <translation>Windows のアクセシビリティ設定により、アニメーションは無効です。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="65"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="73"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="51"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="59"/>
         <source>Vocabulary level</source>
         <translation>語彙レベル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="165"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="151"/>
         <source>Open data folder</source>
         <translation>データフォルダーを開く</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="205"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="213"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="191"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="199"/>
         <source>Mother tongue</source>
         <translation>母語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="229"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="237"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="215"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="223"/>
         <source>Explanation language</source>
         <translation>解説の言語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="267"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="253"/>
         <source>Card content</source>
         <translation>カードの内容</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="274"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="260"/>
         <source>Multiple senses</source>
         <translation>複数の語義</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="286"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="272"/>
         <source>Etymology</source>
         <translation>語源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="296"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="282"/>
         <source>Example sentence</source>
         <translation>例文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="311"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="297"/>
         <source>Word details</source>
         <translation>単語の詳細</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="319"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="305"/>
         <source>IPA</source>
         <translation>IPA</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="331"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="317"/>
         <source>Part of speech</source>
         <translation>品詞</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="341"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="327"/>
         <source>Signpost</source>
         <translation>意味の見出し</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="351"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="337"/>
         <source>Collocations</source>
         <translation>コロケーション</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="362"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="348"/>
         <source>Pictures</source>
         <translation>画像</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="379"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="28"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
         <source>Pronunciation</source>
         <translation>発音</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="387"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="49"/>
         <source>Auto-play</source>
         <translation>自動再生</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="406"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="68"/>
         <source>American</source>
         <translation>アメリカ英語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="406"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="68"/>
         <source>British</source>
         <translation>イギリス英語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="416"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="423"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="78"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="86"/>
         <source>Engine</source>
         <translation>エンジン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="435"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="98"/>
         <source>Voice: %1</source>
         <translation>音声: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="436"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="99"/>
         <source>No system voice is installed for this accent.</source>
         <translation>このアクセントのシステム音声がインストールされていません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="447"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="454"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="110"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="118"/>
         <source>Fallback</source>
         <translation>フォールバック</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="468"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="475"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="132"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="140"/>
         <source>Online source</source>
         <translation>オンラインの提供元</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="482"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="147"/>
         <source>Only the word is sent, to the source you pick.</source>
         <translation>送信されるのは単語のみで、選んだ提供元に送られます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="495"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="502"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="160"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="168"/>
         <source>Local voice</source>
         <translation>ローカル音声</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="594"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="404"/>
         <source>Text files (*.txt)</source>
         <translation>テキストファイル (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="21"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="40"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="20"/>
         <source>Downloaded and verified.</source>
         <translation>ダウンロード済み・検証済み。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="17"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="32"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="16"/>
         <source>Downloading %1%</source>
         <translation>ダウンロード中 %1%</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="19"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="18"/>
         <source>LJSpeech has only an American voice, so this accent stays silent.</source>
         <translation>LJSpeech はアメリカ英語の音声のみのため、このアクセントは無音のままです。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="22"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="21"/>
         <source>Not downloaded. The local engine stays silent.</source>
         <translation>未ダウンロード。ローカルエンジンは無音のままです。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="89"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="75"/>
         <source>Mastered words</source>
         <translation>習得済みの単語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="120"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="592"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="402"/>
         <source>Import a word list…</source>
         <translation>単語リストを取り込む…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="190"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="176"/>
         <source>One word per line. Importing marks every word mastered, once; the file is not watched afterwards.</source>
         <translation>1 行に 1 語。取り込むと各語が習得済みとして記録され、一度きりです。ファイルは以後読み取りません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="252"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="238"/>
         <source>Holding the globe on a card peeks at your mother tongue, but only under English. This setting writes explanations in the chosen language.</source>
         <translation>カード上で地球を長押しすると母語をのぞけますが、英語の説明のときだけです。この設定では、説明が選択した言語で表示されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="520"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="186"/>
         <source>Download</source>
         <translation>ダウンロード</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="532"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="198"/>
         <source>Remove</source>
         <translation>削除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="538"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="204"/>
         <source>Voice files stay on this computer and are not synced.</source>
         <translation>音声ファイルはこのコンピューターにのみ保存され、同期されません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="550"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="559"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="360"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="369"/>
         <source>Word review</source>
         <translation>単語の復習</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="571"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="381"/>
         <source>How often the pet raises its sign to ask a word you have looked up.</source>
         <translation>ペットがボードを掲げて、調べた単語を尋ねてくる間隔です。&gt;</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="581"/>
+        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="391"/>
         <source>Unavailable while the pet is off.</source>
         <translation>ペットがオフの間は利用できません。</translation>
     </message>
@@ -1484,7 +1490,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="91"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="92"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
@@ -1500,28 +1506,28 @@ One small word at a time, the reading opens.</translation>
         <translation>未設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="317"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="346"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="318"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="347"/>
         <source>Saved</source>
         <translation>保存しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="354"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="355"/>
         <source>Defaults restored</source>
         <translation>初期設定に戻しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="463"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="464"/>
         <source>Back</source>
         <translation>戻る</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="519"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="520"/>
         <source>Close</source>
         <translation>閉じる</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="653"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="655"/>
         <source>API key, launch at login and daily budget stay as they are.</source>
         <translation>API キー、自動起動、1 日の予算は変更されません。</translation>
     </message>
@@ -1657,7 +1663,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="338"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="625"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="627"/>
         <source>Confirm</source>
         <translation>確認</translation>
     </message>
@@ -1668,13 +1674,13 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="475"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="476"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="260"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="611"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="613"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
     </message>
@@ -2535,12 +2541,12 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="526"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="99"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="192"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="366"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="512"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="634"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="636"/>
         <source>Cancel</source>
         <translation>キャンセル</translation>
     </message>
@@ -2752,7 +2758,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="273"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="87"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="88"/>
         <source>Font</source>
         <translation>フォント</translation>
     </message>
@@ -2840,7 +2846,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="277"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="90"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="91"/>
         <source>Local engine paths</source>
         <translation>ローカルエンジンのパス</translation>
     </message>
@@ -2851,7 +2857,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="268"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="89"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="90"/>
         <source>Online OCR</source>
         <translation>オンライン OCR</translation>
     </message>
@@ -3096,7 +3102,7 @@ One small word at a time, the reading opens.</translation>
         <translation>手紙配達</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="34"/>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
         <source>Chrome, Notepad++, supported apps</source>
         <translation>Chrome、Notepad++ と対応アプリ</translation>
     </message>

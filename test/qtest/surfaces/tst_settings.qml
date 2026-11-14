@@ -252,7 +252,7 @@ Item {
             tryCompare(row, "visible", true);
         }
 
-        /// The pronunciation group (UI-SPEC.md 4.4, docs/adr/0134): two switches and two engine
+        /// The pronunciation page (UI-SPEC.md 4.4, docs/adr/0134): two switches and two engine
         /// rows, each writing through the one setting path and reading back from the projection.
         /// The rows are driven rather than only read because a setting the reader can move but not
         /// see come back is the failure this page has to not have.
@@ -265,16 +265,16 @@ Item {
             const main = make();
             Util.surfaceHost(main).showSettings();
             const panel = settingsPanel(main);
-            openCategory(panel, "Reading & learning");
+            openCategory(panel, "Pronunciation");
 
             // Auto-play: the one switch, off unless the reader turns it on.
             const autoPlay = named(panel, "speechAutoPlaySwitch");
-            verify(autoPlay, "the pronunciation group has no auto-play row");
+            verify(autoPlay, "the pronunciation page has no auto-play row");
             compare(autoPlay.checked, false, "auto-play did not start off");
 
-            // The group sits below the fold of a 720 px panel, so the page is scrolled the way the
-            // reader scrolls it: the row is brought into the middle of the viewport rather than to
-            // the very bottom, where the panel's header would be over it.
+            // The page's rows sit below the fold of a 720 px panel, so the page is scrolled the
+            // way the reader scrolls it: the row is brought into the middle of the viewport rather
+            // than to the very bottom, where the panel's header would be over it.
             const scroller = Util.scrollerOf(autoPlay);
             verify(scroller, "the pronunciation rows are not inside a scrolling page");
             const rowInContent = autoPlay.mapToItem(scroller.contentItem, 0, 0).y;
@@ -292,7 +292,7 @@ Item {
 
             // Accent: a two-way segment, and British is the second cell.
             const accent = named(panel, "speechAccentField");
-            verify(accent, "the pronunciation group has no accent segment");
+            verify(accent, "the pronunciation page has no accent segment");
             compare(accent.labels.length, 2, "the accent is a two-way choice");
             compare(accent.currentIndex, 0, "the accent did not start on the American default");
             const british = Util.textWith(Util.textsUnder(accent), ["British"]).parent;
@@ -304,7 +304,7 @@ Item {
             // The two engine rows are dropdowns, and the values they offer are the ones the table
             // stores -- a label the document would refuse is a row that writes nothing.
             const engine = named(panel, "speechEngineField");
-            verify(engine, "the pronunciation group has no engine field");
+            verify(engine, "the pronunciation page has no engine field");
             compare(engine.options.length, 3, "the engine is a three-way choice");
             compare(engine.currentValue, "system", "the engine did not start on the system default");
             Controller.setSetting("speechEngine", "online");
@@ -312,7 +312,7 @@ Item {
             compare(engine.currentValue, "online", "the engine field did not follow the document");
 
             const fallback = named(panel, "speechFallbackField");
-            verify(fallback, "the pronunciation group has no fallback field");
+            verify(fallback, "the pronunciation page has no fallback field");
             compare(fallback.options.length, 3, "the fallback is a three-way choice");
             compare(fallback.currentValue, "online", "the fallback did not start on the online default");
 
@@ -326,12 +326,12 @@ Item {
             // The local voice is a three-way choice that starts on automatic (ADR 0135), and the line under
             // it says what the chosen voice is doing on this machine: something, whether or not it is there.
             const localEngine = named(panel, "speechLocalEngineField");
-            verify(localEngine, "the pronunciation group has no local voice field");
+            verify(localEngine, "the pronunciation page has no local voice field");
             compare(localEngine.options.length, 3, "the local voice is a three-way choice");
             compare(localEngine.currentValue, "auto", "the local voice did not start on automatic");
 
             const voiceState = named(panel, "speechLocalVoiceState");
-            verify(voiceState, "the pronunciation group has no local voice line");
+            verify(voiceState, "the pronunciation page has no local voice line");
             compare(voiceState.visible, true);
             verify(voiceState.text.length > 0, "the local voice line says nothing");
 
