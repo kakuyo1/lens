@@ -8,6 +8,6 @@
   - 按钮：打开转储文件夹、报告问题。issue URL 的构造下沉为 `util/crash` 的纯函数 `crashIssueUrl`，门面与 reporter 共用一份模板，两处不能漂移。
   - reporter 只读 marker 与 `uiLanguage`，不上传任何东西；动作之外不做别的事。
 - **后果**：
-  - WER 开启的机器会同时看到系统对话框与 reporter，并存可接受；CRT 漏斗路径（terminate、abort 等 `TerminateProcess` 死）没有 WER，reporter 是唯一的即时反馈。
+  - WER 开启的机器会同时看到系统对话框与 reporter，并存可接受；CRT 漏斗路径（terminate、abort 等 `TerminateProcess` 死）没有 WER，reporter 是唯一的即时反馈。2026-11-14 修订：并存被读者否决——系统的停止工作框读起来像第二次崩溃，`installCrashDumpHandler` 以 `SetErrorMode(SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS)` 关掉 SEH 路径的系统框，reporter 是唯一弹窗；WER 的后台上报与调试器第二机会不受影响（SEH 仍 `EXCEPTION_CONTINUE_SEARCH`）。
   - 原生对话框有意不进 UI-SPEC：它是 OS 风格，不是玻璃/QML 表面，崩溃当下也载入不了 QML。
   - 摘要格式与文案有了第二处读者：格式改动同步 `util/crash` 与 reporter；文案改动同步 `.ts` 与 reporter 的语言表。

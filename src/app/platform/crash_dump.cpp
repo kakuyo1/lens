@@ -266,6 +266,12 @@ void installCrashDumpHandler(const std::filesystem::path& logDir)
     // A directory that cannot be made only means every write below will fail; the run goes on.
     std::filesystem::create_directories(g_dumpDir, ec);
 
+    // The spawned reporter is the dialog the reader sees (docs/adr/0175); on the SEH path
+    // Windows' own fault box would stand beside it, which the reader reads as a second crash.
+    // The mode asks WER to stay quiet on the screen while its silent reporting and a debugger's
+    // second chance still happen -- EXCEPTION_CONTINUE_SEARCH below is what keeps those.
+    SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+
     SetUnhandledExceptionFilter(&unhandledExceptionFilter);
     std::set_terminate(&terminateHandler);
     _set_purecall_handler(&pureCallHandler);

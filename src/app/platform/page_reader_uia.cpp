@@ -319,8 +319,12 @@ std::optional<capture::WordRead> UiaPage::read(capture::Word const& word)
     QRect const             full  = firstBoxOf(range);
     if (cut == 0) return full.isEmpty() ? std::nullopt : std::optional<capture::WordRead>{{utf8, bandOf(full), std::nullopt}};
 
+    // A clone of a range the page has just retired hands back an empty handle; a virtual call
+    // through it would fault the process. Say the letters' end could not be read -- the shape a
+    // failed Move below already returns -- and let the caller trim by its own policy.
     auto const retracted = cloneOf(range);
-    int        moved     = 0;
+    if (not retracted) return capture::WordRead{utf8, bandOf(full), std::nullopt};
+    int moved = 0;
     if (SUCCEEDED(retracted->MoveEndpointByUnit(TextPatternRangeEndpoint_End, TextUnit_Character, -cut, &moved)) and moved == cut) {
         auto const boxes = boxesOf(*retracted);
         if (boxes.empty()) return capture::WordRead{utf8, bandOf(full), capture::Band{}}; // nothing but punctuation: the token leaves the scan
@@ -328,7 +332,8 @@ std::optional<capture::WordRead> UiaPage::read(capture::Word const& word)
         return capture::WordRead{utf8, bandOf(full), bandOf(QRect{front.x() + front.width(), front.y(), 0, front.height()})};
     }
     auto const cursor = cloneOf(range);
-    int const  junkAt = text.size() - cut;
+    if (not cursor) return capture::WordRead{utf8, bandOf(full), std::nullopt};
+    int const junkAt = text.size() - cut;
     if (FAILED(cursor->Move(TextUnit_Character, junkAt, &moved)) or moved != junkAt) return capture::WordRead{utf8, bandOf(full), std::nullopt};
     cursor->ExpandToEnclosingUnit(TextUnit_Character);
     auto const boxes = boxesOf(*cursor);
