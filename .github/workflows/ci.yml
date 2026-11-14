@@ -254,13 +254,13 @@ jobs:
               Get-Process -Id $suite.Id | Format-List *
             }
             $suite.Kill()
-            "=== the suite's own output, up to the hang:"
-            Get-Content "unit-asan-out.log" -Tail 40
-            "=== stderr, up to the hang:"
-            Get-Content "unit-asan-err.log" -Tail 40
-            exit 1
+            "=== killed at the hang; the suite's output up to it follows"
           }
           "=== the suite exited with $($suite.ExitCode)"
+          "=== stdout, last 40 lines:"
+          Get-Content "unit-asan-out.log" -Tail 40
+          "=== stderr, last 40 lines:"
+          Get-Content "unit-asan-err.log" -Tail 40
           exit $suite.ExitCode
 
       - name: Pet controller tests under ASan
