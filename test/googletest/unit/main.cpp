@@ -39,30 +39,23 @@ extern "C" void __asan_set_death_callback(void (*callback)(void));
 
 namespace {
 
-/// @brief Print the current thread's call stack, symbolized against the PDB beside the exe.
-/// @note Shared by both handlers; MSVC's runtime never says what an uncaught exception was, so
-///       the stack is the only locator either of them can offer.
-void printStack()
+/// @brief Print the current thread's call stack, frames as offsets from the exe's base.
+/// @param self The exe's base, taken from a known address inside it.
+/// @note In-process dbghelp cannot load the PDB from inside the sanitizer's death path, so the
+///       frames are printed as offsets and mapped offline against the PDB the job uploads.
+///       Frames outside the exe print as absolute addresses.
+void printStack(HMODULE self)
 {
-    HANDLE const process = GetCurrentProcess();
-    SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
-    SymInitialize(process, nullptr, TRUE);
-
     void*      frames[62] = {};
     WORD const count      = CaptureStackBackTrace(0, 62, frames, nullptr);
-    std::fprintf(stderr, "\n=== stack, %u frames:\n", static_cast<unsigned>(count));
-
-    alignas(SYMBOL_INFO) char buffer[sizeof(SYMBOL_INFO) + 256] = {};
-    auto*                     symbol                            = reinterpret_cast<SYMBOL_INFO*>(buffer);
-    symbol->SizeOfStruct                                        = sizeof(SYMBOL_INFO);
-    symbol->MaxNameLen                                          = 255;
+    std::fprintf(stderr, "\n=== stack, %u frames, exe base 0x%llx:\n", static_cast<unsigned>(count), static_cast<unsigned long long>(reinterpret_cast<DWORD64>(self)));
     for (WORD frame = 0; frame < count; ++frame) {
-        DWORD64 const address      = reinterpret_cast<DWORD64>(frames[frame]);
-        DWORD64       displacement = 0;
-        if (SymFromAddr(process, address, &displacement, symbol))
-            std::fprintf(stderr, "  #%-2u %s + 0x%llx\n", static_cast<unsigned>(frame), symbol->Name, static_cast<unsigned long long>(displacement));
+        auto const    address = reinterpret_cast<DWORD64>(frames[frame]);
+        DWORD64 const rva     = address - reinterpret_cast<DWORD64>(self);
+        if (rva < 0x100000000ull)
+            std::fprintf(stderr, "  #%-2u exe+0x%llx\n", static_cast<unsigned>(frame), static_cast<unsigned long long>(rva));
         else
-            std::fprintf(stderr, "  #%-2u 0x%llx\n", static_cast<unsigned>(frame), static_cast<unsigned long long>(address));
+            std::fprintf(stderr, "  #%-2u abs 0x%llx\n", static_cast<unsigned>(frame), static_cast<unsigned long long>(address));
     }
     std::fflush(stderr);
     _exit(3);
@@ -75,7 +68,7 @@ void printStack()
 void onAbort(int /*signal*/)
 {
     std::fprintf(stderr, "\n=== SIGABRT\n");
-    printStack();
+    printStack(GetModuleHandleW(nullptr));
 }
 
 /// @brief Name the exception terminate was called for, then print the stack and exit.
@@ -94,7 +87,7 @@ void onTerminate()
     } else {
         std::fprintf(stderr, "\n=== terminate with no active exception\n");
     }
-    printStack();
+    printStack(GetModuleHandleW(nullptr));
 }
 
 /// @brief Print a symbolized stack for an unhandled access violation and end the process.
@@ -110,7 +103,7 @@ LONG WINAPI onAccessViolation(EXCEPTION_POINTERS* info)
     if (info != nullptr && info->ExceptionRecord != nullptr &&
         info->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
         std::fprintf(stderr, "\n=== unhandled access violation\n");
-        printStack();
+        printStack(GetModuleHandleW(nullptr));
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -123,8 +116,12 @@ LONG WINAPI onAccessViolation(EXCEPTION_POINTERS* info)
 ///       whose stack still carries the frames below the sanitizer's own.
 void onSanitizerDeath()
 {
-    std::fprintf(stderr, "\n=== sanitizer death, symbolized stack follows\n");
-    printStack();
+    std::fprintf(stderr, "\n=== sanitizer death, stack follows\n");
+    HMODULE self = nullptr;
+    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                       reinterpret_cast<LPCWSTR>(&onSanitizerDeath),
+                       &self);
+    printStack(self);
 }
 #endif
 
