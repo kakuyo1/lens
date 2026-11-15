@@ -22,7 +22,9 @@
  * A reply finishes on the next turn of the loop, so the client's own connections exist before
  * `finished` arrives. One answer is the default; queue() gives the next request its own, which is
  * what a round of more than one call needs. What each request carried is kept, so a case can read
- * back the body a POST or a PATCH sent.
+ * back the body a POST or a PATCH sent. An answer may carry the headers a client reads from the
+ * reply -- a Location, a Content-Type, a Link -- and announces its body's size as download
+ * progress, which is what a ceiling cut-off reads.
  */
 
 namespace lens::test {
@@ -33,7 +35,7 @@ namespace lens::test {
 /// has to read as offline.
 class ScriptedReply final : public QNetworkReply {
 public:
-    ScriptedReply(QObject* parent, int status, QString location = {}, qint64 length = 0, bool answers = true, QByteArray body = {})
+    ScriptedReply(QObject* parent, int status, QString location = {}, qint64 length = 0, bool answers = true, QByteArray body = {}, QByteArray contentType = {}, QByteArray link = {})
         : QNetworkReply(parent), status_(status), body_(std::move(body))
     {
         // A reply that never answers has no status: a real connection that times out before its
@@ -44,6 +46,11 @@ public:
             setHeader(QNetworkRequest::LocationHeader, location);
         if (length > 0)
             setHeader(QNetworkRequest::ContentLengthHeader, length);
+        if (not contentType.isEmpty())
+            setHeader(QNetworkRequest::ContentTypeHeader, contentType);
+        // The pagination header some clients read from the answer rather than the body.
+        if (not link.isEmpty())
+            setRawHeader("Link", link);
         open(QIODevice::ReadOnly);
         if (answers)
             QTimer::singleShot(0, this, [this] { deliver(); });
@@ -73,8 +80,13 @@ public:
             return;
         delivered_ = true;
         // A real transfer announces its bytes before it finishes, and the client reads them then.
+        // Progress carries the same count: a client that cuts an answer off at its ceiling reads
+        // the size from here, since a stub never streams.
+        const qint64 announced = static_cast<qint64>(body_.size());
         if (not body_.isEmpty())
             emit readyRead();
+        if (announced > 0)
+            emit downloadProgress(announced, announced);
         setFinished(true);
         emit finished();
     }
@@ -95,15 +107,15 @@ public:
         QByteArray body; ///< What the request carried; empty for a GET or a DELETE.
     };
 
-    explicit ScriptedManager(int status = 302, QString location = {}, bool answers = true, QByteArray body = {})
-        : default_{status, std::move(location), answers, std::move(body)}
+    explicit ScriptedManager(int status = 302, QString location = {}, bool answers = true, QByteArray body = {}, QByteArray contentType = {}, QByteArray link = {})
+        : default_{status, std::move(location), answers, std::move(body), std::move(contentType), std::move(link)}
     {
     }
 
     /// @brief Give the next request its own answer, ahead of the default one.
-    void queue(int status, QByteArray body = {}, QString location = {}, bool answers = true)
+    void queue(int status, QByteArray body = {}, QString location = {}, bool answers = true, QByteArray contentType = {}, QByteArray link = {})
     {
-        queued_.push_back(Answer{status, std::move(location), answers, std::move(body)});
+        queued_.push_back(Answer{status, std::move(location), answers, std::move(body), std::move(contentType), std::move(link)});
     }
 
     int requests = 0;
@@ -141,7 +153,7 @@ protected:
             answer = std::move(queued_.front());
             queued_.pop_front();
         }
-        return new ScriptedReply(this, answer.status, answer.location, announceLength, answer.answers, std::move(answer.body));
+        return new ScriptedReply(this, answer.status, answer.location, announceLength, answer.answers, std::move(answer.body), std::move(answer.contentType), std::move(answer.link));
     }
 
 private:
@@ -152,6 +164,8 @@ private:
         /// client whose answer it delivers itself rather than one the stub hands over.
         bool       answers;
         QByteArray body;
+        QByteArray contentType;
+        QByteArray link;
     };
 
     Answer             default_;

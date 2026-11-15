@@ -59,6 +59,10 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/picture_pure_test.cpp
   unit/picture_duty_test.cpp
   unit/speech_test.cpp
+  unit/voice_downloader_test.cpp
+  unit/youdao_source_test.cpp
+  unit/online_sources_test.cpp
+  unit/audio_cache_test.cpp
   unit/google_source_test.cpp
   unit/voice_catalog_test.cpp
   unit/cost_duty_test.cpp

@@ -37,8 +37,9 @@ std::filesystem::path AudioCache::defaultRoot()
     return std::filesystem::path{base.toStdWString()} / L"audio";
 }
 
-AudioCache::AudioCache(std::filesystem::path root)
-    : root_(std::move(root))
+AudioCache::AudioCache(std::filesystem::path root, qint64 maxBytes)
+    : root_(std::move(root)),
+      maxBytes_(maxBytes)
 {
 }
 
@@ -130,7 +131,7 @@ void AudioCache::prune() const
         total += entry.bytes;
         entries.push_back(entry);
     }
-    if (total <= kMaxBytes)
+    if (total <= maxBytes_)
         return;
 
     // Oldest first: a word the reader has not pressed in months goes before one they pressed today.
@@ -138,7 +139,7 @@ void AudioCache::prune() const
         return left.wantedAt < right.wantedAt;
     });
     for (auto const& entry : entries) {
-        if (total <= kMaxBytes)
+        if (total <= maxBytes_)
             break;
         std::error_code removed;
         if (std::filesystem::remove(entry.path, removed))
