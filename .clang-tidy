@@ -16,45 +16,19 @@
 # gate only ever judges files in this repository. The probe found no diagnostic inside the
 # googletest headers, whose paths also carry a src/ segment; if one ever appears, that is what
 # this comment explains.
+#
+# The ratchet is at zero as of 2026-11-15: every check the first probe excluded has been fixed,
+# its exclusion has come off, and what the Checks list runs is the whole set the tree passes
+# clean. The per-check work and the residues it left -- a chain whose first arrow belongs to a
+# shared_ptr, a lambda whose assert wants its own line -- live in the commits that cleared them.
+
 Checks: >
   -*,
   clang-analyzer-core.*,
   clang-analyzer-cplusplus.*,
   bugprone-*,
   performance-*,
-  modernize-use-override,
-  -bugprone-branch-clone,
-  -bugprone-exception-escape,
-  -bugprone-easily-swappable-parameters,
-  -bugprone-implicit-widening-of-multiplication-result,
-  -bugprone-lambda-function-name,
-  -bugprone-narrowing-conversions,
-  -bugprone-unchecked-optional-access,
-  -clang-analyzer-cplusplus.NewDeleteLeaks,
-  -performance-enum-size,
-  -performance-move-const-arg,
-  -performance-no-automatic-move,
-  -performance-no-int-to-ptr,
-  -performance-unnecessary-value-param
-
-# The excluded ones, with the counts the tree-wide probe found and why each waits:
-#   bugprone-branch-clone 18 -- identical consecutive cases are often deliberate; each wants a look
-#   bugprone-exception-escape 29 -- value-type moves and destructors that may throw; per-instance review
-#   bugprone-easily-swappable-parameters 26 -- an API-design judgement, not a mechanical fix
-#   bugprone-implicit-widening-of-multiplication-result 133 -- a real overflow class with a backlog of its own
-#   bugprone-lambda-function-name 50
-#   bugprone-narrowing-conversions 32
-#   bugprone-unchecked-optional-access 486 -- the tree's optional invariants span functions the
-#     analyzer cannot see; each of the 486 wants human eyes before the check comes back
-#   clang-analyzer-cplusplus.NewDeleteLeaks 8 -- every one is QMetaObject::invokeMethod with a
-#     lambda; the ownership transfer into QMetaCallEvent is invisible to the analyzer
-#   performance-enum-size 586 -- an underlying type per enum, and the data-bearing ones want
-#     their storage semantics argued, not defaulted
-#   performance-move-const-arg 25
-#   performance-no-automatic-move 11
-#   performance-no-int-to-ptr 15
-#   performance-unnecessary-value-param 36 -- Qt's shared classes make pass-by-value the idiom
-
+  modernize-use-override
 CheckOptions:
   - key:   bugprone-empty-catch.AllowEmptyCatchForExceptions
     value: winrt::hresult_error
