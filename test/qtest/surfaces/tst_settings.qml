@@ -2,6 +2,7 @@ import QtQuick
 import QtTest
 import Lens
 import "../testutil.js" as Util
+import "../../../src/app/qml/util/Format.js" as Format
 
 /**
  * The settings panel's category navigation, sign-in switch and clipboard policy page
@@ -244,6 +245,29 @@ Item {
             compare(Tokens.motion.bubble, SystemMotion.reduced ? 0 : 220);
         }
 
+        /// The behavior record's one switch: the events stay; this decides whether a foreground
+        /// app's name is part of one. Driven and read back like the animation switch (UI-SPEC.md 4.4).
+        function test_theForegroundAppSwitchWritesThroughTheController() {
+            Controller.setSetting("recordForegroundApp", true);
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "General");
+
+            const row = switchRowLabelled(panel, "Record the app you read in");
+            verify(row, "the General page has no foreground-app switch");
+            compare(row.checked, Controller.settings.recordForegroundApp);
+            bringIntoView(row);
+
+            const switcher = Util.ofType(row, "Switch");
+            verify(switcher, "the foreground-app row has no switch control");
+            mouseClick(switcher, switcher.width / 2, switcher.height / 2);
+            tryCompare(Controller.settings, "recordForegroundApp", false);
+
+            Controller.setSetting("recordForegroundApp", true);
+            tryCompare(row, "checked", true);
+        }
+
         /// The typing speed has no pace to set once motion is off, so its row is shown with the
         /// switch that governs motion and hidden with it, rather than left as a control that moves
         /// without doing anything.
@@ -355,6 +379,28 @@ Item {
             Controller.setSetting("speechAccent", "us");
             Controller.setSetting("speechEngine", "system");
             Controller.setSetting("speechFallback", "online");
+        }
+
+        /// The About page's behavior row: it shows the bytes the event log holds and its clear action
+        /// empties them. This target's profile is a scratch copy, so the press touches no reader data.
+        function test_theEventDataRowShowsItsSizeAndClears() {
+            const main = make();
+            Util.surfaceHost(main).showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "About");
+
+            const row = named(panel, "eventDataRow");
+            verify(row, "the About page has no behavior data row");
+            const size = named(panel, "eventDataSize");
+            verify(size, "the behavior row carries no size");
+            compare(size.text, Format.formatBytes(Controller.telemetryDuty.eventBytes));
+
+            const button = named(panel, "clearEventDataButton");
+            verify(button, "the behavior row carries no clear action");
+            mouseClick(button, button.width / 2, button.height / 2);
+            tryVerify(() => Controller.telemetryDuty.eventBytes === 0, 2000, "the clear action did not empty the event data");
+            wait(20);
+            compare(size.text, "0 B");
         }
 
         function test_theDailyBudgetIsReachableAndPersistsThroughTheController() {

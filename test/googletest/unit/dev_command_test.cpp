@@ -13,6 +13,7 @@
 namespace {
 
 using lens::core::dev::SettingKey;
+using lens::core::dev::TelemetryWhat;
 using lens::core::dev::Verb;
 using lens::core::dev::WaitFor;
 using lens::core::dev::parseCommand;
@@ -321,6 +322,22 @@ TEST(DevCommandParse, SettingSetRefusesAKeyOrValueOffTheWhitelist)
         EXPECT_FALSE(parsed.command) << line;
         EXPECT_FALSE(parsed.error.empty()) << line;
     }
+}
+
+TEST(DevCommandParse, TelemetryTakesSummaryOrReport)
+{
+    auto const summary = parseCommand("telemetry summary");
+    ASSERT_TRUE(summary.command);
+    EXPECT_EQ(summary.command.value().verb, Verb::Telemetry);
+    EXPECT_EQ(summary.command.value().telemetryWhat, TelemetryWhat::Summary);
+
+    auto const report = parseCommand("telemetry report");
+    ASSERT_TRUE(report.command);
+    EXPECT_EQ(report.command.value().verb, Verb::Telemetry);
+    EXPECT_EQ(report.command.value().telemetryWhat, TelemetryWhat::Report);
+
+    EXPECT_FALSE(parseCommand("telemetry").command);
+    EXPECT_FALSE(parseCommand("telemetry export").command);
 }
 
 TEST(DevCommandParse, QuitTakesNoArguments)

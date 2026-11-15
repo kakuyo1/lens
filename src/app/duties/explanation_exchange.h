@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <string>
 
 #include "app/duties/card_session.h"
 #include "app/duties/explanation_queue.h"
@@ -88,6 +89,10 @@ public:
         QString             noticeLemma; ///< Notice: the review's miss
         /// Non-empty when the answer came out of the cache and counts as a pop, card or not.
         QString popLemma;
+        /// @brief The door the pop came through, as the behavior event spells it: "selection" or
+        ///        "scan". The exchange knows the scan's own queue; a cache hit from the reader's ask
+        ///        is a selection.
+        std::string source = "selection";
     };
 
     /// @param store The document whose cache this transaction reads and writes.

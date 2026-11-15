@@ -5,7 +5,13 @@
 
 #include "reading_profile_duty.h"
 
+#include <QDateTime>
+
+#include <string>
+#include <string_view>
 #include <utility>
+
+#include <nlohmann/json.hpp>
 
 #include "app/settings_access.h"
 #include "core/document/reading_profile.h"
@@ -15,6 +21,28 @@
 #include "util/text.h"
 
 namespace lens::app {
+namespace {
+
+/// @brief Queue one model call's usage, with its kind, start time and outcome.
+void recordLlmCall(TelemetrySink* sink, std::string_view kind, llm::Usage const& usage, qint64 startedMs, bool const ok)
+{
+    if (sink == nullptr)
+        return;
+    if (ok && usage.promptTokens == 0 && usage.completionTokens == 0 && usage.model.isEmpty())
+        return;
+
+    nlohmann::json data = {{"kind", std::string(kind)},
+                           {"ok", ok},
+                           {"promptTokens", usage.promptTokens},
+                           {"completionTokens", usage.completionTokens}};
+    if (!usage.model.isEmpty())
+        data["model"] = usage.model.toStdString();
+    if (startedMs > 0)
+        data["latencyMs"] = QDateTime::currentMSecsSinceEpoch() - startedMs;
+    sink->record("llm.call", std::move(data));
+}
+
+}
 
 ReadingProfileDuty::ReadingProfileDuty(StorageDuty& storage, llm::LlmClient& llm, CostDuty& cost, DateProvider dateProvider, QObject* parent)
     : QObject(parent),
@@ -29,6 +57,11 @@ ReadingProfileDuty::ReadingProfileDuty(StorageDuty& storage, llm::LlmClient& llm
     connect(&cost_, &CostDuty::statsChanged, this, &ReadingProfileDuty::storyChanged);
     connect(&llm_, &llm::LlmClient::profileAnswered, this, &ReadingProfileDuty::onAnswered);
     connect(&llm_, &llm::LlmClient::storyAnswered, this, &ReadingProfileDuty::onStoryAnswered);
+}
+
+void ReadingProfileDuty::setTelemetry(TelemetrySink* telemetry)
+{
+    telemetry_ = telemetry;
 }
 
 core::ReadingProfile ReadingProfileDuty::weekProfile() const
@@ -100,6 +133,7 @@ void ReadingProfileDuty::interpret()
     // The summary is the only text this request carries; the interface language picks the closing
     // line, so the observations read in the language of the panel that shows them.
     const QString language = settings::read(storage_.section(), *core::settings::find("uiLanguage")).toString();
+    interpretStartedMs_    = QDateTime::currentMSecsSinceEpoch();
     llm_.requestProfile(now.value("summary").toString(), language);
 }
 
@@ -120,6 +154,7 @@ void ReadingProfileDuty::tellStory()
     story_        = {};
     storyFailure_.clear();
     emit storyChanged();
+    storyStartedMs_ = QDateTime::currentMSecsSinceEpoch();
     llm_.requestStory(listed);
 }
 
@@ -173,6 +208,8 @@ void ReadingProfileDuty::onAnswered(QVector<llm::ProfileLine> const& points, llm
 {
     interpreting_ = false;
     cost_.recordUsage(util::localMinuteNow(), usage);
+    recordLlmCall(telemetry_, "portrait", usage, interpretStartedMs_, failure.isEmpty());
+    interpretStartedMs_ = 0;
     storage_.save();
     points_.clear();
     for (const llm::ProfileLine& point : points)
@@ -185,6 +222,8 @@ void ReadingProfileDuty::onStoryAnswered(llm::StoryAnswer answer, llm::Usage con
 {
     storyWriting_ = false;
     cost_.recordUsage(util::localMinuteNow(), usage);
+    recordLlmCall(telemetry_, "story", usage, storyStartedMs_, failure.isEmpty());
+    storyStartedMs_ = 0;
     storage_.save();
     story_ = std::move(answer);
     // The story is never logged, only its length: the prompt asks for 100 to 300 words, and a longer answer is cut to the panel's limit.

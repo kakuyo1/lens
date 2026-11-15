@@ -207,6 +207,11 @@ inline constexpr Row kRows[]{
     {.key = "ocrOnlineProvider", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
     {.key = "ocrOnlineEndpoint", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},
     {.key = "ocrOnlineLanguage", .kind = Kind::Choice, .signal = Signal::Capture, .fallback = "eng", .members = kOcrOnlineLanguages},
+
+    // Behavior record: whether the foreground process name rides an event. Not synced -- which
+    // applications a machine reads in is that machine's -- and the event log itself is not a
+    // setting: the keys here are the settings the panel owns.
+    {.key = "recordForegroundApp", .kind = Kind::Toggle, .signal = Signal::Settings, .fallback = true},
 };
 
 /**

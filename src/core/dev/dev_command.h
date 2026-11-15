@@ -39,6 +39,8 @@ enum class Verb : std::uint8_t {
     Help,
     Selection,
     SettingSet,
+    /// Read the behavior log: its counts, or the aggregated report, for a run's manual check.
+    Telemetry,
     /// Drive the scan session without a browser: arm the placement its frames are placed in, inject
     /// a frame, or clear it (docs/adr/0165).
     Scan,
@@ -62,6 +64,12 @@ struct Region {
     int y{0};
     int width{0};
     int height{0};
+};
+
+/// What a `telemetry` line reads.
+enum class TelemetryWhat : std::uint8_t {
+    Summary, ///< Counts by event name.
+    Report,  ///< Days, sessions, hours, words, features and applications.
 };
 
 /// What a `scan` line does.
@@ -154,6 +162,8 @@ struct Command {
     /// Whether those ticks are a touchpad's rather than a mouse's: pixel deltas carried in scroll
     /// phases, the gesture a Flickable answers with its own momentum rather than a step per notch.
     bool wheelPad{false};
+    /// What a `telemetry` line reads; unread by every other verb.
+    TelemetryWhat telemetryWhat{TelemetryWhat::Summary};
     /// What a `scan` line does; unread by every other verb.
     ScanWhat scan{ScanWhat::Clear};
     /// The frame a `scan frame` line injects; unread by every other verb.

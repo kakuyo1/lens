@@ -13,6 +13,7 @@
 #include "core/domain/review_schedule.h"
 #include "core/document/explanation_cache.h"
 #include "storage_duty.h"
+#include "telemetry_sink.h"
 
 /**
  * @file review_duty.h
@@ -80,6 +81,9 @@ public:
     ///       the earliest possible moment, never the moment (UI-SPEC.md 4.8, 4.13).
     long long dueOf(std::string const& lemma) const;
 
+    /// @brief Wire the behavior-event sink in, after construction.
+    void setTelemetry(TelemetrySink* telemetry);
+
 signals:
     /// @brief The question went up or came down; word() holds the current one.
     void wordChanged();
@@ -111,6 +115,8 @@ private:
     long long nextLook_{0};
     QTimer    clock_;
     QTimer    timeout_;
+    /// The behavior-event sink. Null in a duty test that does not care about events.
+    TelemetrySink* telemetry_ = nullptr;
 };
 
 }

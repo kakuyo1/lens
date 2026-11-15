@@ -115,7 +115,7 @@ Item {
             HoverHandler { cursorShape: Qt.PointingHandCursor }
             TapHandler {
                 id: knownTap
-                onTapped: Controller.explanationDuty.mark(root.lemma, "known")
+                onTapped: Controller.explanationDuty.markVia(root.lemma, "known", "bubble")
             }
         }
 
@@ -153,7 +153,7 @@ Item {
             HoverHandler { cursorShape: Qt.PointingHandCursor }
             TapHandler {
                 id: masteredTap
-                onTapped: Controller.explanationDuty.mark(root.lemma, "mastered")
+                onTapped: Controller.explanationDuty.markVia(root.lemma, "mastered", "bubble")
             }
         }
 
@@ -189,7 +189,7 @@ Item {
             HoverHandler { cursorShape: Qt.PointingHandCursor }
             TapHandler {
                 id: newTap
-                onTapped: Controller.explanationDuty.mark(root.lemma, "new")
+                onTapped: Controller.explanationDuty.markVia(root.lemma, "new", "bubble")
             }
         }
     }

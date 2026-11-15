@@ -134,9 +134,9 @@ void SyncRound::removeCloud()
             hooks_.error("noGist");
         return;
     }
-    if (!partition_.signedIn())
-        return;
 
+    // The credentials are the adapter's judgement: GitHub keeps a token pair, WebDAV three stored
+    // fields, and only the backend knows which. A delete needs the gist id, not the token alone.
     // The reader pressed the button, so a failure is reported rather than retried.
     manual_           = true;
     refreshedThisRun_ = false;
@@ -278,6 +278,8 @@ void SyncRound::onDelete(const Answer& answer)
     // The cloud copy is gone, so the last upload no longer describes it: the next run uploads even
     // when nothing on this device has changed.
     uploadedFingerprint_.clear();
+    if (hooks_.deleted)
+        hooks_.deleted();
     succeed();
 }
 

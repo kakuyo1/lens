@@ -304,6 +304,8 @@ nlohmann::json DevSurface::execute(core::dev::Command const& command)
             return injectScan(command);
         case core::dev::Verb::SettingSet:
             return setSetting(command);
+        case core::dev::Verb::Telemetry:
+            return telemetry(command.telemetryWhat);
         case core::dev::Verb::Wait:
             break;
     }
@@ -526,6 +528,18 @@ nlohmann::json DevSurface::setSetting(core::dev::Command const& command)
     return controller_->setSetting(QString::fromStdString(key), value)
                ? success()
                : failure("setting set " + key + ": refused");
+}
+
+nlohmann::json DevSurface::telemetry(core::dev::TelemetryWhat const what)
+{
+    auto const name = what == core::dev::TelemetryWhat::Report ? std::string{"report"} : std::string{"summary"};
+    if (controller_ == nullptr)
+        return failure("telemetry " + name + ": the controller is not present");
+    // The queue may still hold the events this run is asking about; a dev answer reads what the
+    // log has now, not what the next timer tick would write.
+    controller_->telemetryDuty()->flush();
+    return what == core::dev::TelemetryWhat::Report ? controller_->telemetryDuty()->report()
+                                                    : controller_->telemetryDuty()->summary();
 }
 
 nlohmann::json DevSurface::state() const

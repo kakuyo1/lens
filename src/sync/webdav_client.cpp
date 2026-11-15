@@ -8,6 +8,9 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QXmlStreamReader>
+
+#include <optional>
 
 #include "util/log.h"
 
@@ -17,6 +20,46 @@ namespace {
 constexpr int kTimeoutMs = 15000;
 /// The most any single answer may be. A sync document is far smaller; this is a ceiling, not a plan.
 constexpr int kMaxBodyBytes = 10 * 1024 * 1024;
+
+/// @return The direct children of the collection @p body describes, or nothing when the XML is
+///         malformed. The collection itself and deeper paths are not children.
+std::optional<QStringList> collectionNames(QByteArray const& body, QUrl const& collectionUrl)
+{
+    QUrl    base     = collectionUrl;
+    QString basePath = base.path(QUrl::FullyDecoded);
+    if (not basePath.endsWith(u'/')) {
+        basePath += u'/';
+        base.setPath(basePath);
+    }
+
+    QStringList      names;
+    QXmlStreamReader reader(body);
+    while (not reader.atEnd()) {
+        reader.readNext();
+        if (not reader.isStartElement() or reader.name() != QLatin1String("href"))
+            continue;
+        const QString href = reader.readElementText(QXmlStreamReader::IncludeChildElements).trimmed();
+        if (href.isEmpty())
+            continue;
+        QUrl target{href};
+        if (target.isRelative())
+            target = base.resolved(target);
+        const QString path = target.path(QUrl::FullyDecoded);
+        if (not path.startsWith(basePath))
+            continue;
+        QString name = path.mid(basePath.size());
+        while (name.endsWith(u'/'))
+            name.chop(1);
+        if (name.isEmpty() or name.contains(u'/'))
+            continue;
+        names.append(name);
+    }
+    if (reader.hasError())
+        return std::nullopt;
+    names.sort(Qt::CaseSensitive);
+    names.removeDuplicates();
+    return names;
+}
 
 /// @return Whether a URL is one the WebDAV calls may be sent to: http or https, since a reader's own
 ///        NAS or an Alist on the LAN is legitimately plain http.
@@ -56,6 +99,34 @@ quint64 WebDavClient::propfind(const QString& server, const QString& username, c
         }
         emit found(callId, true);
     });
+    return callId;
+}
+
+quint64 WebDavClient::list(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath) // NOLINT(bugprone-easily-swappable-parameters): list takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
+{
+    const quint64 callId = nextCallId_++;
+    const QUrl    url    = addressFor(server, relativePath);
+    if (not allowedHost(url)) {
+        LENS_WARN("a WebDAV call's address is not one this client may ask for");
+        emit failed(callId, WebDavFailure::Generic);
+        return callId;
+    }
+    send("PROPFIND", url, username, appPassword, {}, {}, [this, callId, url](int status, QByteArray const& body) {
+        // An absent collection has no children; the first event upload makes it.
+        if (status == 404 or status == 409) {
+            emit listed(callId, {});
+            return;
+        }
+        if (status != 207 and status != 200) {
+            emit failed(callId, failureFor(status, body));
+            return;
+        }
+        auto const names = collectionNames(body, url);
+        if (not names) {
+            emit failed(callId, WebDavFailure::Generic);
+            return;
+        }
+        emit listed(callId, *names); }, 1);
     return callId;
 }
 
@@ -145,7 +216,7 @@ quint64 WebDavClient::del(const QString& server, const QString& username, const 
     return callId;
 }
 
-void WebDavClient::send(const QByteArray& verb, const QUrl& url, const QString& username, const QString& appPassword, const QByteArray& body, const QByteArray& contentType, std::function<void(int, QByteArray)> onDone) // NOLINT(bugprone-easily-swappable-parameters): send takes its 2 const QByteArray & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
+void WebDavClient::send(const QByteArray& verb, const QUrl& url, const QString& username, const QString& appPassword, const QByteArray& body, const QByteArray& contentType, std::function<void(int, QByteArray)> onDone, int const depth) // NOLINT(bugprone-easily-swappable-parameters): send takes its 2 const QByteArray & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     QNetworkRequest request(url);
     request.setTransferTimeout(kTimeoutMs);
@@ -154,7 +225,7 @@ void WebDavClient::send(const QByteArray& verb, const QUrl& url, const QString& 
     if (not body.isEmpty())
         request.setHeader(QNetworkRequest::ContentTypeHeader, contentType);
     if (verb == "PROPFIND")
-        request.setRawHeader("Depth", "0");
+        request.setRawHeader("Depth", depth > 0 ? "1" : "0");
     // A redirect here would be a host this client did not choose; it is not followed.
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
     // The verb rides along for the scripted test manager to record; sendCustomRequest is the only

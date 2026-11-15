@@ -20,6 +20,10 @@ add_library(lens_core STATIC
   document/story.cpp
   document/review_store.cpp
   document/pet_store.cpp
+  telemetry/event.cpp
+  telemetry/event_log.cpp
+  telemetry/report.cpp
+  telemetry/sync_plan.cpp
   crypto/vault.cpp
   crypto/hash.cpp
   dev/dev_command.cpp

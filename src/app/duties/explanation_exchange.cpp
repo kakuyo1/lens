@@ -100,6 +100,7 @@ ExplanationExchange::Outcome ExplanationExchange::take(ExchangeFacts const& fact
     if (not batch->fromScan) {
         auto hit = storedIn(batch->items.front(), batch->context);
         if (hit.kind != Outcome::Kind::None or not hit.popLemma.isEmpty()) {
+            hit.source = "selection";
             queue_.complete();
             return hit;
         }
@@ -107,6 +108,7 @@ ExplanationExchange::Outcome ExplanationExchange::take(ExchangeFacts const& fact
 
     Outcome outcome;
     outcome.kind    = Outcome::Kind::Send;
+    outcome.source  = batch->fromScan ? "scan" : "selection";
     outcome.batch   = *batch;
     outcome.request = requestFor(*batch, etymology);
     return outcome;

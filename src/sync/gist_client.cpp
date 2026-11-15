@@ -130,6 +130,62 @@ quint64 GistClient::getGist(const QString& token, const QString& id)
     return callId;
 }
 
+quint64 GistClient::listGistFiles(const QString& token, const QString& id)
+{
+    const quint64 callId = nextCallId_++;
+    send(callId, "GET", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, {}, [this, callId](int status, QByteArray const& body, QByteArray const&) {
+        if (status != 200) {
+            emit failed(callId, failureFor(status, body));
+            return;
+        }
+        const std::optional<Gist> gist = parseGist(body);
+        if (gist)
+            emit listedFiles(callId, *gist);
+        else
+            emit failed(callId, GistFailure::Generic);
+    });
+    return callId;
+}
+
+quint64 GistClient::updateGistFiles(const QString& token, const QString& id, const QList<GistFileChange>& changes)
+{
+    const quint64 callId = nextCallId_++;
+    QJsonObject   files;
+    for (GistFileChange const& change : changes) {
+        if (change.content)
+            files.insert(change.name, QJsonObject{{"content", *change.content}});
+        else
+            files.insert(change.name, QJsonValue::Null);
+    }
+
+    const QJsonObject body{{"files", files}};
+    send(callId, "PATCH", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, QJsonDocument(body).toJson(QJsonDocument::Compact), [this, callId](int status, QByteArray const& answer, QByteArray const&) {
+        if (status != 200) {
+            emit failed(callId, failureFor(status, answer));
+            return;
+        }
+        const std::optional<Gist> gist = parseGist(answer);
+        if (gist)
+            emit updated(callId, *gist);
+        else
+            emit failed(callId, GistFailure::Generic);
+    });
+    return callId;
+}
+
+quint64 GistClient::getRawFile(const QString& token, const QUrl& rawUrl)
+{
+    const quint64 callId = nextCallId_++;
+    send(callId, "GET", rawUrl, token, {}, [this, callId](int status, QByteArray const& body, QByteArray const&) {
+        if (status != 200) {
+            emit failed(callId, failureFor(status, body));
+            return;
+        }
+        emit gotRawFile(callId, QString::fromUtf8(body));
+    });
+    return callId;
+}
+
 void GistClient::fillTruncated(quint64 const callId, const QString& token, Gist gist, QStringList pending)
 {
     if (pending.isEmpty()) {

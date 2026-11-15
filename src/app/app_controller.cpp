@@ -107,7 +107,7 @@ AppController::AppController(core::KnownStore&            store,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), glassParameters_(this), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), pencil_(capture_, explanation_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), glassParameters_(this), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), pencil_(capture_, explanation_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), telemetry_(storage_.knownStore().path().parent_path() / "events", sync_.deviceId(), [this] { const auto* const row = core::settings::find("recordForegroundApp"); return row != nullptr && settings::read(storage_.section(), *row).toBool(); }, {}, {}, {}, this), telemetrySync_(telemetry_, sync_, nullptr, {}, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     // Marks written before the keys were base forms join their lemma once (docs/adr/0162); the
@@ -128,6 +128,10 @@ AppController::AppController(core::KnownStore&            store,
     // The review and answer cards read the word's curve for their next-ask line; the duties build
     // in an order that cannot pass the review duty at construction, so the wiring lands here.
     explanation_.setReviewSource(&reviewDuty_);
+    explanation_.setTelemetry(&telemetry_);
+    reviewDuty_.setTelemetry(&telemetry_);
+    capture_.setTelemetry(&telemetry_);
+    readingProfile_.setTelemetry(&telemetry_);
     // The backdrop starts on the tier the document holds, read through the row's own clamp so a
     // hand-edited number cannot reach the refresh code.
     const auto* const quality = core::settings::find("glassQuality");
@@ -259,6 +263,14 @@ AppController::AppController(core::KnownStore&            store,
         wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known(), storage_.knownStore().mastered());
     });
     wordsModel_.update(QDate::currentDate(), storage_.statsStore().history(), storage_.knownStore().known(), storage_.knownStore().mastered());
+    startedMs_ = QDateTime::currentMSecsSinceEpoch();
+    telemetry_.record("app.start", {{"version", LENS_VERSION}, {"installed", installedBuild()}});
+    if (auto* const application = QCoreApplication::instance()) {
+        connect(application, &QCoreApplication::aboutToQuit, this, [this] {
+            telemetry_.record("app.exit", {{"uptimeMs", QDateTime::currentMSecsSinceEpoch() - startedMs_}});
+            telemetry_.flush();
+        });
+    }
     LENS_INFO("AppController ready: level={} explanation language '{}'", store.level(), store.explanationLang());
 }
 
@@ -275,6 +287,7 @@ AppController::~AppController()
         gestureSettle_.stop();
         saveDocument();
     }
+    telemetry_.flush();
 }
 
 void AppController::restoreModelService()
@@ -1158,6 +1171,11 @@ UpdateDuty* AppController::updateDuty()
 SyncDuty* AppController::syncDuty()
 {
     return &sync_;
+}
+
+TelemetryDuty* AppController::telemetryDuty()
+{
+    return &telemetry_;
 }
 
 OnboardingDuty* AppController::onboardingDuty()

@@ -366,6 +366,14 @@ Parse parseCommand(std::string_view line)
         return parseSetting(tokens[2], tokens[3]);
     }
 
+    if (verb == "telemetry") {
+        if (args == 1 and tokens[1] == "summary")
+            return accept({.verb = Verb::Telemetry, .telemetryWhat = TelemetryWhat::Summary});
+        if (args == 1 and tokens[1] == "report")
+            return accept({.verb = Verb::Telemetry, .telemetryWhat = TelemetryWhat::Report});
+        return refuse("telemetry takes summary or report");
+    }
+
     if (verb == "wait") {
         if (args != 1)
             return refuse("wait takes one condition: visible:<name>, hidden:<name> or painted:<name>");
@@ -442,6 +450,8 @@ nlohmann::json helpJson()
                          "selection <x>,<y>,<w>,<h> \"<text>\"",
                          "scan arm <x>,<y>,<w>,<h> | scan frame <json> | scan clear",
                          "setting set <name> <value>",
+                         "telemetry summary",
+                         "telemetry report",
                          "state",
                          "version",
                          "quit",

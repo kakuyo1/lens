@@ -1133,6 +1133,17 @@ void CaptureDuty::routeScanStep(ScanStep const& step)
 
 void CaptureDuty::emitPlaced(ScanStep::Placed const& placed)
 {
+    if (!placed.words.empty()) {
+        if (!scanSessionActive_) {
+            scanSessionActive_ = true;
+            scanSessionWords_  = 0;
+            scanSessionTimer_.start();
+            const auto foreground = capture::foregroundWindow();
+            scanSessionApp_       = foreground ? foreground->processName.toStdString() : std::string{};
+        }
+        scanSessionWords_ = std::max(scanSessionWords_, static_cast<int>(placed.words.size()));
+    }
+
     QVariantList words;
     for (auto const& word : placed.words)
         words.append(QVariantMap{{QStringLiteral("lemma"), word.lemma},
@@ -1147,6 +1158,17 @@ void CaptureDuty::emitPlaced(ScanStep::Placed const& placed)
 
 void CaptureDuty::clearScanLines()
 {
+    if (scanSessionActive_) {
+        scanSessionActive_ = false;
+        if (telemetry_ != nullptr) {
+            nlohmann::json data = {{"words", scanSessionWords_}, {"durationMs", scanSessionTimer_.elapsed()}};
+            if (!scanSessionApp_.empty())
+                data["app"] = scanSessionApp_;
+            telemetry_->record("scan.session", data);
+        }
+        scanSessionWords_ = 0;
+        scanSessionApp_.clear();
+    }
     scanGate_.reset();
     scanPlaceFlush_.stop();
     emit scanCleared();
@@ -1281,6 +1303,11 @@ void CaptureDuty::lookUpWord(QString const& surface, QPoint const anchor)
 void CaptureDuty::verdictChanged(QString const& lemma)
 {
     session_.onVerdictChanged(lemma);
+}
+
+void CaptureDuty::setTelemetry(TelemetrySink* telemetry)
+{
+    telemetry_ = telemetry;
 }
 
 void CaptureDuty::onSelectionReleased(QPoint const anchor)

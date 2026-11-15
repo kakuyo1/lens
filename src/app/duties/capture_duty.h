@@ -6,6 +6,7 @@
  */
 
 #include <QObject>
+#include <QElapsedTimer>
 #include <QPoint>
 #include <QRect>
 #include <QSize>
@@ -19,6 +20,7 @@
 #include <chrono>
 #include <memory>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <utility>
@@ -38,6 +40,7 @@
 #include "scan_session.h"
 #include "selection_capture.h"
 #include "storage_duty.h"
+#include "telemetry_sink.h"
 #include "upload_transaction.h"
 
 namespace lens::app {
@@ -170,6 +173,8 @@ public:
     /// @brief The reader changed @p lemma's verdict; the scan session re-judges the surfaces it was
     ///        judged under, with no full scan invalidation (ScanSession::onVerdictChanged).
     void verdictChanged(QString const& lemma);
+    /// @brief Wire the behavior-event sink in, after construction.
+    void setTelemetry(TelemetrySink* telemetry);
     /// @brief True while the automatic scan is on and a window it reads is in front, the only time a
     ///        lone Alt tap is turned into a cancelled tap for the menu bar.
     bool autoScanActive();
@@ -322,6 +327,15 @@ private:
     int                       rapidOcrBundlePercent_ = 0;
     /// Why the last bundle run failed, in the vocabulary the settings page explains; "" otherwise.
     QString rapidOcrBundleFailure_;
+    /// The behavior-event sink. Null in a duty test that does not care about events.
+    TelemetrySink* telemetry_ = nullptr;
+    /// The scan session the behavior log counts: it starts on the first non-empty placement and
+    /// closes when the placed lines go down.
+    QElapsedTimer scanSessionTimer_;
+    bool          scanSessionActive_ = false;
+    int           scanSessionWords_  = 0;
+    /// The foreground process the session started in, which is the app being read.
+    std::string scanSessionApp_;
 };
 
 }

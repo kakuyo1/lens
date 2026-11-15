@@ -93,6 +93,8 @@ private:
     /// @brief Store one whitelisted setting through the same setter the settings page's control calls.
     nlohmann::json setSetting(core::dev::Command const& command);
     nlohmann::json state() const;
+    /// @return The behavior log's counts by event name, or its aggregated report.
+    nlohmann::json telemetry(core::dev::TelemetryWhat what);
 
     /// @return The window carrying @p name as its object name, or nullptr when there is none.
     QObject* window(std::string const& name) const;

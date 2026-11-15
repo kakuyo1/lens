@@ -268,6 +268,22 @@ Item {
             onToggled: (on) => Controller.updateDuty.setAutoCheck(on)
         }
 
+        Text {
+            text: qsTranslate("SettingsPopup", "Behavior record")
+            color: page.tokens.muted
+            font.pixelSize: 12
+        }
+
+        // The event log itself is not a switch: what leaves the machine is the encrypted monthly
+        // file, and this row decides whether a foreground app's name is part of an event.
+        SwitchRow {
+            objectName: "recordForegroundAppSwitch"
+            width: parent.width
+            label: qsTranslate("SettingsPopup", "Record the app you read in")
+            checked: Controller.settings.recordForegroundApp
+            onToggled: (on) => Controller.setSetting("recordForegroundApp", on)
+        }
+
         // The page's one door: the typeface this machine's copy reads in.
         SettingsLinkRow {
             label: qsTranslate("SettingsPopup", "Font")

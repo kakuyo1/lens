@@ -65,6 +65,7 @@ TEST(WebDavClient, APropfindAnswersWhetherTheFileExists)
     EXPECT_EQ(manager.sent.size(), 1u);
     EXPECT_EQ(manager.sent[0].verb, "PROPFIND");
     EXPECT_EQ(manager.sent[0].url.toStdString(), "https://dav.example.com/dav/Lens/lens-sync.json");
+    EXPECT_EQ(manager.sent[0].depth, "0");
 
     found.reset();
     manager.queue(404);
@@ -294,4 +295,70 @@ TEST(WebDavClient, AnAnswerPastTheCeilingIsDropped)
     client.get("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json");
     ASSERT_TRUE(spinUntil([&] { return answered; }));
     EXPECT_TRUE(file.isEmpty());
+}
+
+/// A listing asks for one level and keeps only the collection's direct children: the collection
+/// itself, a deeper path and a sibling collection are not files in this directory.
+TEST(WebDavClient, AListingReadsTheDirectChildren)
+{
+    QtApplication              qt;
+    ScriptedManager            manager;
+    dav::WebDavClient          client(&manager);
+    std::optional<QStringList> names;
+    QObject::connect(&client, &dav::WebDavClient::listed, [&names](quint64, QStringList listed) { names = std::move(listed); });
+
+    const QByteArray body = R"(<?xml version="1.0"?>
+        <d:multistatus xmlns:d="DAV:">
+          <d:response><d:href>/dav/Lens/</d:href></d:response>
+          <d:response><d:href>/dav/Lens/lens-sync.json</d:href></d:response>
+          <d:response><d:href>/dav/Lens/lens-events-abcd1234-2026-11-r0001-aaaaaaaa.json.enc</d:href></d:response>
+          <d:response><d:href>/dav/Lens/with%20space.txt</d:href></d:response>
+          <d:response><d:href>/dav/Lens/sub/file.txt</d:href></d:response>
+          <d:response><d:href>/dav/Other/file.txt</d:href></d:response>
+        </d:multistatus>)";
+    manager.queue(207, body);
+    client.list("https://dav.example.com/dav", "reader", "app-pass", "Lens");
+    ASSERT_TRUE(spinUntil([&] { return names.has_value(); }));
+
+    const QStringList expected{
+        "lens-events-abcd1234-2026-11-r0001-aaaaaaaa.json.enc",
+        "lens-sync.json",
+        "with space.txt",
+    };
+    EXPECT_EQ(*names, expected);
+    ASSERT_EQ(manager.sent.size(), 1u);
+    EXPECT_EQ(manager.sent[0].verb, "PROPFIND");
+    EXPECT_EQ(manager.sent[0].url.toStdString(), "https://dav.example.com/dav/Lens");
+    EXPECT_EQ(manager.sent[0].depth, "1");
+}
+
+/// A collection that does not exist yet has no children; the first upload makes it.
+TEST(WebDavClient, AMissingCollectionListsAsEmpty)
+{
+    QtApplication              qt;
+    ScriptedManager            manager;
+    dav::WebDavClient          client(&manager);
+    std::optional<QStringList> names;
+    QObject::connect(&client, &dav::WebDavClient::listed, [&names](quint64, QStringList listed) { names = std::move(listed); });
+
+    manager.queue(404);
+    client.list("https://dav.example.com/dav", "reader", "app-pass", "Lens");
+    ASSERT_TRUE(spinUntil([&] { return names.has_value(); }));
+    EXPECT_TRUE(names->isEmpty());
+}
+
+/// XML that is not a multistatus is a failed listing, not an empty collection: an empty answer
+/// would let the uploader treat the cloud as clean and delete what it could not see.
+TEST(WebDavClient, AMalformedListingFails)
+{
+    QtApplication                     qt;
+    ScriptedManager                   manager;
+    dav::WebDavClient                 client(&manager);
+    std::optional<dav::WebDavFailure> why;
+    QObject::connect(&client, &dav::WebDavClient::failed, [&why](quint64, dav::WebDavFailure failure) { why = failure; });
+
+    manager.queue(207, "<not-a-multistatus>");
+    client.list("https://dav.example.com/dav", "reader", "app-pass", "Lens");
+    ASSERT_TRUE(spinUntil([&] { return why.has_value(); }));
+    EXPECT_EQ(*why, dav::WebDavFailure::Generic);
 }

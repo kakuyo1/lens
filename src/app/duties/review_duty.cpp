@@ -43,6 +43,11 @@ core::ReviewFrequency ReviewDuty::frequency() const
     return storage_.reviewStore().frequency();
 }
 
+void ReviewDuty::setTelemetry(TelemetrySink* telemetry)
+{
+    telemetry_ = telemetry;
+}
+
 void ReviewDuty::setFrequency(core::ReviewFrequency const frequency, long long const now)
 {
     storage_.reviewStore().setFrequency(frequency);
@@ -74,6 +79,8 @@ void ReviewDuty::tick(long long const now)
         return;
     if (auto const lemma = core::pickDue(askable(), now)) {
         word_ = QString::fromStdString(*lemma);
+        if (telemetry_ != nullptr)
+            telemetry_->record("review.shown", {{"lemma", *lemma}, {"level", stateOf(*lemma).level}});
         timeout_.start();
         // The pet hears first: the sign stands beside the hidden pet on the inner side, so the side and its nudge are
         // made against the window the pet actually occupies.
@@ -88,10 +95,13 @@ QString ReviewDuty::answer(bool const remembered, long long const now)
         return {};
     QString const answered = word_;
     auto const    lemma    = answered.toStdString();
+    const int     level    = stateOf(lemma).level;
     auto const    state    = core::afterAnswer(stateOf(lemma), remembered, now);
     close();
     storage_.reviewStore().put(lemma, state);
     storage_.save();
+    if (telemetry_ != nullptr)
+        telemetry_->record("review.answered", {{"lemma", lemma}, {"level", level}, {"result", remembered ? "known" : "new"}});
     emit petEvent(remembered ? core::pet::PetEvent::ReviewRemembered : core::pet::PetEvent::ReviewForgotten);
     return answered;
 }
@@ -156,10 +166,13 @@ bool ReviewDuty::passOver(long long const now)
     if (word_.isEmpty())
         return false;
     auto const lemma = word_.toStdString();
+    const int  level = stateOf(lemma).level;
     auto const state = core::afterIgnore(stateOf(lemma), now);
     close();
     storage_.reviewStore().put(lemma, state);
     storage_.save();
+    if (telemetry_ != nullptr)
+        telemetry_->record("review.answered", {{"lemma", lemma}, {"level", level}, {"result", "dismissed"}});
     return true;
 }
 

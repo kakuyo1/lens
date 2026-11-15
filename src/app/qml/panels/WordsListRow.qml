@@ -192,7 +192,7 @@ Item {
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler {
                     id: knownTap
-                    onTapped: Controller.explanationDuty.mark(entry.word, "known")
+                    onTapped: Controller.explanationDuty.markVia(entry.word, "known", "words")
                 }
             }
 
@@ -239,7 +239,7 @@ Item {
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler {
                     id: masteredTap
-                    onTapped: Controller.explanationDuty.mark(entry.word, "mastered")
+                    onTapped: Controller.explanationDuty.markVia(entry.word, "mastered", "words")
                 }
             }
 
@@ -286,7 +286,7 @@ Item {
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                 TapHandler {
                     id: newTap
-                    onTapped: Controller.explanationDuty.mark(entry.word, "new")
+                    onTapped: Controller.explanationDuty.markVia(entry.word, "new", "words")
                 }
             }
         }

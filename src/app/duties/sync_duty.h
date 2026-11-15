@@ -7,6 +7,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
 
 #include "app/duties/sync_backend.h"
 #include "core/domain/sync_partition.h"
@@ -62,6 +63,10 @@ public:
     /// @return "github" or "webdav"; the provider the page's picker shows.
     QString provider() const;
     QString login() const;
+    /// @return This device's id, made and stored on the first call; the behavior log writes its short form.
+    std::string deviceId();
+    /// @return The `sync` section this duty owns; the event channel reads the same credentials and key.
+    core::sync::SyncPartition& partition();
     /// @return The code the reader types on the backend's site, while sign-in is waiting for it; otherwise empty.
     QString userCode() const;
     QString verificationUri() const;
@@ -118,6 +123,10 @@ signals:
     /// @brief A sync wrote remote state into this device's stores. Emitted inside the apply, so the
     ///        listeners' save-driven schedule is ignored and the surfaces redraw.
     void remoteApplied();
+    /// @brief A normal sync succeeded. @p manual is true when the reader asked for it.
+    void synced(bool manual);
+    /// @brief The cloud copy was deleted; the event channel removes its own files or forgets them.
+    void cloudDeleted();
 
 private:
     /// @brief Make the backend the partition's provider names, and a round on its transport.
@@ -143,6 +152,8 @@ private:
     QTimer                                 poll_;  ///< Pulls the cloud copy while signed in.
     QTimer                                 retry_; ///< Re-runs a failed automatic sync, with backoff.
     QString                                error_;
+    bool                                   manualRun_      = false;
+    bool                                   deletedThisRun_ = false;
     /// The WebDAV probe's verdict, for the form's confirmation line. Not the sign-in state: the
     /// credentials being stored is what signs in, and a probe only proves the server took them.
     bool webdavConnected_ = false;

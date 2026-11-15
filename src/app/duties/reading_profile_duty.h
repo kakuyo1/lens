@@ -12,6 +12,7 @@
 
 #include "app/duties/cost_duty.h"
 #include "app/duties/storage_duty.h"
+#include "app/duties/telemetry_sink.h"
 #include "llm/llm_client.h"
 
 namespace lens::core {
@@ -69,6 +70,9 @@ public:
     /// @return Whether a story can be asked for now: the week has lookups, nothing is in flight, and the daily budget allows a request.
     bool storyAvailable() const;
 
+    /// @brief Wire the behavior-event sink in, after construction.
+    void setTelemetry(TelemetrySink* telemetry);
+
     Q_PROPERTY(QVariantMap facts READ facts NOTIFY factsChanged)
     Q_PROPERTY(bool interpreting READ interpreting NOTIFY interpretationChanged)
     Q_PROPERTY(QVariantList interpretation READ interpretation NOTIFY interpretationChanged)
@@ -111,6 +115,11 @@ private:
     llm::StoryAnswer story_;     ///< The week's story and the listed words it uses; empty until it is written.
     QString          storyFailure_;
     std::mt19937     rng_{std::random_device{}()};
+    /// The behavior-event sink. Null in a duty test that does not care about events.
+    TelemetrySink* telemetry_ = nullptr;
+    /// When each request went out, for the model-call event's latency. Zero when none is out.
+    qint64 interpretStartedMs_ = 0;
+    qint64 storyStartedMs_     = 0;
 };
 
 }

@@ -52,7 +52,9 @@ void SyncDuty::rebuildBackend()
     round_.reset();
     backend_ = makeSyncBackend(partition_.provider(), dataDir_, manager_, partition_, this);
     connectBackend();
-    round_ = std::make_unique<core::sync::SyncRound>(backend_->transport(), storage_.knownStore(), storage_.statsStore(), partition_, core::sync::SyncRound::Clock{}, roundHooks());
+    round_          = std::make_unique<core::sync::SyncRound>(backend_->transport(), storage_.knownStore(), storage_.statsStore(), partition_, core::sync::SyncRound::Clock{}, roundHooks());
+    manualRun_      = false;
+    deletedThisRun_ = false;
     setError(QString());
     webdavConnected_ = false;
     emit providerChanged();
@@ -91,12 +93,21 @@ core::sync::Hooks SyncDuty::roundHooks()
     hooks.error    = [this](std::string const& code) { setError(QString::fromStdString(code)); };
     hooks.finished = [this](bool succeeded) {
         retry_.stop();
-        if (succeeded)
+        if (succeeded) {
             startPolling();
+            if (deletedThisRun_) {
+                deletedThisRun_ = false;
+                emit cloudDeleted();
+            } else {
+                emit synced(manualRun_);
+            }
+        }
+        manualRun_ = false;
     };
     hooks.retry   = [this](std::chrono::milliseconds delay) { retry_.start(static_cast<int>(delay.count())); };
     hooks.rerun   = [this] { scheduleSync(); };
     hooks.applied = [this] { emit remoteApplied(); };
+    hooks.deleted = [this] { deletedThisRun_ = true; };
     return hooks;
 }
 
@@ -127,6 +138,16 @@ void SyncDuty::useProvider(QString const& provider)
 QString SyncDuty::login() const
 {
     return QString::fromStdString(partition_.login());
+}
+
+std::string SyncDuty::deviceId()
+{
+    return partition_.deviceId();
+}
+
+core::sync::SyncPartition& SyncDuty::partition()
+{
+    return partition_;
 }
 
 QString SyncDuty::userCode() const
@@ -209,6 +230,8 @@ void SyncDuty::logOut()
     retry_.stop();
     round_->forget();
     partition_.forgetAll();
+    manualRun_      = false;
+    deletedThisRun_ = false;
     setError(QString());
     webdavConnected_ = false;
     emit stateChanged();
@@ -218,7 +241,7 @@ void SyncDuty::logOut()
 void SyncDuty::deleteCloudData()
 {
     // A sign-in in flight shares the backend's clients and their failure paths; deleting waits for it.
-    if (backend_->signInPhase() != SignInPhase::Idle)
+    if (backend_->signInPhase() != SignInPhase::Idle or not backend_->signedIn())
         return;
     round_->removeCloud();
 }
@@ -288,6 +311,7 @@ void SyncDuty::scheduleSync()
 void SyncDuty::run(const QString& passphrase, bool asked)
 {
     if (round_->busy()) {
+        manualRun_ = manualRun_ || asked;
         round_->requestRun();
         return;
     }
@@ -295,7 +319,10 @@ void SyncDuty::run(const QString& passphrase, bool asked)
         return;
     if (!backend_->configured() || !backend_->signedIn())
         return;
+    manualRun_ = asked;
     round_->begin({passphrase.toStdString(), asked});
+    if (!round_->busy())
+        manualRun_ = false; // the round refused before asking anything: a stored key is missing
 }
 
 void SyncDuty::setError(const QString& code)

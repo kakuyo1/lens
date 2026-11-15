@@ -90,7 +90,13 @@ TEST(SyncDuty, ASyncNowCarriesOneRoundThroughTheScriptedNetwork)
     lens::test::ScriptedManager manager;
     lens::app::SyncDuty         duty(storage, dir, &manager);
     int                         applied = 0;
+    bool                        synced  = false;
+    bool                        manual  = false;
     QObject::connect(&duty, &lens::app::SyncDuty::remoteApplied, [&applied] { ++applied; });
+    QObject::connect(&duty, &lens::app::SyncDuty::synced, [&](bool asked) {
+        synced = true;
+        manual = asked;
+    });
     EXPECT_EQ(duty.state(), QStringLiteral("signedIn"));
 
     manager.queue(200, "[]");
@@ -107,6 +113,8 @@ TEST(SyncDuty, ASyncNowCarriesOneRoundThroughTheScriptedNetwork)
     EXPECT_FALSE(duty.lastSyncedAt().isEmpty()) << "the page shows the minute the round succeeded";
     EXPECT_TRUE(duty.hasPassphrase());
     EXPECT_EQ(applied, 1) << "the surfaces are told to reload the document once";
+    EXPECT_TRUE(synced) << "a successful sync tells the event channel it may run";
+    EXPECT_TRUE(manual) << "Sync now is a reader-asked run";
     EXPECT_EQ(seeded.gistId(), "gist-1") << "the round wrote the new id into the same document";
 
     std::filesystem::remove_all(dir);

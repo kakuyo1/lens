@@ -104,7 +104,8 @@ public:
     struct Sent {
         QByteArray verb; ///< GET, PUT, PROPFIND, ...; a custom verb rides the request's attribute.
         QString    url;
-        QByteArray body; ///< What the request carried; empty for a GET or a DELETE.
+        QByteArray body;  ///< What the request carried; empty for a GET or a DELETE.
+        QByteArray depth; ///< The PROPFIND Depth header; empty for the other verbs.
     };
 
     explicit ScriptedManager(int status = 302, QString location = {}, bool answers = true, QByteArray body = {}, QByteArray contentType = {}, QByteArray link = {})
@@ -140,7 +141,7 @@ protected:
             case QNetworkAccessManager::DeleteOperation: verb = "DELETE"; break;
             default: verb = request.attribute(QNetworkRequest::CustomVerbAttribute).toByteArray(); break;
         }
-        Sent record{std::move(verb), request.url().toString(), {}};
+        Sent record{std::move(verb), request.url().toString(), {}, request.rawHeader("Depth")};
         if (outgoing != nullptr) {
             if (not outgoing->isOpen())
                 outgoing->open(QIODevice::ReadOnly);

@@ -9,6 +9,10 @@
 #include <QVector>
 #include <QtQml/qqmlregistration.h>
 
+#include <string_view>
+
+#include <nlohmann/json.hpp>
+
 #include "card_session.h"
 #include "core/domain/pet/pet_state.h"
 #include "core/document/explanation_cache.h"
@@ -17,6 +21,7 @@
 #include "llm/llm_client.h"
 #include "pending_selection.h"
 #include "storage_duty.h"
+#include "telemetry_sink.h"
 
 /**
  * @file explanation_duty.h
@@ -53,6 +58,9 @@ public:
     ///        clear vote (docs/adr/0159). "Mastered" retires the word from the scan, the review pool
     ///        and the chain; selection keeps explaining it either way.
     Q_INVOKABLE void mark(QString const& lemma, QString const& verdict);
+    /// @brief The same, naming the surface that made it.
+    /// @param via The surface: "bubble", "pencil" or "words".
+    Q_INVOKABLE void markVia(QString const& lemma, QString const& verdict, QString const& via);
     /**
      * @brief Show what is already stored for a word the reader pointed at, and nothing else.
      *
@@ -164,6 +172,9 @@ public:
     ///               controller binds it as soon as both exist; until then the cards carry no
     ///               next-ask line.
     void setReviewSource(ReviewDuty* review);
+
+    /// @brief Wire the behavior-event sink in, after construction.
+    void setTelemetry(TelemetrySink* telemetry);
 
 signals:
     void bubbleChanged();
@@ -280,6 +291,12 @@ private:
     /// @brief Put the hint up for a word with nothing stored, against the word the row last pointed at.
     void showWordHint(QString const& lemma);
     void clearWordHint();
+    /// @brief Queue one behavior event when the controller wired a sink.
+    void record(std::string_view name, nlohmann::json data) const;
+    /// @brief Queue one pop event, with the verdict the store now holds for @p lemma.
+    void recordPop(std::string const& lemma, std::string const& source, bool known) const;
+    /// @brief Queue one model call's usage, with the kind and the request's start time.
+    void recordLlmCall(std::string_view kind, llm::Usage const& usage, qint64 startedMs, bool ok = true) const;
 
     StorageDuty&    storage_;
     llm::LlmClient& llm_;
@@ -303,6 +320,14 @@ private:
     /// The review duty the review and answer cards read their curve from. Null until the
     /// controller wires it, which is why every read of it is guarded.
     ReviewDuty* review_ = nullptr;
+    /// The behavior-event sink. Null in a duty test that does not care about events.
+    TelemetrySink* telemetry_ = nullptr;
+    /// When each request kind went out, for the model-call event's latency. Zero when none is out.
+    qint64 explainStartedMs_    = 0;
+    qint64 peekStartedMs_       = 0;
+    qint64 senseStartedMs_      = 0;
+    qint64 breakdownStartedMs_  = 0;
+    qint64 correctionStartedMs_ = 0;
 };
 
 }

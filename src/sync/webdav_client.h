@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <QUrl>
 
 #include <functional>
@@ -49,6 +50,10 @@ public:
     /// @return The call's id; every signal it produces carries it.
     quint64 propfind(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath);
 
+    /// @brief List the names directly under @p relativePath, one collection level down.
+    /// @return The call's id; every signal it produces carries it.
+    quint64 list(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath);
+
     /// @brief Read the file at @p relativePath as UTF-8 text.
     /// @return The call's id; every signal it produces carries it.
     quint64 get(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath);
@@ -64,6 +69,9 @@ public:
 signals:
     /// @brief The asked-about path exists; for a server probe, the probe simply answered.
     void found(quint64 callId, bool exists);
+    /// @brief The collection's direct children, as file names without a path. An absent collection
+    ///        lists as empty.
+    void listed(quint64 callId, QStringList names);
     void gotFile(quint64 callId, QString content);
     void putDone(quint64 callId, QString path);
     void deleted(quint64 callId, QString path);
@@ -73,7 +81,8 @@ signals:
 
 private:
     /// Sends one request and hands its reply to @p onDone: the status and the body.
-    void send(const QByteArray& verb, const QUrl& url, const QString& username, const QString& appPassword, const QByteArray& body, const QByteArray& contentType, std::function<void(int status, QByteArray body)> onDone);
+    /// @param depth The PROPFIND depth; a listing asks for one level, every other verb ignores it.
+    void send(const QByteArray& verb, const QUrl& url, const QString& username, const QString& appPassword, const QByteArray& body, const QByteArray& contentType, std::function<void(int status, QByteArray body)> onDone, int depth = 0);
     /// @brief Write @p content, making the file's collection once when it is missing.
     /// @param callId The caller's id, carried through the collection request and the retry.
     /// @param collectionMade Whether this attempt follows a MKCOL this call already made; a 409

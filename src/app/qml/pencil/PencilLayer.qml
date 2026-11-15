@@ -150,7 +150,7 @@ Window {
                     pressedLemma = markButtonWindow.spec.lemma || ""
                     Controller.pencil.setMarkPressHold(markTap.pressed)
                 }
-                onTapped: Controller.explanationDuty.mark(pressedLemma, "mastered")
+                onTapped: Controller.explanationDuty.markVia(pressedLemma, "mastered", "pencil")
             }
         }
     }

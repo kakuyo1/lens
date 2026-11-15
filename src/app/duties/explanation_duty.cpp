@@ -7,6 +7,7 @@
 
 #include <QClipboard>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QGuiApplication>
 
 #include <utility>
@@ -74,6 +75,42 @@ void ExplanationDuty::setReviewSource(ReviewDuty* review)
     review_ = review;
 }
 
+void ExplanationDuty::setTelemetry(TelemetrySink* telemetry)
+{
+    telemetry_ = telemetry;
+}
+
+void ExplanationDuty::record(std::string_view name, nlohmann::json data) const
+{
+    if (telemetry_ != nullptr)
+        telemetry_->record(name, std::move(data));
+}
+
+void ExplanationDuty::recordPop(std::string const& lemma, std::string const& source, bool const known) const
+{
+    record("lookup.pop", {{"src", source}, {"lemma", lemma}, {"verdict", known ? "known" : "new"}, {"lang", storage_.knownStore().explanationLang()}});
+}
+
+void ExplanationDuty::recordLlmCall(std::string_view kind, llm::Usage const& usage, qint64 const startedMs, bool const ok) const
+{
+    if (telemetry_ == nullptr)
+        return;
+    // A refused or failed call carries no usage; the success path always does. Recording every
+    // zero-token success would only add noise, so a success needs at least one of the two facts.
+    if (ok && usage.promptTokens == 0 && usage.completionTokens == 0 && usage.model.isEmpty())
+        return;
+
+    nlohmann::json data = {{"kind", std::string(kind)},
+                           {"ok", ok},
+                           {"promptTokens", usage.promptTokens},
+                           {"completionTokens", usage.completionTokens}};
+    if (!usage.model.isEmpty())
+        data["model"] = usage.model.toStdString();
+    if (startedMs > 0)
+        data["latencyMs"] = QDateTime::currentMSecsSinceEpoch() - startedMs;
+    telemetry_->record("llm.call", std::move(data));
+}
+
 void ExplanationDuty::onPartial(llm::Explanation partial)
 {
     // A preview is only ever the answer to the batch in flight: the model-list fetch, and a reply
@@ -115,6 +152,8 @@ void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> const& results, 
     busyLabel_.clear();
     emit busyChanged();
     cost_.recordUsage(nowMinute().toStdString(), usage);
+    recordLlmCall("explain", usage, explainStartedMs_);
+    explainStartedMs_ = 0;
 
     auto const outcome = exchange_.settle(results, facts());
     if (results.isEmpty())
@@ -133,6 +172,8 @@ void ExplanationDuty::onFailed(QString const& message)
     const auto subject = exchange_.refuse();
     busyLabel_.clear();
     emit busyChanged();
+    recordLlmCall("explain", llm::Usage{}, explainStartedMs_, false);
+    explainStartedMs_ = 0;
     if (subject and subject->chain)
         emit chainFailed(subject->lemma);
     else if (subject)
@@ -330,12 +371,16 @@ void ExplanationDuty::requestPeek()
     // describes; a hold that bought nothing is not counted.
     if (step.kind == CardSession::PeekStep::Kind::Show || step.kind == CardSession::PeekStep::Kind::Ask) {
         storage_.statsStore().recordPeek(nowMinute().toStdString());
+        record("lookup.peek", {{"lemma", step.lemma.toStdString()}});
         storage_.save();
         emit statsChanged();
     }
     switch (step.kind) {
         case CardSession::PeekStep::Kind::Show: emit peekArrived(step.line); break;
-        case CardSession::PeekStep::Kind::Ask: llm_.peekWord(step.lemma, step.language, step.senseEn); break;
+        case CardSession::PeekStep::Kind::Ask:
+            peekStartedMs_ = QDateTime::currentMSecsSinceEpoch();
+            llm_.peekWord(step.lemma, step.language, step.senseEn);
+            break;
         case CardSession::PeekStep::Kind::Waiting: break;
         case CardSession::PeekStep::Kind::None:
             // Out of budget the hold buys nothing and says nothing: the definition on the card is the
@@ -349,6 +394,8 @@ void ExplanationDuty::requestPeek()
 void ExplanationDuty::onPeekAnswered(QString const& lemma, QString const& line, llm::Usage const& usage)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
+    recordLlmCall("peek", usage, peekStartedMs_);
+    peekStartedMs_ = 0;
     if (auto const shown = exchange_.card().peekAnswered(lemma, line, exchange_.readerContext()))
         emit peekArrived(*shown);
 }
@@ -369,6 +416,7 @@ void ExplanationDuty::cycleSense()
             break;
         case CardSession::SenseStep::Kind::Ask:
             LENS_INFO("asking for the next sense of '{}' ({} known, advance={})", step.lemma.toStdString(), step.known.size(), step.advance);
+            senseStartedMs_ = QDateTime::currentMSecsSinceEpoch();
             llm_.nextSenseWord(step.lemma, step.lemma + QLatin1Char('\n') + step.known.join(QLatin1Char('\n')), step.language);
             break;
         case CardSession::SenseStep::Kind::None:
@@ -383,14 +431,18 @@ void ExplanationDuty::cycleSense()
 void ExplanationDuty::ensureNextSense()
 {
     const auto step = exchange_.card().ensureNextSense(exchange_.readerContext(), cost_.canRequest());
-    if (step.kind == CardSession::SenseStep::Kind::Ask)
+    if (step.kind == CardSession::SenseStep::Kind::Ask) {
+        senseStartedMs_ = QDateTime::currentMSecsSinceEpoch();
         llm_.nextSenseWord(step.lemma, step.lemma + QLatin1Char('\n') + step.known.join(QLatin1Char('\n')), step.language);
+    }
 }
 
 void ExplanationDuty::onNextSenseAnswered(QString const& lemma, llm::Explanation const& answer, llm::Usage const& usage)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
     const auto outcome = exchange_.card().senseAnswered(lemma, answer, usage, exchange_.readerContext());
+    recordLlmCall("sense", usage, senseStartedMs_, outcome.result != CardSession::SenseOutcome::Result::Refused);
+    senseStartedMs_ = 0;
     switch (outcome.result) {
         case CardSession::SenseOutcome::Result::Refused:
             // An answer that never reached the model leaves the entry up to ask again.
@@ -445,6 +497,7 @@ void ExplanationDuty::breakdown(PendingSelection const& pending)
         bubble_.value(QStringLiteral("breakdown")).toString() != QLatin1String("failed"))
         return;
     showBreakdown(pending, QStringLiteral("pending"), plainSegments(pending.text), {}, {});
+    breakdownStartedMs_ = QDateTime::currentMSecsSinceEpoch();
     llm_.breakdownSentence(pending.text, llm::breakdownWords(pending.text));
 }
 
@@ -463,6 +516,7 @@ void ExplanationDuty::correct(PendingSelection const& pending, QString const& pr
     PendingSelection selection = pending;
     selection.preset           = preset;
     showCorrection(selection, QStringLiteral("pending"), plainSegments(pending.text), {});
+    correctionStartedMs_ = QDateTime::currentMSecsSinceEpoch();
     if (preset == kSpellPreset)
         llm_.correctSpelling(pending.text);
     else
@@ -472,6 +526,8 @@ void ExplanationDuty::correct(PendingSelection const& pending, QString const& pr
 void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel const channel, QString const& corrected, llm::Usage const& usage, QString const& failure)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
+    recordLlmCall("correction", usage, correctionStartedMs_, failure.isEmpty());
+    correctionStartedMs_ = 0;
     // The answer belongs to the card standing on this text and no other, as the breakdown's does.
     auto const*   card   = exchange_.card().subject();
     const QString preset = channel == llm::Channel::Spell ? kSpellPreset : kGrammarPreset;
@@ -520,6 +576,8 @@ void ExplanationDuty::showCorrection(PendingSelection const& selection, QString 
 void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage const& usage, QString const& failure)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
+    recordLlmCall("breakdown", usage, breakdownStartedMs_, failure.isEmpty());
+    breakdownStartedMs_ = 0;
     // The answer belongs to the card standing on this sentence and to nothing else: the reader may have
     // moved on, and a breakdown is never kept for later.
     auto const* card = exchange_.card().subject();
@@ -578,13 +636,17 @@ void ExplanationDuty::explain(PendingSelection const& pending)
 
 void ExplanationDuty::send(llm::ExplainRequest request, ExplanationBatch const& batch)
 {
+    // The daily tally keeps two columns, so a mastered word's pop reads into the known one.
+    const std::string minute = nowMinute().toStdString();
+    const std::string lang   = storage_.knownStore().explanationLang();
+    const std::string source = batch.fromScan ? "scan" : "selection";
     for (auto const& item : batch.items) {
-        if (isWordKind(item.kind))
-            // The daily tally keeps two columns, so a mastered word's pop reads into the known one.
-            storage_.statsStore().recordPop(item.lemma.toStdString(),
-                                            nowMinute().toStdString(),
-                                            storage_.knownStore().isKnown(item.lemma.toStdString()) || storage_.knownStore().isMasteredVerdict(item.lemma.toStdString()),
-                                            storage_.knownStore().explanationLang());
+        if (not isWordKind(item.kind))
+            continue;
+        const std::string lemma = item.lemma.toStdString();
+        const bool        known = storage_.knownStore().isKnown(lemma) || storage_.knownStore().isMasteredVerdict(lemma);
+        storage_.statsStore().recordPop(lemma, minute, known, lang);
+        recordPop(lemma, source, known);
     }
     // The request goes out with nothing previewed yet: the first preview of this one is the line
     // onPartial() writes.
@@ -594,6 +656,7 @@ void ExplanationDuty::send(llm::ExplainRequest request, ExplanationBatch const& 
     emit petEvent(core::pet::PetEvent::ExplanationRequested);
     storage_.save();
     emit statsChanged();
+    explainStartedMs_ = QDateTime::currentMSecsSinceEpoch();
     llm_.explainWords(std::move(request));
 }
 
@@ -769,10 +832,10 @@ void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool co
 {
     if (not outcome.popLemma.isEmpty()) {
         // The daily tally keeps two columns, so a mastered word's pop reads into the known one.
-        storage_.statsStore().recordPop(outcome.popLemma.toStdString(),
-                                        nowMinute().toStdString(),
-                                        storage_.knownStore().isKnown(outcome.popLemma.toStdString()) || storage_.knownStore().isMasteredVerdict(outcome.popLemma.toStdString()),
-                                        storage_.knownStore().explanationLang());
+        const std::string lemma = outcome.popLemma.toStdString();
+        const bool        known = storage_.knownStore().isKnown(lemma) || storage_.knownStore().isMasteredVerdict(lemma);
+        storage_.statsStore().recordPop(lemma, nowMinute().toStdString(), known, storage_.knownStore().explanationLang());
+        recordPop(lemma, outcome.source, known);
         if (save) {
             storage_.save();
             emit statsChanged();
@@ -863,6 +926,11 @@ void ExplanationDuty::clearBubble()
 
 void ExplanationDuty::mark(QString const& lemma, QString const& verdict)
 {
+    markVia(lemma, verdict, QStringLiteral("bubble"));
+}
+
+void ExplanationDuty::markVia(QString const& lemma, QString const& verdict, QString const& via)
+{
     // An empty lemma is never a word: the mark button's tap can outlive the word it aimed at,
     // because the scan tears its layer down mid-press. A verdict on "" would sit in the store as
     // a row that reads blank and deletes like nothing.
@@ -886,6 +954,7 @@ void ExplanationDuty::mark(QString const& lemma, QString const& verdict)
     LENS_INFO("verdict marked: '{}' -> {}", key, verdict.toStdString());
     storage_.knownStore().mark(key, state);
     storage_.statsStore().recordVerdict(key, nowMinute().toStdString(), state == core::WordVerdict::None ? "new" : "known");
+    record("verdict.set", {{"lemma", key}, {"to", verdict.toStdString()}, {"via", via.toStdString()}});
     storage_.save();
     if (bubble_.value("title").toString() == lemma)
         bubble_["status"] = verdictToken(state);

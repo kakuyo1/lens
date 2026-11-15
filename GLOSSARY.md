@@ -146,3 +146,5 @@
 - **墓碑（Tombstone）**：删除标记时留下的带时间记录，合并时让旧数据无法复活已删的词。
 - **设备 ID（Device ID）**：每台设备首次启动生成的随机标识，用于统计分桶，不随同步。
 - **云端副本（Cloud copy）**：同一份加密文件，随存储方式落在读者自己的 GitHub（`lens-sync` secret gist）或 WebDAV 服务器（`Lens/lens-sync.json`）；存储方只能看到存在、大小与更新时间。见 `docs/adr/0157`。
+- **行为记录（Behavior record）**：本机按月保存的行为事件 JSONL，保留 12 个月；事件带明文 lemma 与可选的前台应用名，不记原文、释义、URL 或剪贴板。每台设备每月另存一个加密事件文件，随主同步成功后上传到同一个云端目录。见 `docs/adr/0180`。_Avoid_：遥测、第三方统计。
+- **行为事件（Behavior event）**：行为记录的一行，字段由 `core/telemetry/event.h` 的登记表限定；未知事件名在写入时拒绝、读取时忽略。

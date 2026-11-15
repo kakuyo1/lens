@@ -82,6 +82,11 @@ add_library(lens_app STATIC
   duties/webdav_transport.cpp
   duties/sync_transport.h
   duties/sync_transport.cpp
+  duties/telemetry_sink.h
+  duties/telemetry_duty.h
+  duties/telemetry_duty.cpp
+  duties/telemetry_sync_duty.h
+  duties/telemetry_sync_duty.cpp
   duties/update_duty.h
   duties/update_duty.cpp
   duties/word_answer.h

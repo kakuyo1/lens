@@ -300,6 +300,53 @@ Item {
                 }
             }
         }
+
+        /// The behavior record's local months (docs/adr/0180). Clearing removes them here and queues
+        /// the encrypted copies the event channel uploaded for deletion at the next sync.
+        Item {
+            id: eventDataRow
+            objectName: "eventDataRow"
+            width: parent.width
+            height: 44
+
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTranslate("SettingsPopup", "Behavior data")
+                color: page.tokens.text
+                font.pixelSize: 13
+            }
+
+            Row {
+                anchors.right: parent.right
+                anchors.rightMargin: 9
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 8
+
+                Text {
+                    objectName: "eventDataSize"
+                    height: parent.height
+                    verticalAlignment: Text.AlignVCenter
+                    text: Format.formatBytes(Controller.telemetryDuty.eventBytes)
+                    color: page.tokens.faint
+                    font.pixelSize: 11
+                }
+
+                Text {
+                    height: parent.height
+                    verticalAlignment: Text.AlignVCenter
+                    text: "·"
+                    color: page.tokens.faint
+                    font.pixelSize: 11
+                }
+
+                Chip {
+                    objectName: "clearEventDataButton"
+                    label: qsTranslate("SettingsPopup", "Clear")
+                    onPicked: Controller.telemetryDuty.clear()
+                }
+            }
+        }
     }
 
     // The footer is the page's last line, centred, and it hangs off the page's own bottom edge:

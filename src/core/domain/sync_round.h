@@ -98,6 +98,9 @@ struct Hooks {
     std::function<void()> rerun;
     /// @brief The merged document was written into the stores, inside the apply; forward it.
     std::function<void()> applied;
+    /// @brief The cloud copy was deleted, inside the successful delete's handling; the event
+    ///        channel uses it to remove its own files and forget what they described.
+    std::function<void()> deleted;
 };
 
 class SyncRound {

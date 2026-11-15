@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QList>
 #include <QMap>
 #include <QObject>
 #include <QString>
@@ -43,6 +44,12 @@ struct Gist {
     QMap<QString, GistFile> files;
 };
 
+/// @brief One file a PATCH writes, or deletes when it has no content.
+struct GistFileChange {
+    QString                name;
+    std::optional<QString> content;
+};
+
 /// @return The gist, or std::nullopt when the body is not a gist.
 std::optional<Gist> parseGist(const QByteArray& body);
 
@@ -79,6 +86,20 @@ public:
     /// @return The call's id; every signal it produces carries it.
     quint64 getGist(const QString& token, const QString& id);
 
+    /// @brief Read one gist's file names and raw addresses without following a truncated file.
+    /// @return The call's id; every signal it produces carries it.
+    /// @note The API's answer carries a small file's content inline; a file cut short is left short
+    ///       rather than fetched, because a listing only needs names.
+    quint64 listGistFiles(const QString& token, const QString& id);
+
+    /// @brief Write and delete the named files in one PATCH; files not named are left alone.
+    /// @return The call's id; every signal it produces carries it.
+    quint64 updateGistFiles(const QString& token, const QString& id, const QList<GistFileChange>& changes);
+
+    /// @brief Read one gist file from its raw address.
+    /// @return The call's id; every signal it produces carries it.
+    quint64 getRawFile(const QString& token, const QUrl& rawUrl);
+
     /// @brief Create a secret gist with @p files, mapping file name to its UTF-8 content.
     /// @return The call's id; every signal it produces carries it.
     quint64 createGist(const QString& token, const QString& description, const QMap<QString, QString>& files);
@@ -99,10 +120,12 @@ signals:
     /// @brief The gist list, every page's array joined into one JSON array for findGistId() to read.
     void listed(quint64 callId, QByteArray body);
     void gotGist(quint64 callId, lens::sync::Gist gist);
+    void listedFiles(quint64 callId, lens::sync::Gist gist);
     void created(quint64 callId, lens::sync::Gist gist);
     void updated(quint64 callId, lens::sync::Gist gist);
     void deleted(quint64 callId, QString id);
     void gotUser(quint64 callId, QString login);
+    void gotRawFile(quint64 callId, QString content);
 
     /// @brief A call stopped without its answer. Carries only the kind, never the server's text.
     void failed(quint64 callId, lens::sync::GistFailure why);

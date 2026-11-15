@@ -45,6 +45,8 @@
 #include "app/duties/speech_duty.h"
 #include "app/duties/storage_duty.h"
 #include "app/duties/sync_duty.h"
+#include "app/duties/telemetry_duty.h"
+#include "app/duties/telemetry_sync_duty.h"
 #include "app/duties/update_duty.h"
 #include "app/words_model.h"
 #include "pictures/picture_sources/commons_source.h"
@@ -232,6 +234,8 @@ public:
     UpdateDuty* updateDuty();
     /// @brief The sync duty, which QML reads as `Controller.syncDuty`; the facade owns it.
     SyncDuty* syncDuty();
+    /// @brief The behavior-event duty, which the developer surface and the reports read; QML does not.
+    TelemetryDuty* telemetryDuty();
     /// @brief The explanation duty, which QML reads as `Controller.explanationDuty`; the facade owns it.
     ExplanationDuty* explanationDuty();
     /// @brief The first-run wizard's launch step, which main() runs once the surfaces are up (docs/adr/0144, docs/adr/0148).
@@ -291,6 +295,7 @@ public:
     Q_PROPERTY(lens::app::ReadingProfileDuty* readingProfileDuty READ readingProfileDuty CONSTANT)
     Q_PROPERTY(lens::app::UpdateDuty* updateDuty READ updateDuty CONSTANT)
     Q_PROPERTY(lens::app::SyncDuty* syncDuty READ syncDuty CONSTANT)
+    Q_PROPERTY(lens::app::TelemetryDuty* telemetryDuty READ telemetryDuty CONSTANT)
     Q_PROPERTY(lens::app::ExplanationDuty* explanationDuty READ explanationDuty CONSTANT)
     Q_PROPERTY(lens::app::OnboardingDuty* onboardingDuty READ onboardingDuty CONSTANT)
     Q_PROPERTY(lens::app::CaptureDuty* captureDuty READ captureDuty CONSTANT)
@@ -385,6 +390,8 @@ private:
     UpdateDuty             updateDuty_;
     OnboardingDuty         onboarding_;
     SyncDuty               sync_;
+    TelemetryDuty          telemetry_;
+    TelemetrySyncDuty      telemetrySync_;
     ReviewDuty             reviewDuty_;
     ReadingProfileDuty     readingProfile_;
     /// The picture lookup: the source that searches, the cache beside the settings document, and the
@@ -407,6 +414,8 @@ private:
     QTimer                        gateTimer_;
     /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
     bool budgetPaused_;
+    /// When this launch started, for the exit event's uptime.
+    qint64 startedMs_ = 0;
     /// The connection probe's own state. The generation is raised by a start and by any change
     /// to the key, address or model, so an answer for an older configuration is dropped.
     bool    connectionTesting_ = false;

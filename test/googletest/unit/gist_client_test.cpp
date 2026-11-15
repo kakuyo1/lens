@@ -66,6 +66,7 @@ struct Answer {
     quint64                          callId = 0;
     int                              calls  = 0;
     std::optional<sync::Gist>        gist;
+    std::optional<sync::Gist>        files;
     QByteArray                       listed;
     QString                          text;
     std::optional<sync::GistFailure> why;
@@ -77,6 +78,11 @@ void record(sync::GistClient& client, Answer& seen)
         ++seen.calls;
         seen.callId = callId;
         seen.gist   = std::move(gist);
+    });
+    QObject::connect(&client, &sync::GistClient::listedFiles, [&seen](quint64 callId, sync::Gist gist) {
+        ++seen.calls;
+        seen.callId = callId;
+        seen.files  = std::move(gist);
     });
     QObject::connect(&client, &sync::GistClient::created, [&seen](quint64 callId, sync::Gist gist) {
         ++seen.calls;
@@ -97,6 +103,11 @@ void record(sync::GistClient& client, Answer& seen)
         ++seen.calls;
         seen.callId = callId;
         seen.text   = std::move(login);
+    });
+    QObject::connect(&client, &sync::GistClient::gotRawFile, [&seen](quint64 callId, QString content) {
+        ++seen.calls;
+        seen.callId = callId;
+        seen.text   = std::move(content);
     });
     QObject::connect(&client, &sync::GistClient::listed, [&seen](quint64 callId, QByteArray body) {
         ++seen.calls;
@@ -435,4 +446,62 @@ TEST(GistClient, AnAnswerPastTheCeilingIsDropped)
     ASSERT_TRUE(spinUntil([&] { return seen.calls > 0; }));
     ASSERT_EQ(seen.calls, 1);
     EXPECT_EQ(seen.why, sync::GistFailure::Generic);
+}
+
+TEST(GistClient, AFileListLeavesATruncatedFileShort)
+{
+    QtApplication    qt;
+    ScriptedManager  manager{200, {}, true, kTruncatedBody};
+    sync::GistClient client(&manager);
+    Answer           seen;
+    record(client, seen);
+
+    client.listGistFiles("token-1", "abc123");
+    ASSERT_TRUE(spinUntil([&] { return seen.files.has_value(); }));
+
+    ASSERT_EQ(seen.calls, 1);
+    EXPECT_EQ(manager.requests, 1) << "a listing must not fetch the raw address";
+    const sync::GistFile file = seen.files->files.value("lens-sync.json");
+    EXPECT_TRUE(file.truncated);
+    EXPECT_EQ(file.content, "{\"a\":");
+}
+
+TEST(GistClient, APatchWritesAndDeletesNamedFilesOnly)
+{
+    QtApplication    qt;
+    ScriptedManager  manager{200, {}, true, kGistBody};
+    sync::GistClient client(&manager);
+    Answer           seen;
+    record(client, seen);
+
+    const QList<sync::GistFileChange> changes{
+        {QStringLiteral("lens-events-new.json.enc"), QStringLiteral("sealed")},
+        {QStringLiteral("lens-events-old.json.enc"), std::nullopt},
+    };
+    client.updateGistFiles("token-1", "abc123", changes);
+    ASSERT_TRUE(spinUntil([&] { return seen.calls > 0; }));
+
+    ASSERT_EQ(manager.sent.size(), 1u);
+    EXPECT_EQ(manager.sent[0].verb, "PATCH");
+    const QJsonObject files = QJsonDocument::fromJson(manager.sent[0].body).object().value("files").toObject();
+    EXPECT_EQ(files.value("lens-events-new.json.enc").toObject().value("content").toString(), "sealed");
+    EXPECT_TRUE(files.value("lens-events-old.json.enc").isNull());
+    EXPECT_FALSE(files.contains("lens-sync.json")) << "a file the PATCH does not name stays untouched";
+}
+
+TEST(GistClient, ARawFileIsReadFromItsAddress)
+{
+    QtApplication    qt;
+    ScriptedManager  manager{200, {}, true, QByteArray("sealed-text")};
+    sync::GistClient client(&manager);
+    Answer           seen;
+    record(client, seen);
+
+    client.getRawFile("token-1", QUrl{QStringLiteral("https://gist.githubusercontent.com/x/raw/events")});
+    ASSERT_TRUE(spinUntil([&] { return seen.calls > 0; }));
+
+    ASSERT_EQ(seen.calls, 1);
+    EXPECT_EQ(seen.text, "sealed-text");
+    ASSERT_EQ(manager.sent.size(), 1u);
+    EXPECT_EQ(manager.sent[0].url.toStdString(), "https://gist.githubusercontent.com/x/raw/events");
 }

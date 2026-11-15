@@ -14,13 +14,14 @@ Use GitHub's private vulnerability reporting if it is enabled. Otherwise, open a
 | OCR service (online OCR only) | One screenshot crop you confirm, per capture. | Never automatic. Local OCR is the default, and automatic scanning is always local. |
 | Youdao or Google Translate | The single word, for pronunciation. | Only when online audio is the active engine. No key is sent. |
 | Wikimedia Commons | A 2–5 word English query. | Only when you open pictures. Nothing else is sent. |
-| GitHub | Sign-in, encrypted sync, the update check, and downloads you start. | The update check sends only a version User-Agent. GitHub sees the gist's size, update times, and access IPs, not its contents. |
-| Your WebDAV server (sync through WebDAV only) | The encrypted sync envelope, one file. | Basic-auth credentials you enter stay in the settings document. The server sees the envelope's size and times, not its contents. |
+| GitHub | Sign-in, encrypted sync, encrypted behavior-event month files, the update check, and downloads you start. | The update check sends only a version User-Agent. GitHub sees the gist's file names, sizes, update times, and access IPs, not the contents. An event file's name carries the short device id, month, revision and a content hash. |
+| Your WebDAV server (sync through WebDAV only) | The encrypted sync envelope and encrypted behavior-event month files. | Basic-auth credentials you enter stay in the settings document. The server sees the files' names, sizes and times, not their contents. An event file's name carries the short device id, month, revision and a content hash. |
 | huggingface.co | Voice-file downloads. | No reader data. |
 
 ## Local data
 
 - `%APPDATA%\Lens\settings.json` holds your settings, learning data, caches, the API key, OCR credentials, the sync key, and the sync's server, username and device id. It is plain JSON that Lens does not encrypt, and anyone who can read it can decrypt the cloud copy. The GitHub token and its refresh token, and the WebDAV app password, are sealed to your Windows account with DPAPI before they are written.
+- `%APPDATA%\Lens\events\` holds the behavior record: one `events-YYYY-MM.jsonl` file per month, plain JSONL, for 12 months. It carries the plaintext lemma of a word you looked up or reviewed, and -- while **Record the app you read in** is on -- the foreground process name. The sync's derived key encrypts each month into a separate cloud file; `state.json` beside the month files holds the upload bookkeeping and is never uploaded. The About page shows the local size and clears the record; clearing queues the cloud copies for deletion. No third party receives this data (docs/adr/0180).
 - Pictures, pronunciation audio, and voice models are cached locally. None of them is synced or uploaded.
 - Logs can contain the words you looked up. Logs rotate, and they live in `%APPDATA%\Lens\logs` -- never in the install folder.
 - When Lens crashes it writes a minidump, a small text summary, and a marker into the log directory's `dumps` folder. A dump is a snapshot of process memory: it can contain the text you were reading and the words you looked up. It stays on the machine and is never sent anywhere by Lens; the folder keeps the newest five, and it survives an uninstall -- delete `%APPDATA%\Lens` to remove it. The companion dialog that appears right away reads only the interface language from the settings document.
@@ -33,7 +34,7 @@ Use GitHub's private vulnerability reporting if it is enabled. Otherwise, open a
 - Before sending, URLs, email addresses, and digit strings of six or more are masked. This is pattern masking, not full personal-data detection.
 - The API key stays in your per-user profile, not the install folder. Lens does not log it on purpose.
 - The sync tokens and the WebDAV app password are sealed with DPAPI, so a backup or a copy of the settings document does not carry usable credentials. Anything running as your account can open the seal; it defends the file at rest, not the account.
-- The sync passphrase is never stored. The key is derived with PBKDF2-HMAC-SHA256 at 600000 iterations and used with AES-256-GCM. Explanation caches are never uploaded.
+- The sync passphrase is never stored. The key is derived with PBKDF2-HMAC-SHA256 at 600000 iterations and used with AES-256-GCM for the cloud copy and every behavior-event month file. Explanation caches are never uploaded.
 - Model answers stream onto the card before the full check finishes. Nothing is cached, counted, or marked until the whole answer passes validation.
 - An update installer runs only after you press Install, and only if its SHA-256 matches `SHA256SUMS`. That checksum shows the file arrived intact, not who published it. The installer is not code-signed.
 - A pet package is refused whole if any check fails: a path that escapes the package, a non-PNG file, an oversized image, or an index out of range.
