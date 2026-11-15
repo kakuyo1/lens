@@ -84,7 +84,7 @@ void ModelCatalogDuty::refreshModels()
     llm_.fetchModels();
 }
 
-void ModelCatalogDuty::noteModelsFetched(QStringList models)
+void ModelCatalogDuty::noteModelsFetched(QStringList const& models)
 {
     if (models.isEmpty()) return;
     // One answer, several caches: each provider takes the ids its own vendor prefix names, and a
@@ -98,7 +98,7 @@ void ModelCatalogDuty::noteModelsFetched(QStringList models)
         const QStringList ids = llm::idsForPrefix(models, provider.value("openRouterPrefix").toString());
         if (ids.isEmpty()) continue;
         ++filled;
-        total += ids.size();
+        total += static_cast<int>(ids.size());
         std::vector<std::string> served;
         served.reserve(static_cast<std::size_t>(ids.size()));
         for (const QString& id : ids)
@@ -115,7 +115,7 @@ void ModelCatalogDuty::noteModelsFetched(QStringList models)
     rebuildModels();
 }
 
-void ModelCatalogDuty::noteServiceModels(QStringList models)
+void ModelCatalogDuty::noteServiceModels(QStringList const& models)
 {
     if (models.isEmpty()) return;
     std::vector<std::string> served;

@@ -20,7 +20,7 @@ PetStateMachine::PetStateMachine(Playbook            playbook_,
     : playbook{std::move(playbook_)},
       random{random_},
       scenes{scenes_},
-      behavior{std::move(behavior_)},
+      behavior{behavior_},
       mood{mood_}
 {
     enterRole(Role::Idle, Priority::Idle);

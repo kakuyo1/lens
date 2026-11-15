@@ -53,7 +53,7 @@ std::string errorFor(Answer::Failure why)
         case Answer::Failure::NotFound: return "noGist";
         case Answer::Failure::Proxy: return "proxy";
         case Answer::Failure::RefusedRefresh: return "signInExpired";
-        case Answer::Failure::Generic: break;
+        case Answer::Failure::Generic: break; // NOLINT(bugprone-branch-clone): each status is listed explicitly so a new one cannot fall into a neighbour's branch by accident
         case Answer::Failure::None: break;
     }
     return "generic";
@@ -337,7 +337,7 @@ void SyncRound::callFailed(Answer::Failure why)
     fail(errorFor(why));
 }
 
-void SyncRound::process(const std::string& gistId, const std::string& envelopeText)
+void SyncRound::process(const std::string& gistId, const std::string& envelopeText) // NOLINT(bugprone-easily-swappable-parameters): process takes its 2 const std::string & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     try {
         const auto opened = syncrun::openCloudCopy({.envelopeText = envelopeText,
@@ -421,7 +421,7 @@ void SyncRound::succeed()
     end(true);
 }
 
-void SyncRound::fail(std::string code)
+void SyncRound::fail(std::string const& code)
 {
     if (hooks_.error)
         hooks_.error(code);

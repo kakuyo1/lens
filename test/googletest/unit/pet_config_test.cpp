@@ -191,11 +191,11 @@ TEST(PetConfig, ParsesHoverReactionsAndTheirTiming)
     };
     auto const animations = parseAnimations(document);
     ASSERT_TRUE(animations.hover.has_value());
-    EXPECT_EQ(animations.hover->notice, "look_around");
-    EXPECT_EQ(animations.hover->dwell, "stretch");
-    EXPECT_EQ(animations.hover->noticeDelay, 650ms);
-    EXPECT_EQ(animations.hover->dwellDelay, 3200ms);
-    EXPECT_EQ(animations.hover->cooldown, 9000ms);
+    EXPECT_EQ(animations.hover.value().notice, "look_around");
+    EXPECT_EQ(animations.hover.value().dwell, "stretch");
+    EXPECT_EQ(animations.hover.value().noticeDelay, 650ms);
+    EXPECT_EQ(animations.hover.value().dwellDelay, 3200ms);
+    EXPECT_EQ(animations.hover.value().cooldown, 9000ms);
 }
 
 TEST(PetConfig, HoverIsOptionalAndItsDelaysDefault)
@@ -205,11 +205,11 @@ TEST(PetConfig, HoverIsOptionalAndItsDelaysDefault)
     document["hover"]     = {{"notice", "look_around"}};
     auto const animations = parseAnimations(document);
     ASSERT_TRUE(animations.hover.has_value());
-    EXPECT_EQ(animations.hover->notice, "look_around");
-    EXPECT_FALSE(animations.hover->dwell.has_value());
-    EXPECT_EQ(animations.hover->noticeDelay, 350ms);
-    EXPECT_EQ(animations.hover->dwellDelay, 2600ms);
-    EXPECT_EQ(animations.hover->cooldown, 8000ms);
+    EXPECT_EQ(animations.hover.value().notice, "look_around");
+    EXPECT_FALSE(animations.hover.value().dwell.has_value());
+    EXPECT_EQ(animations.hover.value().noticeDelay, 350ms);
+    EXPECT_EQ(animations.hover.value().dwellDelay, 2600ms);
+    EXPECT_EQ(animations.hover.value().cooldown, 8000ms);
 
     document.erase("hover");
     EXPECT_FALSE(parseAnimations(document).hover.has_value());
@@ -264,10 +264,10 @@ TEST(PetConfig, ParsesTheMovementBlock)
 
     auto const animations = parseAnimations(document);
     ASSERT_TRUE(animations.movement.has_value());
-    EXPECT_EQ(animations.movement->style, lens::core::pet::MovementStyle::Trot);
-    EXPECT_EQ(animations.movement->walk, "walk");
-    EXPECT_EQ(animations.movement->peek, "edge_peek");
-    EXPECT_EQ(animations.movement->range, 32);
+    EXPECT_EQ(animations.movement.value().style, lens::core::pet::MovementStyle::Trot);
+    EXPECT_EQ(animations.movement.value().walk, "walk");
+    EXPECT_EQ(animations.movement.value().peek, "edge_peek");
+    EXPECT_EQ(animations.movement.value().range, 32);
 }
 
 TEST(PetConfig, MovementIsOptionalAndItsRadiusDefaults)
@@ -281,8 +281,8 @@ TEST(PetConfig, MovementIsOptionalAndItsRadiusDefaults)
     document["movement"]  = {{"style", "glide"}, {"walk", "walk"}};
     auto const animations = parseAnimations(document);
     ASSERT_TRUE(animations.movement.has_value());
-    EXPECT_FALSE(animations.movement->peek.has_value());
-    EXPECT_EQ(animations.movement->range, 30);
+    EXPECT_FALSE(animations.movement.value().peek.has_value());
+    EXPECT_EQ(animations.movement.value().range, 30);
 }
 
 TEST(PetConfig, RefusesAnUnknownMovementStyle)
@@ -317,7 +317,7 @@ TEST(PetConfig, MovementRadiusStaysBetweenTenAndSixty)
 
     for (auto const range : {10, 60}) {
         document["movement"] = {{"style", "float"}, {"walk", "walk"}, {"range", range}};
-        EXPECT_EQ(parseAnimations(document).movement->range, range);
+        EXPECT_EQ(parseAnimations(document).movement.value().range, range);
     }
 
     document["movement"] = {{"style", "float"}, {"walk", "walk"}, {"range", 9}};

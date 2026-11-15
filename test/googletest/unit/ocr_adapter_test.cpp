@@ -49,18 +49,18 @@ TEST(OcrAdapter, AnHttpRefusalMeansTheSameThingAtEveryService)
 {
     auto const quota = lens::ocr::classifyOcrHttpStatus(429);
     ASSERT_TRUE(quota);
-    EXPECT_EQ(quota->status, OcrStatus::Failed);
-    EXPECT_EQ(quota->reason, OcrFailureReason::Quota);
+    EXPECT_EQ(quota.value().status, OcrStatus::Failed);
+    EXPECT_EQ(quota.value().reason, OcrFailureReason::Quota);
 
     auto const auth = lens::ocr::classifyOcrHttpStatus(401);
     ASSERT_TRUE(auth);
-    EXPECT_EQ(auth->status, OcrStatus::Failed);
-    EXPECT_EQ(auth->reason, OcrFailureReason::Authentication);
+    EXPECT_EQ(auth.value().status, OcrStatus::Failed);
+    EXPECT_EQ(auth.value().reason, OcrFailureReason::Authentication);
 
     auto const redirect = lens::ocr::classifyOcrHttpStatus(302);
     ASSERT_TRUE(redirect);
-    EXPECT_EQ(redirect->status, OcrStatus::Failed);
-    EXPECT_EQ(redirect->reason, OcrFailureReason::None) << "a redirect is never a followed one";
+    EXPECT_EQ(redirect.value().status, OcrStatus::Failed);
+    EXPECT_EQ(redirect.value().reason, OcrFailureReason::None) << "a redirect is never a followed one";
 
     EXPECT_FALSE(lens::ocr::classifyOcrHttpStatus(200));
     EXPECT_FALSE(lens::ocr::classifyOcrHttpStatus(400)) << "a body-driven service reads its own error shape";
@@ -72,11 +72,11 @@ TEST(OcrAdapter, ARefusedResponseCarriesTheClassificationWithTheResult)
     lens::ocr::HttpResponse const response{.status = 429, .transportOk = true};
     auto const                    refused = lens::ocr::refuseOcrResponse(response, QStringLiteral("test"), 7);
     ASSERT_TRUE(refused);
-    EXPECT_EQ(refused->status, OcrStatus::Failed);
-    EXPECT_EQ(refused->failureReason, OcrFailureReason::Quota);
-    EXPECT_EQ(refused->uploadState, OcrUploadState::ServerResponded);
-    EXPECT_EQ(refused->requestId, 7u);
-    EXPECT_EQ(refused->actualEngine, QStringLiteral("test"));
+    EXPECT_EQ(refused.value().status, OcrStatus::Failed);
+    EXPECT_EQ(refused.value().failureReason, OcrFailureReason::Quota);
+    EXPECT_EQ(refused.value().uploadState, OcrUploadState::ServerResponded);
+    EXPECT_EQ(refused.value().requestId, 7u);
+    EXPECT_EQ(refused.value().actualEngine, QStringLiteral("test"));
 }
 
 TEST(OcrAdapter, AnAnsweredResponseYieldsNoRefusal)
@@ -90,15 +90,15 @@ TEST(OcrAdapter, ATransportOutcomeKeepsItsStatusAndSaysWhereTheBytesWent)
     lens::ocr::HttpResponse const dropped{.transportOk = false};
     auto const                    failed = lens::ocr::refuseOcrTransport(dropped, QStringLiteral("test"), 7);
     ASSERT_TRUE(failed);
-    EXPECT_EQ(failed->status, OcrStatus::TransportFailed);
-    EXPECT_EQ(failed->uploadState, OcrUploadState::UploadStarted);
+    EXPECT_EQ(failed.value().status, OcrStatus::TransportFailed);
+    EXPECT_EQ(failed.value().uploadState, OcrUploadState::UploadStarted);
 
     lens::ocr::HttpResponse const answered{.status = 200, .transportOk = true};
     auto const                    cancelled =
         lens::ocr::refuseOcrTransport({.status = 200, .transportOk = true, .cancelled = true}, QStringLiteral("test"), 7);
     ASSERT_TRUE(cancelled);
-    EXPECT_EQ(cancelled->status, OcrStatus::Cancelled);
-    EXPECT_EQ(cancelled->uploadState, OcrUploadState::ServerResponded);
+    EXPECT_EQ(cancelled.value().status, OcrStatus::Cancelled);
+    EXPECT_EQ(cancelled.value().uploadState, OcrUploadState::ServerResponded);
     EXPECT_EQ(lens::ocr::refuseOcrTransport(answered, QStringLiteral("test"), 7), std::nullopt);
 }
 
@@ -112,32 +112,32 @@ TEST(OcrAdapter, ThePreflightRefusesBeforeAnythingIsEncoded)
     scan.source  = OcrSource::AutoScan;
     auto refused = refusal(scan, {}, true);
     ASSERT_TRUE(refused);
-    EXPECT_EQ(refused->status, OcrStatus::Failed);
-    EXPECT_EQ(refused->uploadState, OcrUploadState::NotUploaded) << "a scan source never uploads";
+    EXPECT_EQ(refused.value().status, OcrStatus::Failed);
+    EXPECT_EQ(refused.value().uploadState, OcrUploadState::NotUploaded) << "a scan source never uploads";
 
     refused = refusal(request(), {}, false);
     ASSERT_TRUE(refused);
-    EXPECT_EQ(refused->status, OcrStatus::Failed);
+    EXPECT_EQ(refused.value().status, OcrStatus::Failed);
 
     auto blank  = request();
     blank.image = QImage{};
-    EXPECT_EQ(refusal(blank, {}, true)->status, OcrStatus::InvalidImage);
+    EXPECT_EQ(refusal(blank, {}, true).value().status, OcrStatus::InvalidImage);
 
     auto wide  = request();
     wide.image = image(5000, 100);
-    EXPECT_EQ(refusal(wide, {.maxEdge = 4096}, true)->status, OcrStatus::InputTooLarge);
+    EXPECT_EQ(refusal(wide, {.maxEdge = 4096}, true).value().status, OcrStatus::InputTooLarge);
     auto thin  = request();
     thin.image = image(200, 10);
-    EXPECT_EQ(refusal(thin, {.minEdge = 15}, true)->status, OcrStatus::InputTooLarge);
-    EXPECT_EQ(refusal(wide, {.maxBytes = 1000}, true)->status, OcrStatus::InputTooLarge);
+    EXPECT_EQ(refusal(thin, {.minEdge = 15}, true).value().status, OcrStatus::InputTooLarge);
+    EXPECT_EQ(refusal(wide, {.maxBytes = 1000}, true).value().status, OcrStatus::InputTooLarge);
     EXPECT_FALSE(refusal(wide, {}, true)) << "a service without the bound does not refuse for it";
 
     auto flag = std::make_shared<std::atomic_bool>(true);
-    EXPECT_EQ(lens::ocr::refuseOcrRequest(request(), QStringLiteral("test"), {}, flag, true)->status, OcrStatus::Cancelled);
+    EXPECT_EQ(lens::ocr::refuseOcrRequest(request(), QStringLiteral("test"), {}, flag, true).value().status, OcrStatus::Cancelled);
 
     auto overdue     = request();
     overdue.deadline = std::chrono::milliseconds{0};
-    EXPECT_EQ(refusal(overdue, {}, true)->status, OcrStatus::TimedOut);
+    EXPECT_EQ(refusal(overdue, {}, true).value().status, OcrStatus::TimedOut);
 
     EXPECT_FALSE(refusal(request(), {.maxEdge = 8192, .minEdge = 15}, true));
 }

@@ -25,7 +25,7 @@ class YoudaoSource final : public QObject, public PronunciationSource {
     Q_OBJECT
 public:
     /// @brief One recording's ceiling: a word is 10-45 KB, so this is generous and still small.
-    static constexpr qint64 kMaxBytes = 1024 * 1024;
+    static constexpr qint64 kMaxBytes = static_cast<const qint64>(1024) * 1024;
     /// @brief The whole request's ceiling, measured from the send: the endpoint answers in 126-175 ms.
     static constexpr int kTimeoutMs = 10000;
 

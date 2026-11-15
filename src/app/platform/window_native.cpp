@@ -20,7 +20,7 @@ namespace {
 /// @return The native handle of a window Qt has created. Qt creates it on first winId() call.
 HWND handleOf(QWindow const& window)
 {
-    return reinterpret_cast<HWND>(window.winId());
+    return reinterpret_cast<HWND>(window.winId()); // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
 }
 
 /// @return True when this run leaves every window in screen captures.
@@ -34,7 +34,7 @@ bool windowStaysVisibleInCapture()
     static bool const visible = [] {
         auto const asked = qgetenv("LENS_QA_VISIBLE_IN_CAPTURE");
         if (asked.isEmpty()) return false;
-        LENS_WARN("LENS_QA_VISIBLE_IN_CAPTURE is set: no window is kept out of screen captures, so every "
+        LENS_WARN("LENS_QA_VISIBLE_IN_CAPTURE is set: no window is kept out of screen captures, so every " // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
                   "surface shows up in screenshots and screen shares. QA only; never leave it set.");
         return true;
     }();

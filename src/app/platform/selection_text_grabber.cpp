@@ -481,7 +481,7 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab(ClipboardPolicy con
     if (text.isEmpty()) return GrabStatus::EmptyText;
 
     LENS_INFO("SelectionTextGrabber::grab: captured {} characters from '{}'", text.size(), processName);
-    return text;
+    return text; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 }
 
 }

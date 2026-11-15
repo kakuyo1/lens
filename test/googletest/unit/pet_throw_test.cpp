@@ -93,7 +93,7 @@ TEST(PetThrow, TheArcMovesTheWindowAndLandsOnTheFloor)
     step = land(thrown);
     EXPECT_FALSE(thrown.flying());
     ASSERT_TRUE(step.position);
-    EXPECT_EQ(step.position->y(), kArea.bottom() - kPet.height() + 1);
+    EXPECT_EQ(step.position.value().y(), kArea.bottom() - kPet.height() + 1);
     EXPECT_EQ(step.role, Role::Dizzy);
     EXPECT_GT(step.elapsed.count(), 0);
 

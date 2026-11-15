@@ -93,7 +93,7 @@ struct AccessoryArt {
 };
 
 /// @brief Everything the pet draws with, parsed and verified.
-struct PetAssets {
+struct PetAssets { // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     /// The name the settings show: the package's own, with control and format characters removed, or the id when it has none.
     QString name;
     /// Side of one square frame, in sheet units.

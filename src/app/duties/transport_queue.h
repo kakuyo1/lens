@@ -40,7 +40,7 @@ protected:
     virtual void dispatch(core::sync::Request const& request, std::uint64_t& callId) = 0;
 
     /// @brief Answer the request in flight; an answer carrying another id is stale and dropped.
-    void answer(std::uint64_t callId, core::sync::Answer answer)
+    void answer(std::uint64_t callId, core::sync::Answer const& answer)
     {
         if (not inFlight_ or queue_.empty())
             return;
@@ -48,18 +48,18 @@ protected:
         // is then the only request the answer can belong to.
         if (queue_.front().callId != 0 and queue_.front().callId != callId)
             return;
-        answerCurrent(std::move(answer));
+        answerCurrent(answer);
     }
 
     /// @brief Answer the request being dispatched now, for a call that never reaches the wire.
-    void answerCurrent(core::sync::Answer answer)
+    void answerCurrent(core::sync::Answer const& answer)
     {
         if (not inFlight_ or queue_.empty())
             return;
         Pending pending = std::move(queue_.front());
         queue_.pop_front();
         inFlight_ = false;
-        pending.reply(std::move(answer));
+        pending.reply(answer);
         pump();
     }
 

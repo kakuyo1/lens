@@ -36,14 +36,14 @@ void PencilDuty::keepOutOfCapture(QObject* const object, bool const passthrough)
     auto* const window = qobject_cast<QWindow*>(object);
     if (window == nullptr) return;
     auto const rule = [passthrough](QWindow const& shown) {
-        if (not excludeFromCapture(shown)) LENS_WARN("the pencil layer can appear in screen captures: Windows refused the exclusion");
+        if (not excludeFromCapture(shown)) LENS_WARN("the pencil layer can appear in screen captures: Windows refused the exclusion"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         // Clicks pass through by the Win32 style: Qt.WindowTransparentForInput painted this full-screen layer black.
         setPassthrough(shown, passthrough);
         // A click on the mark button must not hand it the foreground: the activated window hides
         // with the word's verdict, and the system is then left with no foreground at all, which
         // the scan's own gate reads as the page being gone (docs/adr/0161).
         if (not passthrough) setNoActivate(shown);
-        LENS_INFO("pencil window shown: passthrough={}", passthrough);
+        LENS_INFO("pencil window shown: passthrough={}", passthrough); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
     };
     connect(window, &QWindow::visibleChanged, window, [window, rule](bool const on) {
         if (on) rule(*window);
@@ -90,7 +90,7 @@ void PencilDuty::reportMarkButtonGeometry(QPointF const pos, QSizeF const size)
     markButtonPos_ = pos;
 }
 
-void PencilDuty::placeWords(QVariantList const words, QRect const screen, QPoint const screenOrigin, double const scale)
+void PencilDuty::placeWords(QVariantList const& words, QRect const screen, QPoint const screenOrigin, double const scale)
 {
     words_.clear();
     for (auto const& value : words) {
@@ -182,7 +182,7 @@ void PencilDuty::altUp()
     refresh();
 }
 
-void PencilDuty::verdictChanged(QString const lemma, QString const verdict)
+void PencilDuty::verdictChanged(QString const lemma, QString const& verdict) // NOLINT(bugprone-easily-swappable-parameters): verdictChanged takes its 2 const QString arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     if (verdict == verdictToken(core::WordVerdict::Mastered)) {
         // A retired word's line is gone for good on this page: the scan no longer places it, so

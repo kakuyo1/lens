@@ -33,7 +33,7 @@ inline constexpr std::string_view kFileName    = "lens-sync.json";
 /// @brief One request a round asks the transport to carry.
 struct Request {
     /// @brief Which call to make.
-    enum class Kind {
+    enum class Kind : int {
         List,   ///< Find the sync gist by its description.
         Read,   ///< Read one gist's file.
         Create, ///< Make the sync gist with the file.
@@ -53,7 +53,7 @@ struct Request {
 /// @brief The transport's answer to one request.
 struct Answer {
     /// @brief Why a call did not answer with what was asked for.
-    enum class Failure {
+    enum class Failure : int {
         None,
         Unauthorised,   ///< The access token is refused: revoked, or it lost the gist scope.
         NotFound,       ///< The gist is not there any more.
@@ -151,13 +151,13 @@ public:
     [[nodiscard]] bool carriesNewContent() const;
 
 private:
-    enum class Step { Idle,
-                      Listing,
-                      Reading,
-                      Creating,
-                      Writing,
-                      Deleting,
-                      Refreshing };
+    enum class Step : int { Idle,
+                            Listing,
+                            Reading,
+                            Creating,
+                            Writing,
+                            Deleting,
+                            Refreshing };
 
     /// @brief Ask the transport for @p kind, with the id, file and text the step carries.
     void ask(Request::Kind kind);
@@ -177,7 +177,7 @@ private:
     void uploaded();
     void succeed();
     /// @brief End a failed run, arming the backoff when it can clear by itself.
-    void fail(std::string code);
+    void fail(std::string const& code);
     void end(bool succeeded);
     void notifyChanged();
 

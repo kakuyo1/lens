@@ -19,7 +19,7 @@ using lens::app::readTone;
 using lens::app::refractionMap;
 using lens::app::settleTone;
 
-QImage solid(int w, int h, QRgb colour)
+QImage solid(int w, int h, QRgb colour) // NOLINT(bugprone-easily-swappable-parameters): the diagnostic's suggestion does not fit this call site
 {
     QImage image(w, h, QImage::Format_RGB32);
     image.fill(colour);

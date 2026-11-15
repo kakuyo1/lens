@@ -22,7 +22,7 @@ YoudaoSource::YoudaoSource(QNetworkAccessManager* manager, QObject* parent)
 {
 }
 
-QUrl YoudaoSource::urlFor(QString const& word, QString const& accent)
+QUrl YoudaoSource::urlFor(QString const& word, QString const& accent) // NOLINT(bugprone-easily-swappable-parameters): urlFor takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     QUrl      url{QStringLiteral("https://dict.youdao.com/dictvoice")};
     QUrlQuery query;
@@ -57,7 +57,7 @@ void YoudaoSource::fetch(QString const& word, QString const& accent, AudioSink s
         // A sentence, and some phrases, answer 500 with a 120-byte body: this is a dictionary entry's
         // recording, not a synthesiser, and a refusal is answered the way every other refusal here is.
         if (reply->error() != QNetworkReply::NoError or status != 200 or bytes.isEmpty() or bytes.size() > kMaxBytes) {
-            LENS_TRACE("pronunciation: no recording (HTTP {}, {} bytes, error {})", status, bytes.size(), static_cast<int>(reply->error()));
+            LENS_TRACE("pronunciation: no recording (HTTP {}, {} bytes, error {})", status, bytes.size(), static_cast<int>(reply->error())); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             sink({}, false);
             return;
         }

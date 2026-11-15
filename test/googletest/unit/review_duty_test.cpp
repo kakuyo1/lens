@@ -60,7 +60,7 @@ protected:
     }
 
     /// Steps the clock from @p from to @p to, one minute at a time, so every look the duty draws is taken.
-    void runClock(long long from, long long to)
+    void runClock(long long from, long long to) // NOLINT(bugprone-easily-swappable-parameters): runClock takes its 2 long long arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
     {
         for (long long now = from; now <= to; now += kMinute)
             duty->tick(now);
@@ -151,8 +151,8 @@ TEST_F(ReviewDutyTest, RememberingMovesTheWordUpAndPutsItAgainstTheClock)
     EXPECT_TRUE(duty->word().isEmpty());
     auto const state = storage->reviewStore().get("apple");
     ASSERT_TRUE(state.has_value());
-    EXPECT_EQ(state->level, 2);
-    EXPECT_EQ(state->due, answered + 3 * kDay);
+    EXPECT_EQ(state.value().level, 2);
+    EXPECT_EQ(state.value().due, answered + 3 * kDay);
 }
 
 TEST_F(ReviewDutyTest, ForgettingFromTheFirstLevelComesBackInTenMinutes)
@@ -166,8 +166,8 @@ TEST_F(ReviewDutyTest, ForgettingFromTheFirstLevelComesBackInTenMinutes)
 
     auto const state = storage->reviewStore().get("apple");
     ASSERT_TRUE(state.has_value());
-    EXPECT_EQ(state->level, 0);
-    EXPECT_EQ(state->due, answered + 10 * kMinute);
+    EXPECT_EQ(state.value().level, 0);
+    EXPECT_EQ(state.value().due, answered + 10 * kMinute);
 }
 
 TEST_F(ReviewDutyTest, AnswerWithNoQuestionUpChangesNothing)
@@ -191,8 +191,8 @@ TEST_F(ReviewDutyTest, SwitchingThePetOffTakesTheQuestionDownAndKeepsItsCooldown
     EXPECT_TRUE(duty->word().isEmpty());
     auto const state = storage->reviewStore().get("apple");
     ASSERT_TRUE(state.has_value());
-    EXPECT_EQ(state->level, 1) << "no verdict, so the level stays";
-    EXPECT_EQ(state->asked, now + 2 * kHour);
+    EXPECT_EQ(state.value().level, 1) << "no verdict, so the level stays";
+    EXPECT_EQ(state.value().asked, now + 2 * kHour);
 }
 
 TEST_F(ReviewDutyTest, FrequencyOffNeverAsksAndTheChoiceIsKept)

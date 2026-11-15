@@ -1,8 +1,25 @@
-# clang-tidy, held to zero. The checks were picked from a tree-wide probe -- 267 compilation
-# units, the same run scripts/quality/tidy.sh gates on -- rather than from taste: what fires
-# today is excluded, with its count, until its instances are fixed; what does not fire is kept,
-# so a future violation is new code and the gate names the change that brought it. The list only
+# clang-tidy, held to zero. The checks were picked from a tree-wide probe -- the compilation
+# units the database names, the same run scripts/quality/tidy.sh gates on -- rather than from
+# taste: what fires today is fixed or declared deliberate, and what does not fire is kept, so
+# a future violation is new code and the gate names the change that brought it. The list only
 # grows, like every other ratchet in this repository.
+#
+# Two entries answer for whole classes rather than single sites, and each says why:
+#
+#   bugprone-unchecked-optional-access -- the tree reads optionals through value() on purpose:
+#     the empty path is a loud exception instead of undefined behaviour, and the happy path is
+#     byte-for-byte what it was. The check treats value() exactly like operator->, so every
+#     one of those reads is a finding however it is spelled. The IgnoreValueCalls option that
+#     would say "value() is the checked accessor here" arrives in LLVM 21; on 19 and 20 an
+#     unknown CheckOption is swallowed silently, which would make the config look like it
+#     answers a question it does not, so the check stays off in the list until the toolchain
+#     moves and the option is real.
+#
+#   performance-enum-size -- every enum carries an explicit underlying type (: int, which is
+#     what it already was) and the persisted ones' storage does not move, so the size question
+#     is answered at each definition. EnumIgnoreList turns the check off at the option rather
+#     than in the Checks list, which keeps the door open for naming a single enum whose size
+#     should be argued instead of defaulted.
 #
 # clang-analyzer covers the class the crash dumps keep finding -- a null or emptied handle read
 # after its owner retired it. It is the expensive half, which is why CI runs it only over the
@@ -16,6 +33,7 @@
 # gate only ever judges files in this repository. The probe found no diagnostic inside the
 # googletest headers, whose paths also carry a src/ segment; if one ever appears, that is what
 # this comment explains.
+
 Checks: >
   -*,
   clang-analyzer-core.*,
@@ -23,41 +41,12 @@ Checks: >
   bugprone-*,
   performance-*,
   modernize-use-override,
-  -bugprone-branch-clone,
-  -bugprone-exception-escape,
-  -bugprone-easily-swappable-parameters,
-  -bugprone-implicit-widening-of-multiplication-result,
-  -bugprone-lambda-function-name,
-  -bugprone-narrowing-conversions,
-  -bugprone-unchecked-optional-access,
-  -clang-analyzer-cplusplus.NewDeleteLeaks,
-  -performance-enum-size,
-  -performance-move-const-arg,
-  -performance-no-automatic-move,
-  -performance-no-int-to-ptr,
-  -performance-unnecessary-value-param
-
-# The excluded ones, with the counts the tree-wide probe found and why each waits:
-#   bugprone-branch-clone 18 -- identical consecutive cases are often deliberate; each wants a look
-#   bugprone-exception-escape 29 -- value-type moves and destructors that may throw; per-instance review
-#   bugprone-easily-swappable-parameters 26 -- an API-design judgement, not a mechanical fix
-#   bugprone-implicit-widening-of-multiplication-result 133 -- a real overflow class with a backlog of its own
-#   bugprone-lambda-function-name 50
-#   bugprone-narrowing-conversions 32
-#   bugprone-unchecked-optional-access 486 -- the tree's optional invariants span functions the
-#     analyzer cannot see; each of the 486 wants human eyes before the check comes back
-#   clang-analyzer-cplusplus.NewDeleteLeaks 8 -- every one is QMetaObject::invokeMethod with a
-#     lambda; the ownership transfer into QMetaCallEvent is invisible to the analyzer
-#   performance-enum-size 586 -- an underlying type per enum, and the data-bearing ones want
-#     their storage semantics argued, not defaulted
-#   performance-move-const-arg 25
-#   performance-no-automatic-move 11
-#   performance-no-int-to-ptr 15
-#   performance-unnecessary-value-param 36 -- Qt's shared classes make pass-by-value the idiom
-
+  -bugprone-unchecked-optional-access
 CheckOptions:
   - key:   bugprone-empty-catch.AllowEmptyCatchForExceptions
     value: winrt::hresult_error
+  - key:   performance-enum-size.EnumIgnoreList
+    value: .*
 
 WarningsAsErrors: '*'
 

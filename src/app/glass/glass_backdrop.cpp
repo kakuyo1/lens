@@ -242,7 +242,7 @@ void GlassSheet::followDeferred(QRect const window, double const fillAlpha)
                         request.screen,
                         request.window,
                         request.fillAlpha,
-                        std::move(taken.picture),
+                        taken.picture,
                         taken.tone,
                         taken.fingerprint,
                         true);
@@ -410,7 +410,7 @@ GlassBackdrop::GlassBackdrop(QObject* parent)
     for (lens::core::surface::Row const& row : lens::core::surface::kRows) {
         if (not row.sheet)
             continue;
-        auto* const sheet = new GlassSheet(QString::fromLatin1(row.name.data(), row.name.size()), this);
+        auto* const sheet = new GlassSheet(QString::fromLatin1(row.name.data(), static_cast<qsizetype>(row.name.size())), this);
         connect(sheet, &GlassSheet::liveChanged, this, &GlassBackdrop::updateLive);
         sheets_.push_back(sheet);
     }
@@ -534,7 +534,7 @@ void GlassBackdrop::refreshNext()
         busy_ = true;
         pool_.start([this, read, request, starter = weak.lock()] {
             auto taken = takeSheet(request);
-            QMetaObject::invokeMethod(
+            QMetaObject::invokeMethod( // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
                 this,
                 [this, read, request, taken = std::move(taken), starter]() mutable {
                     busy_ = false;
@@ -633,7 +633,7 @@ GlassBackdrop::Session& GlassBackdrop::sessionFor(QScreen const& screen)
     session.chain = std::make_unique<FallbackSource>(
         std::initializer_list<DesktopSource*>{session.duplication.get(), session.capture.get(), &gdi_});
     return session;
-}
+} // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
 
 GlassImageProvider::GlassImageProvider(GlassBackdrop const& backdrop)
     : QQuickImageProvider(QQuickImageProvider::Image), backdrop_(backdrop)

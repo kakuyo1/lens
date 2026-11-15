@@ -73,7 +73,7 @@ public:
     static constexpr int kMaximumScanBatch = 5;
 
     /// @brief What the queue is between a take() and the complete() that answers it.
-    enum class Stage {
+    enum class Stage : int {
         Empty,    ///< Nothing waiting and nothing in flight.
         Waiting,  ///< Something to send, and nothing in flight.
         InFlight, ///< A batch is out; anything queued waits behind it.

@@ -82,7 +82,7 @@ public:
     void setBand(QRect band);
 
 private:
-    void run(std::stop_token stop);
+    void run(std::stop_token const& stop);
 
     quintptr     window_;
     Deliver      deliver_;

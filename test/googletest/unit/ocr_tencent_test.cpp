@@ -98,10 +98,10 @@ TEST(OcrTencent, ACropIsSentWithTheActionVersionAndItsBoxesAreRead)
     EXPECT_EQ(result.geometryLevel, lens::capture::OcrGeometryLevel::Line);
     ASSERT_EQ(result.lines.size(), 2u);
     ASSERT_TRUE(result.lines[0].box.has_value());
-    EXPECT_DOUBLE_EQ(result.lines[0].box->x, 464);
-    EXPECT_DOUBLE_EQ(result.lines[0].box->height, 35);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().x, 464);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().height, 35);
     ASSERT_TRUE(result.confidence.has_value());
-    EXPECT_DOUBLE_EQ(result.confidence->average, 0.95);
+    EXPECT_DOUBLE_EQ(result.confidence.value().average, 0.95);
 
     ASSERT_EQ(transport->requests.size(), 1u);
     auto const& sent = transport->requests[0];

@@ -37,8 +37,8 @@ ExplanationCache::Look ExplanationCache::look(std::string const& lemma, CacheCon
     // docs/adr/0033: an entry bought without asking for an example is not an answer while the
     // setting is on -- it has to be bought again. An empty example is a settled answer, so it hits.
     if (readToggle(store_.section(), *settings::find("example")) and not cached->example)
-        return {State::Rebuy, std::move(*cached)};
-    return {State::Hit, std::move(*cached)};
+        return {State::Rebuy, *cached};
+    return {State::Hit, *cached};
 }
 
 void ExplanationCache::store(std::string const& lemma, WordCache entry, CacheContext const& context)

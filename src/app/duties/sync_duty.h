@@ -80,13 +80,13 @@ public:
 
     /// @brief Store the provider the page picked and rebuild the backend around it. Both providers'
     ///        credentials stay on this device; a sign-out is what forgets them.
-    Q_INVOKABLE void useProvider(QString provider);
+    Q_INVOKABLE void useProvider(QString const& provider);
     /// @brief Start the backend's sign-in flow; for WebDAV this is one reachability check.
     Q_INVOKABLE void startLogin();
     /// @brief Stop waiting for the device code. Nothing is reported.
     Q_INVOKABLE void cancelLogin();
     /// @brief Derive the key from the passphrase and sync. An existing cloud copy must open with it.
-    Q_INVOKABLE void setPassphrase(QString passphrase);
+    Q_INVOKABLE void setPassphrase(QString const& passphrase);
     /// @brief Sync now, with the stored key.
     Q_INVOKABLE void syncNow();
     /// @brief Forget the token and key on this device. The cloud copy is left where it is.
@@ -95,9 +95,9 @@ public:
     Q_INVOKABLE void deleteCloudData();
 
     /// @brief Store one WebDAV form field. An empty app password clears it.
-    Q_INVOKABLE void setWebdavServer(QString server);
-    Q_INVOKABLE void setWebdavUsername(QString username);
-    Q_INVOKABLE void setWebdavAppPassword(QString appPassword);
+    Q_INVOKABLE void setWebdavServer(QString const& server);
+    Q_INVOKABLE void setWebdavUsername(QString const& username);
+    Q_INVOKABLE void setWebdavAppPassword(QString const& appPassword);
 
     /// @brief Run one sync a few seconds after launch, when signed in and a key is stored.
     void startAtLaunch();

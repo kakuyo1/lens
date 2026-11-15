@@ -79,7 +79,7 @@ std::string sha1Hex(std::string_view bytes)
 
     static constexpr char kHex[] = "0123456789abcdef";
     std::string           out;
-    out.reserve(digestBytes * 2);
+    out.reserve(static_cast<std::size_t>(digestBytes) * 2);
     for (DWORD index = 0; index < digestBytes; ++index) {
         out.push_back(kHex[digest[index] >> 4]);
         out.push_back(kHex[digest[index] & 0x0f]);

@@ -20,7 +20,7 @@ using lens::app::ScanStep;
 using Clock = std::chrono::steady_clock;
 
 /// A placement of @p count words, all at distinct boxes, on a fixed monitor.
-ScanStep::Placed placementOf(int const count, int const yOffset = 0)
+ScanStep::Placed placementOf(int const count, int const yOffset = 0) // NOLINT(bugprone-easily-swappable-parameters): placementOf takes its 2 const int arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     ScanStep::Placed placed;
     placed.screen = QRect{0, 0, 1920, 1080};
@@ -85,8 +85,8 @@ TEST(ScanEmissionGate, AChangedPlacementInsideTheCadenceIsHeldForAFlush)
 
     auto const flushed = gate.takeHeld(now + std::chrono::milliseconds{66});
     ASSERT_TRUE(flushed);
-    EXPECT_EQ(flushed->words.size(), 2u);
-    EXPECT_EQ(flushed->words.front().y, 60);
+    EXPECT_EQ(flushed.value().words.size(), 2u);
+    EXPECT_EQ(flushed.value().words.front().y, 60);
     EXPECT_FALSE(gate.holding());
 }
 
@@ -109,7 +109,7 @@ TEST(ScanEmissionGate, TheNewestHeldPlacementWinsOverAnOlderOne)
     (void)gate.admit(placementOf(2, 40), now + std::chrono::milliseconds{32});
     auto const flushed = gate.takeHeld(now + std::chrono::milliseconds{66});
     ASSERT_TRUE(flushed);
-    EXPECT_EQ(flushed->words.front().y, 60); // the 40-offset frame, not the 10-offset one
+    EXPECT_EQ(flushed.value().words.front().y, 60); // the 40-offset frame, not the 10-offset one
 }
 
 TEST(ScanEmissionGate, AFlushCountsAsAnEmissionForTheCadence)
@@ -177,7 +177,7 @@ TEST(ScanEmissionGate, AnEmptyPlacementTakesTheLinesDownOnceTheCadenceOpens)
     (void)gate.admit(ScanStep::Placed{}, now + std::chrono::milliseconds{16});
     auto const flushed = gate.takeHeld(now + std::chrono::milliseconds{66});
     ASSERT_TRUE(flushed);
-    EXPECT_TRUE(flushed->words.empty());
+    EXPECT_TRUE(flushed.value().words.empty());
     // The missed reads after it describe the page the layer already shows -- nothing.
     EXPECT_FALSE(emitted(gate.admit(ScanStep::Placed{}, now + std::chrono::milliseconds{100})));
     EXPECT_FALSE(held(gate.admit(ScanStep::Placed{}, now + std::chrono::milliseconds{100})));

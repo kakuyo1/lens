@@ -41,11 +41,11 @@ public:
     /// @brief One still of a shipped pet's idle figure for the picker's postcard (UI-SPEC.md 4.4).
     /// @return {canvas, foot, sheets, anchors, expression, outfit}, or an empty map for an installed
     ///         package, an unknown id, or a folder that will not load.
-    Q_INVOKABLE QVariantMap portrait(QString id);
+    Q_INVOKABLE QVariantMap portrait(QString const& id);
     /// @brief Chooses a pet; an unconfirmed package asks for confirmation first.
-    Q_INVOKABLE void setPet(QString id);
+    Q_INVOKABLE void setPet(QString const& id);
     /// @brief Records the reader's confirmation of an installed package, and switches to it.
-    Q_INVOKABLE void confirmPet(QString id);
+    Q_INVOKABLE void confirmPet(QString const& id);
     /// @brief Rescans both folders, as the extensions section does each time it opens.
     Q_INVOKABLE void refresh();
     /// @brief Opens the reader's pets folder in the file manager.

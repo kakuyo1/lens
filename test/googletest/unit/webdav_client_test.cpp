@@ -86,7 +86,7 @@ TEST(WebDavClient, APutThatConflictsMakesTheCollectionAndWritesAgain)
     ScriptedManager   manager;
     dav::WebDavClient client(&manager);
     QString           done;
-    QObject::connect(&client, &dav::WebDavClient::putDone, [&done](quint64, QString path) { done = path; });
+    QObject::connect(&client, &dav::WebDavClient::putDone, [&done](quint64, QString path) { done = std::move(path); });
 
     manager.queue(409); // the PUT: the Lens collection is missing
     manager.queue(201); // the MKCOL
@@ -156,7 +156,7 @@ TEST(WebDavClient, AnAddressWithoutASchemeIsAskedOverHttps)
     ScriptedManager   manager;
     dav::WebDavClient client(&manager);
     QString           done;
-    QObject::connect(&client, &dav::WebDavClient::deleted, [&done](quint64, QString path) { done = path; });
+    QObject::connect(&client, &dav::WebDavClient::deleted, [&done](quint64, QString path) { done = std::move(path); });
 
     manager.queue(204);
     client.del("dav.example.com/dav/", "reader", "app-pass", "Lens/lens-sync.json");
@@ -211,7 +211,7 @@ TEST(WebDavClient, AReadHandsOverTheTextAndAProbeThatAnsweredIsFound)
     dav::WebDavClient   client(&manager);
     QString             file;
     std::optional<bool> found;
-    QObject::connect(&client, &dav::WebDavClient::gotFile, [&file](quint64, QString content) { file = content; });
+    QObject::connect(&client, &dav::WebDavClient::gotFile, [&file](quint64, QString content) { file = std::move(content); });
     QObject::connect(&client, &dav::WebDavClient::found, [&found](quint64, bool exists) { found = exists; });
 
     manager.queue(200, QByteArray("{\"format\":1}"));
@@ -287,7 +287,7 @@ TEST(WebDavClient, AnAnswerPastTheCeilingIsDropped)
     bool              answered = false;
     QObject::connect(&client, &dav::WebDavClient::gotFile, [&](quint64, QString content) {
         answered = true;
-        file     = content;
+        file     = std::move(content);
     });
 
     manager.queue(200, QByteArray(10 * 1024 * 1024 + 1, 'x'));

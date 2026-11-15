@@ -109,7 +109,7 @@ struct DutyFixture {
         storage = std::make_unique<lens::app::StorageDuty>(*store);
         lens::update::Settings settings;
         settings.source   = QUrl{QString::fromLatin1(kReleasePage)};
-        settings.maxBytes = 2 * 1024 * 1024;
+        settings.maxBytes = static_cast<qint64>(2 * 1024) * 1024;
         client            = std::make_unique<lens::update::UpdateClient>(settings, &manager);
         // The download's own stub never answers: these cases deliver the sums and the installer
         // themselves, so nothing the stub invents arrives in the middle of what they are checking.
@@ -120,7 +120,7 @@ struct DutyFixture {
                                                          return launchWorks; }, cache, [] { return pinnedDate(); });
     }
 
-    ~DutyFixture()
+    ~DutyFixture() // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     {
         duty.reset();
         downloader.reset();
@@ -203,11 +203,11 @@ TEST(UpdateLocation, ReadsTheVersionAndKeepsThePageItWasGiven)
         const QUrl url    = releaseUrl(tag);
         const auto parsed = parseReleaseLocation(url);
         ASSERT_TRUE(parsed.has_value()) << tag;
-        EXPECT_EQ(parsed->versionText, QStringLiteral("1.1.0")) << tag;
-        EXPECT_EQ(parsed->version, (lens::util::SemVer{1, 1, 0})) << tag;
-        EXPECT_EQ(parsed->pageUrl, url.toString()) << tag;
+        EXPECT_EQ(parsed.value().versionText, QStringLiteral("1.1.0")) << tag;
+        EXPECT_EQ(parsed.value().version, (lens::util::SemVer{1, 1, 0})) << tag;
+        EXPECT_EQ(parsed.value().pageUrl, url.toString()) << tag;
         // The redirect carries no notes, and none are fetched behind it.
-        EXPECT_TRUE(parsed->notes.isEmpty()) << tag;
+        EXPECT_TRUE(parsed.value().notes.isEmpty()) << tag;
     }
 }
 
@@ -382,7 +382,7 @@ TEST(UpdateClient, ARedirectCarryingAReleaseIsTheOnlyAnswerItAccepts)
         lens::update::UpdateClient     client(settings, &manager);
         QVector<lens::update::Release> releases;
         int                            offline = 0;
-        QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release r) { releases.append(r); });
+        QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release const& r) { releases.append(r); });
         QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
 
         client.fetch();
@@ -454,7 +454,7 @@ TEST(UpdateClient, AReleaseTagThisCheckDoesNotActOnIsNotAnOfflineAnswer)
     int                        releases  = 0;
     QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
     QObject::connect(&client, &lens::update::UpdateClient::noRelease, [&noRelease] { ++noRelease; });
-    QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release) { ++releases; });
+    QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release const&) { ++releases; });
 
     client.fetch();
     settle();
@@ -476,7 +476,7 @@ TEST(UpdateClient, AnAnswerLargerThanTheCeilingIsAbortedAndReadsAsOffline)
     int                        offline  = 0;
     int                        releases = 0;
     QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
-    QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release) { ++releases; });
+    QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release const&) { ++releases; });
 
     client.fetch();
     ASSERT_EQ(manager.requests, 1);
@@ -893,7 +893,7 @@ TEST(UpdateDownload, StopsAnAnswerThatAnnouncesMoreThanTheCeiling)
 {
     QtApplication   qt;
     ScriptedManager manager{200};
-    manager.announceLength = 1024 * 1024 * 1024; // a gigabyte, against a ceiling far below it
+    manager.announceLength = static_cast<qint64>(1024 * 1024) * 1024; // a gigabyte, against a ceiling far below it
     lens::update::Settings settings;
     settings.source           = QUrl{QString::fromLatin1(kReleasePage)};
     settings.maxDownloadBytes = 1024;
@@ -998,7 +998,7 @@ TEST(UpdateDownload, AMissingChecksumFileIsAnAnswerNotAFailure)
     QObject::connect(&client, &lens::update::DownloadClient::failed, [&failures](lens::update::DownloadClient::Failure) { ++failures; });
     QObject::connect(&client, &lens::update::DownloadClient::sumsReady, [&](QByteArray sums) {
         answered = true;
-        received = sums;
+        received = std::move(sums);
     });
 
     client.fetchSums(QStringLiteral("1.1.0"));
@@ -1024,7 +1024,7 @@ TEST(UpdateDownload, ASumsListArrivingInTheBodyIsHandedOverWhole)
     bool                         answered = false;
     QObject::connect(&client, &lens::update::DownloadClient::sumsReady, [&](QByteArray sums) {
         answered = true;
-        received = sums;
+        received = std::move(sums);
     });
 
     client.fetchSums(QStringLiteral("1.1.0"));

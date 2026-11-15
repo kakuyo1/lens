@@ -42,14 +42,14 @@ std::chrono::steady_clock::time_point at(std::chrono::seconds since)
 }
 
 /// @return An offer whose weight for the afternoon is @p weight; the tests draw at 12:00, which is the afternoon.
-PetStage::Offer offerOf(std::string name, double weight, double favour = 1.0)
+PetStage::Offer offerOf(std::string name, double weight, double favour = 1.0) // NOLINT(bugprone-easily-swappable-parameters): offerOf takes its 2 double arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto mood      = SceneMood{};
     mood.afternoon = weight;
     return PetStage::Offer{std::move(name), mood, favour};
 }
 
-SceneEntry entryOf(SceneEntryStyle style, int prepMs, int moveMs, int propMs)
+SceneEntry entryOf(SceneEntryStyle style, int prepMs, int moveMs, int propMs) // NOLINT(bugprone-easily-swappable-parameters): entryOf takes its 3 int arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto entry     = SceneEntry{};
     entry.style    = style;
@@ -223,16 +223,16 @@ TEST(PetStage, AHopHoldsTheIdlePoseUntilItLands)
 
     auto const first = stage.tick(20ms);
     ASSERT_TRUE(first.frame);
-    EXPECT_FALSE(first.frame->scenePose) << "the hop wore the scene pose before it landed";
-    EXPECT_EQ(first.frame->poseFrame, 2) << "the hop restarted the idle bob";
-    EXPECT_DOUBLE_EQ(first.frame->propAlpha, 0.0);
-    EXPECT_TRUE(first.frame->inFront);
+    EXPECT_FALSE(first.frame.value().scenePose) << "the hop wore the scene pose before it landed";
+    EXPECT_EQ(first.frame.value().poseFrame, 2) << "the hop restarted the idle bob";
+    EXPECT_DOUBLE_EQ(first.frame.value().propAlpha, 0.0);
+    EXPECT_TRUE(first.frame.value().inFront);
     EXPECT_FALSE(first.landed);
 
     auto const moving = stage.tick(100ms);
     ASSERT_TRUE(moving.frame);
-    EXPECT_EQ(moving.frame->poseFrame, 3) << "the held pose did not advance";
-    EXPECT_NEAR(moving.frame->propAlpha, 0.875, 1e-9);
+    EXPECT_EQ(moving.frame.value().poseFrame, 3) << "the held pose did not advance";
+    EXPECT_NEAR(moving.frame.value().propAlpha, 0.875, 1e-9);
 }
 
 TEST(PetStage, AHopLandsWhenItsPreparationAndFlightAreSpent)
@@ -264,8 +264,8 @@ TEST(PetStage, AHopsArcIsCappedByThePetsHeadroom)
     low.tick(0ms);
     auto const capped = low.tick(300ms);
     ASSERT_TRUE(capped.frame);
-    EXPECT_DOUBLE_EQ(capped.frame->shift.y(), -4.0) << "the arc lifted the pet past the window's edge";
-    EXPECT_FALSE(capped.frame->inFront) << "the pet stayed in front of the props past its crossing point";
+    EXPECT_DOUBLE_EQ(capped.frame.value().shift.y(), -4.0) << "the arc lifted the pet past the window's edge";
+    EXPECT_FALSE(capped.frame.value().inFront) << "the pet stayed in front of the props past its crossing point";
 
     // A pet with room to spare flies the arc the data asks for.
     auto tall = stageRolling(0.5);
@@ -273,7 +273,7 @@ TEST(PetStage, AHopsArcIsCappedByThePetsHeadroom)
     tall.tick(0ms);
     auto const free = tall.tick(300ms);
     ASSERT_TRUE(free.frame);
-    EXPECT_DOUBLE_EQ(free.frame->shift.y(), -12.0) << "the arc did not reach its full height";
+    EXPECT_DOUBLE_EQ(free.frame.value().shift.y(), -12.0) << "the arc did not reach its full height";
 }
 
 TEST(PetStage, AFadeShowsTheScenePoseWhileThePropsRise)
@@ -284,15 +284,15 @@ TEST(PetStage, AFadeShowsTheScenePoseWhileThePropsRise)
 
     auto const first = stage.tick(0ms);
     ASSERT_TRUE(first.frame);
-    EXPECT_TRUE(first.frame->scenePose) << "a fade held the idle pose";
-    EXPECT_DOUBLE_EQ(first.frame->propAlpha, 0.0);
-    EXPECT_DOUBLE_EQ(first.frame->propOffset, 4.0);
-    EXPECT_FALSE(first.frame->inFront);
+    EXPECT_TRUE(first.frame.value().scenePose) << "a fade held the idle pose";
+    EXPECT_DOUBLE_EQ(first.frame.value().propAlpha, 0.0);
+    EXPECT_DOUBLE_EQ(first.frame.value().propOffset, 4.0);
+    EXPECT_FALSE(first.frame.value().inFront);
 
     auto const half = stage.tick(100ms);
     ASSERT_TRUE(half.frame);
-    EXPECT_NEAR(half.frame->propAlpha, 0.875, 1e-9);
-    EXPECT_NEAR(half.frame->propOffset, 0.5, 1e-9);
+    EXPECT_NEAR(half.frame.value().propAlpha, 0.875, 1e-9);
+    EXPECT_NEAR(half.frame.value().propOffset, 0.5, 1e-9);
 
     EXPECT_TRUE(stage.tick(100ms).landed) << "a fade landed later than its props";
 }
@@ -307,15 +307,15 @@ TEST(PetStage, ASettleFoldsTheScenePoseInOverItsLastStretch)
     // The slide is 500 ms long, so the 180 ms fold starts at 320.
     auto const before = stage.tick(319ms);
     ASSERT_TRUE(before.frame);
-    EXPECT_DOUBLE_EQ(before.frame->sceneAlpha, 0.0) << "the fold started early";
-    EXPECT_DOUBLE_EQ(before.frame->idleAlpha, 1.0);
-    EXPECT_TRUE(before.frame->inFront);
-    EXPECT_FALSE(before.frame->scenePose);
+    EXPECT_DOUBLE_EQ(before.frame.value().sceneAlpha, 0.0) << "the fold started early";
+    EXPECT_DOUBLE_EQ(before.frame.value().idleAlpha, 1.0);
+    EXPECT_TRUE(before.frame.value().inFront);
+    EXPECT_FALSE(before.frame.value().scenePose);
 
     auto const half = stage.tick(91ms);
     ASSERT_TRUE(half.frame);
-    EXPECT_NEAR(half.frame->sceneAlpha, 0.5, 1e-9);
-    EXPECT_NEAR(half.frame->idleAlpha, 0.5, 1e-9);
+    EXPECT_NEAR(half.frame.value().sceneAlpha, 0.5, 1e-9);
+    EXPECT_NEAR(half.frame.value().idleAlpha, 0.5, 1e-9);
 }
 
 TEST(PetStage, ASceneWithoutAnEntryNeverBegins)
@@ -341,14 +341,14 @@ TEST(PetStage, ALandingCanLeaveParticlesBehind)
     EXPECT_TRUE(stage.tick(500ms).landed);
     auto const started = stage.impact();
     ASSERT_TRUE(started);
-    EXPECT_EQ(started->kind, QStringLiteral("dust"));
-    EXPECT_EQ(started->at, QPointF(4.0, 2.0));
-    EXPECT_DOUBLE_EQ(started->progress, 0.0);
+    EXPECT_EQ(started.value().kind, QStringLiteral("dust"));
+    EXPECT_EQ(started.value().at, QPointF(4.0, 2.0));
+    EXPECT_DOUBLE_EQ(started.value().progress, 0.0);
 
     stage.tick(160ms);
     auto const half = stage.impact();
     ASSERT_TRUE(half);
-    EXPECT_NEAR(half->progress, 0.5, 1e-9);
+    EXPECT_NEAR(half.value().progress, 0.5, 1e-9);
 
     stage.tick(160ms);
     EXPECT_FALSE(stage.impact()) << "the particles outlived their 320 ms";

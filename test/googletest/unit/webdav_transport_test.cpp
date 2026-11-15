@@ -72,10 +72,10 @@ struct Fixture {
 };
 
 /// @brief Carry one request and wait for its answer, whatever it turns out to be.
-sync::Answer asked(Fixture& fixture, sync::Request request)
+sync::Answer asked(Fixture& fixture, sync::Request const& request)
 {
     std::optional<sync::Answer> got;
-    fixture.transport.send(std::move(request), [&got](sync::Answer const& answer) { got = answer; });
+    fixture.transport.send(request, [&got](sync::Answer const& answer) { got = answer; });
     EXPECT_TRUE(spinUntil([&got] { return got.has_value(); }));
     return got.value_or(sync::Answer{});
 }
@@ -217,14 +217,14 @@ TEST(WebdavTransport, ARefusalCarriesTheKindTheRoundReads)
     request.kind   = sync::Request::Kind::Read;
     request.gistId = "Lens/lens-sync.json";
     std::optional<sync::Answer> got;
-    fixture.transport.send(std::move(request), [&got](sync::Answer const& answer) { got = answer; });
+    fixture.transport.send(request, [&got](sync::Answer const& answer) { got = answer; });
     ASSERT_TRUE(spinUntil([&] {
         for (auto* reply : fixture.manager.findChildren<QNetworkReply*>())
             if (not reply->isFinished())
                 reply->abort();
         return got.has_value();
     }));
-    EXPECT_EQ(got->failure, sync::Answer::Failure::Proxy);
+    EXPECT_EQ(got.value().failure, sync::Answer::Failure::Proxy);
 }
 
 TEST(WebdavTransport, ARefreshIsRefusedAtOnceWithoutARequest)

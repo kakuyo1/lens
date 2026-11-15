@@ -29,7 +29,7 @@ Com<IUIAutomation> newAutomation()
 Com<IUIAutomationElement> elementOf(IUIAutomation& automation, quintptr const window)
 {
     IUIAutomationElement* raw = nullptr;
-    if (FAILED(automation.ElementFromHandle(reinterpret_cast<HWND>(window), &raw))) return {};
+    if (FAILED(automation.ElementFromHandle(reinterpret_cast<HWND>(window), &raw))) return {}; // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
     return Com<IUIAutomationElement>{raw};
 }
 
@@ -236,7 +236,7 @@ private:
 class UiaPage final : public capture::Page {
 public:
     UiaPage(std::shared_ptr<IUIAutomation> automation, quintptr const window, Com<IUIAutomationElement> element, Com<IUIAutomationTextPattern> pattern, std::optional<QRect> clip)
-        : automation_{std::move(automation)}, window_{window}, element_{std::move(element)}, pattern_{std::move(pattern)}, clip_{std::move(clip)}
+        : automation_{std::move(automation)}, window_{window}, element_{std::move(element)}, pattern_{std::move(pattern)}, clip_{clip}
     {}
 
     bool                             present() const override;
@@ -333,7 +333,7 @@ std::optional<capture::WordRead> UiaPage::read(capture::Word const& word)
     }
     auto const cursor = cloneOf(range);
     if (not cursor) return capture::WordRead{utf8, bandOf(full), std::nullopt};
-    int const junkAt = text.size() - cut;
+    int const junkAt = static_cast<int>(text.size() - cut);
     if (FAILED(cursor->Move(TextUnit_Character, junkAt, &moved)) or moved != junkAt) return capture::WordRead{utf8, bandOf(full), std::nullopt};
     cursor->ExpandToEnclosingUnit(TextUnit_Character);
     auto const boxes = boxesOf(*cursor);
@@ -394,7 +394,7 @@ std::shared_ptr<capture::Page> UiaPageReader::acquire(capture::Band const& band)
     if (not root) return nullptr;
     auto page = pageOf(*automation_, *root, rectOf(band));
     if (not page.pattern) return nullptr;
-    auto                  document = std::make_shared<UiaPage>(automation_, window_, std::move(page.element), std::move(page.pattern), std::move(page.clip));
+    auto                  document = std::make_shared<UiaPage>(automation_, window_, std::move(page.element), std::move(page.pattern), page.clip);
     std::lock_guard const lock{cache.guard};
     cache.window = window_;
     cache.page   = document;

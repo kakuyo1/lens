@@ -73,7 +73,7 @@ public slots:
     /// @param screen       The monitor's geometry in device-independent pixels.
     /// @param screenOrigin The monitor's top-left in physical pixels.
     /// @param scale        The monitor's device pixels per device-independent pixel.
-    void placeWords(QVariantList words, QRect screen, QPoint screenOrigin, double scale);
+    void placeWords(QVariantList const& words, QRect screen, QPoint screenOrigin, double scale);
     /// @brief The placed words no longer describe the page; nothing is drawn until the next scan.
     void clear();
     /// @brief The Alt key went down: ask for the signposts of the words that have none stored yet.
@@ -82,7 +82,7 @@ public slots:
     void altUp();
     /// @brief The reader changed @p lemma's verdict: its occurrences take the new line, and a
     ///        mastered one leaves the layer at once -- the scan no longer places it.
-    void verdictChanged(QString lemma, QString verdict);
+    void verdictChanged(QString lemma, QString const& verdict);
     /// @brief The reader is holding the mark button's pill down: nothing may move or take the
     ///        button while that lasts, so a scan frame arriving mid-press cannot swallow the click
     ///        (docs/adr/0161). The QML pill reports both edges of the hold.

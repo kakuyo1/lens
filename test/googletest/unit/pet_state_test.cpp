@@ -101,7 +101,7 @@ RandomSource scripted(std::vector<double> values)
     };
 }
 
-PetStateMachine makeMachine(RandomSource source)
+PetStateMachine makeMachine(RandomSource const& source)
 {
     return PetStateMachine{dogPlaybook(), source};
 }

@@ -34,7 +34,7 @@ WebDavClient::WebDavClient(QNetworkAccessManager* manager, QObject* parent)
 {
 }
 
-quint64 WebDavClient::propfind(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath)
+quint64 WebDavClient::propfind(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath) // NOLINT(bugprone-easily-swappable-parameters): propfind takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const quint64 callId = nextCallId_++;
     const QUrl    url    = addressFor(server, relativePath);
@@ -43,7 +43,7 @@ quint64 WebDavClient::propfind(const QString& server, const QString& username, c
         emit failed(callId, WebDavFailure::Generic);
         return callId;
     }
-    send("PROPFIND", url, username, appPassword, {}, {}, [this, callId](int status, QByteArray body) {
+    send("PROPFIND", url, username, appPassword, {}, {}, [this, callId](int status, QByteArray const& body) {
         // A missing file is an answer, not a failure: the first sync creates the envelope. Nutstore
         // answers 409 while the collection above the file is missing; nginx-flavoured servers say 404.
         if (status == 404 or status == 409) {
@@ -59,7 +59,7 @@ quint64 WebDavClient::propfind(const QString& server, const QString& username, c
     return callId;
 }
 
-quint64 WebDavClient::get(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath)
+quint64 WebDavClient::get(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath) // NOLINT(bugprone-easily-swappable-parameters): get takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const quint64 callId = nextCallId_++;
     const QUrl    url    = addressFor(server, relativePath);
@@ -68,7 +68,7 @@ quint64 WebDavClient::get(const QString& server, const QString& username, const 
         emit failed(callId, WebDavFailure::Generic);
         return callId;
     }
-    send("GET", url, username, appPassword, {}, {}, [this, callId](int status, QByteArray body) {
+    send("GET", url, username, appPassword, {}, {}, [this, callId](int status, QByteArray const& body) {
         if (status == 404 or status == 409) {
             // The path is gone, its parent collection with it (see the propfind note).
             emit failed(callId, WebDavFailure::NotFound);
@@ -98,7 +98,7 @@ void WebDavClient::putOnce(quint64 const callId, const QString& server, const QS
         emit failed(callId, WebDavFailure::Generic);
         return;
     }
-    send("PUT", url, username, appPassword, content.toUtf8(), "application/octet-stream", [this, callId, server, username, appPassword, relativePath, content, collectionMade](int status, QByteArray body) {
+    send("PUT", url, username, appPassword, content.toUtf8(), "application/octet-stream", [this, callId, server, username, appPassword, relativePath, content, collectionMade](int status, QByteArray const& body) {
         if (status == 200 or status == 201 or status == 204) {
             emit putDone(callId, relativePath);
             return;
@@ -109,9 +109,9 @@ void WebDavClient::putOnce(quint64 const callId, const QString& server, const QS
             return;
         }
         if (status == 409) {
-            const int     slash      = relativePath.lastIndexOf('/');
+            const int     slash      = static_cast<int>(relativePath.lastIndexOf('/'));
             const QString collection = slash > 0 ? relativePath.left(slash) : QString();
-            send("MKCOL", addressFor(server, collection), username, appPassword, {}, {}, [this, callId, server, username, appPassword, relativePath, content](int mkcolStatus, QByteArray mkcolBody) {
+            send("MKCOL", addressFor(server, collection), username, appPassword, {}, {}, [this, callId, server, username, appPassword, relativePath, content](int mkcolStatus, QByteArray const& mkcolBody) {
                 // 201 made it; 405 says it was already there. Anything else is not recoverable.
                 if (mkcolStatus != 201 and mkcolStatus != 405) {
                     emit failed(callId, failureFor(mkcolStatus, mkcolBody));
@@ -125,7 +125,7 @@ void WebDavClient::putOnce(quint64 const callId, const QString& server, const QS
     });
 }
 
-quint64 WebDavClient::del(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath)
+quint64 WebDavClient::del(const QString& server, const QString& username, const QString& appPassword, const QString& relativePath) // NOLINT(bugprone-easily-swappable-parameters): del takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const quint64 callId = nextCallId_++;
     const QUrl    url    = addressFor(server, relativePath);
@@ -134,7 +134,7 @@ quint64 WebDavClient::del(const QString& server, const QString& username, const 
         emit failed(callId, WebDavFailure::Generic);
         return callId;
     }
-    send("DELETE", url, username, appPassword, {}, {}, [this, callId, relativePath](int status, QByteArray body) {
+    send("DELETE", url, username, appPassword, {}, {}, [this, callId, relativePath](int status, QByteArray const& body) {
         // 204 is the answer; a 404 or a 409 means it is already gone -- or its collection is --
         // which is what the caller wanted. Nutstore answers 204 to both, but not every server does.
         if (status == 200 or status == 204 or status == 404 or status == 409)
@@ -145,7 +145,7 @@ quint64 WebDavClient::del(const QString& server, const QString& username, const 
     return callId;
 }
 
-void WebDavClient::send(const QByteArray& verb, const QUrl& url, const QString& username, const QString& appPassword, const QByteArray& body, const QByteArray& contentType, std::function<void(int, QByteArray)> onDone)
+void WebDavClient::send(const QByteArray& verb, const QUrl& url, const QString& username, const QString& appPassword, const QByteArray& body, const QByteArray& contentType, std::function<void(int, QByteArray)> onDone) // NOLINT(bugprone-easily-swappable-parameters): send takes its 2 const QByteArray & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     QNetworkRequest request(url);
     request.setTransferTimeout(kTimeoutMs);
@@ -176,7 +176,7 @@ void WebDavClient::send(const QByteArray& verb, const QUrl& url, const QString& 
         // to this call, so it is dropped rather than parsed.
         QByteArray answer = reply->readAll();
         if (answer.size() > kMaxBodyBytes) {
-            LENS_WARN("a WebDAV answer was over the ceiling and was dropped");
+            LENS_WARN("a WebDAV answer was over the ceiling and was dropped"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             answer.clear();
         }
         reply->deleteLater();
@@ -184,7 +184,7 @@ void WebDavClient::send(const QByteArray& verb, const QUrl& url, const QString& 
     });
 }
 
-QUrl WebDavClient::addressFor(const QString& server, const QString& relativePath)
+QUrl WebDavClient::addressFor(const QString& server, const QString& relativePath) // NOLINT(bugprone-easily-swappable-parameters): addressFor takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     QString base = server.trimmed();
     if (base.isEmpty())

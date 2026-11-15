@@ -27,7 +27,7 @@ namespace lens::core {
 class ExplanationCache {
 public:
     /// @brief What the cache holds for a word, in the states the reader's paths distinguish.
-    enum class State {
+    enum class State : int {
         Missing, ///< Nothing is stored under this context.
         Rebuy,   ///< An entry is stored, but it was bought without an example and the reader's setting now asks for one.
         Hit,     ///< A stored entry the reader can be served whole.

@@ -30,19 +30,19 @@ QString PetPicker::pet() const
     return owner_.pet();
 }
 
-QVariantMap PetPicker::portrait(QString id)
+QVariantMap PetPicker::portrait(QString const& id)
 {
-    return owner_.portrait(std::move(id));
+    return owner_.portrait(id);
 }
 
-void PetPicker::setPet(QString id)
+void PetPicker::setPet(QString const& id)
 {
-    owner_.setPet(std::move(id));
+    owner_.setPet(id);
 }
 
-void PetPicker::confirmPet(QString id)
+void PetPicker::confirmPet(QString const& id)
 {
-    owner_.confirmPet(std::move(id));
+    owner_.confirmPet(id);
 }
 
 void PetPicker::refresh()

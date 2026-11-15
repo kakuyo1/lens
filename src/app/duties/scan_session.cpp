@@ -121,11 +121,11 @@ void ScanSession::startTrack(quintptr const window, QRect const& band)
         // The track's worker hands each frame to the owner's thread; a frame from a track that was since dropped is refused by its generation.
         // The step the frame answers routes to the owner here, on the owner's thread -- the placed
         // words and the cleared flag are the owner's to emit (docs/adr/0165).
-        marshal_([this, generation, frame = std::move(frame)]() mutable { route_(onFrame(generation, std::move(frame))); });
+        marshal_([this, generation, frame = std::move(frame)]() mutable { route_(onFrame(generation, frame)); });
     });
 }
 
-ScanStep ScanSession::onFrame(std::uint64_t const generation, capture::TrackFrame frame)
+ScanStep ScanSession::onFrame(std::uint64_t const generation, capture::TrackFrame const& frame)
 {
     ScanStep step;
     // The scan was invalidated after this frame was read (the window, the level or the setting moved): it is stale.

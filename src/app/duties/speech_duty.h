@@ -88,7 +88,7 @@ public:
      *
      * @param word The card's headword. Only this is sent anywhere (SECURITY.md's outbound list).
      */
-    Q_INVOKABLE void speak(QString word);
+    Q_INVOKABLE void speak(QString const& word);
 
     /// @brief Stop whatever is playing and forget it. Called when the card goes, too.
     Q_INVOKABLE void stop();
@@ -121,11 +121,11 @@ public:
 
     /// @brief Fetch the named local voice ("kokoro" or "ljspeech") into this machine. Ignored while
     ///        another is downloading, and for an id the catalogue does not hold.
-    Q_INVOKABLE void downloadVoice(QString id);
+    Q_INVOKABLE void downloadVoice(QString const& id);
     /// @brief Stop the download in flight; the partial files go with it.
     Q_INVOKABLE void cancelVoiceDownload();
     /// @brief Delete the named voice's files from this machine. Ignored while it is downloading.
-    Q_INVOKABLE void removeVoice(QString id);
+    Q_INVOKABLE void removeVoice(QString const& id);
     /// @return Per local voice, keyed by its id: `installed`, `downloading`, and `percent` while it is.
     QVariantMap voiceStates() const;
 

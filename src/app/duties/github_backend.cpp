@@ -46,14 +46,14 @@ GithubBackend::GithubBackend(const std::filesystem::path& dataDir, QNetworkAcces
       transport_(gist_, auth_, config_.clientId, this),
       partition_(partition)
 {
-    connect(&auth_, &lens::sync::GithubAuth::codeReady, this, [this](lens::sync::DeviceCode code) {
+    connect(&auth_, &lens::sync::GithubAuth::codeReady, this, [this](lens::sync::DeviceCode const& code) {
         if (phase_ != Phase::CodePending)
             return;
         userCode_        = code.userCode;
         verificationUri_ = code.verificationUri;
         emit changed();
     });
-    connect(&auth_, &lens::sync::GithubAuth::granted, this, [this](lens::sync::Token token) {
+    connect(&auth_, &lens::sync::GithubAuth::granted, this, [this](lens::sync::Token const& token) {
         if (phase_ != Phase::CodePending)
             return;
         partition_.storeTokens(token.access.toStdString(), token.refresh.toStdString());
@@ -77,7 +77,7 @@ GithubBackend::GithubBackend(const std::filesystem::path& dataDir, QNetworkAcces
         emit failed(errorForAuth(why));
     });
 
-    connect(&gist_, &lens::sync::GistClient::gotUser, this, [this](quint64 callId, QString loginName) {
+    connect(&gist_, &lens::sync::GistClient::gotUser, this, [this](quint64 callId, QString const& loginName) {
         if (phase_ == Phase::Naming and callId == userCallId_)
             onNamed(loginName);
     });

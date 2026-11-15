@@ -108,7 +108,7 @@ quint64 GistClient::listGists(const QString& token)
 quint64 GistClient::getGist(const QString& token, const QString& id)
 {
     const quint64 callId = nextCallId_++;
-    send(callId, "GET", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, {}, [this, callId, token](int status, QByteArray body, QByteArray) {
+    send(callId, "GET", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, {}, [this, callId, token](int status, QByteArray const& body, QByteArray const&) {
         if (status != 200) {
             emit failed(callId, failureFor(status, body));
             return;
@@ -144,7 +144,7 @@ void GistClient::fillTruncated(quint64 const callId, const QString& token, Gist 
         emit failed(callId, GistFailure::Generic);
         return;
     }
-    send(callId, "GET", raw, token, {}, [this, callId, token, gist, pending, name](int status, QByteArray body, QByteArray) mutable {
+    send(callId, "GET", raw, token, {}, [this, callId, token, gist, pending, name](int status, QByteArray const& body, QByteArray const&) mutable {
         if (status != 200) {
             emit failed(callId, failureFor(status, body));
             return;
@@ -157,13 +157,13 @@ void GistClient::fillTruncated(quint64 const callId, const QString& token, Gist 
     });
 }
 
-quint64 GistClient::createGist(const QString& token, const QString& description, const QMap<QString, QString>& files)
+quint64 GistClient::createGist(const QString& token, const QString& description, const QMap<QString, QString>& files) // NOLINT(bugprone-easily-swappable-parameters): createGist takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const quint64 callId = nextCallId_++;
     // One POST, no retry. A create whose answer is lost leaves an orphan gist with the same description;
     // findGistId() reads the newest of those, so the orphan is never mistaken for a different document.
     const QJsonObject body{{"description", description}, {"public", false}, {"files", filesObject(files)}};
-    send(callId, "POST", QUrl{QStringLiteral("%1/gists").arg(QLatin1String(kApi))}, token, QJsonDocument(body).toJson(QJsonDocument::Compact), [this, callId](int status, QByteArray answer, QByteArray) {
+    send(callId, "POST", QUrl{QStringLiteral("%1/gists").arg(QLatin1String(kApi))}, token, QJsonDocument(body).toJson(QJsonDocument::Compact), [this, callId](int status, QByteArray const& answer, QByteArray const&) {
         if (status != 201) {
             emit failed(callId, failureFor(status, answer));
             return;
@@ -181,7 +181,7 @@ quint64 GistClient::updateGist(const QString& token, const QString& id, const QM
 {
     const quint64     callId = nextCallId_++;
     const QJsonObject body{{"files", filesObject(files)}};
-    send(callId, "PATCH", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, QJsonDocument(body).toJson(QJsonDocument::Compact), [this, callId](int status, QByteArray answer, QByteArray) {
+    send(callId, "PATCH", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, QJsonDocument(body).toJson(QJsonDocument::Compact), [this, callId](int status, QByteArray const& answer, QByteArray const&) {
         if (status != 200) {
             emit failed(callId, failureFor(status, answer));
             return;
@@ -198,7 +198,7 @@ quint64 GistClient::updateGist(const QString& token, const QString& id, const QM
 quint64 GistClient::deleteGist(const QString& token, const QString& id)
 {
     const quint64 callId = nextCallId_++;
-    send(callId, "DELETE", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, {}, [this, callId, id](int status, QByteArray answer, QByteArray) {
+    send(callId, "DELETE", QUrl{QStringLiteral("%1/gists/%2").arg(QLatin1String(kApi), id)}, token, {}, [this, callId, id](int status, QByteArray const& answer, QByteArray const&) {
         // 204 is the answer; a 404 means it is already gone, which is what the caller wanted.
         if (status == 204 or status == 404)
             emit deleted(callId, id);
@@ -211,7 +211,7 @@ quint64 GistClient::deleteGist(const QString& token, const QString& id)
 quint64 GistClient::getUser(const QString& token)
 {
     const quint64 callId = nextCallId_++;
-    send(callId, "GET", QUrl{QStringLiteral("%1/user").arg(QLatin1String(kApi))}, token, {}, [this, callId](int status, QByteArray body, QByteArray) {
+    send(callId, "GET", QUrl{QStringLiteral("%1/user").arg(QLatin1String(kApi))}, token, {}, [this, callId](int status, QByteArray const& body, QByteArray const&) {
         if (status != 200) {
             emit failed(callId, failureFor(status, body));
             return;
@@ -260,7 +260,7 @@ void GistClient::send(quint64 const callId, const QByteArray& verb, const QUrl& 
         // to this call, so it is dropped rather than parsed.
         QByteArray body = reply->readAll();
         if (body.size() > kMaxBodyBytes) {
-            LENS_WARN("a gist answer was over the ceiling and was dropped");
+            LENS_WARN("a gist answer was over the ceiling and was dropped"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             body.clear();
         }
         reply->deleteLater();
@@ -270,7 +270,7 @@ void GistClient::send(quint64 const callId, const QByteArray& verb, const QUrl& 
 
 void GistClient::listPage(quint64 const callId, const QString& token, const QUrl& url, int pagesLeft, QJsonArray merged)
 {
-    send(callId, "GET", url, token, {}, [this, callId, token, pagesLeft, merged](int status, QByteArray body, QByteArray link) mutable {
+    send(callId, "GET", url, token, {}, [this, callId, token, pagesLeft, merged](int status, QByteArray const& body, QByteArray const& link) mutable { // NOLINT(bugprone-easily-swappable-parameters): operator() takes its 2 QByteArray arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
         if (status != 200) {
             emit failed(callId, failureFor(status, body));
             return;

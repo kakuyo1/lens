@@ -156,10 +156,10 @@ TEST(PetData, EveryShippedPetWalksAndPeeks)
         auto const animations = parseAnimations(loadAt(entry.path(), "animations.json"));
         ASSERT_TRUE(animations.movement.has_value()) << entry.path().filename().string();
 
-        auto const& walk = animations.playbook.actions.at(animations.movement->walk);
+        auto const& walk = animations.playbook.actions.at(animations.movement.value().walk);
         EXPECT_TRUE(walk.loop) << entry.path().filename().string();
-        ASSERT_TRUE(animations.movement->peek.has_value()) << entry.path().filename().string();
-        auto const& peek = animations.playbook.actions.at(*animations.movement->peek);
+        ASSERT_TRUE(animations.movement.value().peek.has_value()) << entry.path().filename().string();
+        auto const& peek = animations.playbook.actions.at(*animations.movement.value().peek);
         EXPECT_TRUE(peek.loop) << entry.path().filename().string();
 
         // A worn accessory stays on during the walk and the peek: the pet should not undress when it moves.
@@ -168,8 +168,8 @@ TEST(PetData, EveryShippedPetWalksAndPeeks)
                 return std::find(accessory.supportedActions.begin(), accessory.supportedActions.end(), name) != accessory.supportedActions.end();
             };
             if (not supports("idle")) continue;
-            EXPECT_TRUE(supports(animations.movement->walk)) << accessory.id;
-            EXPECT_TRUE(supports(*animations.movement->peek)) << accessory.id;
+            EXPECT_TRUE(supports(animations.movement.value().walk)) << accessory.id;
+            EXPECT_TRUE(supports(*animations.movement.value().peek)) << accessory.id;
         }
     }
     EXPECT_EQ(pets, 7);
@@ -303,7 +303,7 @@ public:
         std::filesystem::create_directories(holder_);
         std::filesystem::copy(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog", root_, std::filesystem::copy_options::recursive);
     }
-    ~ScratchPet()
+    ~ScratchPet() // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     {
         std::filesystem::remove_all(holder_);
     }
@@ -321,7 +321,7 @@ public:
     }
 
     /// Replaces the first `from` in `file` with `to`; the test fails if `from` is not in the file.
-    void replaceIn(std::string const& file, std::string const& from, std::string const& to) const
+    void replaceIn(std::string const& file, std::string const& from, std::string const& to) const // NOLINT(bugprone-easily-swappable-parameters): replaceIn takes its 2 const std::string & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
     {
         auto const where = root_ / file;
         auto       text  = std::string{};
@@ -641,7 +641,7 @@ TEST(PetData, EveryBundledPetDrawsItsOwnReviewSignInSixtyBins)
         ++pets;
         auto const assets = lens::app::pet::PetAssets::load(entry.path(), PetSource::Shipped);
         ASSERT_TRUE(assets.reviewSign.has_value()) << entry.path().filename().string();
-        EXPECT_EQ(assets.reviewSign->bins.size(), 60u) << entry.path().filename().string();
+        EXPECT_EQ(assets.reviewSign.value().bins.size(), 60u) << entry.path().filename().string();
     }
     EXPECT_EQ(pets, 7);
 }

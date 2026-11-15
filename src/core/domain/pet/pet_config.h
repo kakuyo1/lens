@@ -84,7 +84,7 @@ struct MovementSpec {
 
 /// @brief What animations.json holds: the playbook for the state machine, the blink on the expression layer, the
 ///        optional hover reactions, the optional movement block, and the temperament (ADR 0094).
-struct Animations {
+struct Animations { // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     Playbook                    playbook;
     ActionSpec                  blink;
     std::optional<HoverSpec>    hover;

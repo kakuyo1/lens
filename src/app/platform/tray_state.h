@@ -13,7 +13,7 @@
 namespace lens::app {
 
 /// @brief Enough of the tray state to be worth naming; the icon art is picked from it.
-enum class TrayState {
+enum class TrayState : int {
     Auto,   ///< Selection capture is on and nothing is in flight.
     Busy,   ///< An explanation is being fetched.
     Off,    ///< Selection capture is off.

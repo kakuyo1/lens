@@ -14,7 +14,7 @@
 
 namespace lens::ocr::detail {
 
-inline QByteArray hmac(QCryptographicHash::Algorithm const algorithm, QByteArray const& key, QByteArray const& message)
+inline QByteArray hmac(QCryptographicHash::Algorithm const algorithm, QByteArray const& key, QByteArray const& message) // NOLINT(bugprone-easily-swappable-parameters): hmac takes its 2 const QByteArray & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     constexpr int                kBlockSize = 64;
     std::array<char, kBlockSize> block{};

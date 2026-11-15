@@ -180,8 +180,8 @@ private:
     /// @brief The `.part` beside it, which is the only file a transfer ever writes to.
     QString partialPath() const;
     void    deletePartial();
-    void    onSumsReady(QByteArray sums);
-    void    onInstallerReady(QString path);
+    void    onSumsReady(QByteArray const& sums);
+    void    onInstallerReady(QString const& path);
     /// @brief Hash one chunk of the finished download, then yield to the event loop.
     ///
     /// The check runs in turns rather than one call so the card can paint the verifying state

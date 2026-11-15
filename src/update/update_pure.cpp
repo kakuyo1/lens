@@ -179,7 +179,7 @@ bool digestMatches(const QString& filePath, const std::string& expectedHex)
     QCryptographicHash hash(QCryptographicHash::Sha256);
     // Chunked rather than read whole: the installer is tens of megabytes and this runs twice.
     while (not file.atEnd()) {
-        const QByteArray chunk = file.read(64 * 1024);
+        const QByteArray chunk = file.read(static_cast<qint64>(64) * 1024);
         if (chunk.isEmpty() and not file.atEnd())
             return false;
         hash.addData(chunk);

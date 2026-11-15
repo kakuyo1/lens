@@ -43,18 +43,18 @@ TEST(DeviceCode, ReadsTheCodesAndTheIntervalGitHubSends)
                                       R"("user_code":"WDJB-MJHT","verification_uri":"https://github.com/login/device",)"
                                       R"("expires_in":900,"interval":5})");
     ASSERT_TRUE(code.has_value());
-    EXPECT_EQ(code->deviceCode, "3584d83530557fdd1f46af8289938c8ef79f9dc5");
-    EXPECT_EQ(code->userCode, "WDJB-MJHT");
-    EXPECT_EQ(code->verificationUri, "https://github.com/login/device");
-    EXPECT_EQ(code->expiresIn, 900);
-    EXPECT_EQ(code->interval, 5);
+    EXPECT_EQ(code.value().deviceCode, "3584d83530557fdd1f46af8289938c8ef79f9dc5");
+    EXPECT_EQ(code.value().userCode, "WDJB-MJHT");
+    EXPECT_EQ(code.value().verificationUri, "https://github.com/login/device");
+    EXPECT_EQ(code.value().expiresIn, 900);
+    EXPECT_EQ(code.value().interval, 5);
 }
 
 TEST(DeviceCode, DefaultsTheIntervalWhenGitHubOmitsIt)
 {
     const auto code = parseDeviceCode(R"({"device_code":"d","user_code":"U-1","verification_uri":"https://github.com/login/device","expires_in":900})");
     ASSERT_TRUE(code.has_value());
-    EXPECT_EQ(code->interval, 5);
+    EXPECT_EQ(code.value().interval, 5);
 }
 
 TEST(DeviceCode, ResetsAnIntervalThatIsNotASecondsCount)
@@ -63,7 +63,7 @@ TEST(DeviceCode, ResetsAnIntervalThatIsNotASecondsCount)
     // five seconds is what a poll runs at until GitHub names a real one.
     const auto code = parseDeviceCode(R"({"device_code":"d","user_code":"U-1","verification_uri":"https://github.com/login/device","expires_in":900,"interval":0})");
     ASSERT_TRUE(code.has_value());
-    EXPECT_EQ(code->interval, 5);
+    EXPECT_EQ(code.value().interval, 5);
 }
 
 TEST(DeviceCode, RefusesAnAnswerMissingItsCodesOrItsLifetime)
@@ -139,14 +139,14 @@ TEST(GistParse, ReadsTheFilesAndTheirTruncationFlag)
                                 R"("files":{"lens-sync.json":{"content":"{}","truncated":false,"raw_url":"https://gist.githubusercontent.com/x/raw"},)"
                                 R"("big.json":{"content":"{\"a\":","truncated":true,"raw_url":"https://gist.githubusercontent.com/x/raw/big"}}})");
     ASSERT_TRUE(gist.has_value());
-    EXPECT_EQ(gist->id, "abc123");
-    EXPECT_EQ(gist->description, "lens-sync");
-    EXPECT_EQ(gist->updatedAt, "2026-10-14T10:00:00Z");
-    ASSERT_EQ(gist->files.size(), 2);
-    EXPECT_FALSE(gist->files.value("lens-sync.json").truncated);
-    EXPECT_EQ(gist->files.value("lens-sync.json").content, "{}");
-    EXPECT_TRUE(gist->files.value("big.json").truncated);
-    EXPECT_EQ(gist->files.value("big.json").rawUrl.host(), "gist.githubusercontent.com");
+    EXPECT_EQ(gist.value().id, "abc123");
+    EXPECT_EQ(gist.value().description, "lens-sync");
+    EXPECT_EQ(gist.value().updatedAt, "2026-10-14T10:00:00Z");
+    ASSERT_EQ(gist.value().files.size(), 2);
+    EXPECT_FALSE(gist.value().files.value("lens-sync.json").truncated);
+    EXPECT_EQ(gist.value().files.value("lens-sync.json").content, "{}");
+    EXPECT_TRUE(gist.value().files.value("big.json").truncated);
+    EXPECT_EQ(gist.value().files.value("big.json").rawUrl.host(), "gist.githubusercontent.com");
 }
 
 TEST(GistParse, RefusesABodyWithoutAnId)
@@ -242,16 +242,16 @@ void record(GithubAuth& auth, Reports& seen)
 {
     QObject::connect(&auth, &GithubAuth::codeReady, [&seen](DeviceCode code) {
         ++seen.codeReady;
-        seen.code = code;
+        seen.code = std::move(code);
     });
     QObject::connect(&auth, &GithubAuth::granted, [&seen](Token token) {
         ++seen.granted;
-        seen.token = token;
+        seen.token = std::move(token);
     });
     QObject::connect(&auth, &GithubAuth::refreshed, [&seen](quint64 callId, Token token) {
         ++seen.refreshed;
         seen.refreshCallId = callId;
-        seen.token         = token;
+        seen.token         = std::move(token);
     });
     QObject::connect(&auth, &GithubAuth::refreshFailed, [&seen](quint64 callId, AuthFailure why) {
         ++seen.refreshFailed;

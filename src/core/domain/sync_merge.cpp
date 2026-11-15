@@ -100,7 +100,7 @@ Settings readSettings(const json& document)
 /// @brief Merge two per-key maps, keeping the newer of each key's two entries.
 /// @note Remote replaces local only when it is strictly newer, so a tie keeps local.
 template <typename Value, typename Stamp>
-std::map<std::string, Value> newerOf(std::map<std::string, Value>        local,
+std::map<std::string, Value> newerOf(std::map<std::string, Value>        local, // NOLINT(bugprone-easily-swappable-parameters): the diagnostic's suggestion does not fit this call site
                                      const std::map<std::string, Value>& remote,
                                      Stamp                               stamp)
 {

@@ -14,7 +14,7 @@
 namespace lens::ocr {
 namespace {
 
-constexpr qsizetype kMaxResponseBytes = 4 * 1024 * 1024;
+constexpr qsizetype kMaxResponseBytes = static_cast<const qsizetype>(4 * 1024) * 1024;
 
 }
 

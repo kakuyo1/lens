@@ -125,7 +125,7 @@ struct Fixture {
     {
     }
 
-    ~Fixture()
+    ~Fixture() // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     {
         std::filesystem::remove(path);
     }
@@ -175,10 +175,10 @@ struct Direct {
 };
 
 /// @brief Carry one request and wait for its answer, whatever it turns out to be.
-lens::core::sync::Answer asked(Direct& direct, lens::core::sync::Request request)
+lens::core::sync::Answer asked(Direct& direct, lens::core::sync::Request const& request)
 {
     std::optional<lens::core::sync::Answer> got;
-    direct.transport.send(std::move(request), [&got](lens::core::sync::Answer const& answer) { got = answer; });
+    direct.transport.send(request, [&got](lens::core::sync::Answer const& answer) { got = answer; });
     EXPECT_TRUE(spinUntil([&got] { return got.has_value(); }));
     return got.value_or(lens::core::sync::Answer{});
 }
@@ -216,7 +216,7 @@ TEST(SyncTransport, TheRoundRunsOverTheRealClientsAndUploadsTheMergedCopy)
     // The write's body is the sealed merged document, under the key that opened the cloud copy.
     const json        body   = json::parse(std::string(fixture.manager.sent[2].body.constData()));
     const std::string sealed = body.at("files").at("lens-sync.json").at("content").get<std::string>();
-    const auto        opened = vault::open(fixture.key->key, json::parse(sealed));
+    const auto        opened = vault::open(fixture.key.value().key, json::parse(sealed));
     ASSERT_TRUE(opened.has_value());
     EXPECT_TRUE(json::parse(*opened).at("known").contains("river"));
 
@@ -383,14 +383,14 @@ TEST(SyncTransportDirect, ARefusalCarriesTheKindTheRoundReads)
     request.token  = "access-1";
     request.gistId = "gist-1";
     std::optional<lens::core::sync::Answer> got;
-    direct.transport.send(std::move(request), [&got](lens::core::sync::Answer const& answer) { got = answer; });
+    direct.transport.send(request, [&got](lens::core::sync::Answer const& answer) { got = answer; });
     ASSERT_TRUE(spinUntil([&] {
         for (auto* reply : direct.manager.findChildren<QNetworkReply*>())
             if (not reply->isFinished())
                 reply->abort();
         return got.has_value();
     }));
-    EXPECT_EQ(got->failure, lens::core::sync::Answer::Failure::Proxy);
+    EXPECT_EQ(got.value().failure, lens::core::sync::Answer::Failure::Proxy);
 }
 
 TEST(SyncTransportDirect, ARefreshCarriesTheRotatedPairBack)

@@ -35,7 +35,7 @@ core::sync::Answer::Failure failureOf(lens::sync::AuthFailure why)
     switch (why) {
         case lens::sync::AuthFailure::BadRefresh: return Failure::RefusedRefresh;
         case lens::sync::AuthFailure::Proxy: return Failure::Proxy;
-        case lens::sync::AuthFailure::Expired: break;
+        case lens::sync::AuthFailure::Expired: break; // NOLINT(bugprone-branch-clone): each status is listed explicitly so a new one cannot fall into a neighbour's branch by accident
         case lens::sync::AuthFailure::Denied: break;
         case lens::sync::AuthFailure::Generic: break;
     }
@@ -47,7 +47,7 @@ core::sync::Answer::Failure failureOf(lens::sync::AuthFailure why)
 SyncTransport::SyncTransport(lens::sync::GistClient& gist, lens::sync::GithubAuth& auth, QString clientId, QObject* parent)
     : TransportQueue(parent), gist_(gist), auth_(auth), clientId_(std::move(clientId))
 {
-    connect(&gist_, &lens::sync::GistClient::listed, this, [this](quint64 callId, QByteArray body) {
+    connect(&gist_, &lens::sync::GistClient::listed, this, [this](quint64 callId, QByteArray const& body) {
         auto const* request = current(callId);
         if (request == nullptr)
             return;
@@ -55,57 +55,57 @@ SyncTransport::SyncTransport(lens::sync::GistClient& gist, lens::sync::GithubAut
         const auto         found = lens::sync::findGistId(body, QString::fromStdString(request->description));
         if (found)
             result.gistId = found->toStdString();
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
-    connect(&gist_, &lens::sync::GistClient::gotGist, this, [this](quint64 callId, lens::sync::Gist gist) {
+    connect(&gist_, &lens::sync::GistClient::gotGist, this, [this](quint64 callId, lens::sync::Gist const& gist) {
         auto const* request = current(callId);
         if (request == nullptr)
             return;
         core::sync::Answer result;
         result.gistId  = gist.id.toStdString();
         result.content = gist.files.value(QString::fromStdString(request->fileName)).content.toStdString();
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
-    connect(&gist_, &lens::sync::GistClient::created, this, [this](quint64 callId, lens::sync::Gist gist) {
+    connect(&gist_, &lens::sync::GistClient::created, this, [this](quint64 callId, lens::sync::Gist const& gist) {
         if (current(callId) == nullptr)
             return;
         core::sync::Answer result;
         result.gistId = gist.id.toStdString();
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
-    connect(&gist_, &lens::sync::GistClient::updated, this, [this](quint64 callId, lens::sync::Gist) {
+    connect(&gist_, &lens::sync::GistClient::updated, this, [this](quint64 callId, lens::sync::Gist const&) {
         if (current(callId) == nullptr)
             return;
         answer(callId, core::sync::Answer{});
     });
-    connect(&gist_, &lens::sync::GistClient::deleted, this, [this](quint64 callId, QString id) {
+    connect(&gist_, &lens::sync::GistClient::deleted, this, [this](quint64 callId, QString const& id) {
         if (current(callId) == nullptr)
             return;
         core::sync::Answer result;
         result.gistId = id.toStdString();
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
     connect(&gist_, &lens::sync::GistClient::failed, this, [this](quint64 callId, lens::sync::GistFailure why) {
         if (current(callId) == nullptr)
             return;
         core::sync::Answer result;
         result.failure = failureOf(why);
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
-    connect(&auth_, &lens::sync::GithubAuth::refreshed, this, [this](quint64 callId, lens::sync::Token token) {
+    connect(&auth_, &lens::sync::GithubAuth::refreshed, this, [this](quint64 callId, lens::sync::Token const& token) {
         if (current(callId) == nullptr)
             return;
         core::sync::Answer result;
         result.access  = token.access.toStdString();
         result.refresh = token.refresh.toStdString();
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
     connect(&auth_, &lens::sync::GithubAuth::refreshFailed, this, [this](quint64 callId, lens::sync::AuthFailure why) {
         if (current(callId) == nullptr)
             return;
         core::sync::Answer result;
         result.failure = failureOf(why);
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
 }
 

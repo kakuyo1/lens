@@ -143,9 +143,9 @@ inline OpenedCloud openCloudCopy(const CloudRequest& request)
 /// @brief What one run ends with: the gist call that carries the sealed copy, or that there is none.
 struct Upload {
     /// @brief Which gist call to make. None when there is nothing to send, and the run is over.
-    enum class Command { None,
-                         Create,
-                         Update };
+    enum class Command : int { None,
+                               Create,
+                               Update };
 
     Command command = Command::None;
     /// The gist to replace; empty when @c command is Create.

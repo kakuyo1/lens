@@ -86,15 +86,15 @@ public:
     Q_INVOKABLE void setAutoScanChrome(bool on);
     Q_INVOKABLE void setAutoScanNotepad(bool on);
     Q_INVOKABLE void setMinimumWordLength(int length);
-    Q_INVOKABLE bool setScanWhitelist(QString processes);
+    Q_INVOKABLE bool setScanWhitelist(QString const& processes);
     /// @brief Point OCR at the reader's own Tesseract and probe it again; empty means the bundled one.
-    Q_INVOKABLE void setTesseractExecutable(QString executable);
+    Q_INVOKABLE void setTesseractExecutable(QString const& executable);
     /// @brief Point OCR at the reader's own traineddata directory; empty means the one beside the executable.
-    Q_INVOKABLE void setTesseractDataDirectory(QString directory);
+    Q_INVOKABLE void setTesseractDataDirectory(QString const& directory);
     /// @brief Point the user-installed RapidOCR at its executable; clears the trust record.
-    Q_INVOKABLE void setRapidOcrExecutable(QString executable);
+    Q_INVOKABLE void setRapidOcrExecutable(QString const& executable);
     /// @brief Point RapidOCR at its model folder; the path must be ASCII; clears the trust record.
-    Q_INVOKABLE void setRapidOcrModelsDirectory(QString directory);
+    Q_INVOKABLE void setRapidOcrModelsDirectory(QString const& directory);
     /// @brief Run one synthetic image through RapidOCR and record its trust digest on success.
     Q_INVOKABLE void detectRapidOcr();
     /// @brief Download the pinned RapidOCR-json distribution into the profile, then point the
@@ -105,19 +105,19 @@ public:
     /// @brief Delete the downloaded distribution; stored paths that point into it are cleared.
     Q_INVOKABLE void removeRapidOcrBundle();
     /// @brief Choose how a local capture picks its engine: Auto, Tesseract or RapidOCR.
-    Q_INVOKABLE void setOcrLocalEngine(QString engine);
+    Q_INVOKABLE void setOcrLocalEngine(QString const& engine);
     /// @brief Choose the language the local engine reads: en, zh-Hans or zh-Hans+en.
-    Q_INVOKABLE void setOcrLocalLanguage(QString language);
+    Q_INVOKABLE void setOcrLocalLanguage(QString const& language);
     /// @brief Choose whether a manual capture stays local or goes online.
-    Q_INVOKABLE void setOcrMode(QString mode);
+    Q_INVOKABLE void setOcrMode(QString const& mode);
     /// @brief Set the online provider id; empty clears it. Changing it drops the address and credentials.
-    Q_INVOKABLE void setOcrOnlineProvider(QString provider);
+    Q_INVOKABLE void setOcrOnlineProvider(QString const& provider);
     /// @brief Set an HTTPS override of the provider's address; empty restores the provider's own.
-    Q_INVOKABLE void setOcrOnlineEndpoint(QString endpoint);
+    Q_INVOKABLE void setOcrOnlineEndpoint(QString const& endpoint);
     /// @brief Set the online recognition language: `eng` or `auto`.
-    Q_INVOKABLE void setOcrOnlineLanguage(QString language);
+    Q_INVOKABLE void setOcrOnlineLanguage(QString const& language);
     /// @brief Store one credential the chosen provider names; empty clears that slot.
-    Q_INVOKABLE void setOcrCredential(QString slot, QString value);
+    Q_INVOKABLE void setOcrCredential(QString const& slot, QString const& value);
     /// @brief The reader confirmed the frozen crop for @p requestId; this is the only upload gate.
     Q_INVOKABLE void confirmOnlineUpload(qulonglong requestId);
     /// @brief Drop a pending or running online request and its image.
@@ -160,16 +160,16 @@ public:
     /// @param text The selected text, when the caller already has it. Given, the clipboard is not read: the developer
     ///        surface (docs/adr/0068) drives the pipeline this way, with no foreground application to copy from. The
     ///        mouse path never passes it.
-    void beginSelection(QPoint anchor, std::optional<QString> text = std::nullopt);
+    void beginSelection(QPoint anchor, std::optional<QString> const& text = std::nullopt);
     /// @brief Switch between selection lookup and hover lookup. Hover lookup is off at every start:
     ///        the mode is not a setting, so a restart puts the reader back on selection.
     void toggleHoverMode();
     /// @brief Show the bubble of @p surface, a word the reader's pointer is on while Alt is held; @p anchor is
     ///        its bottom-left in physical pixels, where the bubble goes.
-    void lookUpWord(QString surface, QPoint anchor);
+    void lookUpWord(QString const& surface, QPoint anchor);
     /// @brief The reader changed @p lemma's verdict; the scan session re-judges the surfaces it was
     ///        judged under, with no full scan invalidation (ScanSession::onVerdictChanged).
-    void verdictChanged(QString lemma);
+    void verdictChanged(QString const& lemma);
     /// @brief True while the automatic scan is on and a window it reads is in front, the only time a
     ///        lone Alt tap is turned into a cancelled tap for the menu bar.
     bool autoScanActive();
@@ -186,7 +186,7 @@ public:
     void debugScanArm(QRect screen);
     /// @brief One frame the developer surface injects into the scan session, judged and placed like
     ///        a real one. It rides the current generation: the surface arms nothing it would drop.
-    void debugScanFrame(capture::TrackFrame frame);
+    void debugScanFrame(capture::TrackFrame const& frame);
     /// @brief The scan invalidated by the developer surface; the lines come down.
     void debugScanClear();
 
@@ -237,7 +237,7 @@ private:
     /// @brief Run the injected engine's readiness probe; production readiness is file inspection.
     void probeOcr();
     /// @brief Classify @p text through the selection module and announce what it answers.
-    void classifyText(QString text, QPoint anchor, bool translateNow = false);
+    void classifyText(QString const& text, QPoint anchor, bool translateNow = false);
     /// @brief Announce what a classification answered: the selection, the pre-chosen action or the bar.
     void routeSelection(std::optional<SelectionCapture::Answer> const& answer);
     /// @brief The hover timer's tick: sample the pointer, and when it has rested, read the word under it off-thread.

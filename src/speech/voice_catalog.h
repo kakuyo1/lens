@@ -22,7 +22,7 @@
 namespace lens::speech {
 
 /// @brief A local voice the settings page can name. Exactly these two ship in the catalogue.
-enum class VoiceModel {
+enum class VoiceModel : int {
     Kokoro,   ///< Kokoro int8 multi-lang v1.1: English in both accents. What automatic means.
     LjSpeech, ///< VITS trained on LJSpeech: one American voice. Only when the reader names it.
 };

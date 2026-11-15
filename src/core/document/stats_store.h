@@ -46,7 +46,7 @@ struct ModelUsage {
 };
 
 /// @brief One day's tallies, for the statistics and cost popups.
-struct DailyUsage {
+struct DailyUsage { // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     int pops    = 0;
     int learned = 0;
     int fresh   = 0;
@@ -169,7 +169,7 @@ public:
      * @param minute Local time of the mark; its date picks the daily bucket.
      * @param verdict "known" or "new".
      */
-    void recordVerdict(const std::string& lemma, std::string minute, std::string verdict);
+    void recordVerdict(const std::string& lemma, std::string const& minute, std::string const& verdict);
 
     /// @brief Add one response's token usage to its day.
     void recordUsage(const std::string& minute, long long promptTokens, long long completionTokens);

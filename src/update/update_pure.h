@@ -31,7 +31,7 @@ struct Release {
 };
 
 /// @brief Why an address was not the release this check acts on.
-enum class Refusal {
+enum class Refusal : int {
     NotHttps,    ///< Not an https URL, so it is not asked to answer at all.
     WrongHost,   ///< Not on github.com: a lookalike, or anything else.
     NotATagPage, ///< Not under this repository's release-tag path, or no tag at all.
@@ -125,7 +125,7 @@ std::optional<std::string> expectedDigest(const QByteArray& sums, const QString&
 QString installerName(const QString& versionText);
 
 /// @brief The download's stage, as the card names it.
-enum class DownloadStage {
+enum class DownloadStage : int {
     Idle,
     Downloading,
     Verifying,
@@ -144,9 +144,9 @@ QString downloadToken(DownloadStage stage);
  */
 struct DigestList {
     /// @brief Whether the list has been asked for, and whether its answer has landed.
-    enum class Stage { Unasked,
-                       Asked,
-                       Known };
+    enum class Stage : int { Unasked,
+                             Asked,
+                             Known };
 
     Stage stage = Stage::Unasked;
     /// @brief The version the list is for; set when it is asked for.

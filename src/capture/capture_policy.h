@@ -16,7 +16,7 @@
 namespace lens::capture {
 
 /// @brief What becomes of an OCR result once it is back.
-enum class OcrResultFate {
+enum class OcrResultFate : int {
     Current,    ///< It still answers the request that started it.
     Superseded, ///< A newer request or a settings change moved the generation on; drop it.
     Withdrawn,  ///< A scan whose window, pause or switch changed while it ran; drop it and restart the scan.

@@ -111,13 +111,13 @@ void UpdateClient::fetch()
             // Anything that is not the redirect is `offline`: a 200 means something answered
             // that was not this release page, and a rate limit or a missing release is a fact
             // the reader cannot act on either.
-            LENS_WARN("the release page did not redirect: HTTP {} (error {})", status, static_cast<int>(reply->error()));
+            LENS_WARN("the release page did not redirect: HTTP {} (error {})", status, static_cast<int>(reply->error())); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit offline();
             return;
         }
         const QVariant raw = reply->header(QNetworkRequest::LocationHeader);
         if (not raw.isValid()) {
-            LENS_WARN("the release page redirected without saying where to");
+            LENS_WARN("the release page redirected without saying where to"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit offline();
             return;
         }
@@ -195,7 +195,7 @@ void DownloadClient::abandon()
     stopTimers();
 }
 
-void DownloadClient::fetchInstaller(const QString& versionText, const QString& targetPath)
+void DownloadClient::fetchInstaller(const QString& versionText, const QString& targetPath) // NOLINT(bugprone-easily-swappable-parameters): fetchInstaller takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const QUrl url = assetUrl(QStringLiteral("v%1").arg(versionText), update::installerName(versionText));
     if (not isAllowedDownloadUrl(url)) {
@@ -260,12 +260,12 @@ bool DownloadClient::start(const QUrl& url, Mode mode, int hops)
         connect_->stop(); // the connection is made; the stall timer takes over from here
         stall_->start(settings_.stallTimeoutMs);
         if (total > 0 and total > cap) {
-            LENS_WARN("the download announced {} bytes, over the ceiling", total);
+            LENS_WARN("the download announced {} bytes, over the ceiling", total); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             reply->abort();
             return;
         }
         if (got > cap) {
-            LENS_WARN("the download passed the ceiling at {} bytes", got);
+            LENS_WARN("the download passed the ceiling at {} bytes", got); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             reply->abort();
             return;
         }
@@ -288,7 +288,7 @@ bool DownloadClient::start(const QUrl& url, Mode mode, int hops)
         if (mode == Mode::Sums)
             sums_.append(chunk);
         if (file_ != nullptr and not file_->write(chunk)) {
-            LENS_WARN("the download could not be written to disk");
+            LENS_WARN("the download could not be written to disk"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             reply->abort();
             return;
         }

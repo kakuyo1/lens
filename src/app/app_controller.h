@@ -109,22 +109,22 @@ public:
     Q_INVOKABLE QPoint cursorPos() const;
     /// @param deviceName The screen's name as QML's Screen.name gives it.
     /// @return That screen's available geometry in DIPs, or an empty rect when no screen has the name.
-    Q_INVOKABLE QRect screenWorkArea(QString deviceName) const;
+    Q_INVOKABLE QRect screenWorkArea(QString const& deviceName) const;
     /// @param file The reader's wordlist, one headword per line (UI-SPEC.md 4.4): a one-time seed
     ///        into the verdict store's mastered marks (docs/adr/0159). The file is read once and
     ///        never watched afterwards.
-    Q_INVOKABLE void importWordlist(QUrl file);
+    Q_INVOKABLE void importWordlist(QUrl const& file);
     /// @return The folder holding the verdict store's document -- the shared settings file the
     ///         mastered marks live in -- as a local URL for the system's opener (UI-SPEC.md 4.4).
     Q_INVOKABLE QUrl masteredWordsFolder() const;
     /// @param executable File the reader picked in the system's dialog; C++ takes the local path.
-    Q_INVOKABLE void setTesseractExecutable(QUrl executable);
+    Q_INVOKABLE void setTesseractExecutable(QUrl const& executable);
     /// @param directory Folder the reader picked in the system's dialog; C++ takes the local path.
-    Q_INVOKABLE void setTesseractDataDirectory(QUrl directory);
+    Q_INVOKABLE void setTesseractDataDirectory(QUrl const& directory);
     /// @param executable User-installed RapidOCR-json executable; clears its trust record.
-    Q_INVOKABLE void setRapidOcrExecutable(QUrl executable);
+    Q_INVOKABLE void setRapidOcrExecutable(QUrl const& executable);
     /// @param directory RapidOCR model folder; must be an ASCII path; clears its trust record.
-    Q_INVOKABLE void setRapidOcrModelsDirectory(QUrl directory);
+    Q_INVOKABLE void setRapidOcrModelsDirectory(QUrl const& directory);
     /// @brief Run the explicit RapidOCR detection and record trust on success.
     Q_INVOKABLE void detectRapidOcr();
     Q_INVOKABLE void restoreCaptureDefaults();
@@ -149,20 +149,20 @@ public:
      * @return False when the key is not in the table, or when its row refuses the value; nothing was
      *         written then.
      */
-    Q_INVOKABLE bool setSetting(QString key, QVariant value);
+    Q_INVOKABLE bool setSetting(QString const& key, QVariant const& value);
     /// @return The closed range a key's slider runs over, as {low, high}; empty for a key with none.
-    Q_INVOKABLE QVariantMap settingRange(QString key) const;
+    Q_INVOKABLE QVariantMap settingRange(QString const& key) const;
     /// @return Every family on this machine that draws Latin, as DropdownField options, sorted.
     Q_INVOKABLE QVariantList latinFontFamilies() const;
     /// @return The sizes the font page offers, as DropdownField options: the default marked.
     Q_INVOKABLE QVariantList bubbleFontSizeOptions() const;
     /// @brief Store the key the service is reached with. Never logged, never echoed back.
-    Q_INVOKABLE void setApiKey(QString key);
+    Q_INVOKABLE void setApiKey(QString const& key);
     /// @brief Remove the online OCR service, address and credentials, and return manual capture to local.
     Q_INVOKABLE void clearOcrOnlineConfiguration();
-    Q_INVOKABLE void setApiUrl(QString url);
+    Q_INVOKABLE void setApiUrl(QString const& url);
     /// @brief Store the model the service is asked for, through the catalogue that owns the choice.
-    Q_INVOKABLE void setModel(QString model);
+    Q_INVOKABLE void setModel(QString const& model);
     /// @brief Check the configured service, key and model with one minimal request.
     ///
     /// One probe at a time: a second press while one is in flight is ignored. The answer is a
@@ -185,13 +185,13 @@ public:
     /// @brief Show the explanation already stored for a word the reader pointed at, if there is one.
     /// @param x,y          The word's top-left, in the physical pixels the mouse hook reports.
     /// @param width,height The word's size in those pixels, so the card can be placed against it.
-    Q_INVOKABLE void reviewWord(QString lemma, int x, int y, int width, int height);
+    Q_INVOKABLE void reviewWord(QString const& lemma, int x, int y, int width, int height);
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
-    Q_INVOKABLE void explainLemma(QString lemma);
+    Q_INVOKABLE void explainLemma(QString const& lemma);
     /// @brief Ask the model about a word the reader typed into the words panel's search row.
     /// @param x,y          The search row's top-left, in the physical pixels the other anchors use.
     /// @param width,height The row's size in those pixels, so the card can be placed against it.
-    Q_INVOKABLE void explainTypedWord(QString lemma, int x, int y, int width, int height);
+    Q_INVOKABLE void explainTypedWord(QString const& lemma, int x, int y, int width, int height);
     /// @brief Open the crash dumps folder, where the last crash's dump and summary sit (docs/adr/0174).
     Q_INVOKABLE void openCrashDumpFolder();
     /// @brief Open a new GitHub issue prefilled with the last crash's facts; the dump travels
@@ -202,15 +202,15 @@ public:
     /// @param logDir Directory the log lives in; the dumps sit under it. main() reaches it after
     ///               the translators are up, so the notice reads in the UI language. A no-op when
     ///               the marker is absent.
-    void reportStartupCrash(std::filesystem::path logDir);
+    void reportStartupCrash(std::filesystem::path const& logDir);
     /// @brief Capture a region the reader dragged on the mask.
     /// @return Empty once the capture is under way; otherwise the reason, which is also reported.
     Q_INVOKABLE QString captureRegion(QRect region);
-    Q_INVOKABLE QString exportWords(QString scope);
-    Q_INVOKABLE QString exportWordsJson(QString scope);
-    Q_INVOKABLE bool    saveWords(QUrl path, QString scope);
-    Q_INVOKABLE bool    importWords(QUrl path);
-    Q_INVOKABLE bool    removeWord(QString lemma);
+    Q_INVOKABLE QString exportWords(QString const& scope);
+    Q_INVOKABLE QString exportWordsJson(QString const& scope);
+    Q_INVOKABLE bool    saveWords(QUrl const& path, QString const& scope);
+    Q_INVOKABLE bool    importWords(QUrl const& path);
+    Q_INVOKABLE bool    removeWord(QString const& lemma);
     Q_INVOKABLE bool    setDailyBudget(double amount);
 
     /// @note Not const, and the only projection that is not: reading a document key goes through a

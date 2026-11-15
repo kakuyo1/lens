@@ -150,8 +150,8 @@ AppController::AppController(core::KnownStore&            store,
     });
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, [this] { emit petEvent(core::pet::PetEvent::SelectionShown); });
-    connect(&capture_, &CaptureDuty::selectionActionRequested, this, [this](QString action, QString text) {
-        explanation_.runSelectionAction(std::move(action), std::move(text));
+    connect(&capture_, &CaptureDuty::selectionActionRequested, this, [this](QString const& action, QString const& text) {
+        explanation_.runSelectionAction(action, text);
     });
     connect(&capture_, &CaptureDuty::pointerPressed, this, &AppController::pointerPressed);
     connect(&capture_, &CaptureDuty::selectionReady, this, [this](PendingSelection selection) {
@@ -174,7 +174,7 @@ AppController::AppController(core::KnownStore&            store,
     connect(&capture_, &CaptureDuty::uploadPreviewReady, this, [this](qulonglong requestId, QImage const& image) {
         if (consentPreview_) consentPreview_->set(requestId, image);
     });
-    connect(&capture_, &CaptureDuty::uploadFinished, this, [this](QVariantMap outcome) {
+    connect(&capture_, &CaptureDuty::uploadFinished, this, [this](QVariantMap const& outcome) {
         if (consentPreview_ and outcome.value("canRetry").toBool() != true)
             consentPreview_->clear(outcome.value("requestId").toULongLong());
     });
@@ -239,7 +239,7 @@ AppController::AppController(core::KnownStore&            store,
         modeCue_ = std::make_unique<QSoundEffect>();
         modeCue_->setSource(QUrl::fromLocalFile(widen(dataDir / "sounds" / "mode-switch.wav")));
         connect(modeCue_.get(), &QSoundEffect::statusChanged, this, [this] {
-            if (modeCue_->status() == QSoundEffect::Error) LENS_WARN("the mode-switch sound did not load; switching lookup modes will be silent");
+            if (modeCue_->status() == QSoundEffect::Error) LENS_WARN("the mode-switch sound did not load; switching lookup modes will be silent"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         });
         connect(&capture_, &CaptureDuty::hoverModeChanged, this, [this] { modeCue_->play(); });
     }
@@ -327,7 +327,7 @@ QPoint AppController::cursorPos() const
     return QCursor::pos();
 }
 
-QRect AppController::screenWorkArea(QString deviceName) const
+QRect AppController::screenWorkArea(QString const& deviceName) const
 {
     // An empty name names no screen. Without this guard the loop would match the first unnamed screen,
     // the offscreen platform's, and hand its area to a caller that had no name.
@@ -338,7 +338,7 @@ QRect AppController::screenWorkArea(QString deviceName) const
     return {};
 }
 
-void AppController::importWordlist(QUrl file)
+void AppController::importWordlist(QUrl const& file)
 {
     // The file is a one-time seed (docs/adr/0159): its words are read once, lemmatised and
     // de-duplicated, and written into the verdict store as mastered. The file is never watched
@@ -371,22 +371,22 @@ QUrl AppController::masteredWordsFolder() const
     return QUrl::fromLocalFile(widen(storage_.knownStore().path().parent_path()));
 }
 
-void AppController::setTesseractExecutable(QUrl executable)
+void AppController::setTesseractExecutable(QUrl const& executable)
 {
     capture_.setTesseractExecutable(executable.toLocalFile());
 }
 
-void AppController::setTesseractDataDirectory(QUrl directory)
+void AppController::setTesseractDataDirectory(QUrl const& directory)
 {
     capture_.setTesseractDataDirectory(directory.toLocalFile());
 }
 
-void AppController::setRapidOcrExecutable(QUrl executable)
+void AppController::setRapidOcrExecutable(QUrl const& executable)
 {
     capture_.setRapidOcrExecutable(executable.toLocalFile());
 }
 
-void AppController::setRapidOcrModelsDirectory(QUrl directory)
+void AppController::setRapidOcrModelsDirectory(QUrl const& directory)
 {
     capture_.setRapidOcrModelsDirectory(directory.toLocalFile());
 }
@@ -424,7 +424,7 @@ void AppController::restoreDefaults()
     setHoverHotkey(hover.key(), hover.keyboardModifiers());
 }
 
-bool AppController::setSetting(QString key, QVariant value)
+bool AppController::setSetting(QString const& key, QVariant const& value)
 {
     const auto* const row = core::settings::find(key.toStdString());
     if (row == nullptr) {
@@ -434,7 +434,7 @@ bool AppController::setSetting(QString key, QVariant value)
     return writeSetting(*row, value);
 }
 
-QVariantMap AppController::settingRange(QString key) const
+QVariantMap AppController::settingRange(QString const& key) const
 {
     const auto* const row = core::settings::find(key.toStdString());
     return row == nullptr ? QVariantMap{} : settings::rangeOf(*row);
@@ -604,7 +604,7 @@ void AppController::reportCaptureRefusal(CaptureRefusal const refusal)
     explanation_.showNotice(QCoreApplication::translate("SettingsPopup", "OCR"), body, QString::fromLatin1(kNoticeError));
 }
 
-void AppController::reportStartupCrash(std::filesystem::path logDir)
+void AppController::reportStartupCrash(std::filesystem::path const& logDir)
 {
     crashDumpDir_                      = lens::util::crashDumpDir(logDir);
     const std::filesystem::path marker = crashDumpDir_ / lens::util::kCrashMarkerName;
@@ -705,7 +705,7 @@ QVariantList AppController::bubbleFontSizeOptions() const
     return options;
 }
 
-void AppController::setApiKey(QString key)
+void AppController::setApiKey(QString const& key)
 {
     llm_.setApiKey(key);
     storage_.section().set<std::string>("API-KEY", key.toStdString());
@@ -735,7 +735,7 @@ void AppController::clearOcrOnlineConfiguration()
     storage_.section().remove("OCR-SERVICES");
 }
 
-void AppController::setModel(QString model)
+void AppController::setModel(QString const& model)
 {
     if (catalog_.setModel(model)) {
         invalidateConnectionTest();
@@ -744,7 +744,7 @@ void AppController::setModel(QString model)
     }
 }
 
-void AppController::setApiUrl(QString url)
+void AppController::setApiUrl(QString const& url)
 {
     const QUrl parsed(url.trimmed());
     if (!parsed.isValid() || parsed.scheme() != QLatin1String("https")) {
@@ -807,12 +807,12 @@ void AppController::setAutostart(bool on)
     notifySettingsChanged();
 }
 
-void AppController::reviewWord(QString lemma, int x, int y, int width, int height)
+void AppController::reviewWord(QString const& lemma, int x, int y, int width, int height)
 {
-    explanation_.reviewWord(std::move(lemma), QPoint(x, y), QSize(width, height));
+    explanation_.reviewWord(lemma, QPoint(x, y), QSize(width, height));
 }
 
-void AppController::explainLemma(QString lemma)
+void AppController::explainLemma(QString const& lemma)
 {
     // The one path a word list can spend money through, and it is a button the reader pressed
     // rather than the hover that put the button there.
@@ -820,10 +820,10 @@ void AppController::explainLemma(QString lemma)
         explanation_.showNotice(lemma, tr("Today's budget is used up."), QString::fromLatin1(kNoticeError));
         return;
     }
-    explanation_.explainLemma(std::move(lemma));
+    explanation_.explainLemma(lemma);
 }
 
-void AppController::explainTypedWord(QString lemma, int x, int y, int width, int height)
+void AppController::explainTypedWord(QString const& lemma, int x, int y, int width, int height)
 {
     // The search row is the second path a word list can spend money through, and like the hint's
     // button it is a press the reader made, so it keeps the same gate explainLemma() does.
@@ -831,7 +831,7 @@ void AppController::explainTypedWord(QString lemma, int x, int y, int width, int
         explanation_.showNotice(lemma, tr("Today's budget is used up."), QString::fromLatin1(kNoticeError));
         return;
     }
-    explanation_.explainTypedWord(std::move(lemma), QPoint(x, y), QSize(width, height));
+    explanation_.explainTypedWord(lemma, QPoint(x, y), QSize(width, height));
 }
 
 QVariantMap AppController::settings()
@@ -1025,7 +1025,7 @@ QString AppController::exportCardsFor(core::ExportScope const scope, core::CardF
     return QString::fromStdString(core::exportCards(storage_.statsStore().history(), scope, storage_.knownStore(), format));
 }
 
-QString AppController::exportWords(QString scope)
+QString AppController::exportWords(QString const& scope)
 {
     const auto which = parseScope(scope);
     if (not which) {
@@ -1037,7 +1037,7 @@ QString AppController::exportWords(QString scope)
     return text;
 }
 
-QString AppController::exportWordsJson(QString scope)
+QString AppController::exportWordsJson(QString const& scope)
 {
     const auto which = parseScope(scope);
     if (not which) {
@@ -1049,7 +1049,7 @@ QString AppController::exportWordsJson(QString scope)
     return text;
 }
 
-bool AppController::saveWords(QUrl path, QString scope)
+bool AppController::saveWords(QUrl const& path, QString const& scope)
 {
     const auto which = parseScope(scope);
     if (not which) {
@@ -1079,7 +1079,7 @@ bool AppController::saveWords(QUrl path, QString scope)
     return true;
 }
 
-bool AppController::importWords(QUrl path)
+bool AppController::importWords(QUrl const& path)
 {
     const QString local = path.toLocalFile();
     if (local.isEmpty()) {
@@ -1126,7 +1126,7 @@ bool AppController::setDailyBudget(double amount)
     return true;
 }
 
-bool AppController::removeWord(QString lemma)
+bool AppController::removeWord(QString const& lemma)
 {
     const auto value = lemma.trimmed();
     if (value.isEmpty())

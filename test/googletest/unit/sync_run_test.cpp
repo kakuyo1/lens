@@ -57,9 +57,9 @@ TEST(SyncRun, AFirstRunMintsAKeyAndCreatesTheCloudCopy)
 
     ASSERT_TRUE(opened.error.empty()) << opened.error;
     ASSERT_TRUE(opened.keyToStore.has_value()) << "the first key is the one that has to be stored";
-    EXPECT_EQ(opened.keyToStore->key.size(), 32u);
-    EXPECT_EQ(opened.keyToStore->params.salt.size(), 16u);
-    EXPECT_EQ(opened.keyToStore->params.iterations, vault::kIterations);
+    EXPECT_EQ(opened.keyToStore.value().key.size(), 32u);
+    EXPECT_EQ(opened.keyToStore.value().params.salt.size(), 16u);
+    EXPECT_EQ(opened.keyToStore.value().params.iterations, vault::kIterations);
     EXPECT_EQ(opened.remote, json::object()) << "there was no cloud copy to read";
     EXPECT_TRUE(opened.key.has_value());
 }
@@ -92,13 +92,13 @@ TEST(SyncRun, ASecondDeviceReopensWithTheSaltTheCloudCopyWasSealedUnder)
 
     ASSERT_TRUE(opened.error.empty()) << opened.error;
     ASSERT_TRUE(opened.key.has_value());
-    EXPECT_EQ(opened.key->params.salt, cloud.params.salt);
-    EXPECT_EQ(opened.key->params.iterations, cloud.params.iterations);
-    EXPECT_EQ(opened.key->key, cloud.key) << "the same passphrase and salt have to give the same key";
+    EXPECT_EQ(opened.key.value().params.salt, cloud.params.salt);
+    EXPECT_EQ(opened.key.value().params.iterations, cloud.params.iterations);
+    EXPECT_EQ(opened.key.value().key, cloud.key) << "the same passphrase and salt have to give the same key";
     EXPECT_EQ(opened.remote, cloudDocument);
     // What the run stored is what the cloud copy opens under, so the next run needs no passphrase.
     ASSERT_TRUE(opened.keyToStore.has_value());
-    EXPECT_EQ(opened.keyToStore->key, cloud.key);
+    EXPECT_EQ(opened.keyToStore.value().key, cloud.key);
 }
 
 /// The run after the first one: the reader asks for a sync and no passphrase comes with it, so the
@@ -162,7 +162,7 @@ TEST(SyncRun, ACloudCopyThatIsNotADocumentStillKeepsTheKeyThatOpenedIt)
 
     EXPECT_EQ(opened.error, "generic");
     ASSERT_TRUE(opened.keyToStore.has_value());
-    EXPECT_EQ(opened.keyToStore->key, cloud.key);
+    EXPECT_EQ(opened.keyToStore.value().key, cloud.key);
 }
 
 /// The ten-minute poll. It pulls and merges like any other pass, and on a device where nothing has
@@ -251,8 +251,8 @@ TEST(SyncRun, TheUploadIsTheMergedDocumentUnderTheKeyInForce)
 
     ASSERT_EQ(upload.command, syncrun::Upload::Command::Update);
     const auto envelope = json::parse(upload.sealed);
-    EXPECT_EQ(vault::paramsOf(envelope)->salt, key.params.salt);
-    EXPECT_EQ(vault::paramsOf(envelope)->iterations, key.params.iterations);
+    EXPECT_EQ(vault::paramsOf(envelope).value().salt, key.params.salt);
+    EXPECT_EQ(vault::paramsOf(envelope).value().iterations, key.params.iterations);
     const auto plaintext = vault::open(key.key, envelope);
     ASSERT_TRUE(plaintext.has_value());
     EXPECT_EQ(json::parse(*plaintext), merged);

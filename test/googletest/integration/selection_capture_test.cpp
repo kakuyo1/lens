@@ -422,26 +422,26 @@ TEST(TerminalCopyKey, EveryTerminalGetsACombinationThatIsNotItsInterrupt)
     // copies on Ctrl+Shift+C; the classic console host copies on Ctrl+Insert.
     const auto windowsTerminal = terminalCopyKey("WindowsTerminal.exe");
     ASSERT_TRUE(windowsTerminal.has_value());
-    EXPECT_EQ(windowsTerminal->key, static_cast<unsigned>('C'));
-    EXPECT_TRUE(windowsTerminal->shift);
+    EXPECT_EQ(windowsTerminal.value().key, static_cast<unsigned>('C'));
+    EXPECT_TRUE(windowsTerminal.value().shift);
 
     const auto consoleHost = terminalCopyKey("conhost.exe");
     ASSERT_TRUE(consoleHost.has_value());
-    EXPECT_EQ(consoleHost->key, static_cast<unsigned>(VK_INSERT));
-    EXPECT_FALSE(consoleHost->shift);
+    EXPECT_EQ(consoleHost.value().key, static_cast<unsigned>(VK_INSERT));
+    EXPECT_FALSE(consoleHost.value().shift);
 
     // The rest of each family, so a name dropped from the table fails here.
     for (const std::string_view name : {"OpenConsole.exe", "wt.exe"}) {
         const auto key = terminalCopyKey(name);
         ASSERT_TRUE(key.has_value()) << name;
-        EXPECT_EQ(key->key, static_cast<unsigned>('C')) << name;
-        EXPECT_TRUE(key->shift) << name;
+        EXPECT_EQ(key.value().key, static_cast<unsigned>('C')) << name;
+        EXPECT_TRUE(key.value().shift) << name;
     }
     for (const std::string_view name : {"cmd.exe", "powershell.exe", "pwsh.exe"}) {
         const auto key = terminalCopyKey(name);
         ASSERT_TRUE(key.has_value()) << name;
-        EXPECT_EQ(key->key, static_cast<unsigned>(VK_INSERT)) << name;
-        EXPECT_FALSE(key->shift) << name;
+        EXPECT_EQ(key.value().key, static_cast<unsigned>(VK_INSERT)) << name;
+        EXPECT_FALSE(key.value().shift) << name;
     }
 }
 
@@ -626,8 +626,8 @@ TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
     // The anchor is defined as the release position, so it is compared against where the
     // pointer actually ended up rather than against a coordinate computed here, which would
     // only be testing the test.
-    EXPECT_NEAR(anchor->x(), landed.x, 2) << "the anchor should be the release position";
-    EXPECT_NEAR(anchor->y(), landed.y, 2);
+    EXPECT_NEAR(anchor.value().x(), landed.x, 2) << "the anchor should be the release position";
+    EXPECT_NEAR(anchor.value().y(), landed.y, 2);
 }
 
 /// The one branch of the grabber that needs no second application. It has to refuse when the
@@ -694,7 +694,7 @@ TEST(SelectionGrab, CapturesTheSelectionAndPutsTheClipboardBack)
     // installed this way actually sees a drag that happened in someone else's window.
     ASSERT_TRUE(anchor.has_value()) << "nothing arrived within " << kHookWaitMs
                                     << " ms, so the hook never saw the gesture";
-    std::cout << "  the hook saw a release at " << anchor->x() << "," << anchor->y() << "\n";
+    std::cout << "  the hook saw a release at " << anchor.value().x() << "," << anchor->y() << "\n";
 
     lens::app::SelectionTextGrabber grabber;
     const auto                      result = grabber.grab(lens::app::ClipboardPolicy::Topmost);

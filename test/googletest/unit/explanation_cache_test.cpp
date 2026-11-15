@@ -61,8 +61,8 @@ protected:
 /// The one spelling of a rule the duty and the queue each wrote their own copy of.
 TEST_F(ExplanationCacheTest, TheSenseModeCountsOnlyOnTheWordChannel)
 {
-    store->document()["multiSense"] = "true";
-    auto const wordContext          = cache->readerContext();
+    store.value().document()["multiSense"] = "true";
+    auto const wordContext                 = cache->readerContext();
     EXPECT_TRUE(wordContext.multipleSenses);
 
     EXPECT_EQ(cache->contextFor(SelectionKind::Word), wordContext);
@@ -80,9 +80,9 @@ TEST_F(ExplanationCacheTest, TheSenseModeCountsOnlyOnTheWordChannel)
 TEST_F(ExplanationCacheTest, TheReaderContextFollowsTheSettings)
 {
     EXPECT_EQ(cache->readerContext(), (CacheContext{kLanguage, false}));
-    store->document()["multiSense"] = "true";
+    store.value().document()["multiSense"] = "true";
     EXPECT_EQ(cache->readerContext(), (CacheContext{kLanguage, true}));
-    store->setExplanationLang("ja");
+    store.value().setExplanationLang("ja");
     EXPECT_EQ(cache->readerContext(), (CacheContext{"ja", true}));
 }
 
@@ -91,7 +91,7 @@ TEST_F(ExplanationCacheTest, TheReaderContextFollowsTheSettings)
 /// (docs/adr/0083).
 TEST_F(ExplanationCacheTest, TheTogglesReadThroughTheTableRows)
 {
-    auto& document         = store->document();
+    auto& document         = store.value().document();
     document["multiSense"] = 3; // a number is not a toggle
     document["example"]    = nullptr;
 
@@ -115,7 +115,7 @@ TEST_F(ExplanationCacheTest, NothingStoredUnderTheContextIsMissing)
 TEST_F(ExplanationCacheTest, AnEntryWithoutAnExampleIsABuyWhenTheSettingAsksForOne)
 {
     cache->store("bank", anEntry(), {kLanguage, false});
-    store->document()["example"] = "true";
+    store.value().document()["example"] = "true";
 
     auto const found = cache->look("bank", {kLanguage, false});
     EXPECT_EQ(found.state, ExplanationCache::State::Rebuy);
@@ -130,7 +130,7 @@ TEST_F(ExplanationCacheTest, AnEmptyExampleIsAnAnswerAndIsAHit)
     auto entry    = anEntry();
     entry.example = std::string{};
     cache->store("bank", entry, {kLanguage, false});
-    store->document()["example"] = "true";
+    store.value().document()["example"] = "true";
 
     EXPECT_EQ(cache->look("bank", {kLanguage, false}).state, ExplanationCache::State::Hit);
 }
@@ -140,7 +140,7 @@ TEST_F(ExplanationCacheTest, WithTheExampleSettingOffAnyStoredEntryIsAHit)
 {
     cache->store("bank", anEntry(), {kLanguage, false});
     cache->store("river", anEntry(), {kLanguage, false});
-    store->document()["example"] = "false";
+    store.value().document()["example"] = "false";
 
     EXPECT_EQ(cache->look("bank", {kLanguage, false}).state, ExplanationCache::State::Hit);
     EXPECT_EQ(cache->look("river", {kLanguage, false}).state, ExplanationCache::State::Hit);
@@ -173,7 +173,7 @@ TEST_F(ExplanationCacheTest, EntriesSurviveASaveAndReloadUnderTheirOwnContext)
     japanese.translation = "銀行";
     cache->store("bank", multiple, {kLanguage, true});
     cache->store("bank", japanese, {"ja", false});
-    store->save();
+    store.value().save();
 
     auto             restored = KnownStore::load(path);
     ExplanationCache reloaded{restored};

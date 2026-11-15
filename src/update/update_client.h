@@ -30,11 +30,11 @@ namespace lens::update {
 struct Settings {
     QUrl    source; ///< The release page; a non-https one is refused and nothing is sent.
     int     timeoutMs        = 10000;
-    qint64  maxBytes         = 2 * 1024 * 1024;
-    QString sumsName         = QStringLiteral("SHA256SUMS"); ///< The asset that publishes the installer's digest.
-    qint64  maxDownloadBytes = 200 * 1024 * 1024;            ///< Ceiling on one installer.
-    int     stallTimeoutMs   = 30000;                        ///< A transfer that stops moving is given up on.
-    int     connectTimeoutMs = 15000;                        ///< A transfer that never starts is given up on.
+    qint64  maxBytes         = static_cast<qint64>(2 * 1024) * 1024;
+    QString sumsName         = QStringLiteral("SHA256SUMS");           ///< The asset that publishes the installer's digest.
+    qint64  maxDownloadBytes = static_cast<qint64>(200 * 1024) * 1024; ///< Ceiling on one installer.
+    int     stallTimeoutMs   = 30000;                                  ///< A transfer that stops moving is given up on.
+    int     connectTimeoutMs = 15000;                                  ///< A transfer that never starts is given up on.
 
     /**
      * @brief Read the source and its limits from `data/update.json`.
@@ -116,8 +116,8 @@ class DownloadClient : public QObject {
     Q_OBJECT
 public:
     /// @brief Why a download stopped. `Checksum` never comes from here: that is the duty's.
-    enum class Failure { Generic,
-                         Proxy };
+    enum class Failure : int { Generic,
+                               Proxy };
     Q_ENUM(Failure)
 
     /**
@@ -156,8 +156,8 @@ private:
     ///         proxy text; anything that moved is a plain failure.
     Failure failureFor(qint64 received) const;
     /// What one request is for: a digest list, or bytes into a file.
-    enum class Mode { Sums,
-                      Installer };
+    enum class Mode : int { Sums,
+                            Installer };
 
     /// @return False when a transfer is already in flight and this request was not made.
     bool start(const QUrl& url, Mode mode, int hops);

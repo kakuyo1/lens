@@ -182,7 +182,7 @@ TEST(OnlineTokens, ADeadOrClearedTokenIsNotHandedOut)
     store->put(QStringLiteral("k"),
                {.accessToken = QStringLiteral("t"), .expiresAt = std::chrono::steady_clock::now() + std::chrono::hours{1}});
     ASSERT_TRUE(store->find(QStringLiteral("k")));
-    EXPECT_EQ(store->find(QStringLiteral("k"))->accessToken, QStringLiteral("t"));
+    EXPECT_EQ(store->find(QStringLiteral("k")).value().accessToken, QStringLiteral("t"));
     store->erase(QStringLiteral("k"));
     EXPECT_FALSE(store->find(QStringLiteral("k")));
     store->put(QStringLiteral("k"),

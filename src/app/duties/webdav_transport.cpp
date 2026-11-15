@@ -32,18 +32,18 @@ WebdavTransport::WebdavTransport(lens::sync::WebDavClient& dav, core::sync::Sync
         core::sync::Answer result;
         if (exists)
             result.gistId = envelopePath(std::string(core::sync::kFileName));
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
-    connect(&dav_, &lens::sync::WebDavClient::gotFile, this, [this](quint64 callId, QString content) {
+    connect(&dav_, &lens::sync::WebDavClient::gotFile, this, [this](quint64 callId, QString const& content) {
         auto const* request = current(callId);
         if (request == nullptr)
             return;
         core::sync::Answer result;
         result.gistId  = request->gistId;
         result.content = content.toStdString();
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
-    connect(&dav_, &lens::sync::WebDavClient::putDone, this, [this](quint64 callId, QString path) {
+    connect(&dav_, &lens::sync::WebDavClient::putDone, this, [this](quint64 callId, QString const& path) {
         auto const* request = current(callId);
         if (request == nullptr)
             return;
@@ -51,14 +51,14 @@ WebdavTransport::WebdavTransport(lens::sync::WebDavClient& dav, core::sync::Sync
         // A create hands the round the path it wrote, so it is stored as the cloud copy's id.
         if (request->kind == core::sync::Request::Kind::Create)
             result.gistId = path.toStdString();
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
-    connect(&dav_, &lens::sync::WebDavClient::deleted, this, [this](quint64 callId, QString path) {
+    connect(&dav_, &lens::sync::WebDavClient::deleted, this, [this](quint64 callId, QString const& path) {
         if (current(callId) == nullptr)
             return;
         core::sync::Answer result;
         result.gistId = path.toStdString();
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
     connect(&dav_, &lens::sync::WebDavClient::failed, this, [this](quint64 callId, lens::sync::WebDavFailure why) {
         if (current(callId) == nullptr)
@@ -71,7 +71,7 @@ WebdavTransport::WebdavTransport(lens::sync::WebDavClient& dav, core::sync::Sync
             case lens::sync::WebDavFailure::Proxy: result.failure = Failure::Proxy; break;
             case lens::sync::WebDavFailure::Generic: result.failure = Failure::Generic; break;
         }
-        answer(callId, std::move(result));
+        answer(callId, result);
     });
 }
 

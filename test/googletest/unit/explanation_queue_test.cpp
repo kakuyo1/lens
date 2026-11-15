@@ -60,8 +60,8 @@ TEST(ExplanationQueue, ARequestBehindTheAnswerWaitsForIt)
     queue.complete();
     auto const next = queue.take(true, kNow);
     ASSERT_TRUE(next.has_value());
-    EXPECT_FALSE(next->fromScan) << "the reader's own ask goes before the word list's work";
-    EXPECT_EQ(next->items.front().lemma, QStringLiteral("river"));
+    EXPECT_FALSE(next.value().fromScan) << "the reader's own ask goes before the word list's work";
+    EXPECT_EQ(next.value().items.front().lemma, QStringLiteral("river"));
 }
 
 TEST(ExplanationQueue, CompleteWithNothingInFlightChangesNothing)

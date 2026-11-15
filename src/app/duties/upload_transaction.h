@@ -122,7 +122,7 @@ public:
 
 private:
     /// @brief Where a live transaction stands; idle is the absence of Pending.
-    enum class Stage {
+    enum class Stage : int {
         AwaitingConsent, ///< The frozen crop waits for the reader's confirmation.
         Uploading,       ///< A request is in the executor's hands.
         AwaitingRetry,   ///< A refusal the reader may retry within kRetryWindow.

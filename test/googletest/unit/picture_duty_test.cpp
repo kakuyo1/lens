@@ -31,10 +31,10 @@ using lens::pictures::PictureSource;
 /// A source with one fixed answer: empty, unreachable, or one candidate whose download fails.
 class FakeSource final : public PictureSource {
 public:
-    enum class Mode { NoResults,
-                      Unreachable,
-                      DownloadFails,
-                      NeverAnswers };
+    enum class Mode : int { NoResults,
+                            Unreachable,
+                            DownloadFails,
+                            NeverAnswers };
 
     explicit FakeSource(Mode mode)
         : mode_(mode)

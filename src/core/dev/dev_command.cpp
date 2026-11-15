@@ -143,7 +143,7 @@ constexpr std::array<std::string_view, 4> kThemeNames{"light", "dark", "frosted"
 constexpr std::array<std::string_view, 4> kGlassQualityNames{"auto", "eco", "standard", "smooth"};
 
 /// `setting set <name> <value>`: the name must be on the whitelist, and the value must be one that setting takes.
-Parse parseSetting(std::string_view name, std::string_view value)
+Parse parseSetting(std::string_view name, std::string_view value) // NOLINT(bugprone-easily-swappable-parameters): parseSetting takes its 2 std::string_view arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     if (name == "theme") {
         if (std::ranges::find(kThemeNames, value) == kThemeNames.end())

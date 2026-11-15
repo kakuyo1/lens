@@ -82,7 +82,7 @@ struct Harness {
     std::vector<ScanStep> routed;
 
     ScanSession session{store,
-                        [](std::function<void()> work) { work(); },
+                        [](const std::function<void()>& work) { work(); },
                         [this](quintptr, QRect, TrackSink sink) {
                             ++started;
                             deliver = std::move(sink);
@@ -169,10 +169,10 @@ TEST(ScanSession, TheFirstChromeTickClearsAndStartsTheTrack)
 TEST(ScanSession, NotepadStartsATrackWithoutWarmingAnUiaTree)
 {
     Harness h;
-    auto    facts             = h.chrome();
-    facts.foreground->kind    = ScanForeground::Kind::Notepad;
-    facts.foreground->context = QStringLiteral("notepad-doc");
-    auto const step           = h.session.tick(facts);
+    auto    facts                    = h.chrome();
+    facts.foreground.value().kind    = ScanForeground::Kind::Notepad;
+    facts.foreground.value().context = QStringLiteral("notepad-doc");
+    auto const step                  = h.session.tick(facts);
     EXPECT_TRUE(step.cleared);
     EXPECT_FALSE(step.warm);
     EXPECT_EQ(h.started, 1);
@@ -181,8 +181,8 @@ TEST(ScanSession, NotepadStartsATrackWithoutWarmingAnUiaTree)
 TEST(ScanSession, LeavingNotepadTearsDownOnce)
 {
     Harness h;
-    auto    notepad          = h.chrome();
-    notepad.foreground->kind = ScanForeground::Kind::Notepad;
+    auto    notepad                 = h.chrome();
+    notepad.foreground.value().kind = ScanForeground::Kind::Notepad;
     h.session.tick(notepad);
     ASSERT_EQ(h.started, 1);
     EXPECT_TRUE(h.session.tick(foregroundOf(ScanForeground::Kind::Other)).cleared);
@@ -232,9 +232,9 @@ TEST(ScanSession, AContextChangeRestartsTheTrackAndWarmsTheWindow)
     h.session.tick(h.chrome());
     ASSERT_EQ(h.started, 1);
 
-    auto other                = h.chrome();
-    other.foreground->context = QStringLiteral("chrome-other");
-    auto const step           = h.session.tick(other);
+    auto other                       = h.chrome();
+    other.foreground.value().context = QStringLiteral("chrome-other");
+    auto const step                  = h.session.tick(other);
     EXPECT_TRUE(step.cleared);
     ASSERT_TRUE(step.warm);
     EXPECT_EQ(*step.warm, quintptr{42});
@@ -269,8 +269,8 @@ TEST(ScanSession, AFrameThroughTheTrackSinkRoutesItsStepToTheOwner)
     h.deliver(frameWithAdded(1, "ubiquitous"));
     ASSERT_EQ(h.routed.size(), 1);
     ASSERT_TRUE(h.routed.front().placed);
-    EXPECT_EQ(h.routed.front().placed->words.size(), 1);
-    EXPECT_EQ(h.routed.front().placed->words.front().lemma, QString::fromStdString("ubiquitous"));
+    EXPECT_EQ(h.routed.front().placed.value().words.size(), 1);
+    EXPECT_EQ(h.routed.front().placed.value().words.front().lemma, QString::fromStdString("ubiquitous"));
 
     // A lost frame routes its clear the same way.
     lens::capture::TrackFrame lost;
@@ -296,7 +296,7 @@ TEST(ScanSession, TheBandIsFollowedOnTheLiveTrack)
 
     // An unresolved placement leaves the track exactly as it is.
     auto unplaced = h.chrome();
-    unplaced.foreground->placement.reset();
+    unplaced.foreground.value().placement.reset();
     h.session.tick(unplaced);
     EXPECT_EQ(h.bands.size(), 1);
 }
@@ -315,23 +315,23 @@ TEST(ScanSession, FramesAreJudgedAndPlacedOnEveryFrame)
     frame.visible.push_back({2, 50, 20, 40, 12});
     auto const first = h.session.onFrame(h.session.generation(), frame);
     ASSERT_TRUE(first.placed);
-    EXPECT_EQ(first.placed->screen, QRect(0, 0, 1920, 1080));
-    EXPECT_EQ(first.placed->origin, QPoint(0, 0));
-    ASSERT_EQ(first.placed->words.size(), 2);
-    EXPECT_EQ(first.placed->words[0].lemma, QStringLiteral("ubiquitous"));
-    EXPECT_EQ(first.placed->words[0].state, lens::core::CandidateState::New);
-    EXPECT_EQ(first.placed->words[0].x, 10);
-    EXPECT_EQ(first.placed->words[1].lemma, QStringLiteral("window"));
-    EXPECT_EQ(first.placed->words[1].state, lens::core::CandidateState::Known);
-    EXPECT_EQ(first.placed->words[1].width, 40);
+    EXPECT_EQ(first.placed.value().screen, QRect(0, 0, 1920, 1080));
+    EXPECT_EQ(first.placed.value().origin, QPoint(0, 0));
+    ASSERT_EQ(first.placed.value().words.size(), 2);
+    EXPECT_EQ(first.placed.value().words[0].lemma, QStringLiteral("ubiquitous"));
+    EXPECT_EQ(first.placed.value().words[0].state, lens::core::CandidateState::New);
+    EXPECT_EQ(first.placed.value().words[0].x, 10);
+    EXPECT_EQ(first.placed.value().words[1].lemma, QStringLiteral("window"));
+    EXPECT_EQ(first.placed.value().words[1].state, lens::core::CandidateState::Known);
+    EXPECT_EQ(first.placed.value().words[1].width, 40);
 
     // Sent on every frame, even when empty: a frame with no candidate in view takes the last one's lines down.
     lens::capture::TrackFrame visibleOnly;
     visibleOnly.visible.push_back({1, 10, 20, 30, 12});
     auto const second = h.session.onFrame(h.session.generation(), visibleOnly);
     ASSERT_TRUE(second.placed);
-    ASSERT_EQ(second.placed->words.size(), 1);
-    EXPECT_EQ(second.placed->words[0].lemma, QStringLiteral("ubiquitous"));
+    ASSERT_EQ(second.placed.value().words.size(), 1);
+    EXPECT_EQ(second.placed.value().words[0].lemma, QStringLiteral("ubiquitous"));
 }
 
 TEST(ScanSession, AStaleFrameIsNothing)
@@ -352,7 +352,7 @@ TEST(ScanSession, ALostFrameClearsTheCandidatesAndKeepsTheJudgement)
     ASSERT_TRUE(h.deliver);
     auto const placed = h.session.onFrame(h.session.generation(), frameWithAdded(1, "ubiquitous"));
     ASSERT_TRUE(placed.placed);
-    EXPECT_EQ(placed.placed->words.size(), 1);
+    EXPECT_EQ(placed.placed.value().words.size(), 1);
 
     lens::capture::TrackFrame lost;
     lost.lost          = true;
@@ -365,13 +365,13 @@ TEST(ScanSession, ALostFrameClearsTheCandidatesAndKeepsTheJudgement)
     visibleOnly.visible.push_back({1, 10, 20, 30, 12});
     auto const empty = h.session.onFrame(h.session.generation(), visibleOnly);
     ASSERT_TRUE(empty.placed);
-    EXPECT_TRUE(empty.placed->words.empty());
+    EXPECT_TRUE(empty.placed.value().words.empty());
 
     // Read again, it is judged from the cache -- the same line comes back, with no second judgement.
     auto const again = h.session.onFrame(h.session.generation(), frameWithAdded(2, "ubiquitous"));
     ASSERT_TRUE(again.placed);
-    ASSERT_EQ(again.placed->words.size(), 1);
-    EXPECT_EQ(again.placed->words[0].lemma, QStringLiteral("ubiquitous"));
+    ASSERT_EQ(again.placed.value().words.size(), 1);
+    EXPECT_EQ(again.placed.value().words[0].lemma, QStringLiteral("ubiquitous"));
 }
 
 TEST(ScanSession, AVerdictChangeRestylesTheCandidatesInPlace)
@@ -380,8 +380,8 @@ TEST(ScanSession, AVerdictChangeRestylesTheCandidatesInPlace)
     h.session.tick(h.chrome());
     ASSERT_TRUE(h.deliver);
     auto const placed = h.session.onFrame(h.session.generation(), frameWithAdded(1, "ubiquitous"));
-    ASSERT_EQ(placed.placed->words.size(), 1);
-    EXPECT_EQ(placed.placed->words[0].state, lens::core::CandidateState::New);
+    ASSERT_EQ(placed.placed.value().words.size(), 1);
+    EXPECT_EQ(placed.placed.value().words[0].state, lens::core::CandidateState::New);
 
     // A known mark restyles the line on the next frame, with no invalidation at all.
     h.store.mark("ubiquitous", WordVerdict::Known);
@@ -390,15 +390,15 @@ TEST(ScanSession, AVerdictChangeRestylesTheCandidatesInPlace)
     visibleOnly.visible.push_back({1, 10, 20, 30, 12});
     auto const known = h.session.onFrame(h.session.generation(), visibleOnly);
     ASSERT_TRUE(known.placed);
-    ASSERT_EQ(known.placed->words.size(), 1);
-    EXPECT_EQ(known.placed->words[0].state, lens::core::CandidateState::Known);
+    ASSERT_EQ(known.placed.value().words.size(), 1);
+    EXPECT_EQ(known.placed.value().words[0].state, lens::core::CandidateState::Known);
 
     // A mastered mark retires it: the surface's judgement is empty, and no candidate is carried.
     h.store.mark("ubiquitous", WordVerdict::Mastered);
     h.session.onVerdictChanged(QStringLiteral("ubiquitous"));
     auto const retired = h.session.onFrame(h.session.generation(), visibleOnly);
     ASSERT_TRUE(retired.placed);
-    EXPECT_TRUE(retired.placed->words.empty());
+    EXPECT_TRUE(retired.placed.value().words.empty());
 }
 
 TEST(ScanSession, AnInvalidationDropsTheTrackAndTheGenerationMoves)

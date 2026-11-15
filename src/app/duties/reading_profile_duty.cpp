@@ -169,7 +169,7 @@ QDate ReadingProfileDuty::weekStart() const
     return today.addDays(1 - today.dayOfWeek());
 }
 
-void ReadingProfileDuty::onAnswered(QVector<llm::ProfileLine> points, llm::Usage usage, QString failure)
+void ReadingProfileDuty::onAnswered(QVector<llm::ProfileLine> const& points, llm::Usage const& usage, QString failure)
 {
     interpreting_ = false;
     cost_.recordUsage(util::localMinuteNow(), usage);
@@ -181,7 +181,7 @@ void ReadingProfileDuty::onAnswered(QVector<llm::ProfileLine> points, llm::Usage
     emit interpretationChanged();
 }
 
-void ReadingProfileDuty::onStoryAnswered(llm::StoryAnswer answer, llm::Usage usage, QString failure)
+void ReadingProfileDuty::onStoryAnswered(llm::StoryAnswer answer, llm::Usage const& usage, QString failure)
 {
     storyWriting_ = false;
     cost_.recordUsage(util::localMinuteNow(), usage);

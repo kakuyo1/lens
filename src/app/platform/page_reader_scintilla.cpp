@@ -44,7 +44,7 @@ constexpr UINT        kLineFromPosition   = 2166;
 constexpr UINT        kTextHeight         = 2279;
 constexpr UINT        kGetCodePage        = 2137;
 constexpr int         kUtf8CodePage       = 65001;
-constexpr std::size_t kMaxDocumentBytes   = 4u * 1024u * 1024u;
+constexpr std::size_t kMaxDocumentBytes   = static_cast<const std::size_t>(4u * 1024u) * 1024u;
 constexpr DWORD       kMessageTimeoutMs   = 120;
 
 /// The shape Scintilla 5 expects for SCI_GETTEXTRANGEFULL. Sci_Position is ptrdiff_t on Win64.
@@ -92,19 +92,21 @@ HWND scintillaChildOf(quintptr const window)
         HWND best = nullptr;
         int  area = 0;
     } search;
-    EnumChildWindows(reinterpret_cast<HWND>(window), [](HWND const child, LPARAM const raw) -> BOOL {
-                         wchar_t name[64]{};
-                         if (GetClassNameW(child, name, 64) == 0 or std::wcscmp(name, L"Scintilla") != 0) return TRUE;
-                         if (not IsWindowVisible(child)) return TRUE;
-                         auto* const found = reinterpret_cast<Search*>(raw);
-                         RECT box{};
-                         if (not GetWindowRect(child, &box)) return TRUE;
-                         int const area = (box.right - box.left) * (box.bottom - box.top);
-                         if (area > found->area) {
-                             found->area = area;
-                             found->best = child;
-                         }
-                         return TRUE; }, reinterpret_cast<LPARAM>(&search));
+    EnumChildWindows(reinterpret_cast<HWND>(window), [](HWND const child, LPARAM const raw) -> BOOL { // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
+        wchar_t name[64]{};
+        if (GetClassNameW(child, name, 64) == 0 or std::wcscmp(name, L"Scintilla") != 0) return TRUE;
+        if (not IsWindowVisible(child)) return TRUE;
+        auto* const found = reinterpret_cast<Search*>(raw); // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
+        RECT        box{};
+        if (not GetWindowRect(child, &box)) return TRUE;
+        int const area = (box.right - box.left) * (box.bottom - box.top);
+        if (area > found->area) {
+            found->area = area;
+            found->best = child;
+        }
+        return TRUE;
+    },
+                     reinterpret_cast<LPARAM>(&search));
     return search.best;
 }
 
@@ -191,7 +193,7 @@ std::string utf8Of(std::string const& raw, int const codePage)
 ///        of the text that table was built from.
 class ScintillaWord final : public capture::Word {
 public:
-    ScintillaWord(std::size_t const index, std::uint64_t const generation)
+    ScintillaWord(std::size_t const index, std::uint64_t const generation) // NOLINT(bugprone-easily-swappable-parameters): the diagnostic's suggestion does not fit this call site
         : index_{index}, generation_{generation}
     {}
 

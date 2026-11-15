@@ -109,8 +109,8 @@ TEST(PetPackageSheet, ReadsTheDeclaredSizeFromTheHeaderOnly)
 
     auto const size = readPngSize(head);
     ASSERT_TRUE(size.has_value());
-    EXPECT_EQ(size->width, 300u);
-    EXPECT_EQ(size->height, 88u);
+    EXPECT_EQ(size.value().width, 300u);
+    EXPECT_EQ(size.value().height, 88u);
 }
 
 TEST(PetPackageSheet, RefusesWhatIsNotAPngHeader)

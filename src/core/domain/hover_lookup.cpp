@@ -18,11 +18,11 @@ bool isAsciiLetter(char const c)
 
 }
 
-HoverDwell::HoverDwell(long long const dwellMs, int const slopPx)
+HoverDwell::HoverDwell(long long const dwellMs, int const slopPx) // NOLINT(bugprone-easily-swappable-parameters): the diagnostic's suggestion does not fit this call site
     : dwellMs_(dwellMs), slopPx_(slopPx)
 {}
 
-bool HoverDwell::update(long long const nowMs, int const x, int const y)
+bool HoverDwell::update(long long const nowMs, int const x, int const y) // NOLINT(bugprone-easily-swappable-parameters): the diagnostic's suggestion does not fit this call site
 {
     const bool moved = not anchored_ or std::abs(x - x_) > slopPx_ or std::abs(y - y_) > slopPx_;
     if (moved) {

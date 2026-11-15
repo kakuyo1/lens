@@ -180,10 +180,10 @@ PetStage::EntryStep PetStage::tick(std::chrono::milliseconds step)
 
 PetStage::EntryFrame PetStage::frameAt() const
 {
-    auto const& scene   = *entry_->scene;
+    auto const& scene   = *entry_.value().scene;
     auto const& entry   = *scene.entry;
     auto const  target  = scene.perFrame.empty() ? SceneFrame{1.0, 0.0, 0.0} : scene.perFrame.front();
-    auto const  elapsed = entry_->elapsed.count();
+    auto const  elapsed = entry_.value().elapsed.count();
 
     auto       answer = EntryFrame{};
     auto const prop   = entry.propMs > 0 ? easeOutCubic(static_cast<double>(elapsed) / entry.propMs) : 1.0;
@@ -233,7 +233,7 @@ PetStage::EntryFrame PetStage::frameAt() const
 
 int PetStage::poseFrameAt(std::chrono::milliseconds elapsed) const
 {
-    auto const& pose = entry_->pose;
+    auto const& pose = entry_.value().pose;
     if (pose.frames <= 0) return 0;
     auto const frame = static_cast<int>(pose.frame + elapsed.count() * pose.fps / 1000);
     return pose.loop ? frame % pose.frames : std::min(frame, pose.frames - 1);

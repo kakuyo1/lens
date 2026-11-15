@@ -48,13 +48,13 @@ struct Token {
 };
 
 /// @brief What one poll of the token endpoint said.
-enum class PollState { Pending,
-                       SlowDown,
-                       Expired,
-                       Denied,
-                       Granted,
-                       BadRefresh,
-                       Failed };
+enum class PollState : int { Pending,
+                             SlowDown,
+                             Expired,
+                             Denied,
+                             Granted,
+                             BadRefresh,
+                             Failed };
 
 /// @brief One poll's answer; the tokens are set only when the state is Granted.
 struct PollResult {
@@ -66,13 +66,13 @@ struct PollResult {
 PollResult parseTokenPoll(const QByteArray& body);
 
 /// @brief Why sign-in stopped without a token.
-enum class AuthFailure { Generic,
-                         Expired,
-                         Denied,
-                         Proxy,
-                         /// Nothing can renew this sign-in: the stored refresh token is dead, or the
-                         /// app's own credentials were refused. Either way the reader signs in again.
-                         BadRefresh };
+enum class AuthFailure : int { Generic,
+                               Expired,
+                               Denied,
+                               Proxy,
+                               /// Nothing can renew this sign-in: the stored refresh token is dead, or the
+                               /// app's own credentials were refused. Either way the reader signs in again.
+                               BadRefresh };
 
 /**
  * @brief Runs the device flow for one sign-in at a time.

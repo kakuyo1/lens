@@ -433,7 +433,7 @@ void CaptureDuty::setMinimumWordLength(int const length)
     emit settingsChanged();
 }
 
-bool CaptureDuty::setScanWhitelist(QString processes)
+bool CaptureDuty::setScanWhitelist(QString const& processes)
 {
     if (processes.size() > 4096) return false;
     auto const names = processes.split(QRegularExpression{QStringLiteral("[;,\\s]+")}, Qt::SkipEmptyParts);
@@ -452,7 +452,7 @@ bool CaptureDuty::setScanWhitelist(QString processes)
     return true;
 }
 
-void CaptureDuty::setTesseractExecutable(QString executable)
+void CaptureDuty::setTesseractExecutable(QString const& executable)
 {
     const QString value = executable.trimmed();
     auto          keys  = storage_.section();
@@ -462,7 +462,7 @@ void CaptureDuty::setTesseractExecutable(QString executable)
     emit settingsChanged();
 }
 
-void CaptureDuty::setTesseractDataDirectory(QString directory)
+void CaptureDuty::setTesseractDataDirectory(QString const& directory)
 {
     const QString value = directory.trimmed();
     auto          keys  = storage_.section();
@@ -472,7 +472,7 @@ void CaptureDuty::setTesseractDataDirectory(QString directory)
     emit settingsChanged();
 }
 
-void CaptureDuty::setRapidOcrExecutable(QString executable)
+void CaptureDuty::setRapidOcrExecutable(QString const& executable)
 {
     auto const value = executable.trimmed();
     auto       keys  = storage_.section();
@@ -484,7 +484,7 @@ void CaptureDuty::setRapidOcrExecutable(QString executable)
     emit settingsChanged();
 }
 
-void CaptureDuty::setRapidOcrModelsDirectory(QString directory)
+void CaptureDuty::setRapidOcrModelsDirectory(QString const& directory)
 {
     auto const value = directory.trimmed();
     auto       keys  = storage_.section();
@@ -561,12 +561,12 @@ void CaptureDuty::onBundleFinished(bool ok, QString failure)
         // as it always has -- a download never grants trust by itself (docs/adr/0132).
         detectRapidOcr();
     } else {
-        rapidOcrBundleFailure_ = failure;
+        rapidOcrBundleFailure_ = std::move(failure);
     }
     emit rapidOcrBundleChanged();
 }
 
-void CaptureDuty::setOcrLocalEngine(QString engine)
+void CaptureDuty::setOcrLocalEngine(QString const& engine)
 {
     auto const value = engine.trimmed();
     if (not capture::parseLocalEngine(value.toStdString())) return;
@@ -578,7 +578,7 @@ void CaptureDuty::setOcrLocalEngine(QString engine)
     emit settingsChanged();
 }
 
-void CaptureDuty::setOcrLocalLanguage(QString language)
+void CaptureDuty::setOcrLocalLanguage(QString const& language)
 {
     auto const value = language.trimmed();
     if (not capture::parseOcrLanguage(value.toStdString())) return;
@@ -593,7 +593,7 @@ void CaptureDuty::setOcrLocalLanguage(QString language)
     emit settingsChanged();
 }
 
-void CaptureDuty::setOcrMode(QString mode)
+void CaptureDuty::setOcrMode(QString const& mode)
 {
     auto const value = mode.trimmed();
     if (value != QLatin1String("local") and value != QLatin1String("online")) return;
@@ -606,7 +606,7 @@ void CaptureDuty::setOcrMode(QString mode)
     emit settingsChanged();
 }
 
-void CaptureDuty::setOcrOnlineProvider(QString provider)
+void CaptureDuty::setOcrOnlineProvider(QString const& provider)
 {
     auto const value = provider.trimmed();
     if (not value.isEmpty() and ocr::findOcrProvider(value) == nullptr) return;
@@ -635,7 +635,7 @@ void CaptureDuty::setOcrOnlineProvider(QString provider)
     emit settingsChanged();
 }
 
-void CaptureDuty::setOcrOnlineEndpoint(QString endpoint)
+void CaptureDuty::setOcrOnlineEndpoint(QString const& endpoint)
 {
     auto const value = endpoint.trimmed();
     if (not value.isEmpty() and ocr::validateOcrEndpoint(QUrl{value})) return;
@@ -654,7 +654,7 @@ void CaptureDuty::setOcrOnlineEndpoint(QString endpoint)
     emit settingsChanged();
 }
 
-void CaptureDuty::setOcrOnlineLanguage(QString language)
+void CaptureDuty::setOcrOnlineLanguage(QString const& language)
 {
     auto const value = language.trimmed();
     if (not onlineLanguageSupported(value)) return;
@@ -665,7 +665,7 @@ void CaptureDuty::setOcrOnlineLanguage(QString language)
     emit settingsChanged();
 }
 
-void CaptureDuty::setOcrCredential(QString slot, QString value)
+void CaptureDuty::setOcrCredential(QString const& slot, QString const& value)
 {
     auto const key = credentialSettingKey(slot.trimmed());
     if (key.isEmpty()) return;
@@ -1171,9 +1171,9 @@ void CaptureDuty::debugScanArm(QRect const screen)
     session_.debugArm({.band = screen, .screen = screen, .origin = screen.topLeft(), .scale = 1.0});
 }
 
-void CaptureDuty::debugScanFrame(capture::TrackFrame frame)
+void CaptureDuty::debugScanFrame(capture::TrackFrame const& frame)
 {
-    routeScanStep(session_.onFrame(session_.generation(), std::move(frame)));
+    routeScanStep(session_.onFrame(session_.generation(), frame));
 }
 
 void CaptureDuty::debugScanClear()
@@ -1273,12 +1273,12 @@ bool CaptureDuty::autoScanActive()
     return autoScanOn(settings()) and session_.trackingPage();
 }
 
-void CaptureDuty::lookUpWord(QString const surface, QPoint const anchor)
+void CaptureDuty::lookUpWord(QString const& surface, QPoint const anchor)
 {
     classifyText(surface, anchor, true);
 }
 
-void CaptureDuty::verdictChanged(QString const lemma)
+void CaptureDuty::verdictChanged(QString const& lemma)
 {
     session_.onVerdictChanged(lemma);
 }
@@ -1310,10 +1310,12 @@ void CaptureDuty::onHoverTick()
     if (not step.read) return;
 
     // The read is a few round trips into the window under the pointer, so it runs off the main thread.
-    QThreadPool::globalInstance()->start(QRunnable::create([this, at = step.at, whitelist = std::move(step.whitelist)] {
+    QThreadPool::globalInstance()->start(QRunnable::create([this, at = step.at, whitelist = step.whitelist] {
         auto word = hoverWordAt(at, whitelist);
-        QMetaObject::invokeMethod(
-            this, [this, word = std::move(word)]() mutable { onHoverWordRead(std::move(word)); }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod( // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
+            this,
+            [this, word = std::move(word)]() mutable { onHoverWordRead(std::move(word)); },
+            Qt::QueuedConnection);
     }));
 }
 
@@ -1323,7 +1325,7 @@ void CaptureDuty::onHoverWordRead(std::optional<HoverWord> word)
     if (step.asked) classifyText(step.text, step.anchor, true);
 }
 
-void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> const text)
+void CaptureDuty::beginSelection(QPoint const anchor, std::optional<QString> const& text)
 {
     routeSelection(selection_.begin(anchor, text));
 }
@@ -1342,7 +1344,7 @@ void CaptureDuty::routeSelection(std::optional<SelectionCapture::Answer> const& 
     emit selectionBarRequested(answer->bar);
 }
 
-void CaptureDuty::classifyText(QString const text, QPoint const anchor, bool const translateNow)
+void CaptureDuty::classifyText(QString const& text, QPoint const anchor, bool const translateNow)
 {
     routeSelection(selection_.classify(text, anchor, translateNow));
 }

@@ -10,7 +10,7 @@
 namespace lens::capture {
 
 OcrExecutor::OcrExecutor(QObject* parent)
-    : QObject(parent), worker_([this] { run(); })
+    : QObject(parent), worker_([this] { run(); }) // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
 {}
 
 OcrExecutor::~OcrExecutor()
@@ -82,7 +82,7 @@ void OcrExecutor::run()
 
         // Delivered on the owner's thread; the context object drops the event if this executor
         // is already gone, so a late answer can never land on a destroyed duty.
-        QMetaObject::invokeMethod(
+        QMetaObject::invokeMethod( // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
             this,
             [this, id = job.id, result = std::move(result)]() mutable { emit finished(id, std::move(result)); },
             Qt::QueuedConnection);

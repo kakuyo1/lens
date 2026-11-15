@@ -99,7 +99,7 @@ void BundleDownloader::start()
             file_->write(rest);
         file_->close();
         if (not transferred) {
-            LENS_WARN("rapidocr bundle transfer failed after {} bytes: {} ({})",
+            LENS_WARN("rapidocr bundle transfer failed after {} bytes: {} ({})", // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
                       received_,
                       reason.toStdString(),
                       code);
@@ -172,7 +172,7 @@ void BundleDownloader::extract()
         if (cancelled_ || status != QProcess::NormalExit || exitCode != 0) {
             // The verified archive stays where it is, so the reader can unpack it by hand.
             phase_ = Phase::Idle;
-            LENS_WARN("rapidocr bundle: tar exited {} on {}", exitCode, rootPath().toStdString());
+            LENS_WARN("rapidocr bundle: tar exited {} on {}", exitCode, rootPath().toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit finished(false, cancelled_ ? QString{} : QStringLiteral("extract"));
             return;
         }
@@ -182,13 +182,13 @@ void BundleDownloader::extract()
         }
         QFile::remove(archive_);
         phase_ = Phase::Idle;
-        LENS_INFO("rapidocr bundle is in place under {}", rootPath().toStdString());
+        LENS_INFO("rapidocr bundle is in place under {}", rootPath().toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         emit finished(true, QString{});
     });
     tar_->start();
 }
 
-void BundleDownloader::fail(QString failure)
+void BundleDownloader::fail(QString const& failure)
 {
     if (file_ != nullptr) {
         file_->remove();

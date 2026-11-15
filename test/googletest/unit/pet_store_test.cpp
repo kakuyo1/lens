@@ -114,8 +114,8 @@ TEST(PetStore, EachPetRemembersItsOwnSizeAndOutfitButTheSpotIsTheReaders)
 
     // One spot serves every pet, and no pet entry carries a private copy of it.
     pet.setPosition(SavedPosition{"SCREEN1", 120, 40});
-    EXPECT_EQ(pet.position()->screen, std::string{"SCREEN1"});
-    EXPECT_EQ(pet.position()->x, 120);
+    EXPECT_EQ(pet.position().value().screen, std::string{"SCREEN1"});
+    EXPECT_EQ(pet.position().value().x, 120);
     auto const& pets = store.document().at("PET").at("pets");
     EXPECT_FALSE(pets.at("dog").contains("position"));
     EXPECT_FALSE(pets.at("mochi").contains("position"));
@@ -141,7 +141,7 @@ TEST(PetStore, TheFlatSizeAndOutfitMoveIntoTheChosenPetsEntryButTheSpotStaysTheR
     // the reader's and stays at the top level.
     EXPECT_EQ(pet.size("mochi", 0), 55);
     EXPECT_EQ(pet.outfit("mochi").head, std::optional<std::string>{"sprout"});
-    EXPECT_EQ(pet.position()->x, 12);
+    EXPECT_EQ(pet.position().value().x, 12);
     EXPECT_FALSE(pet.outfit("dog").head);
 
     // The move ran once: the moved keys are gone, the spot remains, and later writes never bring the others back.
@@ -174,9 +174,9 @@ TEST(PetStore, APerPetSpotFromThePreviousVersionBecomesTheReadersOnLoad)
 
     auto pet = PetStore{store};
     // The pet on screen keeps its spot through the upgrade; the spot no longer belongs to any pet entry.
-    EXPECT_EQ(pet.position()->screen, std::string{"SCREEN2"});
-    EXPECT_EQ(pet.position()->x, -30);
-    EXPECT_EQ(pet.position()->y, 500);
+    EXPECT_EQ(pet.position().value().screen, std::string{"SCREEN2"});
+    EXPECT_EQ(pet.position().value().x, -30);
+    EXPECT_EQ(pet.position().value().y, 500);
     auto const& pets = store.document().at("PET").at("pets");
     EXPECT_FALSE(pets.at("mochi").contains("position"));
     EXPECT_FALSE(pets.at("dog").contains("position"));
@@ -200,7 +200,7 @@ TEST(PetStore, ACompleteFlatSpotWinsOverAStalePerPetOne)
     }
 
     auto pet = PetStore{store};
-    EXPECT_EQ(pet.position()->x, 12);
+    EXPECT_EQ(pet.position().value().x, 12);
     EXPECT_FALSE(store.document().at("PET").at("pets").at("mochi").contains("position"));
 }
 

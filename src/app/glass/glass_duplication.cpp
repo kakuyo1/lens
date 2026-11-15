@@ -146,7 +146,7 @@ QRect frameRectFor(QRect const screenRect, QSize const frameSize, ScreenRotation
 
 struct GlassDuplication::Impl {
     Impl(QString name, QRect rectangle)
-        : deviceName(std::move(name)), desktop(std::move(rectangle))
+        : deviceName(std::move(name)), desktop(rectangle)
     {}
 
     /// @brief Open the device and the duplication, if they are not open and a retry is due.
@@ -316,7 +316,7 @@ struct GlassDuplication::Impl {};
 
 GlassDuplication::GlassDuplication(QString deviceName, QRect desktop)
 #ifdef _WIN32
-    : impl_(std::make_unique<Impl>(std::move(deviceName), std::move(desktop)))
+    : impl_(std::make_unique<Impl>(std::move(deviceName), desktop))
 #else
     : impl_(nullptr)
 #endif
@@ -347,7 +347,7 @@ bool GlassDuplication::canFollow() const
 #endif
 }
 
-DesktopRead GlassDuplication::read(QRect const native, double const scale, int const timeoutMs)
+DesktopRead GlassDuplication::read(QRect const native, double const scale, int const timeoutMs) // NOLINT(bugprone-easily-swappable-parameters): the diagnostic's suggestion does not fit this call site
 {
 #ifdef _WIN32
     auto& session = *impl_;

@@ -248,6 +248,6 @@ TEST(WebdavBackend, ARoundsListAndAProbeDoNotShareAnAnswer)
     EXPECT_EQ(completed, 0) << "the server root answered 404, so the probe did not pass";
     EXPECT_EQ(error, QStringLiteral("generic"));
     ASSERT_TRUE(listed.has_value());
-    EXPECT_EQ(listed->gistId, "Lens/lens-sync.json") << "the round's own 207 is its answer";
+    EXPECT_EQ(listed.value().gistId, "Lens/lens-sync.json") << "the round's own 207 is its answer";
     EXPECT_EQ(manager.sent.size(), 2u);
 }

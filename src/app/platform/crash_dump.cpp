@@ -98,7 +98,7 @@ std::string moduleOf(const void* address)
 void* instructionOf(CONTEXT& context)
 {
 #if defined(_WIN64)
-    return reinterpret_cast<void*>(context.Rip);
+    return reinterpret_cast<void*>(context.Rip); // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
 #else
     return reinterpret_cast<void*>(context.Eip);
 #endif

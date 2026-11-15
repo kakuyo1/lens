@@ -134,7 +134,7 @@ struct ActionSpec {
 };
 
 /// @brief Everything the machine plays with, from one pet's animations.json.
-struct Playbook {
+struct Playbook { // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     /// Playback of every action the pet has, by name.
     std::map<ActionName, ActionSpec> actions;
     /// The action that plays each role. Only stretch may be absent (PHASE3 3.1).
