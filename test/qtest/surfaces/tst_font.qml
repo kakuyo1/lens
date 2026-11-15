@@ -242,6 +242,10 @@ Item {
             const rows = Util.findAll(panel, (o) =>
                 o.toString().indexOf("SettingsLinkRow_QMLTYPE") === 0 && o.label === "Font");
             compare(rows.length, 1, "the general page has no font row");
+            // The behavior record group sits above this row, so the row can start below the fold.
+            // A press past the panel is not a press on the row.
+            Util.reveal(rows[0]);
+            wait(25);
             mouseClick(rows[0], rows[0].width / 2, rows[0].height / 2);
             wait(25);
             compare(panel.route, "font", "the font row did not open the font page");
