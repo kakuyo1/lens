@@ -397,6 +397,9 @@ Item {
 
             const button = named(panel, "clearEventDataButton");
             verify(button, "the behavior row carries no clear action");
+            // The row is the About page's last block now; bring it inside the body before pressing.
+            Util.reveal(button);
+            wait(25);
             mouseClick(button, button.width / 2, button.height / 2);
             tryVerify(() => Controller.telemetryDuty.eventBytes === 0, 2000, "the clear action did not empty the event data");
             wait(20);

@@ -552,8 +552,16 @@ Item {
 
             compare(Math.round(footer.mapToItem(page, 0, footer.height).y), Math.round(page.height),
                     "the footer is not on the page's bottom edge");
-            compare(Math.round(footer.mapToItem(body, 0, footer.height).y), Math.round(body.height - 18),
-                    "the footer is not on the body's bottom edge");
+
+            // The panel stretches a page that ends early, so the footer lands on the body's bottom
+            // edge; a page taller than the body scrolls instead, and its footer is the last line
+            // below the fold rather than pinned to the viewport.
+            if (page.height <= body.height - 18) {
+                compare(Math.round(footer.mapToItem(body, 0, footer.height).y), Math.round(body.height - 18),
+                        "the footer is not on the body's bottom edge");
+            } else {
+                verify(body.contentHeight > body.height, "a page taller than the body must scroll");
+            }
         }
 
         function test_captureTheCatalogAndDetailStates() {
