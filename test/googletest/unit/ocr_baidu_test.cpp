@@ -95,8 +95,8 @@ TEST(OcrBaidu, ARecognizedCropCarriesLineBoxesAndTheServicesText)
     EXPECT_EQ(result.uploadState, OcrUploadState::ServerResponded);
     ASSERT_EQ(result.lines.size(), 2u);
     ASSERT_TRUE(result.lines[0].box.has_value());
-    EXPECT_DOUBLE_EQ(result.lines[0].box->x, 10);
-    EXPECT_DOUBLE_EQ(result.lines[0].box->width, 100);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().x, 10);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().width, 100);
     EXPECT_EQ(result.lines[0].text, QStringLiteral("harbour clock"));
 
     ASSERT_EQ(transport->requests.size(), 2u);

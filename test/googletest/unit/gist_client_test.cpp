@@ -126,9 +126,9 @@ TEST(GistClient, AReadReturnsTheGistWithItsFiles)
     ASSERT_EQ(seen.calls, 1);
     EXPECT_EQ(seen.callId, callId);
     ASSERT_TRUE(seen.gist.has_value());
-    EXPECT_EQ(seen.gist->id, "abc123");
-    ASSERT_EQ(seen.gist->files.size(), 1);
-    EXPECT_EQ(seen.gist->files.value("lens-sync.json").content, "{}");
+    EXPECT_EQ(seen.gist.value().id, "abc123");
+    ASSERT_EQ(seen.gist.value().files.size(), 1);
+    EXPECT_EQ(seen.gist.value().files.value("lens-sync.json").content, "{}");
     // The call went to the API with the token as a bearer header, for no host but GitHub's.
     ASSERT_EQ(manager.sent.size(), 1u);
     EXPECT_EQ(manager.sent[0].verb, "GET");
@@ -150,8 +150,8 @@ TEST(GistClient, ATruncatedFileIsRefilledFromItsRawAddress)
 
     ASSERT_EQ(seen.calls, 1);
     ASSERT_TRUE(seen.gist.has_value());
-    ASSERT_EQ(seen.gist->files.size(), 1);
-    const sync::GistFile file = seen.gist->files.value("lens-sync.json");
+    ASSERT_EQ(seen.gist.value().files.size(), 1);
+    const sync::GistFile file = seen.gist.value().files.value("lens-sync.json");
     EXPECT_FALSE(file.truncated);
     EXPECT_EQ(file.content, kFullContent);
     // Two requests: the read, then the raw address the body named.
@@ -244,7 +244,7 @@ TEST(GistClient, ACreateCarriesTheFilesAndAnswersWithTheGist)
     ASSERT_EQ(seen.calls, 1);
     EXPECT_EQ(seen.callId, callId);
     ASSERT_TRUE(seen.gist.has_value());
-    EXPECT_EQ(seen.gist->id, "abc123");
+    EXPECT_EQ(seen.gist.value().id, "abc123");
     // One POST, no retry: the body is the description and the files as the API wants them.
     ASSERT_EQ(manager.sent.size(), 1u);
     EXPECT_EQ(manager.sent[0].verb, "POST");

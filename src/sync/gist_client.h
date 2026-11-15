@@ -50,7 +50,7 @@ std::optional<Gist> parseGist(const QByteArray& body);
 std::optional<QString> findGistId(const QByteArray& listBody, const QString& description);
 
 /// @brief Why a gist call stopped.
-enum class GistFailure {
+enum class GistFailure : int {
     Unauthorised, ///< The token is refused: revoked, or it lost the gist scope.
     NotFound,     ///< The gist does not exist, or the token cannot see it.
     Generic,      ///< Anything else the server said, or a body that was not what was asked for.

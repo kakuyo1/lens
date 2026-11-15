@@ -54,15 +54,15 @@ TEST(OcrTsv, WordsBecomeLinesWithBoxesAndCoveredConfidence)
     EXPECT_EQ(result.text, QStringLiteral("Hello world"));
     ASSERT_EQ(result.lines.size(), 1u);
     EXPECT_EQ(result.lines[0].text, QStringLiteral("Hello world"));
-    EXPECT_EQ(result.lines[0].box->width, 80);
+    EXPECT_EQ(result.lines[0].box.value().width, 80);
     EXPECT_EQ(result.lines[0].words.size(), 2u);
     EXPECT_EQ(result.lines[0].words[0].text, QStringLiteral("Hello"));
-    EXPECT_DOUBLE_EQ(result.lines[0].words[1].box->x, 46);
+    EXPECT_DOUBLE_EQ(result.lines[0].words[1].box.value().x, 46);
     EXPECT_EQ(result.geometryLevel, OcrGeometryLevel::Word);
     ASSERT_TRUE(result.confidence);
-    EXPECT_DOUBLE_EQ(result.confidence->average, 0.9);
-    EXPECT_EQ(result.confidence->words, 2u);
-    EXPECT_EQ(result.confidence->total, 2u);
+    EXPECT_DOUBLE_EQ(result.confidence.value().average, 0.9);
+    EXPECT_EQ(result.confidence.value().words, 2u);
+    EXPECT_EQ(result.confidence.value().total, 2u);
 }
 
 TEST(OcrTsv, ChineseWordsAreJoinedWithoutAFabricatedSpace)

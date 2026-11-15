@@ -73,11 +73,11 @@ TEST(PetHide, ThePeekLeansInAndBackOnItsCycle)
 
     auto move = hide.tick(PetWander::kPeekCycle / 4, true, false);
     ASSERT_TRUE(move.position);
-    EXPECT_EQ(move.position->x(), base.x() + PetWander::peekOffset(PetWander::kPeekCycle / 4));
+    EXPECT_EQ(move.position.value().x(), base.x() + PetWander::peekOffset(PetWander::kPeekCycle / 4));
     move = hide.tick(PetWander::kPeekCycle / 4, true, false);
-    EXPECT_EQ(move.position->x(), base.x() + PetWander::peekOffset(PetWander::kPeekCycle / 2));
+    EXPECT_EQ(move.position.value().x(), base.x() + PetWander::peekOffset(PetWander::kPeekCycle / 2));
     move = hide.tick(PetWander::kPeekCycle / 2, true, false);
-    EXPECT_EQ(move.position->x(), base.x()) << "the cycle did not close";
+    EXPECT_EQ(move.position.value().x(), base.x()) << "the cycle did not close";
 }
 
 TEST(PetHide, TheRightEdgeMirrorsTheLeft)
@@ -88,8 +88,8 @@ TEST(PetHide, TheRightEdgeMirrorsTheLeft)
 
     auto const move = hide.tick(PetWander::kPeekCycle / 4, true, false);
     ASSERT_TRUE(move.position);
-    EXPECT_EQ(move.position->x(), base.x() - PetWander::peekOffset(PetWander::kPeekCycle / 4));
-    EXPECT_EQ(move.position->y(), base.y());
+    EXPECT_EQ(move.position.value().x(), base.x() - PetWander::peekOffset(PetWander::kPeekCycle / 4));
+    EXPECT_EQ(move.position.value().y(), base.y());
 }
 
 TEST(PetHide, APointerNearTheSliverLeansFurtherAndWithdraws)
@@ -103,14 +103,14 @@ TEST(PetHide, APointerNearTheSliverLeansFurtherAndWithdraws)
     auto const still   = away.tick(PetWander::kHoverLeanTime, true, false);
     ASSERT_TRUE(leaning.position);
     ASSERT_TRUE(still.position);
-    EXPECT_EQ(leaning.position->x() - still.position->x(), PetWander::kHoverLean)
+    EXPECT_EQ(leaning.position.value().x() - still.position->x(), PetWander::kHoverLean)
         << "the pointer's lean did not come in";
 
     auto const back   = near.tick(PetWander::kHoverLeanTime, true, false);
     auto const stayed = away.tick(PetWander::kHoverLeanTime, true, false);
     ASSERT_TRUE(back.position);
     ASSERT_TRUE(stayed.position);
-    EXPECT_EQ(back.position->x(), stayed.position->x()) << "the lean did not withdraw";
+    EXPECT_EQ(back.position.value().x(), stayed.position->x()) << "the lean did not withdraw";
 }
 
 TEST(PetHide, AQuestionPausesThePeekAtTheHiddenBase)
@@ -133,7 +133,7 @@ TEST(PetHide, AQuestionPausesThePeekAtTheHiddenBase)
     ASSERT_TRUE(resumed.position);
     EXPECT_TRUE(resumed.loopPeek);
     EXPECT_TRUE(hide.peeking());
-    EXPECT_EQ(resumed.position->x(), baseOf().x() + PetWander::peekOffset(50ms))
+    EXPECT_EQ(resumed.position.value().x(), baseOf().x() + PetWander::peekOffset(50ms))
         << "the peek did not restart from its beginning";
 }
 
@@ -195,7 +195,7 @@ TEST(PetHide, AShortDragSnapsBackToTheHiddenBase)
 
     auto const after = hide.tick(10ms, true, false);
     ASSERT_TRUE(after.position);
-    EXPECT_EQ(after.position->x(), baseOf().x() + PetWander::peekOffset(10ms))
+    EXPECT_EQ(after.position.value().x(), baseOf().x() + PetWander::peekOffset(10ms))
         << "the lean survived the snap back";
 }
 

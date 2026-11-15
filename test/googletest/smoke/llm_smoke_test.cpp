@@ -135,8 +135,8 @@ TEST(LlmSmoke, OneWordRoundTrip)
     ASSERT_TRUE(failure.isEmpty()) << "the request failed: " << failure.toStdString();
     ASSERT_TRUE(results.has_value()) << "no answer within " << kTimeoutMs << " ms";
 
-    ASSERT_EQ(results->size(), 1);
-    const auto& explanation = results->front();
+    ASSERT_EQ(results.value().size(), 1);
+    const auto& explanation = results.value().front();
     std::cout << "word: " << explanation.title.toStdString() << "\nipa:  "
               << explanation.ipa.toStdString() << "\nen:   "
               << explanation.en.toStdString() << "\nzh:   " << explanation.zh.toStdString() << "\n";
@@ -194,7 +194,7 @@ TEST(LlmSmoke, SentenceBreakdownRoundTrip)
         std::cout << "span role=" << static_cast<int>(span.role) << " [" << span.from << ".." << span.to << "] "
                   << covered.join(QLatin1Char(' ')).toStdString() << "\n";
     }
-    EXPECT_FALSE(spans->isEmpty()) << "the answer was refused: " << failureSeen.toStdString();
+    EXPECT_FALSE(spans.value().isEmpty()) << "the answer was refused: " << failureSeen.toStdString();
 }
 
 int main(int argc, char** argv)

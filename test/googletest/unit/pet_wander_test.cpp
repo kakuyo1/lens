@@ -44,7 +44,7 @@ TEST(PetWander, EveryGaitTakesAStep)
     for (auto const gait : {Gait::Glide, Gait::Float, Gait::Hop, Gait::Trot, Gait::Pounce}) {
         auto const step = makeWander(gait).nextStep(QPoint{500, 500});
         ASSERT_TRUE(step.has_value());
-        EXPECT_GT(std::hypot(step->to.x() - step->from.x(), step->to.y() - step->from.y()), 10.0);
+        EXPECT_GT(std::hypot(step.value().to.x() - step->from.x(), step->to.y() - step->from.y()), 10.0);
     }
 }
 
@@ -61,7 +61,7 @@ TEST(PetWander, TheStepNeverLeavesTheHomeEllipseOrTheWorkArea)
     for (auto i = 0; i < 100; ++i) {
         auto const step = wander.nextStep(point);
         ASSERT_TRUE(step.has_value());
-        point = step->to;
+        point = step.value().to;
 
         auto const radius   = kPet.width() * 30 / 100.0;
         auto const vertical = radius * 0.10;
@@ -155,10 +155,10 @@ TEST(PetWander, AStepClampsToTheWorkAreaAndEndsOnTheEdge)
     auto       wander = makeWander(Gait::Trot, QPoint{0, 500}, 60);
     auto const step   = wander.nextStep(QPoint{18, 500});
     ASSERT_TRUE(step.has_value());
-    EXPECT_EQ(step->to.x(), kArea.left());
+    EXPECT_EQ(step.value().to.x(), kArea.left());
 
     auto side = std::optional<EdgeSide>{};
-    side      = wander.edgeAt(step->to);
+    side      = wander.edgeAt(step.value().to);
     ASSERT_TRUE(side.has_value());
     EXPECT_EQ(*side, EdgeSide::Left);
 }

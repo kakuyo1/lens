@@ -23,7 +23,7 @@ namespace lens::app {
 /// reader's switch, and an unconfigured online mode. The rest are what the runtime, the engine's
 /// answer, or the framed region said. Every value is told apart here even though several share
 /// one sentence: the sentence is the facade's decision, and this is the vocabulary (docs/adr/0025).
-enum class CaptureRefusal {
+enum class CaptureRefusal : int {
     BudgetPaused,        ///< Today's spend reached the cap.
     Checking,            ///< The runtime is still being probed.
     Busy,                ///< A recognition is in flight.

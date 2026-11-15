@@ -20,7 +20,7 @@
 namespace lens::speech {
 
 /// @brief The engine the reader chose. The stored value is the lower-case name.
-enum class Engine {
+enum class Engine : int {
     System, ///< The Windows synthesiser Qt wraps. The default.
     Online, ///< The online recording the reader picked (API.md sections 9 and 9.2, docs/adr/0138).
     Local,  ///< sherpa-onnx with an English voice the reader downloaded.
@@ -28,7 +28,7 @@ enum class Engine {
 
 /// @brief What is tried when the chosen engine cannot serve. Never tried after an Online or Local
 ///        engine failed on its own terms -- that would be the silent switch ADR 0134 forbids.
-enum class Fallback {
+enum class Fallback : int {
     Online, ///< The default.
     Local,
     None, ///< The reader turned the fallback off.
@@ -90,7 +90,7 @@ bool isHeadword(QString const& word);
 
 /// @brief The online source the reader picked. The stored value is the lower-case id; each source is
 ///        one adapter (docs/adr/0138).
-enum class OnlineSource {
+enum class OnlineSource : int {
     Youdao, ///< The dictionary's own recordings (API.md section 9). The default.
     Google, ///< Google Translate's speech endpoint, American or British by its language tag (API.md section 9.2).
 };

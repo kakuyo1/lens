@@ -220,15 +220,15 @@ TEST_F(WordAnswerTest, TheExampleKeepsItsThreeStates)
     answer.example.clear();
     const auto asked = wa::toCache(answer, true);
     ASSERT_TRUE(asked.example.has_value());
-    EXPECT_TRUE(asked.example->empty()) << "a settled 'none to give' became 'not bought'";
+    EXPECT_TRUE(asked.example.value().empty()) << "a settled 'none to give' became 'not bought'";
 
     auto store = core::KnownStore::load(path);
     store.cachePut(answer.title.toStdString(), asked, {.language = "en"});
     store.save();
     const auto hit = core::KnownStore::load(path).cacheGet(answer.title.toStdString(), {.language = "en"});
     ASSERT_TRUE(hit.has_value());
-    ASSERT_TRUE(hit->example.has_value()) << "the empty example was dropped on the way through the store";
-    EXPECT_TRUE(hit->example->empty());
+    ASSERT_TRUE(hit.value().example.has_value()) << "the empty example was dropped on the way through the store";
+    EXPECT_TRUE(hit.value().example->empty());
 }
 
 /// A switch clears its own block and leaves every other one alone; the picture pair is one switch.
@@ -332,7 +332,7 @@ TEST_F(WordAnswerTest, AStoredEntryKeepsTheReadersRules)
     store.save();
     auto hit = core::KnownStore::load(path).cacheGet(answer.title.toStdString(), {.language = "es"});
     ASSERT_TRUE(hit.has_value());
-    EXPECT_EQ(hit->translation, answer.translation.toStdString());
+    EXPECT_EQ(hit.value().translation, answer.translation.toStdString());
 
     auto missing = cached;
     missing.translation.clear();
@@ -348,8 +348,8 @@ TEST_F(WordAnswerTest, AStoredEntryKeepsTheReadersRules)
     store.save();
     hit = core::KnownStore::load(path).cacheGet(answer.title.toStdString(), {.language = "en"});
     ASSERT_TRUE(hit.has_value());
-    EXPECT_FALSE(hit->imageable) << "a bare flag was stored as advice the duty could act on";
-    EXPECT_TRUE(hit->imageQuery.empty());
+    EXPECT_FALSE(hit.value().imageable) << "a bare flag was stored as advice the duty could act on";
+    EXPECT_TRUE(hit.value().imageQuery.empty());
 }
 
 /// The preview and the finished answer read the same table: every row a preview may draw agrees

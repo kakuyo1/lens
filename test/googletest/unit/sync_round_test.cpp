@@ -224,7 +224,7 @@ TEST(SyncRound, AFirstRunCreatesTheCloudCopyAndStampsTheTime)
     // The file is the document sealed under the key in force, which another device opens with the
     // salt the envelope carries.
     const json envelope  = json::parse(sealed);
-    const auto plaintext = vault::open(fixture.key->key, envelope);
+    const auto plaintext = vault::open(fixture.key.value().key, envelope);
     ASSERT_TRUE(plaintext.has_value());
     const json document = json::parse(*plaintext);
     EXPECT_EQ(document.at("format").get<int>(), 1);
@@ -251,7 +251,7 @@ TEST(SyncRound, TheKeyThatOpenedTheCloudCopyIsStoredEvenWhenTheRunFails)
     EXPECT_EQ(fixture.recorded.finished, 1);
     EXPECT_FALSE(fixture.recorded.succeeded);
     ASSERT_TRUE(fixture.partition.hasKey());
-    EXPECT_EQ(fixture.partition.storedKey()->key, cloud.key);
+    EXPECT_EQ(fixture.partition.storedKey().value().key, cloud.key);
 }
 
 /// A stored string that cannot be decoded into a 32-byte key is not a passphrase the next run can
@@ -299,7 +299,7 @@ TEST(SyncRound, TheFingerprintIsTakenAfterTheMergedDocumentIsApplied)
     EXPECT_TRUE(fixture.store.isKnown("river"));
     EXPECT_EQ(fixture.recorded.applied, 1);
     EXPECT_FALSE(fixture.round.carriesNewContent()) << "the merged mark is in the fingerprint the upload took";
-    const auto plaintext = vault::open(fixture.key->key, json::parse(sealed));
+    const auto plaintext = vault::open(fixture.key.value().key, json::parse(sealed));
     ASSERT_TRUE(plaintext.has_value());
     EXPECT_TRUE(json::parse(*plaintext).at("known").contains("river"));
 
@@ -373,17 +373,17 @@ TEST(SyncRound, AFailedAutomaticRunAsksForABackoffAndAManualOneDoesNot)
     fixture.start(false);
     fixture.transport.fail(Answer::Failure::Proxy);
     ASSERT_TRUE(fixture.recorded.retry.has_value());
-    EXPECT_EQ(fixture.recorded.retry->count(), 30 * 1000);
+    EXPECT_EQ(fixture.recorded.retry.value().count(), 30 * 1000);
 
     fixture.start(false);
     fixture.transport.fail(Answer::Failure::Proxy);
     ASSERT_TRUE(fixture.recorded.retry.has_value());
-    EXPECT_EQ(fixture.recorded.retry->count(), 60 * 1000);
+    EXPECT_EQ(fixture.recorded.retry.value().count(), 60 * 1000);
 
     fixture.start(false);
     fixture.transport.fail(Answer::Failure::Generic);
     ASSERT_TRUE(fixture.recorded.retry.has_value());
-    EXPECT_EQ(fixture.recorded.retry->count(), 2 * 60 * 1000);
+    EXPECT_EQ(fixture.recorded.retry.value().count(), 2 * 60 * 1000);
 
     // A success clears the count: the next transient failure starts from 30 s again.
     fixture.start(false);
@@ -393,7 +393,7 @@ TEST(SyncRound, AFailedAutomaticRunAsksForABackoffAndAManualOneDoesNot)
     fixture.start(false);
     fixture.transport.fail(Answer::Failure::Proxy);
     ASSERT_TRUE(fixture.recorded.retry.has_value());
-    EXPECT_EQ(fixture.recorded.retry->count(), 30 * 1000);
+    EXPECT_EQ(fixture.recorded.retry.value().count(), 30 * 1000);
 
     fixture.start(true);
     fixture.transport.fail(Answer::Failure::Proxy);

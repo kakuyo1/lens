@@ -132,7 +132,7 @@ public:
 
 private:
     /// @brief Where the throw stands; the arc data, the owed count and the anger roll are its payload.
-    enum class Phase {
+    enum class Phase : int {
         Idle,             ///< No arc, no reaction owed, no repeat owed.
         Flying,           ///< The arc is moving the window.
         AwaitingReaction, ///< Landed; the landing's role answer has not arrived.

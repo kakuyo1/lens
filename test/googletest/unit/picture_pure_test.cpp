@@ -266,11 +266,11 @@ TEST_F(PictureCacheTest, StoresAndReadsBackOneEntry)
 
     const auto loaded = cache.load(QStringLiteral("garden trowel"));
     ASSERT_TRUE(loaded.has_value());
-    ASSERT_EQ(loaded->size(), 1);
-    EXPECT_EQ(loaded->front().file, stored.front().file);
-    EXPECT_EQ(loaded->front().author, QStringLiteral("A Person"));
-    EXPECT_EQ(loaded->front().caption, QStringLiteral("a hand tool"));
-    EXPECT_TRUE(std::filesystem::exists(std::filesystem::path{loaded->front().file.toStdWString()}));
+    ASSERT_EQ(loaded.value().size(), 1);
+    EXPECT_EQ(loaded.value().front().file, stored.front().file);
+    EXPECT_EQ(loaded.value().front().author, QStringLiteral("A Person"));
+    EXPECT_EQ(loaded.value().front().caption, QStringLiteral("a hand tool"));
+    EXPECT_TRUE(std::filesystem::exists(std::filesystem::path{loaded.value().front().file.toStdWString()}));
 }
 
 /// An entry no query wrote yet is a miss, and a query whose bytes were not a picture stores nothing

@@ -25,7 +25,7 @@ class QNetworkAccessManager;
 namespace lens::app {
 
 /// @brief Where a backend's sign-in flow stands; the duty composes it into the page's state string.
-enum class SignInPhase {
+enum class SignInPhase : int {
     Idle,     ///< Nothing is going on.
     Pending,  ///< Waiting for the reader to act; GitHub's device code is being entered.
     Finishing ///< Credentials are in and the backend is completing the sign-in; GitHub is reading the login.

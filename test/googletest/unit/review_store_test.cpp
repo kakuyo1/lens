@@ -59,9 +59,9 @@ TEST_F(ReviewStoreTest, StateSurvivesASaveAndReload)
 
     const auto state = review.get("apple");
     ASSERT_TRUE(state.has_value());
-    EXPECT_EQ(state->level, 3);
-    EXPECT_EQ(state->due, kNow);
-    EXPECT_EQ(state->asked, kNow - 1);
+    EXPECT_EQ(state.value().level, 3);
+    EXPECT_EQ(state.value().due, kNow);
+    EXPECT_EQ(state.value().asked, kNow - 1);
     EXPECT_EQ(review.frequency(), ReviewFrequency::Every1To2Hours);
 }
 
@@ -129,8 +129,8 @@ TEST(ReviewStore, SettingTheFrequencyLeavesEveryCurveAlone)
 
     const auto state = review.get("apple");
     ASSERT_TRUE(state.has_value());
-    EXPECT_EQ(state->level, 4);
-    EXPECT_EQ(state->due, kNow);
+    EXPECT_EQ(state.value().level, 4);
+    EXPECT_EQ(state.value().due, kNow);
 }
 
 TEST_F(ReviewStoreTest, RemoveWordClearsTheReviewStateWithTheRest)

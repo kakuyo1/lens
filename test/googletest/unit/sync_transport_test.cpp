@@ -216,7 +216,7 @@ TEST(SyncTransport, TheRoundRunsOverTheRealClientsAndUploadsTheMergedCopy)
     // The write's body is the sealed merged document, under the key that opened the cloud copy.
     const json        body   = json::parse(std::string(fixture.manager.sent[2].body.constData()));
     const std::string sealed = body.at("files").at("lens-sync.json").at("content").get<std::string>();
-    const auto        opened = vault::open(fixture.key->key, json::parse(sealed));
+    const auto        opened = vault::open(fixture.key.value().key, json::parse(sealed));
     ASSERT_TRUE(opened.has_value());
     EXPECT_TRUE(json::parse(*opened).at("known").contains("river"));
 
@@ -390,7 +390,7 @@ TEST(SyncTransportDirect, ARefusalCarriesTheKindTheRoundReads)
                 reply->abort();
         return got.has_value();
     }));
-    EXPECT_EQ(got->failure, lens::core::sync::Answer::Failure::Proxy);
+    EXPECT_EQ(got.value().failure, lens::core::sync::Answer::Failure::Proxy);
 }
 
 TEST(SyncTransportDirect, ARefreshCarriesTheRotatedPairBack)

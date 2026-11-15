@@ -203,11 +203,11 @@ TEST(UpdateLocation, ReadsTheVersionAndKeepsThePageItWasGiven)
         const QUrl url    = releaseUrl(tag);
         const auto parsed = parseReleaseLocation(url);
         ASSERT_TRUE(parsed.has_value()) << tag;
-        EXPECT_EQ(parsed->versionText, QStringLiteral("1.1.0")) << tag;
-        EXPECT_EQ(parsed->version, (lens::util::SemVer{1, 1, 0})) << tag;
-        EXPECT_EQ(parsed->pageUrl, url.toString()) << tag;
+        EXPECT_EQ(parsed.value().versionText, QStringLiteral("1.1.0")) << tag;
+        EXPECT_EQ(parsed.value().version, (lens::util::SemVer{1, 1, 0})) << tag;
+        EXPECT_EQ(parsed.value().pageUrl, url.toString()) << tag;
         // The redirect carries no notes, and none are fetched behind it.
-        EXPECT_TRUE(parsed->notes.isEmpty()) << tag;
+        EXPECT_TRUE(parsed.value().notes.isEmpty()) << tag;
     }
 }
 

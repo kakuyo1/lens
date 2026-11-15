@@ -53,10 +53,10 @@ public:
 
 private:
     /// The sign-in flow's phase; a sync round's own phase is SyncRound's.
-    enum class Phase { Idle,
-                       CodePending,
-                       /// The tokens are in; the login name is being read.
-                       Naming };
+    enum class Phase : int { Idle,
+                             CodePending,
+                             /// The tokens are in; the login name is being read.
+                             Naming };
 
     void onNamed(const QString& loginName);
     /// @brief The login name could not be read: end the flow and report it.

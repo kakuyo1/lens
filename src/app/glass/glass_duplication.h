@@ -33,7 +33,7 @@
 namespace lens::app {
 
 /// The rotation DXGI reports for an output, in the terms a desktop rectangle is mapped with.
-enum class ScreenRotation {
+enum class ScreenRotation : int {
     Identity,
     /// The frame holds the desktop image turned 90 degrees clockwise.
     Rotate90,

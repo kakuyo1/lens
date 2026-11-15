@@ -66,7 +66,7 @@ struct RefreshOutcome {
 /// @brief What a landed read means for its sheet.
 struct RefreshLanding {
     /// @brief What the adapter does with the sheet.
-    enum class Apply {
+    enum class Apply : int {
         Nothing, ///< Nothing to show: no new frame, or the read belongs to a sheet that has moved on.
         Clear,   ///< The read produced no picture; drop the sheet.
         Publish, ///< Put the picture in force.

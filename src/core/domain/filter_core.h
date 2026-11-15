@@ -117,7 +117,7 @@ bool vocabularyLoaded();
 /// the reader's retire verdict or the level's frequency band. Either way the word stays a
 /// candidate: a hand-made selection is a request to explain it whatever they once marked
 /// (TODO.md item 0), and phase 2's automatic scanning is the caller that acts on the states.
-enum class CandidateState {
+enum class CandidateState : int {
     New,      ///< Neither verdict holds and the level's band does not reach it.
     Known,    ///< The reader marked it known; the scan still draws its line, restyled.
     Mastered, ///< The reader retired it, or the level has reached it: inside its frequency floor, or in one of its wordbooks.
@@ -219,7 +219,7 @@ std::vector<Candidate> filterWords(
 /// decision, so it is settled when the selection is analysed, before any press (UI-SPEC.md section
 /// 4.10). Entity detection is deliberately conservative: only a complete phrase with at least
 /// two adjacent Title Case tokens qualifies, never a single capitalized token.
-enum class SelectionKind {
+enum class SelectionKind : int {
     Word,        ///< The whole selection is one letters-only token: a lookup, not a translation.
     Entity,      ///< A complete multi-token Title Case phrase was selected.
     Sentence,    ///< More than one token; the sentence channel translates or explains it whole.

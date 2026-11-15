@@ -109,14 +109,14 @@ public:
 
 private:
     /// @brief A settings test's own life; the refusal token is its payload, not another state.
-    enum class TestPhase {
+    enum class TestPhase : int {
         Idle,
         Checking,
         Ready,
         Refused,
     };
     /// @brief A RapidOCR detection's life; a detection that ran but did not pass says `failed`.
-    enum class DetectPhase {
+    enum class DetectPhase : int {
         Idle,
         Checking,
         Ready,

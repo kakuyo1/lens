@@ -22,7 +22,7 @@ class QNetworkAccessManager;
 namespace lens::sync {
 
 /// @brief Why a WebDAV call stopped.
-enum class WebDavFailure {
+enum class WebDavFailure : int {
     Unauthorised, ///< The server refused the credentials, or the call was throttled.
     NotFound,     ///< The asked-about path does not exist.
     Generic,      ///< Anything else the server said.

@@ -102,7 +102,7 @@ private:
     struct Fetch;
 
     /// @brief What the strip is doing; the failure token is payload, not another state.
-    enum class State {
+    enum class State : int {
         Idle,
         Loading,
         Ready,

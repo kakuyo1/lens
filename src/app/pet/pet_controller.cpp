@@ -521,13 +521,13 @@ QVariantList PetController::wornAccessories() const
     QVariantList worn;
     if (not wardrobe_) return worn;
 
-    auto const& catalogue = assets_->catalogue;
+    auto const& catalogue = assets_.value().catalogue;
     // An entry draws the idle pose while the machine is already in the scene, so the pieces follow the pose on screen.
     auto const pose = stage_.entering() and entryPose_ ? entryPose_->poseAction : shownAction();
     for (auto const& id : wardrobe_->visibleFor(pose)) {
         auto const spec = std::find_if(catalogue.begin(), catalogue.end(), [&id](auto const& candidate) { return candidate.id == id; });
         if (spec == catalogue.end()) continue;
-        auto const& art = assets_->accessories.at(id);
+        auto const& art = assets_.value().accessories.at(id);
         auto const  at  = pointFor(anchors_, spec->slot);
         worn.append(QVariantMap{{"asset", urlOf(art.asset)}, {"zIndex", art.zIndex}, {"x", at.x()}, {"y", at.y()}});
     }
@@ -2088,8 +2088,8 @@ void PetController::updateHiddenHover(std::chrono::milliseconds step)
     }
     auto const origin = window_->position();
     auto const cursor = QCursor::pos();
-    auto const sx     = static_cast<double>(size.width()) / assets_->canvas;
-    auto const sy     = static_cast<double>(size.height()) / assets_->canvas;
+    auto const sx     = static_cast<double>(size.width()) / assets_.value().canvas;
+    auto const sy     = static_cast<double>(size.height()) / assets_.value().canvas;
     auto const at     = QPointF{(cursor.x() - origin.x()) / sx, (cursor.y() - origin.y()) / sy};
 
     // The zone is tracked against the visible sliver only, and idle is always false: a hidden pet looks and leans,
@@ -2137,8 +2137,8 @@ QPoint PetController::gazeToward(QPointF cursor, double centreX, double middleY)
 
 double PetController::inkDistanceAt(QPointF at) const
 {
-    auto const dx = std::max({assets_->inkLeft - at.x(), 0.0, at.x() - assets_->inkRight});
-    auto const dy = std::max({assets_->inkTop - at.y(), 0.0, at.y() - assets_->inkBottom});
+    auto const dx = std::max({assets_.value().inkLeft - at.x(), 0.0, at.x() - assets_->inkRight});
+    auto const dy = std::max({assets_.value().inkTop - at.y(), 0.0, at.y() - assets_->inkBottom});
     return std::hypot(dx, dy);
 }
 

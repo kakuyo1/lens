@@ -149,7 +149,7 @@ public:
 
 private:
     /// @brief Where the hide stands; the slide, peek and call-out data are its payload, and a drag overlays it.
-    enum class Mode {
+    enum class Mode : int {
         Off,
         Sliding,
         Peeking,

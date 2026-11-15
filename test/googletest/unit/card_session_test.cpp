@@ -166,11 +166,11 @@ TEST(CardSession, TheCycleGrowsExhaustsAndWrapsToTheMostCommonSense)
 
     auto cycle = session.standingCycle(now());
     ASSERT_TRUE(cycle);
-    EXPECT_EQ(cycle->index, 0);
-    EXPECT_TRUE(cycle->offered);
-    EXPECT_EQ(cycle->sense.en, QStringLiteral("a place for money"));
-    EXPECT_EQ(cycle->label, QStringLiteral("label"));
-    EXPECT_TRUE(cycle->hint.isEmpty()) << "the entry offered a sense no request had paid for";
+    EXPECT_EQ(cycle.value().index, 0);
+    EXPECT_TRUE(cycle.value().offered);
+    EXPECT_EQ(cycle.value().sense.en, QStringLiteral("a place for money"));
+    EXPECT_EQ(cycle.value().label, QStringLiteral("label"));
+    EXPECT_TRUE(cycle.value().hint.isEmpty()) << "the entry offered a sense no request had paid for";
 
     // The click asks for the next sense, on the word channel's own list.
     auto step = session.cycleSense(now(), /*mayAsk=*/true);
@@ -181,8 +181,8 @@ TEST(CardSession, TheCycleGrowsExhaustsAndWrapsToTheMostCommonSense)
     EXPECT_EQ(step.known.front(), QStringLiteral("- a place for money"));
     cycle = session.standingCycle(now());
     ASSERT_TRUE(cycle);
-    EXPECT_TRUE(cycle->fetching);
-    EXPECT_TRUE(cycle->hint.isEmpty()) << "a hint was drawn for a sense still on the wire";
+    EXPECT_TRUE(cycle.value().fetching);
+    EXPECT_TRUE(cycle.value().hint.isEmpty()) << "a hint was drawn for a sense still on the wire";
 
     // The answer grows the cycle and the click's advance moves onto it.
     const auto grown = session.senseAnswered(QStringLiteral("bank"),
@@ -191,9 +191,9 @@ TEST(CardSession, TheCycleGrowsExhaustsAndWrapsToTheMostCommonSense)
                                              now());
     EXPECT_EQ(grown.result, CardSession::SenseOutcome::Result::Grown);
     ASSERT_TRUE(grown.view);
-    EXPECT_EQ(grown.view->index, 1);
-    EXPECT_EQ(grown.view->sense.en, QStringLiteral("the land beside a river"));
-    EXPECT_EQ(grown.view->label, QStringLiteral("riverside"));
+    EXPECT_EQ(grown.view.value().index, 1);
+    EXPECT_EQ(grown.view.value().sense.en, QStringLiteral("the land beside a river"));
+    EXPECT_EQ(grown.view.value().label, QStringLiteral("riverside"));
 
     // A whole answer with no sense says there is nothing further; the entry turns back.
     step = session.cycleSense(now(), /*mayAsk=*/true);
@@ -201,9 +201,9 @@ TEST(CardSession, TheCycleGrowsExhaustsAndWrapsToTheMostCommonSense)
     const auto exhausted = session.senseAnswered(QStringLiteral("bank"), llm::Explanation{}, paid(), now());
     EXPECT_EQ(exhausted.result, CardSession::SenseOutcome::Result::Exhausted);
     ASSERT_TRUE(exhausted.view);
-    EXPECT_TRUE(exhausted.view->offered);
-    EXPECT_TRUE(exhausted.view->exhausted);
-    EXPECT_EQ(exhausted.view->hint, QStringLiteral("label")) << "the way back carried no label for the first sense";
+    EXPECT_TRUE(exhausted.view.value().offered);
+    EXPECT_TRUE(exhausted.view.value().exhausted);
+    EXPECT_EQ(exhausted.view.value().hint, QStringLiteral("label")) << "the way back carried no label for the first sense";
 
     const auto wrapped = session.cycleSense(now(), /*mayAsk=*/true);
     ASSERT_EQ(wrapped.kind, CardSession::SenseStep::Kind::Swap);
@@ -216,7 +216,7 @@ TEST(CardSession, TheCycleGrowsExhaustsAndWrapsToTheMostCommonSense)
     session.senseAnswered(QStringLiteral("solitary"), llm::Explanation{}, paid(), now());
     const auto still = session.standingCycle(now());
     ASSERT_TRUE(still);
-    EXPECT_FALSE(still->offered);
+    EXPECT_FALSE(still.value().offered);
     EXPECT_EQ(session.cycleSense(now(), /*mayAsk=*/true).why, CardSession::SenseStep::Why::Exhausted);
 }
 
@@ -235,8 +235,8 @@ TEST(CardSession, TheHoverBuysTheNextSenseWithoutSwitchingToIt)
                           now());
     auto cycle = session.standingCycle(now());
     ASSERT_TRUE(cycle);
-    EXPECT_EQ(cycle->index, 0) << "a hover's answer switched the card onto the sense it bought";
-    EXPECT_EQ(cycle->hint, QStringLiteral("two"));
+    EXPECT_EQ(cycle.value().index, 0) << "a hover's answer switched the card onto the sense it bought";
+    EXPECT_EQ(cycle.value().hint, QStringLiteral("two"));
 
     // The hover's word is known now; a second hover asks for nothing.
     EXPECT_EQ(session.ensureNextSense(now(), /*mayAsk=*/true).kind, CardSession::SenseStep::Kind::None);
@@ -273,8 +273,8 @@ TEST(CardSession, AnAnswerLandsUnderTheWordThatAskedForIt)
                                             now());
     EXPECT_EQ(beta.result, CardSession::SenseOutcome::Result::Grown);
     ASSERT_TRUE(beta.view);
-    EXPECT_EQ(beta.view->index, 1);
-    EXPECT_EQ(beta.view->sense.en, QStringLiteral("second beta"));
+    EXPECT_EQ(beta.view.value().index, 1);
+    EXPECT_EQ(beta.view.value().sense.en, QStringLiteral("second beta"));
 
     // And alpha's cycle is not stuck in fetching: the sense it bought is one press away.
     raiseCard(session, QStringLiteral("alpha"), CardKind::Selection, QStringLiteral("first alpha"));
@@ -425,8 +425,8 @@ TEST(CardSession, ARefusedSenseLeavesTheEntryUp)
 
     auto cycle = session.standingCycle(now());
     ASSERT_TRUE(cycle);
-    EXPECT_FALSE(cycle->fetching) << "a request that never reached the model left the cycle stuck";
-    EXPECT_TRUE(cycle->offered);
+    EXPECT_FALSE(cycle.value().fetching) << "a request that never reached the model left the cycle stuck";
+    EXPECT_TRUE(cycle.value().offered);
     EXPECT_EQ(session.cycleSense(now(), true).kind, CardSession::SenseStep::Kind::Ask);
 }
 
@@ -438,9 +438,9 @@ TEST(CardSession, AChainStepNamesTheCardItWasAskedFrom)
     session.raise(word(QStringLiteral("bank")), CardKind::Selection, QStringLiteral("bank"));
     const auto step = session.chainStep(QStringLiteral("river"));
     ASSERT_TRUE(step);
-    EXPECT_TRUE(step->chain);
-    EXPECT_EQ(step->parent, QStringLiteral("bank"));
-    EXPECT_EQ(step->anchor, QPoint(100, 200));
+    EXPECT_TRUE(step.value().chain);
+    EXPECT_EQ(step.value().parent, QStringLiteral("bank"));
+    EXPECT_EQ(step.value().anchor, QPoint(100, 200));
     EXPECT_TRUE(session.chainStanding(QStringLiteral("bank")));
     EXPECT_FALSE(session.chainStanding(QStringLiteral("river")));
 

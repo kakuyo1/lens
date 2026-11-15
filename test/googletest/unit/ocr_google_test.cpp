@@ -101,8 +101,8 @@ TEST(OcrGoogle, TheKeyTravelsInAHeaderAndTheBodyAsksForTextDetection)
     ASSERT_EQ(result.lines[0].words.size(), 2u);
     EXPECT_EQ(result.lines[0].words[1].text, QStringLiteral("there"));
     ASSERT_TRUE(result.lines[0].box.has_value());
-    EXPECT_DOUBLE_EQ(result.lines[0].box->x, 10);
-    EXPECT_DOUBLE_EQ(result.lines[0].box->width, 80);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().x, 10);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().width, 80);
 
     ASSERT_EQ(transport->requests.size(), 1u);
     auto const& sent = transport->requests[0];

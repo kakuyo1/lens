@@ -116,8 +116,8 @@ class DownloadClient : public QObject {
     Q_OBJECT
 public:
     /// @brief Why a download stopped. `Checksum` never comes from here: that is the duty's.
-    enum class Failure { Generic,
-                         Proxy };
+    enum class Failure : int { Generic,
+                               Proxy };
     Q_ENUM(Failure)
 
     /**
@@ -156,8 +156,8 @@ private:
     ///         proxy text; anything that moved is a plain failure.
     Failure failureFor(qint64 received) const;
     /// What one request is for: a digest list, or bytes into a file.
-    enum class Mode { Sums,
-                      Installer };
+    enum class Mode : int { Sums,
+                            Installer };
 
     /// @return False when a transfer is already in flight and this request was not made.
     bool start(const QUrl& url, Mode mode, int hops);

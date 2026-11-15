@@ -136,8 +136,8 @@ TEST(Vault, ParamsRoundTripThroughTheEnvelope)
 
     const auto back = vault::paramsOf(sealed);
     ASSERT_TRUE(back.has_value());
-    EXPECT_EQ(back->salt, params.salt);
-    EXPECT_EQ(back->iterations, 1234u);
+    EXPECT_EQ(back.value().salt, params.salt);
+    EXPECT_EQ(back.value().iterations, 1234u);
 
     EXPECT_FALSE(vault::paramsOf(nlohmann::json::object()).has_value());
 }

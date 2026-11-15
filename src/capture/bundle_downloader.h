@@ -68,7 +68,7 @@ private:
     /// @brief Put the run down: the partial file goes, and `finished(false, @p failure)` is reported.
     void fail(QString failure);
 
-    enum class Phase {
+    enum class Phase : int {
         Idle,
         Downloading,
         Extracting,

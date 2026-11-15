@@ -64,8 +64,8 @@ TEST(OcrEngineProbe, ReadsASyntheticEnglishPageWithLinesWordsAndConfidence)
     EXPECT_FALSE(result.lines.empty());
     EXPECT_EQ(result.geometryLevel, lens::capture::OcrGeometryLevel::Word);
     ASSERT_TRUE(result.confidence);
-    EXPECT_GT(result.confidence->words, 0u);
-    EXPECT_GT(result.confidence->average, 0.5);
+    EXPECT_GT(result.confidence.value().words, 0u);
+    EXPECT_GT(result.confidence.value().average, 0.5);
     ASSERT_EQ(result.attempts.size(), 1u);
     EXPECT_EQ(result.attempts[0].status, OcrStatus::Ready);
 

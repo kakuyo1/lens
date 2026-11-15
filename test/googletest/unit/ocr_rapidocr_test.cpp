@@ -185,10 +185,10 @@ TEST(OcrRapidOcr, AResponseCarriesBlockLinesAndAxisAlignedBoxesButNoFakeWordBoxe
     EXPECT_EQ(result.text, QStringLiteral("Lens 识别"));
     ASSERT_EQ(result.lines.size(), 1u);
     ASSERT_TRUE(result.lines[0].box);
-    EXPECT_DOUBLE_EQ(result.lines[0].box->x, 10);
-    EXPECT_DOUBLE_EQ(result.lines[0].box->y, 10);
-    EXPECT_DOUBLE_EQ(result.lines[0].box->width, 80);
-    EXPECT_DOUBLE_EQ(result.lines[0].box->height, 20);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().x, 10);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().y, 10);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().width, 80);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().height, 20);
     EXPECT_TRUE(result.lines[0].words.empty());
 }
 
@@ -222,7 +222,7 @@ TEST(OcrRapidOcr, ABoxReachingPastAnEdgeByThePaddingIsClippedAndFurtherIsRefused
         QByteArrayLiteral(R"({"code":100,"data":[{"text":"x","box":[[10,50],[60,50],[60,67],[10,67]],"score":0.9}]})"), QSize{100, 60}, 1, QStringLiteral("en"), QStringLiteral("rapidocr-json"), 3);
     ASSERT_EQ(clipped.status, OcrStatus::Ready);
     ASSERT_EQ(clipped.lines.size(), 1);
-    EXPECT_DOUBLE_EQ(clipped.lines.at(0).box->y + clipped.lines.at(0).box->height, 60.0);
+    EXPECT_DOUBLE_EQ(clipped.lines.at(0).box.value().y + clipped.lines.at(0).box->height, 60.0);
 
     // Past the padding (here 11 px beyond the 50 px margin) nothing about the box is explained: refused.
     auto const far = lens::capture::parseRapidOcrResponse(
@@ -311,7 +311,7 @@ TEST(OcrRapidOcr, TheEnglishPassFillsLatinLinesAndLeavesChineseAlone)
                              "Insidewerethreebrassgearsandanote:先量再做"));
     ASSERT_EQ(merged.lines.size(), 2u);
     ASSERT_TRUE(merged.lines[0].box.has_value());
-    EXPECT_DOUBLE_EQ(merged.lines[0].box->y, 10);
+    EXPECT_DOUBLE_EQ(merged.lines[0].box.value().y, 10);
     EXPECT_EQ(merged.languageUsed, QStringLiteral("zh-Hans+en"));
     EXPECT_EQ(merged.timing.totalMs, 100);
     EXPECT_EQ(merged.attempts.size(), 2u);

@@ -291,8 +291,8 @@ TEST(TrackCore, AStandingPageThatCollapsesToASliverIsDroppedByThePeriodicRecheck
         }
     }
     ASSERT_TRUE(dropped);
-    EXPECT_TRUE(dropped->frame->added.empty());
-    EXPECT_TRUE(dropped->frame->visible.empty());
+    EXPECT_TRUE(dropped.value().frame->added.empty());
+    EXPECT_TRUE(dropped.value().frame->visible.empty());
     EXPECT_NE(droppedNote.find("dropped: it answers 1921x77 in a 1921x854 band"), std::string::npos);
     EXPECT_EQ(reader.drops, 1);
     for (int i = 0; i < 32; ++i)
@@ -318,8 +318,8 @@ TEST(TrackCore, ATabSwitchIsSeenByThePeriodicCheckAndLosesTheTrack)
         }
     }
     ASSERT_TRUE(lost);
-    EXPECT_TRUE(lost->frame->added.empty());
-    EXPECT_TRUE(lost->frame->visible.empty());
+    EXPECT_TRUE(lost.value().frame->added.empty());
+    EXPECT_TRUE(lost.value().frame->visible.empty());
     EXPECT_EQ(reader.drops, 1); // the cache is forgotten with the track
 }
 
@@ -380,7 +380,7 @@ TEST(TrackCore, AScrollMovesTheAnchorToTheMiddleAndRebasesTheSpans)
     }
     ASSERT_TRUE(drawn);
     bool anchorDrawn = false;
-    for (auto const& placed : drawn->frame->visible)
+    for (auto const& placed : drawn.value().frame->visible)
         if (placed.id == 0) {
             anchorDrawn = true;
             EXPECT_EQ(placed.x, 940);
@@ -471,9 +471,9 @@ TEST(TrackCore, EmptyAnchorsAndMissedReadsSelfHeal)
     reader.page->cells[2].box = Band{.x = 0, .y = 0, .width = 0, .height = 0};
     auto const firstMissed    = step(core, t);
     ASSERT_TRUE(firstMissed.frame);
-    EXPECT_TRUE(firstMissed.frame->visible.empty());
-    EXPECT_TRUE(firstMissed.frame->added.empty());
-    EXPECT_FALSE(firstMissed.frame->lost);
+    EXPECT_TRUE(firstMissed.frame.value().visible.empty());
+    EXPECT_TRUE(firstMissed.frame.value().added.empty());
+    EXPECT_FALSE(firstMissed.frame.value().lost);
     std::optional<TrackOutput> lost;
     for (int i = 0; i < 8; ++i) {
         auto const out = step(core, t);
@@ -483,7 +483,7 @@ TEST(TrackCore, EmptyAnchorsAndMissedReadsSelfHeal)
         }
     }
     ASSERT_TRUE(lost);
-    EXPECT_EQ(lost->frame->added.size(), 0u);
+    EXPECT_EQ(lost.value().frame->added.size(), 0u);
     EXPECT_EQ(reader.drops, 1); // a lost read keeps the page: only the anchor is given up
 }
 

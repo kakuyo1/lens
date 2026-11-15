@@ -86,9 +86,9 @@ PetStroll::Step PetStroll::tick(std::chrono::milliseconds step, Facts const& fac
             answer.position     = wander.positionAt(*step_, progress);
             if (progress < 1.0) return answer;
 
-            answer.position = step_->to;
+            answer.position = step_.value().to;
             if (canHide_) {
-                if (auto const side = wander.edgeAt(step_->to); side and wander.hides(roll_())) {
+                if (auto const side = wander.edgeAt(step_.value().to); side and wander.hides(roll_())) {
                     phase_     = Phase::Waiting;
                     stepsLeft_ = 0;
                     step_.reset();
@@ -107,7 +107,7 @@ PetStroll::Step PetStroll::tick(std::chrono::milliseconds step, Facts const& fac
             pauseLeft_ -= step;
             if (pauseLeft_ > 0ms) return answer;
             --stepsLeft_;
-            if (stepsLeft_ > 0) return beginStep(wander, step_->to);
+            if (stepsLeft_ > 0) return beginStep(wander, step_.value().to);
             return finish();
     }
     return answer;

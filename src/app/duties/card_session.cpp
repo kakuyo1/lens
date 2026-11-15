@@ -57,27 +57,27 @@ CardSession::Presentation CardSession::presentation() const
     Presentation out;
     out.kind           = kind_;
     out.countsDown     = standing() and kind_ != CardKind::Review;
-    out.offersVerdicts = standing() and kind_ == CardKind::Selection and isWordKind(subject_->kind);
+    out.offersVerdicts = standing() and kind_ == CardKind::Selection and isWordKind(subject_.value().kind);
     out.wordCard       = wordCard();
     return out;
 }
 
 bool CardSession::wordCard() const
 {
-    return standing() and not subject_->chain and isWordKind(subject_->kind);
+    return standing() and not subject_.value().chain and isWordKind(subject_->kind);
 }
 
 bool CardSession::peekableCard() const
 {
     // A translation's input already is the mother tongue, and a breakdown has no meaning to hold for:
     // neither card has a globe (UI-SPEC.md 4.3).
-    return standing() and not subject_->chain and subject_->kind != core::SelectionKind::Translation and
+    return standing() and not subject_.value().chain and subject_->kind != core::SelectionKind::Translation and
            subject_->preset != kBreakdownPreset;
 }
 
 QString CardSession::peekKey() const
 {
-    return isWordKind(subject_->kind) ? subject_->lemma : subject_->text;
+    return isWordKind(subject_.value().kind) ? subject_->lemma : subject_->text;
 }
 
 CardSession::ReviewDismissal CardSession::dismissReview()
@@ -110,9 +110,9 @@ bool CardSession::holdReviewCard(bool const on)
 
 std::optional<PendingSelection> CardSession::chainStep(QString const& lemma) const
 {
-    if (!standing() or subject_->chain)
+    if (!standing() or subject_.value().chain)
         return std::nullopt;
-    return PendingSelection{.anchor  = subject_->anchor,
+    return PendingSelection{.anchor  = subject_.value().anchor,
                             .kind    = core::SelectionKind::Word,
                             .surface = lemma,
                             .lemma   = lemma,
@@ -147,7 +147,7 @@ std::optional<CardSession::CycleView> CardSession::holdAnswer(core::CacheContext
 {
     if (!wordCard() or now.multipleSenses)
         return std::nullopt;
-    Cycle& cycle = cycles_[QString::fromStdString(now.language)][subject_->lemma];
+    Cycle& cycle = cycles_[QString::fromStdString(now.language)][subject_.value().lemma];
     // The answer's own sense is the head of the cycle, and a fresh draw restarts it: what is
     // arriving, on the wire or out of the cache, is the most common sense's to write.
     llm::Sense own{answer.en, answer.zh, answer.translation, QString{}, answer.imageable, answer.imageQuery};
@@ -167,7 +167,7 @@ std::optional<CardSession::CycleView> CardSession::standingCycle(core::CacheCont
 {
     if (!wordCard() or now.multipleSenses)
         return std::nullopt;
-    auto const* cycle = findCycle(QString::fromStdString(now.language), subject_->lemma);
+    auto const* cycle = findCycle(QString::fromStdString(now.language), subject_.value().lemma);
     return cycle ? std::optional<CycleView>{viewOf(*cycle)} : std::nullopt;
 }
 
@@ -178,10 +178,10 @@ CardSession::SenseStep CardSession::cycleSense(core::CacheContext const& now, bo
     if (now.multipleSenses)
         return {.kind = SenseStep::Kind::None, .why = SenseStep::Why::MultipleSenses};
     const QString language = QString::fromStdString(now.language);
-    Cycle*        cycle    = findCycle(language, subject_->lemma);
+    Cycle*        cycle    = findCycle(language, subject_.value().lemma);
     if (cycle == nullptr)
         return {.kind = SenseStep::Kind::None, .why = SenseStep::Why::NoCycle};
-    if (cycle->fetching or senseInFlight_.contains(subject_->lemma))
+    if (cycle->fetching or senseInFlight_.contains(subject_.value().lemma))
         return {.kind = SenseStep::Kind::None, .why = SenseStep::Why::Waiting};
 
     int next = cycle->index + 1;
@@ -193,7 +193,7 @@ CardSession::SenseStep CardSession::cycleSense(core::CacheContext const& now, bo
             next = 0;
         } else {
             // The sense the click asks for has not been bought yet.
-            return ask(*cycle, language, subject_->lemma, /*advance=*/true, mayAsk);
+            return ask(*cycle, language, subject_.value().lemma, /*advance=*/true, mayAsk);
         }
     }
     cycle->index = next;
@@ -207,16 +207,16 @@ CardSession::SenseStep CardSession::ensureNextSense(core::CacheContext const& no
     if (now.multipleSenses)
         return {.kind = SenseStep::Kind::None, .why = SenseStep::Why::MultipleSenses};
     const QString language = QString::fromStdString(now.language);
-    Cycle*        cycle    = findCycle(language, subject_->lemma);
+    Cycle*        cycle    = findCycle(language, subject_.value().lemma);
     if (cycle == nullptr)
         return {.kind = SenseStep::Kind::None, .why = SenseStep::Why::NoCycle};
-    if (cycle->fetching or senseInFlight_.contains(subject_->lemma))
+    if (cycle->fetching or senseInFlight_.contains(subject_.value().lemma))
         return {.kind = SenseStep::Kind::None, .why = SenseStep::Why::Waiting};
     if (cycle->exhausted)
         return {.kind = SenseStep::Kind::None, .why = SenseStep::Why::Exhausted};
     if (cycle->index + 1 < cycle->senses.size())
         return {.kind = SenseStep::Kind::None, .why = SenseStep::Why::None};
-    return ask(*cycle, language, subject_->lemma, /*advance=*/false, mayAsk);
+    return ask(*cycle, language, subject_.value().lemma, /*advance=*/false, mayAsk);
 }
 
 CardSession::SenseStep CardSession::ask(Cycle& cycle, QString const& language, QString const& lemma, bool const advance, bool const mayAsk)
@@ -282,7 +282,7 @@ CardSession::SenseOutcome CardSession::senseAnswered(QString const&            l
         cycle->index += 1;
     // The swap belongs to a single-sense word card: the reader who turned multiple senses on while
     // the request was away has rows to read, and a one-row payload would take them away.
-    if (wordCard() and not now.multipleSenses and subject_->lemma == lemma)
+    if (wordCard() and not now.multipleSenses and subject_.value().lemma == lemma)
         outcome.view = viewOf(*cycle);
     return outcome;
 }

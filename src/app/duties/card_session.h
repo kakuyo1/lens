@@ -31,7 +31,7 @@
 namespace lens::app {
 
 /// @brief Which card stands. Settled when it is raised, never re-derived from flags.
-enum class CardKind {
+enum class CardKind : int {
     None,
     Selection,    ///< A selection, a scan answer, or an answer replayed out of the cache.
     Review,       ///< The word list's hover replay: the pointer's to read, no clock.
@@ -81,9 +81,9 @@ public:
     [[nodiscard]] QString peekKey() const;
 
     /// @brief The word-list review card's dismissal, as the pointer allows it to land.
-    enum class ReviewDismissal { NotReview,
-                                 Wait,
-                                 Dismiss };
+    enum class ReviewDismissal : int { NotReview,
+                                       Wait,
+                                       Dismiss };
     ReviewDismissal dismissReview();
     /// @return Whether a review card was standing and is now to be taken down, held or not.
     bool dismissReviewNow();
@@ -115,16 +115,16 @@ public:
 
     /// @brief What the Not-the-Sense? entry asks the duty to do.
     struct SenseStep {
-        enum class Kind { None,
-                          Swap,
-                          Ask } kind  = Kind::None;
-        enum class Why { None,
-                         NoWordCard,
-                         MultipleSenses,
-                         NoCycle,
-                         Waiting,
-                         Exhausted,
-                         Budget } why = Why::None;
+        enum class Kind : int { None,
+                                Swap,
+                                Ask } kind  = Kind::None;
+        enum class Why : int { None,
+                               NoWordCard,
+                               MultipleSenses,
+                               NoCycle,
+                               Waiting,
+                               Exhausted,
+                               Budget } why = Why::None;
         QString     language;        ///< The cycle's explanation language.
         CycleView   view;            ///< Swap: what the card now draws.
         QString     lemma;           ///< Ask: the word the sense request is about.
@@ -139,13 +139,13 @@ public:
 
     /// @brief What an answer on the sense channel did to its cycle.
     struct SenseOutcome {
-        enum class Result { None,
-                            Refused,
-                            Exhausted,
-                            Grown } result = Result::None;
-        bool                     repeated  = false; ///< Exhausted because the model repeated a listed sense.
-        QString                  language;          ///< The language the request went out under.
-        std::optional<CycleView> view;              ///< What to draw, when the card still stands on it.
+        enum class Result : int { None,
+                                  Refused,
+                                  Exhausted,
+                                  Grown } result = Result::None;
+        bool                     repeated        = false; ///< Exhausted because the model repeated a listed sense.
+        QString                  language;                ///< The language the request went out under.
+        std::optional<CycleView> view;                    ///< What to draw, when the card still stands on it.
     };
 
     /// @brief File an answer under the request it belongs to, never under the latest one.
@@ -163,16 +163,16 @@ public:
 
     /// @brief What the held globe asks the duty to do.
     struct PeekStep {
-        enum class Kind { None,
-                          Show,
-                          Ask,
-                          Waiting } kind = Kind::None;
-        enum class Why { None,
-                         NotPeekable,
-                         NotEnglish,
-                         NoMotherTongue,
-                         InFlight,
-                         Budget } why    = Why::None;
+        enum class Kind : int { None,
+                                Show,
+                                Ask,
+                                Waiting } kind = Kind::None;
+        enum class Why : int { None,
+                               NotPeekable,
+                               NotEnglish,
+                               NoMotherTongue,
+                               InFlight,
+                               Budget } why    = Why::None;
         QString line;
         QString lemma;
         QString language; ///< Ask: the mother tongue.

@@ -108,22 +108,22 @@ TEST(GlassRefresh, TheTickWalksRoundTheLiveSheets)
 
     auto plan = lens::app::planRefresh(facts);
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_EQ(plan.read->sheet, 1u);
+    EXPECT_EQ(plan.read.value().sheet, 1u);
     // A sheet on a screen is read through that screen's chain even when no source can follow, so a refusal can be
     // reported; the chain itself then falls to GDI.
-    EXPECT_TRUE(plan.read->chain);
+    EXPECT_TRUE(plan.read.value().chain);
     EXPECT_EQ(plan.intervalMs, kGlassGdiFrameMs);
     EXPECT_FALSE(plan.fast);
 
     facts.cursor = 1;
     plan         = lens::app::planRefresh(facts);
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_EQ(plan.read->sheet, 2u);
+    EXPECT_EQ(plan.read.value().sheet, 2u);
 
     facts.cursor = 2;
     plan         = lens::app::planRefresh(facts);
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_EQ(plan.read->sheet, 0u);
+    EXPECT_EQ(plan.read.value().sheet, 0u);
 }
 
 TEST(GlassRefresh, AnEcoTierStopsTheTimerAndReadsNothing)
@@ -173,7 +173,7 @@ TEST(GlassRefresh, AGdiSheetWaitsForTheSharedBudget)
     facts.gdiDue = true;
     plan         = lens::app::planRefresh(facts);
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_EQ(plan.read->sheet, 0u);
+    EXPECT_EQ(plan.read.value().sheet, 0u);
 }
 
 TEST(GlassRefresh, AFastScreenNeverRaisesAGdiSheetsPace)
@@ -185,7 +185,7 @@ TEST(GlassRefresh, AFastScreenNeverRaisesAGdiSheetsPace)
     facts.cursor = 1;
     auto plan    = lens::app::planRefresh(facts);
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_EQ(plan.read->sheet, 0u);
+    EXPECT_EQ(plan.read.value().sheet, 0u);
     EXPECT_EQ(plan.intervalMs, kGlassAutoFrameMs);
 
     // With the fast sheet served last and the budget still unspent, the next tick passes the GDI sheet over and
@@ -193,13 +193,13 @@ TEST(GlassRefresh, AFastScreenNeverRaisesAGdiSheetsPace)
     facts.cursor = 0;
     plan         = lens::app::planRefresh(facts);
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_EQ(plan.read->sheet, 0u);
+    EXPECT_EQ(plan.read.value().sheet, 0u);
     EXPECT_EQ(plan.intervalMs, kGlassAutoFrameMs);
 
     facts.gdiDue = true;
     plan         = lens::app::planRefresh(facts);
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_EQ(plan.read->sheet, 1u);
+    EXPECT_EQ(plan.read.value().sheet, 1u);
 }
 
 TEST(GlassRefresh, AStandardTierNeverAsksAScreenToFollow)
@@ -214,7 +214,7 @@ TEST(GlassRefresh, AStandardTierNeverAsksAScreenToFollow)
     facts.gdiDue = true;
     plan         = lens::app::planRefresh(facts);
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_FALSE(plan.read->chain);
+    EXPECT_FALSE(plan.read.value().chain);
 }
 
 TEST(GlassRefresh, ASmoothTierPacesByTheFastestScreen)
@@ -225,7 +225,7 @@ TEST(GlassRefresh, ASmoothTierPacesByTheFastestScreen)
     EXPECT_DOUBLE_EQ(plan.fastestHz, 144.0);
     EXPECT_EQ(plan.intervalMs, lens::app::glassQualityFrameMs(GlassQuality::Smooth, 144.0));
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_TRUE(plan.read->chain);
+    EXPECT_TRUE(plan.read.value().chain);
 }
 
 TEST(GlassRefresh, OffTheDesktopTheRefreshStaysOnGdi)
@@ -236,7 +236,7 @@ TEST(GlassRefresh, OffTheDesktopTheRefreshStaysOnGdi)
     EXPECT_FALSE(plan.fast);
     EXPECT_EQ(plan.intervalMs, kGlassGdiFrameMs);
     ASSERT_TRUE(plan.read.has_value());
-    EXPECT_FALSE(plan.read->chain);
+    EXPECT_FALSE(plan.read.value().chain);
 }
 
 TEST(GlassRefresh, AGdiOnlyReadLeavesTheRefusalNoteAlone)

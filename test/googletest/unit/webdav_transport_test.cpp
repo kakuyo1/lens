@@ -224,7 +224,7 @@ TEST(WebdavTransport, ARefusalCarriesTheKindTheRoundReads)
                 reply->abort();
         return got.has_value();
     }));
-    EXPECT_EQ(got->failure, sync::Answer::Failure::Proxy);
+    EXPECT_EQ(got.value().failure, sync::Answer::Failure::Proxy);
 }
 
 TEST(WebdavTransport, ARefreshIsRefusedAtOnceWithoutARequest)

@@ -89,7 +89,7 @@ TEST(PetStroll, AStrollWalksItsStepThenPausesBeforeFinishing)
 
     auto const end = stroll.tick(250ms, {}, wander, kAt);
     ASSERT_TRUE(end.position);
-    EXPECT_EQ(*end.position, step->to);
+    EXPECT_EQ(*end.position, step.value().to);
     EXPECT_TRUE(end.stopWalk);
     EXPECT_FALSE(end.finished);
     EXPECT_FALSE(stroll.walking());

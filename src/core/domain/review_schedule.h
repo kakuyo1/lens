@@ -79,12 +79,12 @@ ReviewState resolvedState(const std::optional<ReviewState>& stored, long long la
  *       taken, so every bucket is an "earliest possible" reading -- never a promise of a moment.
  */
 struct NextAsk {
-    enum class When { Due,      ///< The due time has passed; a check may take the word any time.
-                      Soon,     ///< Due within hours.
-                      Tomorrow, ///< Due around this time the next day.
-                      Days,     ///< Due in @p count days.
-                      Weeks,    ///< Due in @p count weeks.
-                      Months    ///< Due in @p count months.
+    enum class When : int { Due,      ///< The due time has passed; a check may take the word any time.
+                            Soon,     ///< Due within hours.
+                            Tomorrow, ///< Due around this time the next day.
+                            Days,     ///< Due in @p count days.
+                            Weeks,    ///< Due in @p count weeks.
+                            Months    ///< Due in @p count months.
     };
     When when  = When::Due;
     int  count = 1; ///< Days, weeks or months; meaningful only for the matching bucket.

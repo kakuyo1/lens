@@ -461,9 +461,9 @@ TEST(ExplanationQueue, AScanBatchTakesFiveAndLeavesTheRestQueued)
 
     const auto first = queue.take(true, aContext());
     ASSERT_TRUE(first.has_value());
-    EXPECT_TRUE(first->fromScan);
-    ASSERT_EQ(first->items.size(), 5) << "one request buys five words, not seven";
-    EXPECT_EQ(first->items.front().lemma, QStringLiteral("w0"));
+    EXPECT_TRUE(first.value().fromScan);
+    ASSERT_EQ(first.value().items.size(), 5) << "one request buys five words, not seven";
+    EXPECT_EQ(first.value().items.front().lemma, QStringLiteral("w0"));
 
     // Nothing leaves while the answer to this batch is still being waited for: the caller has
     // not disposed of it yet, and a second request in flight would have nowhere to land.
@@ -472,8 +472,8 @@ TEST(ExplanationQueue, AScanBatchTakesFiveAndLeavesTheRestQueued)
 
     const auto second = queue.take(true, aContext());
     ASSERT_TRUE(second.has_value());
-    EXPECT_EQ(second->items.size(), 2) << "the two the cap left behind";
-    EXPECT_EQ(second->items.back().lemma, QStringLiteral("w6"));
+    EXPECT_EQ(second.value().items.size(), 2) << "the two the cap left behind";
+    EXPECT_EQ(second.value().items.back().lemma, QStringLiteral("w6"));
 }
 
 /// The reader pointing at a word outranks the word list filling itself in beside it: the scan
@@ -496,15 +496,15 @@ TEST(ExplanationQueue, ARequestTheReaderMadeOvertakesQueuedScanWork)
 
     const auto asked = queue.take(true, aContext());
     ASSERT_TRUE(asked.has_value());
-    EXPECT_FALSE(asked->fromScan);
-    ASSERT_EQ(asked->items.size(), 1);
-    EXPECT_EQ(asked->items.front().lemma, QStringLiteral("asked"));
+    EXPECT_FALSE(asked.value().fromScan);
+    ASSERT_EQ(asked.value().items.size(), 1);
+    EXPECT_EQ(asked.value().items.front().lemma, QStringLiteral("asked"));
 
     queue.complete();
     const auto scanned = queue.take(true, aContext());
     ASSERT_TRUE(scanned.has_value());
-    EXPECT_TRUE(scanned->fromScan);
-    EXPECT_EQ(scanned->items.front().lemma, QStringLiteral("scanned"));
+    EXPECT_TRUE(scanned.value().fromScan);
+    EXPECT_EQ(scanned.value().items.front().lemma, QStringLiteral("scanned"));
 }
 
 /// The budget is asked at the moment something is about to leave, not when it was queued: a budget
@@ -520,12 +520,12 @@ TEST(ExplanationQueue, AnExhaustedBudgetDrainsNothingAndKeepsWhatIsAlreadyQueued
 
     const auto asked = queue.take(true, aContext());
     ASSERT_TRUE(asked.has_value());
-    EXPECT_FALSE(asked->fromScan);
+    EXPECT_FALSE(asked.value().fromScan);
     queue.complete();
 
     const auto scanned = queue.take(true, aContext());
     ASSERT_TRUE(scanned.has_value()) << "and the held-back scan work is still there";
-    EXPECT_EQ(scanned->items.front().lemma, QStringLiteral("scanned"));
+    EXPECT_EQ(scanned.value().items.front().lemma, QStringLiteral("scanned"));
 }
 
 /// A word deleted locally is gone from both halves of the queue. A deletion reaches a word that is
@@ -541,9 +541,9 @@ TEST(ExplanationQueue, AWordDeletedBeforeItIsSentLeavesTheQueueAndTheHeldRequest
 
     const auto batch = queue.take(true, aContext());
     ASSERT_TRUE(batch.has_value());
-    EXPECT_TRUE(batch->fromScan) << "the held request was the one deleted";
-    ASSERT_EQ(batch->items.size(), 1);
-    EXPECT_EQ(batch->items.front().lemma, QStringLiteral("kept"));
+    EXPECT_TRUE(batch.value().fromScan) << "the held request was the one deleted";
+    ASSERT_EQ(batch.value().items.size(), 1);
+    EXPECT_EQ(batch.value().items.front().lemma, QStringLiteral("kept"));
 }
 
 /// A batch of five is answered as five results, and the answer says which word each one is for by
@@ -626,8 +626,8 @@ TEST(ExplanationQueue, ASentenceIsAskedWithoutTheSenseMode)
 
     const auto batch = queue.take(true, aContext("en", true));
     ASSERT_TRUE(batch.has_value());
-    EXPECT_FALSE(batch->context.multipleSenses);
-    EXPECT_EQ(batch->context.language, "en");
+    EXPECT_FALSE(batch.value().context.multipleSenses);
+    EXPECT_EQ(batch.value().context.language, "en");
 }
 
 /// A scan that fails is not worth a card: the reader did not ask for it and cannot act on it. A
@@ -643,7 +643,7 @@ TEST(ExplanationQueue, ARefusalIsReportedOnlyForARequestTheReaderStillWants)
     queue.request(aWord(QStringLiteral("asked")));
     ASSERT_TRUE(queue.take(true, aContext()).has_value());
     ASSERT_TRUE(queue.refusalSubject().has_value());
-    EXPECT_EQ(queue.refusalSubject()->lemma, QStringLiteral("asked"));
+    EXPECT_EQ(queue.refusalSubject().value().lemma, QStringLiteral("asked"));
 
     queue.selectionChanged();
     EXPECT_FALSE(queue.refusalSubject().has_value());

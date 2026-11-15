@@ -1188,17 +1188,17 @@ TEST(StreamDelta, ReadsTheTextTheReasonAndTheUsage)
     const auto text = parseStreamDelta(
         QByteArrayLiteral(R"({"choices":[{"delta":{"content":"hello"},"finish_reason":null}]})"));
     ASSERT_TRUE(text);
-    EXPECT_EQ(text->content, QStringLiteral("hello"));
-    EXPECT_TRUE(text->finishReason.isEmpty()) << "the model has not said it stopped yet";
-    EXPECT_TRUE(text->usage.isEmpty()) << "usage arrives only on the last chunk, when asked for";
+    EXPECT_EQ(text.value().content, QStringLiteral("hello"));
+    EXPECT_TRUE(text.value().finishReason.isEmpty()) << "the model has not said it stopped yet";
+    EXPECT_TRUE(text.value().usage.isEmpty()) << "usage arrives only on the last chunk, when asked for";
 
     const auto last = parseStreamDelta(QByteArrayLiteral(
         R"({"choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":12,"completion_tokens":9}})"));
     ASSERT_TRUE(last);
-    EXPECT_TRUE(last->content.isEmpty());
-    EXPECT_EQ(last->finishReason, QStringLiteral("stop"));
-    EXPECT_EQ(last->usage.value("prompt_tokens").toInt(), 12);
-    EXPECT_EQ(last->usage.value("completion_tokens").toInt(), 9);
+    EXPECT_TRUE(last.value().content.isEmpty());
+    EXPECT_EQ(last.value().finishReason, QStringLiteral("stop"));
+    EXPECT_EQ(last.value().usage.value("prompt_tokens").toInt(), 12);
+    EXPECT_EQ(last.value().usage.value("completion_tokens").toInt(), 9);
 }
 
 /// `[DONE]`, an empty payload and a keep-alive comment are not chunks; none of them is a failure.
@@ -1342,21 +1342,21 @@ TEST(StreamAssembly, SniffsAcrossReadsDeduplicatesPreviewsAndFinishes)
     EXPECT_FALSE(assembler.feed(first.left(4), true).has_value());
     auto title = assembler.feed(first.mid(4), true);
     ASSERT_TRUE(title.has_value());
-    EXPECT_EQ(title->title, QStringLiteral("ubiquitous"));
-    EXPECT_TRUE(title->en.isEmpty()) << "the first preview carries only what had closed";
+    EXPECT_EQ(title.value().title, QStringLiteral("ubiquitous"));
+    EXPECT_TRUE(title.value().en.isEmpty()) << "the first preview carries only what had closed";
 
     auto fields = assembler.feed(sseEvent(mid), false); // an error status draws nothing
     EXPECT_FALSE(fields.has_value());
     fields = assembler.feed(QByteArray{}, true); // the same bytes, now with the answer status
     ASSERT_TRUE(fields.has_value());
-    EXPECT_EQ(fields->en, QStringLiteral("existing everywhere"));
+    EXPECT_EQ(fields.value().en, QStringLiteral("existing everywhere"));
 
     // A chunk that closes no new field produces the same preview, which is not worth emitting.
     EXPECT_FALSE(assembler.feed(sseEvent(QStringLiteral(" ")), true).has_value());
 
     auto zh = assembler.feed(sseEvent(tail, QStringLiteral("stop"), QJsonObject{{"prompt_tokens", 12}, {"completion_tokens", 9}}), true);
     ASSERT_TRUE(zh.has_value());
-    EXPECT_EQ(zh->zh, QString::fromUtf8("无处不在的"));
+    EXPECT_EQ(zh.value().zh, QString::fromUtf8("无处不在的"));
 
     const auto result = assembler.finish(QByteArray{});
     ASSERT_TRUE(accepted(result)) << errorOf(result).toStdString();

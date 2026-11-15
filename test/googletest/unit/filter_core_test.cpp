@@ -746,9 +746,9 @@ TEST_F(KnownStoreTest, SurvivesASaveAndReload)
 
     const auto hit = store.cacheGet("ubiquitous");
     ASSERT_TRUE(hit.has_value());
-    EXPECT_EQ(hit->ipa, "/juːˈbɪkwɪtəs/") << "the pronunciation did not survive the round trip";
-    EXPECT_EQ(hit->en, "existing everywhere");
-    EXPECT_EQ(hit->zh, "无处不在的");
+    EXPECT_EQ(hit.value().ipa, "/juːˈbɪkwɪtəs/") << "the pronunciation did not survive the round trip";
+    EXPECT_EQ(hit.value().en, "existing everywhere");
+    EXPECT_EQ(hit.value().zh, "无处不在的");
 }
 
 TEST_F(KnownStoreTest, ChainLabelAndCollocationsSurviveASaveAndReload)
@@ -761,8 +761,8 @@ TEST_F(KnownStoreTest, ChainLabelAndCollocationsSurviveASaveAndReload)
 
     const auto hit = KnownStore::load(path).cacheGet("ubiquitous", {.language = "en"});
     ASSERT_TRUE(hit.has_value());
-    EXPECT_EQ(hit->signpost, "found everywhere");
-    EXPECT_EQ(hit->collocations, (std::vector<std::string>{"~ presence", "~ in cities"}));
+    EXPECT_EQ(hit.value().signpost, "found everywhere");
+    EXPECT_EQ(hit.value().collocations, (std::vector<std::string>{"~ presence", "~ in cities"}));
 }
 
 /// The picture advice, stored with the sense it came with: both copies survive the round trip, and
@@ -785,17 +785,17 @@ TEST_F(KnownStoreTest, PictureAdviceSurvivesASaveAndReloadAndAbsentIsNoPicture)
 
     const auto hit = KnownStore::load(path).cacheGet("trowel", {.language = "en"});
     ASSERT_TRUE(hit.has_value());
-    EXPECT_TRUE(hit->imageable);
-    EXPECT_EQ(hit->imageQuery, "garden trowel");
-    ASSERT_EQ(hit->senses.size(), 1);
-    EXPECT_TRUE(hit->senses.front().imageable);
-    EXPECT_EQ(hit->senses.front().imageQuery, "garden trowel");
+    EXPECT_TRUE(hit.value().imageable);
+    EXPECT_EQ(hit.value().imageQuery, "garden trowel");
+    ASSERT_EQ(hit.value().senses.size(), 1);
+    EXPECT_TRUE(hit.value().senses.front().imageable);
+    EXPECT_EQ(hit.value().senses.front().imageQuery, "garden trowel");
 
     // The seeded entry predates the fields, and is still a usable explanation.
     const auto old = KnownStore::load(path).cacheGet("ubiquitous", {.language = "zh"});
     ASSERT_TRUE(old.has_value());
-    EXPECT_FALSE(old->imageable);
-    EXPECT_TRUE(old->imageQuery.empty());
+    EXPECT_FALSE(old.value().imageable);
+    EXPECT_TRUE(old.value().imageQuery.empty());
 }
 
 /// A stored entry whose advice is the wrong type is still an entry: both fields are optional and
@@ -806,8 +806,8 @@ TEST_F(KnownStoreTest, AMistypedStoredPictureAdviceIsIgnoredRatherThanFatal)
 
     const auto hit = KnownStore::load(path).cacheGet("trowel", {.language = "en"});
     ASSERT_TRUE(hit.has_value()) << "the definition was dropped over an advisory field";
-    EXPECT_FALSE(hit->imageable);
-    EXPECT_TRUE(hit->imageQuery.empty());
+    EXPECT_FALSE(hit.value().imageable);
+    EXPECT_TRUE(hit.value().imageQuery.empty());
 }
 
 /// An entry with no ipa key reads as empty rather than as a bubble that is missing a line. That

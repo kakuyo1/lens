@@ -85,8 +85,8 @@ TEST(ScanEmissionGate, AChangedPlacementInsideTheCadenceIsHeldForAFlush)
 
     auto const flushed = gate.takeHeld(now + std::chrono::milliseconds{66});
     ASSERT_TRUE(flushed);
-    EXPECT_EQ(flushed->words.size(), 2u);
-    EXPECT_EQ(flushed->words.front().y, 60);
+    EXPECT_EQ(flushed.value().words.size(), 2u);
+    EXPECT_EQ(flushed.value().words.front().y, 60);
     EXPECT_FALSE(gate.holding());
 }
 
@@ -109,7 +109,7 @@ TEST(ScanEmissionGate, TheNewestHeldPlacementWinsOverAnOlderOne)
     (void)gate.admit(placementOf(2, 40), now + std::chrono::milliseconds{32});
     auto const flushed = gate.takeHeld(now + std::chrono::milliseconds{66});
     ASSERT_TRUE(flushed);
-    EXPECT_EQ(flushed->words.front().y, 60); // the 40-offset frame, not the 10-offset one
+    EXPECT_EQ(flushed.value().words.front().y, 60); // the 40-offset frame, not the 10-offset one
 }
 
 TEST(ScanEmissionGate, AFlushCountsAsAnEmissionForTheCadence)
@@ -177,7 +177,7 @@ TEST(ScanEmissionGate, AnEmptyPlacementTakesTheLinesDownOnceTheCadenceOpens)
     (void)gate.admit(ScanStep::Placed{}, now + std::chrono::milliseconds{16});
     auto const flushed = gate.takeHeld(now + std::chrono::milliseconds{66});
     ASSERT_TRUE(flushed);
-    EXPECT_TRUE(flushed->words.empty());
+    EXPECT_TRUE(flushed.value().words.empty());
     // The missed reads after it describe the page the layer already shows -- nothing.
     EXPECT_FALSE(emitted(gate.admit(ScanStep::Placed{}, now + std::chrono::milliseconds{100})));
     EXPECT_FALSE(held(gate.admit(ScanStep::Placed{}, now + std::chrono::milliseconds{100})));

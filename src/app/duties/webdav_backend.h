@@ -48,8 +48,8 @@ public:
 
 private:
     /// The only waiting this backend does: a probe of the server is out.
-    enum class Phase { Idle,
-                       Verifying };
+    enum class Phase : int { Idle,
+                             Verifying };
 
     /// @brief The probe answered: end the verify one way or the other.
     void onProbed(bool reached);

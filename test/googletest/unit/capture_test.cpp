@@ -426,11 +426,11 @@ TEST(WordTrack, AWordEndingInPunctuationIsCutToItsLetters)
     // "cat," fills a 60 px box; the comma occupies the last 10, so the letters end at x 150.
     auto const word = trimmedWord("cat,", Band{.x = 100, .y = 200, .width = 60, .height = 20}, Band{.x = 150, .y = 200, .width = 0, .height = 20});
     ASSERT_TRUE(word);
-    EXPECT_EQ(word->text, "cat");
-    EXPECT_EQ(word->box.width, 50);
-    EXPECT_EQ(word->box.x, 100);
-    EXPECT_EQ(word->box.y, 200);
-    EXPECT_EQ(word->box.height, 20);
+    EXPECT_EQ(word.value().text, "cat");
+    EXPECT_EQ(word.value().box.width, 50);
+    EXPECT_EQ(word.value().box.x, 100);
+    EXPECT_EQ(word.value().box.y, 200);
+    EXPECT_EQ(word.value().box.height, 20);
 }
 
 TEST(WordTrack, AWordTheReaderCannotMeasureKeepsItsPunctuation)
@@ -439,8 +439,8 @@ TEST(WordTrack, AWordTheReaderCannotMeasureKeepsItsPunctuation)
     using lens::capture::trimmedWord;
     auto const word = trimmedWord("cat,", Band{.x = 100, .y = 200, .width = 60, .height = 20}, std::nullopt);
     ASSERT_TRUE(word);
-    EXPECT_EQ(word->text, "cat,");
-    EXPECT_EQ(word->box.width, 60);
+    EXPECT_EQ(word.value().text, "cat,");
+    EXPECT_EQ(word.value().box.width, 60);
 }
 
 TEST(WordTrack, AWordOfNothingButPunctuationLeavesTheScan)
@@ -458,8 +458,8 @@ TEST(WordTrack, AWordWhoseLettersFillItsBoxKeepsIt)
     // A letters-end box outside the word's own box would cut nothing sensible: the word keeps its box.
     auto const word = trimmedWord("cat,", Band{.x = 100, .y = 200, .width = 60, .height = 20}, Band{.x = 160, .y = 200, .width = 0, .height = 20});
     ASSERT_TRUE(word);
-    EXPECT_EQ(word->text, "cat,");
-    EXPECT_EQ(word->box.width, 60);
+    EXPECT_EQ(word.value().text, "cat,");
+    EXPECT_EQ(word.value().box.width, 60);
 }
 
 TEST(WordTrack, AWordWithoutATrailKeepsItsWholeBox)
@@ -468,8 +468,8 @@ TEST(WordTrack, AWordWithoutATrailKeepsItsWholeBox)
     using lens::capture::trimmedWord;
     auto const word = trimmedWord("cat", Band{.x = 100, .y = 200, .width = 60, .height = 20}, std::nullopt);
     ASSERT_TRUE(word);
-    EXPECT_EQ(word->text, "cat");
-    EXPECT_EQ(word->box.width, 60);
+    EXPECT_EQ(word.value().text, "cat");
+    EXPECT_EQ(word.value().box.width, 60);
     EXPECT_FALSE(trimmedWord("cat", Band{.x = 100, .y = 200, .width = 0, .height = 20}, std::nullopt));
 }
 

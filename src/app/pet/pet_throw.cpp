@@ -41,10 +41,10 @@ ThrowStep PetThrow::tick(std::chrono::milliseconds step, bool idle)
 {
     mood_.advance(step);
     if (phase_ == Phase::Flying) {
-        auto const next = flight_->advance(step);
+        auto const next = flight_.value().advance(step);
         if (not next.landed) return {.position = next.position};
 
-        auto const elapsed = flight_->elapsed();
+        auto const elapsed = flight_.value().elapsed();
         flight_.reset();
         // The roll is drawn even when the landing has no dizzy art: the attempt spends the run either way.
         phase_        = Phase::AwaitingReaction;

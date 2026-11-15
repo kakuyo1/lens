@@ -21,20 +21,20 @@ TEST(DevCommandParse, SurfaceShowAndHideNameTheSurface)
 {
     auto const shown = parseCommand("surface show settings");
     ASSERT_TRUE(shown.command);
-    EXPECT_EQ(shown.command->verb, Verb::SurfaceShow);
-    EXPECT_EQ(shown.command->surface, "settings");
+    EXPECT_EQ(shown.command.value().verb, Verb::SurfaceShow);
+    EXPECT_EQ(shown.command.value().surface, "settings");
 
     auto const hidden = parseCommand("  surface   hide   tray ");
     ASSERT_TRUE(hidden.command);
-    EXPECT_EQ(hidden.command->verb, Verb::SurfaceHide);
-    EXPECT_EQ(hidden.command->surface, "tray");
+    EXPECT_EQ(hidden.command.value().verb, Verb::SurfaceHide);
+    EXPECT_EQ(hidden.command.value().surface, "tray");
 }
 
 TEST(DevCommandParse, HideAllTakesNoName)
 {
     auto const parsed = parseCommand("surface hide-all");
     ASSERT_TRUE(parsed.command);
-    EXPECT_EQ(parsed.command->verb, Verb::SurfaceHideAll);
+    EXPECT_EQ(parsed.command.value().verb, Verb::SurfaceHideAll);
     EXPECT_FALSE(parseCommand("surface hide-all settings").command);
 }
 
@@ -42,14 +42,14 @@ TEST(DevCommandParse, SurfaceRouteNamesTheSurfaceAndItsTarget)
 {
     auto const category = parseCommand("surface route settings learning");
     ASSERT_TRUE(category.command);
-    EXPECT_EQ(category.command->verb, Verb::SurfaceRoute);
-    EXPECT_EQ(category.command->surface, "settings");
-    EXPECT_EQ(category.command->target, "learning");
+    EXPECT_EQ(category.command.value().verb, Verb::SurfaceRoute);
+    EXPECT_EQ(category.command.value().surface, "settings");
+    EXPECT_EQ(category.command.value().target, "learning");
 
     // A sub-page rides the same token: the panel splits the path and walks its own steps.
     auto const page = parseCommand("surface route settings general/font");
     ASSERT_TRUE(page.command);
-    EXPECT_EQ(page.command->target, "general/font");
+    EXPECT_EQ(page.command.value().target, "general/font");
 
     // Only a surface whose row names a route method takes a target, and it takes exactly one.
     for (auto const* line : {
@@ -68,16 +68,16 @@ TEST(DevCommandParse, SurfaceScrollPinsTheContentPosition)
 {
     auto const scrolled = parseCommand("surface scroll settings 250");
     ASSERT_TRUE(scrolled.command);
-    EXPECT_EQ(scrolled.command->verb, Verb::SurfaceScroll);
-    EXPECT_EQ(scrolled.command->surface, "settings");
-    EXPECT_EQ(scrolled.command->scrollY, 250);
+    EXPECT_EQ(scrolled.command.value().verb, Verb::SurfaceScroll);
+    EXPECT_EQ(scrolled.command.value().surface, "settings");
+    EXPECT_EQ(scrolled.command.value().scrollY, 250);
 
     // The top is a position like any other. Whether the surface has anything to scroll, and whether
     // it is up, is the window's to answer at run time, so a known name parses even for a surface
     // that would refuse the line (docs/adr/0105).
     auto const top = parseCommand("surface scroll tray 0");
     ASSERT_TRUE(top.command);
-    EXPECT_EQ(top.command->scrollY, 0);
+    EXPECT_EQ(top.command.value().scrollY, 0);
 
     for (auto const* line : {
              "surface scroll nowhere 250",
@@ -96,21 +96,21 @@ TEST(DevCommandParse, SurfaceWheelTurnsTheReadersOwnTicks)
 {
     auto const down = parseCommand("surface wheel words 30");
     ASSERT_TRUE(down.command);
-    EXPECT_EQ(down.command->verb, Verb::SurfaceWheel);
-    EXPECT_EQ(down.command->surface, "words");
-    EXPECT_EQ(down.command->wheelSteps, 30);
+    EXPECT_EQ(down.command.value().verb, Verb::SurfaceWheel);
+    EXPECT_EQ(down.command.value().surface, "words");
+    EXPECT_EQ(down.command.value().wheelSteps, 30);
 
     // Up is the same gesture the other way: the sign is the whole difference.
     auto const up = parseCommand("surface wheel words -30");
     ASSERT_TRUE(up.command);
-    EXPECT_EQ(up.command->wheelSteps, -30);
+    EXPECT_EQ(up.command.value().wheelSteps, -30);
 
     // The touchpad's shape of the same gesture: pixel deltas in phases, and the momentum a
     // Flickable keeps up when the fingers lift.
     auto const pad = parseCommand("surface wheel words 12 pad");
     ASSERT_TRUE(pad.command);
-    EXPECT_EQ(pad.command->wheelSteps, 12);
-    EXPECT_TRUE(pad.command->wheelPad);
+    EXPECT_EQ(pad.command.value().wheelSteps, 12);
+    EXPECT_TRUE(pad.command.value().wheelPad);
 
     for (auto const* line : {
              "surface wheel nowhere 30",
@@ -131,10 +131,10 @@ TEST(DevCommandParse, WaitReadsItsConditionAndSurface)
 {
     auto const painted = parseCommand("wait painted:settings");
     ASSERT_TRUE(painted.command);
-    EXPECT_EQ(painted.command->verb, Verb::Wait);
-    EXPECT_EQ(painted.command->waitFor, WaitFor::Painted);
-    EXPECT_EQ(painted.command->surface, "settings");
-    EXPECT_EQ(parseCommand("wait hidden:tray").command->waitFor, WaitFor::Hidden);
+    EXPECT_EQ(painted.command.value().verb, Verb::Wait);
+    EXPECT_EQ(painted.command.value().waitFor, WaitFor::Painted);
+    EXPECT_EQ(painted.command.value().surface, "settings");
+    EXPECT_EQ(parseCommand("wait hidden:tray").command.value().waitFor, WaitFor::Hidden);
 }
 
 TEST(DevCommandParse, WaitSecondsHoldsTheScript)
@@ -142,13 +142,13 @@ TEST(DevCommandParse, WaitSecondsHoldsTheScript)
     // A hold is the form a measurement run uses: it keeps a surface on screen while the pipeline fills a tally window.
     auto const held = parseCommand("wait 25s");
     ASSERT_TRUE(held.command);
-    EXPECT_EQ(held.command->verb, Verb::Wait);
-    EXPECT_EQ(held.command->waitFor, WaitFor::Seconds);
-    EXPECT_EQ(held.command->waitSeconds, 25);
+    EXPECT_EQ(held.command.value().verb, Verb::Wait);
+    EXPECT_EQ(held.command.value().waitFor, WaitFor::Seconds);
+    EXPECT_EQ(held.command.value().waitSeconds, 25);
     EXPECT_TRUE(parseCommand("wait 1s").command);
     EXPECT_TRUE(parseCommand("wait 120s").command);
     // A condition wait carries no duration, and its own ceiling is what bounds it.
-    EXPECT_EQ(parseCommand("wait painted:settings").command->waitSeconds, 0);
+    EXPECT_EQ(parseCommand("wait painted:settings").command.value().waitSeconds, 0);
     for (auto const* line : {"wait 0s", "wait 121s", "wait s", "wait 25", "wait abcs", "wait -5s", "wait 9999s"}) {
         auto const parsed = parseCommand(line);
         EXPECT_FALSE(parsed.command) << line;
@@ -170,13 +170,13 @@ TEST(DevCommandParse, SelectionTakesARectangleAndItsQuotedText)
 {
     auto const parsed = parseCommand(R"(selection 160,175,620,70 "the quiet  library")");
     ASSERT_TRUE(parsed.command);
-    EXPECT_EQ(parsed.command->verb, Verb::Selection);
-    EXPECT_EQ(parsed.command->region.x, 160);
-    EXPECT_EQ(parsed.command->region.y, 175);
-    EXPECT_EQ(parsed.command->region.width, 620);
-    EXPECT_EQ(parsed.command->region.height, 70);
+    EXPECT_EQ(parsed.command.value().verb, Verb::Selection);
+    EXPECT_EQ(parsed.command.value().region.x, 160);
+    EXPECT_EQ(parsed.command.value().region.y, 175);
+    EXPECT_EQ(parsed.command.value().region.width, 620);
+    EXPECT_EQ(parsed.command.value().region.height, 70);
     // The text keeps the spaces inside its quotes, which the token split would have collapsed.
-    EXPECT_EQ(parsed.command->selectedText, "the quiet  library");
+    EXPECT_EQ(parsed.command.value().selectedText, "the quiet  library");
 }
 
 TEST(DevCommandParse, SelectionAllowsANegativeOrigin)
@@ -184,8 +184,8 @@ TEST(DevCommandParse, SelectionAllowsANegativeOrigin)
     // A screen left of or above the primary has negative physical coordinates.
     auto const parsed = parseCommand(R"(selection -1200,-40,300,20 "x")");
     ASSERT_TRUE(parsed.command);
-    EXPECT_EQ(parsed.command->region.x, -1200);
-    EXPECT_EQ(parsed.command->region.y, -40);
+    EXPECT_EQ(parsed.command.value().region.x, -1200);
+    EXPECT_EQ(parsed.command.value().region.y, -40);
 }
 
 TEST(DevCommandParse, SelectionRefusesAMalformedLine)
@@ -210,37 +210,37 @@ TEST(DevCommandParse, ScanArmTakesARectangleAndClearTakesNothing)
 {
     auto const armed = parseCommand("scan arm 0,0,1920,400");
     ASSERT_TRUE(armed.command);
-    EXPECT_EQ(armed.command->verb, Verb::Scan);
-    EXPECT_EQ(armed.command->scan, lens::core::dev::ScanWhat::Arm);
-    EXPECT_EQ(armed.command->region.x, 0);
-    EXPECT_EQ(armed.command->region.width, 1920);
+    EXPECT_EQ(armed.command.value().verb, Verb::Scan);
+    EXPECT_EQ(armed.command.value().scan, lens::core::dev::ScanWhat::Arm);
+    EXPECT_EQ(armed.command.value().region.x, 0);
+    EXPECT_EQ(armed.command.value().region.width, 1920);
 
     auto const cleared = parseCommand("scan clear");
     ASSERT_TRUE(cleared.command);
-    EXPECT_EQ(cleared.command->scan, lens::core::dev::ScanWhat::Clear);
+    EXPECT_EQ(cleared.command.value().scan, lens::core::dev::ScanWhat::Clear);
 }
 
 TEST(DevCommandParse, ScanFrameReadsItsWords)
 {
     auto const parsed = parseCommand(R"(scan frame {"added":[{"id":1,"text":"ubiquitous"}],"visible":[{"id":1,"x":10,"y":20,"width":30,"height":12}]})");
     ASSERT_TRUE(parsed.command);
-    EXPECT_EQ(parsed.command->verb, Verb::Scan);
-    EXPECT_EQ(parsed.command->scan, lens::core::dev::ScanWhat::Frame);
-    ASSERT_EQ(parsed.command->scanFrame.added.size(), 1);
-    EXPECT_EQ(parsed.command->scanFrame.added[0].id, 1);
-    EXPECT_EQ(parsed.command->scanFrame.added[0].text, "ubiquitous");
-    ASSERT_EQ(parsed.command->scanFrame.visible.size(), 1);
-    EXPECT_EQ(parsed.command->scanFrame.visible[0].x, 10);
-    EXPECT_EQ(parsed.command->scanFrame.visible[0].height, 12);
-    EXPECT_FALSE(parsed.command->scanFrame.lost);
+    EXPECT_EQ(parsed.command.value().verb, Verb::Scan);
+    EXPECT_EQ(parsed.command.value().scan, lens::core::dev::ScanWhat::Frame);
+    ASSERT_EQ(parsed.command.value().scanFrame.added.size(), 1);
+    EXPECT_EQ(parsed.command.value().scanFrame.added[0].id, 1);
+    EXPECT_EQ(parsed.command.value().scanFrame.added[0].text, "ubiquitous");
+    ASSERT_EQ(parsed.command.value().scanFrame.visible.size(), 1);
+    EXPECT_EQ(parsed.command.value().scanFrame.visible[0].x, 10);
+    EXPECT_EQ(parsed.command.value().scanFrame.visible[0].height, 12);
+    EXPECT_FALSE(parsed.command.value().scanFrame.lost);
 }
 
 TEST(DevCommandParse, ScanFrameReadsALostMark)
 {
     auto const parsed = parseCommand(R"(scan frame {"lost":true})");
     ASSERT_TRUE(parsed.command);
-    EXPECT_TRUE(parsed.command->scanFrame.lost);
-    EXPECT_TRUE(parsed.command->scanFrame.visible.empty());
+    EXPECT_TRUE(parsed.command.value().scanFrame.lost);
+    EXPECT_TRUE(parsed.command.value().scanFrame.visible.empty());
 }
 
 TEST(DevCommandParse, ScanRefusesAMalformedLine)
@@ -272,35 +272,35 @@ TEST(DevCommandParse, SettingSetNamesTheSettingAndItsValue)
 {
     auto const theme = parseCommand("setting set theme light");
     ASSERT_TRUE(theme.command);
-    EXPECT_EQ(theme.command->verb, Verb::SettingSet);
-    EXPECT_EQ(theme.command->settingKey, SettingKey::Theme);
-    EXPECT_EQ(std::get<std::string>(theme.command->settingValue), "light");
+    EXPECT_EQ(theme.command.value().verb, Verb::SettingSet);
+    EXPECT_EQ(theme.command.value().settingKey, SettingKey::Theme);
+    EXPECT_EQ(std::get<std::string>(theme.command.value().settingValue), "light");
 
     auto const blur = parseCommand("setting set liquidBlur 40");
     ASSERT_TRUE(blur.command);
-    EXPECT_EQ(blur.command->settingKey, SettingKey::LiquidBlur);
-    EXPECT_EQ(std::get<int>(blur.command->settingValue), 40);
+    EXPECT_EQ(blur.command.value().settingKey, SettingKey::LiquidBlur);
+    EXPECT_EQ(std::get<int>(blur.command.value().settingValue), 40);
 
     auto const animations = parseCommand("setting set animationsEnabled off");
     ASSERT_TRUE(animations.command);
-    EXPECT_EQ(animations.command->settingKey, SettingKey::AnimationsEnabled);
-    EXPECT_FALSE(std::get<bool>(animations.command->settingValue));
+    EXPECT_EQ(animations.command.value().settingKey, SettingKey::AnimationsEnabled);
+    EXPECT_FALSE(std::get<bool>(animations.command.value().settingValue));
 
     auto const quality = parseCommand("setting set glassQuality smooth");
     ASSERT_TRUE(quality.command);
-    EXPECT_EQ(quality.command->settingKey, SettingKey::GlassQuality);
-    EXPECT_EQ(std::get<int>(quality.command->settingValue), 3);
+    EXPECT_EQ(quality.command.value().settingKey, SettingKey::GlassQuality);
+    EXPECT_EQ(std::get<int>(quality.command.value().settingValue), 3);
 
     // The pet's switch and choice are settings too, so a dev run can drive the ceremony without a pointer.
     auto const petOn = parseCommand("setting set petEnabled on");
     ASSERT_TRUE(petOn.command);
-    EXPECT_EQ(petOn.command->settingKey, SettingKey::PetEnabled);
-    EXPECT_TRUE(std::get<bool>(petOn.command->settingValue));
+    EXPECT_EQ(petOn.command.value().settingKey, SettingKey::PetEnabled);
+    EXPECT_TRUE(std::get<bool>(petOn.command.value().settingValue));
 
     auto const pet = parseCommand("setting set pet ghost");
     ASSERT_TRUE(pet.command);
-    EXPECT_EQ(pet.command->settingKey, SettingKey::Pet);
-    EXPECT_EQ(std::get<std::string>(pet.command->settingValue), "ghost");
+    EXPECT_EQ(pet.command.value().settingKey, SettingKey::Pet);
+    EXPECT_EQ(std::get<std::string>(pet.command.value().settingValue), "ghost");
 }
 
 TEST(DevCommandParse, SettingSetRefusesAKeyOrValueOffTheWhitelist)
@@ -327,7 +327,7 @@ TEST(DevCommandParse, QuitTakesNoArguments)
 {
     auto const parsed = parseCommand("quit");
     ASSERT_TRUE(parsed.command);
-    EXPECT_EQ(parsed.command->verb, Verb::Quit);
+    EXPECT_EQ(parsed.command.value().verb, Verb::Quit);
     EXPECT_FALSE(parseCommand("quit now").command);
 }
 

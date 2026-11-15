@@ -81,7 +81,7 @@ protected:
     {
         WordCache entry{.ipa = "/bæŋk/", .en = lemma.toStdString(), .zh = "银行"};
         entry.example = example;
-        store->cachePut(lemma.toStdString(), entry, CacheContext{"en", false});
+        store.value().cachePut(lemma.toStdString(), entry, CacheContext{"en", false});
     }
 
     std::filesystem::path                path;
@@ -135,8 +135,8 @@ TEST_F(ExplanationExchangeTest, AMissIsQueuedAndTheRequestCarriesItsKindAndConte
     EXPECT_FALSE(shown.card.waiting);
     EXPECT_TRUE(shown.card.sameCard);
     EXPECT_EQ(shown.card.answer.en, QStringLiteral("a river"));
-    ASSERT_TRUE(store->cacheGet("river", CacheContext{"en", false}));
-    EXPECT_EQ(store->cacheGet("river", CacheContext{"en", false})->en, "a river");
+    ASSERT_TRUE(store.value().cacheGet("river", CacheContext{"en", false}));
+    EXPECT_EQ(store.value().cacheGet("river", CacheContext{"en", false})->en, "a river");
     EXPECT_FALSE(exchange->inFlight());
     EXPECT_FALSE(exchange->hasHeldRequest());
 }
@@ -190,7 +190,7 @@ TEST_F(ExplanationExchangeTest, AStoredWordTheScanAsksAboutIsLeftAloneWithNoCard
 
 TEST_F(ExplanationExchangeTest, TheHoverShowsStoredWorkAndBuysNothing)
 {
-    store->document()["example"] = "true";
+    store.value().document()["example"] = "true";
     storeEntry("bank"); // bought without an example: the cache calls it a rebuy, the hover still shows it.
 
     auto const shown = exchange->ask(wordOf("bank"), AskOrigin::Review, facts());
@@ -215,7 +215,7 @@ TEST_F(ExplanationExchangeTest, ThePetsSignShowsOnlyAWholeStoredAnswer)
     EXPECT_FALSE(shown.card.notifyPet);
     EXPECT_TRUE(shown.popLemma.isEmpty());
 
-    store->document()["example"] = "true"; // the stored entry is a rebuy now
+    store.value().document()["example"] = "true"; // the stored entry is a rebuy now
     EXPECT_EQ(exchange->ask(wordOf("bank"), AskOrigin::ReviewAnswer, facts()).kind, ExplanationExchange::Outcome::Kind::None);
     EXPECT_EQ(exchange->ask(wordOf("missing"), AskOrigin::ReviewAnswer, facts()).kind, ExplanationExchange::Outcome::Kind::None);
 }
@@ -278,7 +278,7 @@ TEST_F(ExplanationExchangeTest, AReaderWhoMovedOnStillStoresTheAnswerButSeesNoCa
 
     auto const shown = exchange->settle({answerOf("bank")}, facts());
     EXPECT_EQ(shown.kind, ExplanationExchange::Outcome::Kind::None);
-    ASSERT_TRUE(store->cacheGet("bank", CacheContext{"en", false})) << "the paid-for answer was not stored";
+    ASSERT_TRUE(store.value().cacheGet("bank", CacheContext{"en", false})) << "the paid-for answer was not stored";
 }
 
 TEST_F(ExplanationExchangeTest, AChainStepGoesOntoItsStandingParentAndCountsItsPop)

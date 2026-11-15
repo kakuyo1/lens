@@ -304,18 +304,18 @@ TEST_F(LlmTest, Phase2CachePreservesLegacyEntriesAndSeparatesAllContexts)
     store.save();
     auto const restored = core::KnownStore::load(path);
     EXPECT_EQ(restored.document().at("untouched"), "sentinel");
-    EXPECT_EQ(restored.cacheGet("bank", {"en", false})->en, "legacy");
+    EXPECT_EQ(restored.cacheGet("bank", {"en", false}).value().en, "legacy");
     // A legacy entry has no origin, and one must not be invented for it.
-    EXPECT_TRUE(restored.cacheGet("bank", {"en", false})->etymology.empty());
+    EXPECT_TRUE(restored.cacheGet("bank", {"en", false}).value().etymology.empty());
     for (auto const* language : {"en", "zh", "es", "ja"}) {
         for (bool const multiple : {false, true}) {
             auto const entry = restored.cacheGet("bank", {language, multiple});
             ASSERT_TRUE(entry);
-            EXPECT_EQ(entry->senses.size(), std::string{language} == "en" and not multiple ? 0u : multiple ? 2u
-                                                                                                           : 1u);
+            EXPECT_EQ(entry.value().senses.size(), std::string{language} == "en" and not multiple ? 0u : multiple ? 2u
+                                                                                                                  : 1u);
             // Outside the cache key, so it survives every context this loop covers.
             if (not(std::string{language} == "en" and not multiple))
-                EXPECT_EQ(entry->etymology, "from " + std::string{language});
+                EXPECT_EQ(entry.value().etymology, "from " + std::string{language});
         }
     }
 }
@@ -342,7 +342,7 @@ TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
         rig.duty.runSelectionAction("explain", "bank");
         EXPECT_EQ(rig.manager.posts, 1);
         EXPECT_EQ(rig.duty.bubble().value("senses").toList().size(), 3);
-        EXPECT_EQ(rig.store.cacheGet("bank", {language, true})->senses.size(), 3u);
+        EXPECT_EQ(rig.store.cacheGet("bank", {language, true}).value().senses.size(), 3u);
     }
 }
 
@@ -430,7 +430,7 @@ TEST_F(LlmTest, Phase2AWaitingCardGoesDownWhenTheReaderMovesOnFromItsWord)
     EXPECT_TRUE(rig.duty.bubble().isEmpty());
     EXPECT_TRUE(rig.duty.notice().isEmpty()) << "an answer the reader had moved on from was reported as a failure";
     ASSERT_TRUE(rig.store.cacheGet("bank", {"en", false}));
-    EXPECT_EQ(rig.store.cacheGet("bank", {"en", false})->en, "English");
+    EXPECT_EQ(rig.store.cacheGet("bank", {"en", false}).value().en, "English");
 }
 
 TEST_F(LlmTest, Phase2AStoredWordNeedsNoWaitingCardBecauseItsAnswerIsAlreadyInHand)
@@ -895,7 +895,7 @@ TEST_F(LlmTest, Phase2TheExampleSettingBuysASentenceOnceAndAStoredWordWithoutOne
     rig.manager.response = envelope({plainWord("bank")});
     rig.explain("bank");
     EXPECT_FALSE(askedForExample());
-    EXPECT_FALSE(rig.store.cacheGet("bank", {"en", false})->example.has_value()) << "an unasked-for example was stored";
+    EXPECT_FALSE(rig.store.cacheGet("bank", {"en", false}).value().example.has_value()) << "an unasked-for example was stored";
 
     // Turning the example on does not reuse that entry: it was bought without a sentence, and the
     // reader is owed one now. The second request is paid for, and the answer is what the bubble shows.
@@ -906,7 +906,7 @@ TEST_F(LlmTest, Phase2TheExampleSettingBuysASentenceOnceAndAStoredWordWithoutOne
     EXPECT_EQ(rig.manager.posts, 2) << "a stored word without an example was served as if it had one";
     ASSERT_TRUE(askedForExample());
     EXPECT_EQ(rig.duty.bubble().value("example").toString(), QStringLiteral("The bank raised its interest rate."));
-    EXPECT_EQ(rig.store.cacheGet("bank", {"en", false})->example.value_or("<absent>"), "The bank raised its interest rate.");
+    EXPECT_EQ(rig.store.cacheGet("bank", {"en", false}).value().example.value_or("<absent>"), "The bank raised its interest rate.");
 
     // With the sentence stored, the next look is served from the cache, and no request is made.
     rig.duty.dismissBubble();
@@ -920,7 +920,7 @@ TEST_F(LlmTest, Phase2TheExampleSettingBuysASentenceOnceAndAStoredWordWithoutOne
     rig.explain("bank");
     EXPECT_EQ(rig.manager.posts, 2);
     EXPECT_TRUE(rig.duty.bubble().value("example").toString().isEmpty()) << "a stored example was drawn with the setting off";
-    EXPECT_TRUE(rig.store.cacheGet("bank", {"en", false})->example.has_value()) << "turning the setting off dropped the stored sentence";
+    EXPECT_TRUE(rig.store.cacheGet("bank", {"en", false}).value().example.has_value()) << "turning the setting off dropped the stored sentence";
 }
 
 TEST_F(LlmTest, Phase2TheCardContentSwitchesHideWhatTheCacheStillHolds)
@@ -959,9 +959,9 @@ TEST_F(LlmTest, Phase2TheCardContentSwitchesHideWhatTheCacheStillHolds)
     // The entry itself is untouched, which is what lets one switch come back without a purchase.
     auto const cached = rig.store.cacheGet("bank", {"en", false});
     ASSERT_TRUE(cached.has_value());
-    EXPECT_EQ(cached->ipa, "/bæŋk/");
-    EXPECT_EQ(cached->signpost, "a place for money");
-    EXPECT_EQ(cached->imageQuery, "river bank");
+    EXPECT_EQ(cached.value().ipa, "/bæŋk/");
+    EXPECT_EQ(cached.value().signpost, "a place for money");
+    EXPECT_EQ(cached.value().imageQuery, "river bank");
 
     rig.duty.dismissBubble();
     rig.store.document()["ipa"] = "true";
@@ -982,8 +982,8 @@ TEST_F(LlmTest, Phase2AnExampleThatIsEmptyIsAnAnswerAndIsNotAskedForAgain)
     rig.manager.response            = envelope({plainWord("acronym")});
     rig.explain("acronym");
     EXPECT_EQ(rig.manager.posts, 1);
-    ASSERT_TRUE(rig.store.cacheGet("acronym", {"en", false})->example.has_value()) << "an asked-for but empty example was dropped as a miss";
-    EXPECT_TRUE(rig.store.cacheGet("acronym", {"en", false})->example->empty());
+    ASSERT_TRUE(rig.store.cacheGet("acronym", {"en", false}).value().example.has_value()) << "an asked-for but empty example was dropped as a miss";
+    EXPECT_TRUE(rig.store.cacheGet("acronym", {"en", false}).value().example->empty());
 
     rig.duty.dismissBubble();
     rig.explain("acronym");

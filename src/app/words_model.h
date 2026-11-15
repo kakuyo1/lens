@@ -50,7 +50,7 @@ class WordsModel : public QAbstractListModel {
     Q_PROPERTY(bool filterSwitching READ filterSwitching NOTIFY filterSwitchingChanged)
 public:
     /// The roles WordsListRow declares. Keep the names and the enum together.
-    enum Role {
+    enum Role : int {
         WordRole = Qt::UserRole + 1,
         DayRole,
         DateRole,
@@ -112,10 +112,10 @@ signals:
     void filterSwitchingChanged();
 
 private:
-    enum Filter { All      = 0,
-                  Known    = 1,
-                  Mastered = 2,
-                  New      = 3 };
+    enum Filter : int { All      = 0,
+                        Known    = 1,
+                        Mastered = 2,
+                        New      = 3 };
 
     static bool                 matches(WordRow const& row, int filter);
     static std::vector<WordRow> filtered(std::vector<WordRow> const& rows, int filter, QString const& query);

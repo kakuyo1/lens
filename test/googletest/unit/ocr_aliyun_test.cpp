@@ -115,9 +115,9 @@ TEST(OcrAliyun, TheImageIsTheBodyAndTheAnswerArrivesTwiceEncoded)
     EXPECT_EQ(result.geometryLevel, lens::capture::OcrGeometryLevel::Word);
     ASSERT_EQ(result.lines.size(), 2u);
     ASSERT_TRUE(result.lines[0].box.has_value());
-    EXPECT_DOUBLE_EQ(result.lines[0].box->x, 351);
+    EXPECT_DOUBLE_EQ(result.lines[0].box.value().x, 351);
     ASSERT_TRUE(result.confidence.has_value());
-    EXPECT_DOUBLE_EQ(result.confidence->average, 0.985);
+    EXPECT_DOUBLE_EQ(result.confidence.value().average, 0.985);
 
     ASSERT_EQ(transport->requests.size(), 1u);
     auto const& sent = transport->requests[0];
