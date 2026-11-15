@@ -70,6 +70,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/onboarding_test.cpp
   unit/update_pure_test.cpp
   unit/github_auth_test.cpp
+  unit/gist_client_test.cpp
   unit/explanation_cache_test.cpp
   unit/explanation_queue_test.cpp
   unit/explanation_exchange_test.cpp
