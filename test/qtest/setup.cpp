@@ -198,8 +198,13 @@ struct Singletons {
  */
 QString writableSettingsCopy()
 {
-    const QString target = QDir::temp().filePath(
-        QStringLiteral("lens-qtest-settings-%1.json").arg(QCoreApplication::applicationPid()));
+    // A profile directory, not a loose file in %TEMP%: TelemetryDuty puts its events beside the
+    // settings document, and a sharded run starts several test processes at once. A shared events
+    // file would be held open by another process and a clear could not remove it.
+    const QString profile = QDir::temp().filePath(QStringLiteral("lens-qtest-profile-%1").arg(QCoreApplication::applicationPid()));
+    QDir(profile).removeRecursively(); // a reused pid must not inherit an old run's event files
+    QDir().mkpath(profile);
+    const QString target = QDir(profile).filePath(QStringLiteral("settings.json"));
 
     // LENS_QA_SETTINGS replaces the fixture for one run, so a GIF can run in another explanation
     // language. It is copied like the fixture, so the run still writes only to this scratch copy.
