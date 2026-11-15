@@ -30,9 +30,14 @@
 # without flags would judge nothing useful, and the file is not part of any build -- a gap
 # the build jobs are the gate for, not this one.
 #
-# A change to .clang-tidy or to this script runs the whole tree instead of the diff: the
-# config is the one file whose correctness is every other file's question, and the shipped
-# list is only shippable because the tree it lands on is clean under it.
+# The gate runs the diff, never the tree by itself. LENS_TIDY_WHOLE_TREE=1 replaces the diff
+# with every TU the database names -- the audit a config change wants, run by hand. It used
+# to fire by itself whenever .clang-tidy or this script changed, on the ground that the
+# config is the one file whose correctness is every other file's question; the whole tree
+# costs over an hour on the CI runner (four cores against the tree's 276 TUs), so it became
+# a hand run. The property it protected holds without it: the shipped list is only shippable
+# because the tree passes it, and a diagnostic the config could name arrives on the change
+# that touched its file.
 #
 # Usage: scripts/quality/tidy.sh <base> [head]
 #   <base>  the commit the change is measured against; a base git cannot resolve falls back
@@ -117,10 +122,14 @@ fi
 
 # --- the file selection ------------------------------------------------------
 
-# Changed .cpp and .h under src/ and test/, plus every TU that includes a changed header.
+# The diff by default; LENS_TIDY_FILES is a test seam and LENS_TIDY_WHOLE_TREE the hand audit.
 if [ -n "${LENS_TIDY_FILES+x}" ]; then
     changed=$LENS_TIDY_FILES
+    whole_tree=
+elif [ -n "${LENS_TIDY_WHOLE_TREE:-}" ]; then
+    whole_tree=1
 else
+    whole_tree=
     if [ $# -eq 0 ]; then
         echo "tidy: usage: scripts/quality/tidy.sh <base> [head]  (or set LENS_TIDY_FILES)"
         exit 1
@@ -140,18 +149,8 @@ else
     fi
 fi
 
-files=
-config_change=
-for file in $changed; do
-    case "$file" in
-        .clang-tidy | scripts/quality/tidy.sh) config_change=1 ;;
-    esac
-    case "$file" in
-        src/*.cpp | src/*.h | test/*.cpp | test/*.h) files="$files $file" ;;
-    esac
-done
-
-if [ -n "$config_change" ]; then
+tus=
+if [ -n "$whole_tree" ]; then
     # The pattern clang-tidy matches against the database is the path as the database stores
     # it: backslash-separated inside its JSON strings. The sed halves the backslashes, tr
     # points them forward again. The tree's sources sit at any depth under src/ or test/ --
@@ -168,7 +167,13 @@ if [ -n "$config_change" ]; then
         | grep -vE "/$builddir/" \
         | grep -vE '/(third_party|\.qt|\.rcc|qmlcache|[^/]*_autogen)/' | sort -u)
 else
-    tus=
+    files=
+    for file in $changed; do
+        case "$file" in
+            src/*.cpp | src/*.h | test/*.cpp | test/*.h) files="$files $file" ;;
+        esac
+    done
+
     for file in $files; do
         case "$file" in
             *.cpp)
@@ -237,31 +242,36 @@ fi
 
 # --- the run -----------------------------------------------------------------
 
-# The whole tree is worth its parallelism; a diff usually is a handful of TUs and runs
-# sequentially, where the diagnostics read in one stream.
-if [ -n "$config_change" ]; then
-    out=${TMPDIR:-/tmp}/lens-tidy.$$
-    mkdir -p "$out"
-    printf '%s\n' $tus | xargs -P 8 -I{} sh -c \
-        '"$1" -p '"$db"' --quiet "{}" > "$2/$(echo "{}" | cksum | cut -c1-8).log" 2>&1' _ "$tidy" "$out" || true
-    rc=0
-    for log in "$out"/*.log; do
-        if grep -qE '^error:' "$log"; then
-            echo "tidy: violations in $(grep -oE 'Error while processing [^ ]+' "$log" | head -1 | cut -d' ' -f4)"
-            cat "$log"
-            rc=1
-        fi
-    done
-    rm -rf "$out"
-    [ "$rc" = "0" ] && echo "tidy: whole tree clean"
-    exit "$rc"
-fi
+# Every TU runs in parallel with its own log: a diff can name a widely included header, so the
+# TU list can reach most of the tree, and the CI runner has four cores. The gate judges a log
+# by its diagnostics rather than by clang-tidy's exit code, because the shapes that must fail
+# are not all visible there: a TU clang could not finish at all ("Error while processing") is a
+# judgement that was skipped, and a skipped judgement that passes is exactly what this gate
+# exists to refuse.
+#
+# Diagnostics carry a location and a check name in brackets ("D:\...\log.h:44:46: error: ...
+# [performance-enum-size,-warnings-as-errors]"); the tool's own failures ("error: no input
+# files") have neither. Both fail. The earlier whole-tree branch matched only the bare form,
+# which is why a tree full of findings could report itself clean.
 
+out=${TMPDIR:-/tmp}/lens-tidy.$$
+mkdir -p "$out"
+printf '%s\n' $tus | xargs -P 8 -I{} sh -c \
+    '"$1" -p '"$db"' --quiet "{}" > "$2/$(echo "{}" | cksum | cut -c1-8).log" 2>&1' _ "$tidy" "$out" || true
 rc=0
 for tu in $tus; do
-    if ! "$tidy" -p "$db" --quiet "$tu"; then
+    log="$out/$(echo "$tu" | cksum | cut -c1-8).log"
+    if [ ! -f "$log" ]; then
+        echo "tidy: no log for $tu; the run did not cover it"
+        rc=1
+        continue
+    fi
+    if grep -qE '(^error: |(^|: )(error|warning): .*\[[A-Za-z0-9_.-]+(,-[A-Za-z-]+)*\][[:space:]]*$)|^Error while processing' "$log"; then
+        echo "tidy: violations in $tu"
+        cat "$log"
         rc=1
     fi
 done
+rm -rf "$out"
 [ "$rc" = "0" ] && echo "tidy: $(echo $tus | wc -w) compilation units, clean"
 exit "$rc"
