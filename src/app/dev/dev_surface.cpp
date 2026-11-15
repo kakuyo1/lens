@@ -485,7 +485,7 @@ nlohmann::json DevSurface::injectScan(core::dev::Command const& command)
                 frame.visible.push_back({.id = span.id, .x = span.x, .y = span.y, .width = span.width, .height = span.height});
             for (auto const& word : command.scanFrame.added)
                 frame.added.push_back({.id = word.id, .text = word.text});
-            duty->debugScanFrame(std::move(frame));
+            duty->debugScanFrame(frame);
             return success();
         }
         case core::dev::ScanWhat::Clear:
@@ -618,7 +618,7 @@ bool DevSurface::conditionHolds(Waiting const& waiting) const
             return paintedCount(command.surface) > waiting.baseline;
         case core::dev::WaitFor::Seconds:
             // A hold has no condition to watch; the elapsed time is the whole answer.
-            return waited_.elapsed() >= command.waitSeconds * 1000;
+            return waited_.elapsed() >= static_cast<qint64>(command.waitSeconds) * 1000;
     }
     return false;
 }
