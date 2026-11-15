@@ -154,11 +154,19 @@ done
 if [ -n "$config_change" ]; then
     # The pattern clang-tidy matches against the database is the path as the database stores
     # it: backslash-separated inside its JSON strings. The sed halves the backslashes, tr
-    # points them forward again.
+    # points them forward again. The tree's sources sit at any depth under src/ or test/ --
+    # generated code (.qt/.rcc/qmlcache, autogen's mocs_compilation.cpp, the qmltype and plugin
+    # shims) and the vendored trees stay out. All of the generated ones live inside the build
+    # tree, whose name comes from the database, so a configure-only tree's unmaterialised names
+    # (and any new generated name CMake adds later) leave the list without being guessed one by
+    # one; the explicit _autogen arm keeps the common case readable.
+    builddir=$(dirname "$db")
     tus=$(grep -oE '"file": "[^"]+"' "$db" \
         | sed -e 's#^"file": "##' -e 's#"$##' -e 's#\\\\#/#g' \
         | tr '\\/' '//' \
-        | grep -E '/(src|test)/[^/]+\.cpp$' | grep -v '/third_party/' | sort -u)
+        | grep -E '/(src|test)/.*\.cpp$' \
+        | grep -vE "/$builddir/" \
+        | grep -vE '/(third_party|\.qt|\.rcc|qmlcache|[^/]*_autogen)/' | sort -u)
 else
     tus=
     for file in $files; do
