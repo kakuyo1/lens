@@ -26,8 +26,8 @@
 namespace lens::capture {
 namespace {
 
-constexpr qsizetype   kMaxOutput       = 4 * 1024 * 1024;
-constexpr qsizetype   kMaxError        = 64 * 1024;
+constexpr qsizetype   kMaxOutput       = static_cast<const qsizetype>(4 * 1024) * 1024;
+constexpr qsizetype   kMaxError        = static_cast<const qsizetype>(64) * 1024;
 constexpr qsizetype   kMaxTextUnits    = 65536;
 constexpr qsizetype   kMaxBlocks       = 2000;
 constexpr qint64      kMaxTrustedBytes = 64LL * 1024 * 1024;
@@ -166,7 +166,7 @@ struct RapidOcrEngine final : OcrEngine {
             return failure(status, request.requestId, ocrLanguageKey(request.language.value_or(config.language)), static_cast<int>(total.elapsed()));
         };
         if (request.image.isNull()) return finish(OcrStatus::InvalidImage);
-        if (request.image.width() > 8192 or request.image.height() > 8192 or request.image.sizeInBytes() > 128 * 1024 * 1024)
+        if (request.image.width() > 8192 or request.image.height() > 8192 or request.image.sizeInBytes() > static_cast<qsizetype>(128 * 1024) * 1024)
             return finish(OcrStatus::InputTooLarge);
         if (cancel and cancel->load(std::memory_order_relaxed)) return finish(OcrStatus::Cancelled);
 

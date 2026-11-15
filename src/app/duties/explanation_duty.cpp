@@ -105,7 +105,7 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
     }
 }
 
-void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> results, llm::Usage const usage)
+void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> const& results, llm::Usage const& usage)
 {
     // The client answers the model-list fetch through the same signal, and that is not an
     // explanation anybody asked for.
@@ -179,7 +179,7 @@ QString ExplanationDuty::signpostOf(QString const& lemma) const
     return exchange_.signpostOf(lemma);
 }
 
-void ExplanationDuty::runSelectionAction(QString action, QString text)
+void ExplanationDuty::runSelectionAction(QString const& action, QString const& text) // NOLINT(bugprone-easily-swappable-parameters): runSelectionAction takes its 2 QString arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const& pending = exchange_.selection();
     if (pending.text.isEmpty()) {
@@ -218,7 +218,7 @@ void ExplanationDuty::runSelectionAction(QString action, QString text)
     explain(selection);
 }
 
-void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor, QSize const anchorSize)
+void ExplanationDuty::reviewWord(QString const& lemma, QPoint const anchor, QSize const anchorSize)
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
@@ -272,7 +272,7 @@ void ExplanationDuty::holdReviewCard(bool const on)
         clearBubble();
 }
 
-void ExplanationDuty::explainLemma(QString lemma)
+void ExplanationDuty::explainLemma(QString const& lemma)
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
@@ -282,7 +282,7 @@ void ExplanationDuty::explainLemma(QString lemma)
     explain(pending);
 }
 
-void ExplanationDuty::explainTypedWord(QString lemma, QPoint const anchor, QSize const anchorSize)
+void ExplanationDuty::explainTypedWord(QString const& lemma, QPoint const anchor, QSize const anchorSize)
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty()) return;
@@ -290,7 +290,7 @@ void ExplanationDuty::explainTypedWord(QString lemma, QPoint const anchor, QSize
     explain(pending);
 }
 
-void ExplanationDuty::explainChainWord(QString lemma)
+void ExplanationDuty::explainChainWord(QString const& lemma)
 {
     const QString value = lemma.trimmed();
     if (value.isEmpty())
@@ -299,7 +299,7 @@ void ExplanationDuty::explainChainWord(QString lemma)
         askChainStep(*step);
 }
 
-void ExplanationDuty::askChainStep(PendingSelection pending)
+void ExplanationDuty::askChainStep(PendingSelection const& pending)
 {
     // Out of budget with nothing stored: explain() would drop the step without a word, and the card would
     // wait on it for ever. Say so, and the card shows the failure where the answer would have gone.
@@ -346,7 +346,7 @@ void ExplanationDuty::requestPeek()
     }
 }
 
-void ExplanationDuty::onPeekAnswered(QString const& lemma, QString const& line, llm::Usage const usage)
+void ExplanationDuty::onPeekAnswered(QString const& lemma, QString const& line, llm::Usage const& usage)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
     if (auto const shown = exchange_.card().peekAnswered(lemma, line, exchange_.readerContext()))
@@ -387,7 +387,7 @@ void ExplanationDuty::ensureNextSense()
         llm_.nextSenseWord(step.lemma, step.lemma + QLatin1Char('\n') + step.known.join(QLatin1Char('\n')), step.language);
 }
 
-void ExplanationDuty::onNextSenseAnswered(QString const& lemma, llm::Explanation const& answer, llm::Usage const usage)
+void ExplanationDuty::onNextSenseAnswered(QString const& lemma, llm::Explanation const& answer, llm::Usage const& usage)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
     const auto outcome = exchange_.card().senseAnswered(lemma, answer, usage, exchange_.readerContext());
@@ -469,7 +469,7 @@ void ExplanationDuty::correct(PendingSelection const& pending, QString const& pr
         llm_.correctGrammar(pending.text);
 }
 
-void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel const channel, QString const& corrected, llm::Usage const usage, QString const& failure)
+void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel const channel, QString const& corrected, llm::Usage const& usage, QString const& failure)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
     // The answer belongs to the card standing on this text and no other, as the breakdown's does.
@@ -517,7 +517,7 @@ void ExplanationDuty::showCorrection(PendingSelection const& selection, QString 
         emit petEvent(core::pet::PetEvent::ExplanationShown);
 }
 
-void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage const usage, QString const& failure)
+void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage const& usage, QString const& failure)
 {
     cost_.recordUsage(nowMinute().toStdString(), usage);
     // The answer belongs to the card standing on this sentence and to nothing else: the reader may have
@@ -861,7 +861,7 @@ void ExplanationDuty::clearBubble()
     emit petEvent(core::pet::PetEvent::ExplanationHidden);
 }
 
-void ExplanationDuty::mark(QString lemma, QString verdict)
+void ExplanationDuty::mark(QString const& lemma, QString const& verdict)
 {
     // An empty lemma is never a word: the mark button's tap can outlive the word it aimed at,
     // because the scan tears its layer down mid-press. A verdict on "" would sit in the store as

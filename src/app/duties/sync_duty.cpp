@@ -88,7 +88,7 @@ core::sync::Hooks SyncDuty::roundHooks()
 {
     core::sync::Hooks hooks;
     hooks.changed  = [this] { emit stateChanged(); };
-    hooks.error    = [this](std::string code) { setError(QString::fromStdString(code)); };
+    hooks.error    = [this](std::string const& code) { setError(QString::fromStdString(code)); };
     hooks.finished = [this](bool succeeded) {
         retry_.stop();
         if (succeeded)
@@ -116,7 +116,7 @@ QString SyncDuty::provider() const
     return QString::fromStdString(partition_.provider());
 }
 
-void SyncDuty::useProvider(QString provider)
+void SyncDuty::useProvider(QString const& provider)
 {
     if (provider.toStdString() == partition_.provider())
         return;
@@ -187,7 +187,7 @@ void SyncDuty::cancelLogin()
     backend_->cancelLogin();
 }
 
-void SyncDuty::setPassphrase(QString passphrase)
+void SyncDuty::setPassphrase(QString const& passphrase)
 {
     if (passphrase.isEmpty()) {
         setError(QStringLiteral("passphrase"));
@@ -227,7 +227,7 @@ void SyncDuty::deleteCloudData()
 // newline would otherwise sit in the credential and be refused as part of it (the OCR credential
 // writer trims for the same reason).
 
-void SyncDuty::setWebdavServer(QString server)
+void SyncDuty::setWebdavServer(QString const& server)
 {
     partition_.setServer(server.trimmed().toStdString());
     // The verdict answered the old credentials; a changed field takes the line back down.
@@ -236,7 +236,7 @@ void SyncDuty::setWebdavServer(QString server)
     emit stateChanged();
 }
 
-void SyncDuty::setWebdavUsername(QString username)
+void SyncDuty::setWebdavUsername(QString const& username)
 {
     partition_.setUsername(username.trimmed().toStdString());
     webdavConnected_ = false;
@@ -244,7 +244,7 @@ void SyncDuty::setWebdavUsername(QString username)
     emit stateChanged();
 }
 
-void SyncDuty::setWebdavAppPassword(QString appPassword)
+void SyncDuty::setWebdavAppPassword(QString const& appPassword)
 {
     partition_.setAppPassword(appPassword.trimmed().toStdString());
     webdavConnected_ = false;

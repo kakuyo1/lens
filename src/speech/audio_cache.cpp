@@ -76,7 +76,7 @@ std::optional<QByteArray> AudioCache::load(QString const& key) const
     // be the first thing the next prune threw away.
     std::error_code error;
     std::filesystem::last_write_time(file, std::filesystem::file_time_type::clock::now(), error);
-    return bytes;
+    return bytes; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 }
 
 bool AudioCache::store(QString const& key, QByteArray const& bytes) const

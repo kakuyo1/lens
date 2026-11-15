@@ -203,7 +203,7 @@ struct TencentClientImpl final : OnlineOcrClient {
 
 QString tc3Authorization(QUrl const&       endpoint,
                          QByteArray const& body,
-                         QString const&    secretId,
+                         QString const&    secretId, // NOLINT(bugprone-easily-swappable-parameters): tc3Authorization takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
                          QString const&    secretKey,
                          qint64            timestampSeconds)
 {

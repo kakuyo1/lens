@@ -42,14 +42,14 @@ std::chrono::steady_clock::time_point at(std::chrono::seconds since)
 }
 
 /// @return An offer whose weight for the afternoon is @p weight; the tests draw at 12:00, which is the afternoon.
-PetStage::Offer offerOf(std::string name, double weight, double favour = 1.0)
+PetStage::Offer offerOf(std::string name, double weight, double favour = 1.0) // NOLINT(bugprone-easily-swappable-parameters): offerOf takes its 2 double arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto mood      = SceneMood{};
     mood.afternoon = weight;
     return PetStage::Offer{std::move(name), mood, favour};
 }
 
-SceneEntry entryOf(SceneEntryStyle style, int prepMs, int moveMs, int propMs)
+SceneEntry entryOf(SceneEntryStyle style, int prepMs, int moveMs, int propMs) // NOLINT(bugprone-easily-swappable-parameters): entryOf takes its 3 int arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto entry     = SceneEntry{};
     entry.style    = style;

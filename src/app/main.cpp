@@ -212,7 +212,7 @@ void releaseHiddenSurfaces(QObject* root)
 
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
 {
     // Crash forensics before anything that could crash the process. The log directory is
     // resolved here, before QStandardPaths has an application object to ask (app/paths.h): an
@@ -334,7 +334,7 @@ int main(int argc, char* argv[])
             return lens::llm::Pricing::load(dataDir / "llm" / "pricing.json");
         } catch (const std::exception& e) {
             // A missing price list costs the cost surfaces their figures and nothing else.
-            LENS_ERROR("costs will read as zero: {}", e.what());
+            LENS_ERROR("costs will read as zero: {}", e.what()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             return lens::llm::Pricing{};
         }
     }();
@@ -363,7 +363,7 @@ int main(int argc, char* argv[])
     lens::app::pet::PetController::provide(&petController);
     QObject::connect(&controller, &AppController::petEvent, &petController, &lens::app::pet::PetController::handle);
     controller.bindPet(&petController);
-    QObject::connect(&petController, &lens::app::pet::PetController::fellBack, &controller, [&controller](QString title, QString body) {
+    QObject::connect(&petController, &lens::app::pet::PetController::fellBack, &controller, [&controller](QString const& title, QString const& body) {
         controller.explanationDuty()->showNotice(title, body, QString::fromLatin1(lens::app::kNoticeInfo));
     });
 
@@ -411,7 +411,7 @@ int main(int argc, char* argv[])
         engine.retranslate();
     });
 
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, [] { LENS_CRITICAL("the QML surfaces failed to load"); QCoreApplication::exit(1); }, Qt::QueuedConnection);
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, [] { LENS_CRITICAL("the QML surfaces failed to load"); QCoreApplication::exit(1); }, Qt::QueuedConnection); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
 
     engine.loadFromModule("Lens", "Main");
     if (engine.rootObjects().isEmpty())

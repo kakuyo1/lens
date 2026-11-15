@@ -153,7 +153,7 @@ GithubAuth::GithubAuth(QNetworkAccessManager* manager, QObject* parent)
     // The code's lifetime is GitHub's, not ours: when it runs out, sign-in is over whatever the
     // last poll said.
     connect(expiryTimer_, &QTimer::timeout, this, [this] {
-        LENS_INFO("the device code expired before the reader approved");
+        LENS_INFO("the device code expired before the reader approved"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         fail(AuthFailure::Expired);
     });
 }

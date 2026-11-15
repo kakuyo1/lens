@@ -52,7 +52,7 @@ TEST(UtilText, FoldsAsciiCaseAndLeavesOtherBytesAlone)
 
 TEST(UtilText, DecodesWellFormedUtf8)
 {
-    const auto check = [](std::string_view text, std::vector<char32_t> expected) {
+    const auto check = [](std::string_view text, std::vector<char32_t> const& expected) {
         auto const points = lens::util::decodeUtf8(text);
         ASSERT_TRUE(points) << text;
         EXPECT_EQ(*points, expected) << text;

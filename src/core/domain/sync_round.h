@@ -177,7 +177,7 @@ private:
     void uploaded();
     void succeed();
     /// @brief End a failed run, arming the backoff when it can clear by itself.
-    void fail(std::string code);
+    void fail(std::string const& code);
     void end(bool succeeded);
     void notifyChanged();
 

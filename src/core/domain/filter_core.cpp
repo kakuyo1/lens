@@ -516,7 +516,7 @@ std::string lemmatize(std::string_view token)
     LENS_PROFILE_SCOPE("lemmatize"); // entered once per token, so watch the timer cost
 
     const std::string t = util::asciiLower(token);
-    if (keepAsIs().count(t) != 0) return t;
+    if (keepAsIs().count(t) != 0) return t; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 
     // A loaded irregular is authoritative and does not enter the frequency comparison
     // below: children outranks child in the word list, so comparing would pick children
@@ -547,7 +547,7 @@ std::string lemmatize(std::string_view token)
     std::vector<std::string> cands = suffixForms(t, false);
     if (inTable(t)) cands.push_back(t);
 
-    if (cands.empty()) return t; // not in the list; the caller's whitelist stage drops it
+    if (cands.empty()) return t; // not in the list; the caller's whitelist stage drops it // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 
     const std::string* best     = &cands.front();
     std::size_t        bestRank = rankOf(*best);
@@ -571,7 +571,7 @@ std::string baseFormOf(std::string_view token)
         throw std::logic_error("lens::core::baseFormOf: loadWordlist() must run first");
 
     const std::string t = util::asciiLower(token);
-    if (keepAsIs().count(t) != 0) return t;
+    if (keepAsIs().count(t) != 0) return t; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 
     // The irregular table is morphology, not fashion: better is good's form whatever the list
     // ranks. Several bases (good / well) settle by the same tie-break as lemmatize(), for one

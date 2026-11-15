@@ -101,7 +101,7 @@ struct WordCache {
  * @note Deliberately Qt-free: it parses JSON with nlohmann/json, so the core test targets can link it
  *       into an offline self-check with no Qt and no network.
  */
-class KnownStore {
+class KnownStore { // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
 public:
     /// @brief The difficulty a document that names none starts at (CET-4).
     static constexpr int kDefaultLevel = 2;

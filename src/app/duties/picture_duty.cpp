@@ -86,7 +86,7 @@ QVariantMap PictureDuty::pictures() const
                        {QStringLiteral("fallback"), query_.isEmpty() ? QString{} : pictures::imageSearchUrl(query_)}};
 }
 
-void PictureDuty::request(QString query)
+void PictureDuty::request(QString const& query)
 {
     const QString trimmed = query.trimmed();
     if (trimmed.isEmpty()) {
@@ -155,7 +155,7 @@ void PictureDuty::clearCache()
     emit cacheBytesChanged();
 }
 
-void PictureDuty::openPage(QString url)
+void PictureDuty::openPage(QString const& url)
 {
     const QUrl target{url};
     // Only https: the page is a link the browser opens, and a malformed answer must not turn the
@@ -221,7 +221,7 @@ void PictureDuty::nextThumbnail(const std::shared_ptr<Fetch>& fetch, int index)
     });
 }
 
-void PictureDuty::settle(std::shared_ptr<Fetch> fetch)
+void PictureDuty::settle(std::shared_ptr<Fetch> fetch) // NOLINT(performance-unnecessary-value-param): the deadline hands over live_ itself; this body releases it, so a reference would dangle
 {
     // One settle per lookup: the deadline and the last download can both arrive at it.
     if (fetch->finished)

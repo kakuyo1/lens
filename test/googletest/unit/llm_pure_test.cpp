@@ -1168,7 +1168,7 @@ TEST(SseFraming, ReassemblesAUtf8CharacterSplitAcrossReads)
 {
     const QByteArray frame = QByteArrayLiteral("data: ") + QStringLiteral("{\"word\":\"无限\"}").toUtf8() +
                              QByteArrayLiteral("\n\n");
-    const int at = frame.indexOf(QStringLiteral("无").toUtf8());
+    const int at = static_cast<int>(frame.indexOf(QStringLiteral("无").toUtf8()));
     ASSERT_GE(at, 0);
 
     QByteArray buffer = frame.left(at + 2); // two bytes of a three-byte character
@@ -1315,7 +1315,7 @@ TEST(PartialExplanation, NeverStandsInForTheWholeResponseCheck)
 
 namespace {
 
-QByteArray sseEvent(QString const& content, QString const& finish = {}, QJsonObject const& usage = {})
+QByteArray sseEvent(QString const& content, QString const& finish = {}, QJsonObject const& usage = {}) // NOLINT(bugprone-easily-swappable-parameters): sseEvent takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     QJsonObject choice{{"delta", QJsonObject{{"content", content}}}};
     choice.insert(QStringLiteral("finish_reason"), finish.isEmpty() ? QJsonValue() : QJsonValue(finish));

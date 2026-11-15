@@ -125,7 +125,7 @@ struct Fixture {
     {
     }
 
-    ~Fixture()
+    ~Fixture() // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     {
         std::filesystem::remove(path);
     }
@@ -175,10 +175,10 @@ struct Direct {
 };
 
 /// @brief Carry one request and wait for its answer, whatever it turns out to be.
-lens::core::sync::Answer asked(Direct& direct, lens::core::sync::Request request)
+lens::core::sync::Answer asked(Direct& direct, lens::core::sync::Request const& request)
 {
     std::optional<lens::core::sync::Answer> got;
-    direct.transport.send(std::move(request), [&got](lens::core::sync::Answer const& answer) { got = answer; });
+    direct.transport.send(request, [&got](lens::core::sync::Answer const& answer) { got = answer; });
     EXPECT_TRUE(spinUntil([&got] { return got.has_value(); }));
     return got.value_or(lens::core::sync::Answer{});
 }
@@ -383,7 +383,7 @@ TEST(SyncTransportDirect, ARefusalCarriesTheKindTheRoundReads)
     request.token  = "access-1";
     request.gistId = "gist-1";
     std::optional<lens::core::sync::Answer> got;
-    direct.transport.send(std::move(request), [&got](lens::core::sync::Answer const& answer) { got = answer; });
+    direct.transport.send(request, [&got](lens::core::sync::Answer const& answer) { got = answer; });
     ASSERT_TRUE(spinUntil([&] {
         for (auto* reply : direct.manager.findChildren<QNetworkReply*>())
             if (not reply->isFinished())

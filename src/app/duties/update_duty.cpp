@@ -41,9 +41,9 @@ UpdateDuty::UpdateDuty(StorageDuty&            storage,
             return QProcess::startDetached(path, arguments);
         };
     }
-    connect(&client_, &update::UpdateClient::finished, this, [this](update::Release release) {
+    connect(&client_, &update::UpdateClient::finished, this, [this](update::Release const& release) {
         inFlight_ = false;
-        applyResult(std::move(release), manual_);
+        applyResult(release, manual_);
     });
     connect(&client_, &update::UpdateClient::offline, this, [this] {
         inFlight_ = false;
@@ -82,7 +82,7 @@ UpdateDuty::UpdateDuty(StorageDuty&            storage,
         // Only a download the reader asked for can fail as one. The checksum list is read without
         // the reader's asking, so its failure is logged and the card keeps View only.
         if (download_.stage != update::DownloadStage::Downloading and download_.stage != update::DownloadStage::Verifying) {
-            LENS_WARN("the checksum list could not be read; the card keeps View only");
+            LENS_WARN("the checksum list could not be read; the card keeps View only"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             return;
         }
         deletePartial();
@@ -455,7 +455,7 @@ void UpdateDuty::cancelDownload()
     LENS_INFO("the update download was cancelled");
 }
 
-void UpdateDuty::onSumsReady(QByteArray sums)
+void UpdateDuty::onSumsReady(QByteArray const& sums)
 {
     // A list is only for the version it was asked for. A newer answer may have asked for another
     // one since, and that list is then not this card's list: it is ignored, and the one for the
@@ -484,10 +484,10 @@ void UpdateDuty::onSumsReady(QByteArray sums)
     }
 }
 
-void UpdateDuty::onInstallerReady(QString path)
+void UpdateDuty::onInstallerReady(QString const& path)
 {
     resetDownload(update::DownloadStage::Verifying);
-    if (path.isEmpty() or download_.list.digest.empty()) {
+    if (path.isEmpty() or download_.list.digest.empty()) { // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
         deletePartial();
         failDownload(QStringLiteral("checksum"));
         return;
@@ -506,7 +506,7 @@ void UpdateDuty::onInstallerReady(QString path)
     // One chunk per turn of the event loop, not the whole file in this call: the card has to be
     // able to paint the verifying state, and its Cancel has to be able to answer before the
     // check is over.
-    QMetaObject::invokeMethod(this, &UpdateDuty::verifyStep, Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, &UpdateDuty::verifyStep, Qt::QueuedConnection); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
 }
 
 void UpdateDuty::verifyStep()
@@ -515,10 +515,10 @@ void UpdateDuty::verifyStep()
         return;
 
     // A megabyte per turn keeps each turn short enough that a click lands between them.
-    constexpr qint64 turnBytes = 1024 * 1024;
+    constexpr qint64 turnBytes = static_cast<const qint64>(1024) * 1024;
     qint64           read      = 0;
     while (read < turnBytes) {
-        const QByteArray chunk = verifyFile_.read(qMin<qint64>(64 * 1024, turnBytes - read));
+        const QByteArray chunk = verifyFile_.read(qMin<qint64>(static_cast<const long long>(64) * 1024, turnBytes - read));
         if (chunk.isEmpty())
             break;
         verifyHash_.addData(chunk);

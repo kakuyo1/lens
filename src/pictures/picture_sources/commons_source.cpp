@@ -18,8 +18,8 @@ namespace {
 
 /// One search is a small JSON answer; a thumbnail is a picture. Both ceilings are generous for what
 /// they carry and small enough that a hostile or broken answer cannot fill the disk.
-constexpr qint64 kMaxSearchBytes = 2 * 1024 * 1024;
-constexpr qint64 kMaxThumbBytes  = 2 * 1024 * 1024;
+constexpr qint64 kMaxSearchBytes = static_cast<const qint64>(2 * 1024) * 1024;
+constexpr qint64 kMaxThumbBytes  = static_cast<const qint64>(2 * 1024) * 1024;
 constexpr int    kTimeoutMs      = 4000;
 
 /// The API asks for at most this many candidates; the filter keeps at most three of them.
@@ -78,12 +78,12 @@ void CommonsSource::search(QString const& query, PictureSink sink)
         if (reply->error() != QNetworkReply::NoError or status != 200) {
             // A status is an answer whatever it says, and the transport's own words never reach a
             // surface: the duty names this class with a fixed sentence.
-            LENS_WARN("the picture search did not answer: HTTP {} (error {})", status, static_cast<int>(reply->error()));
+            LENS_WARN("the picture search did not answer: HTTP {} (error {})", status, static_cast<int>(reply->error())); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             sink({}, false);
             return;
         }
         const auto pictures = parseCommonsSearch(reply->readAll());
-        LENS_TRACE("the picture search returned {} usable picture(s)", pictures.size());
+        LENS_TRACE("the picture search returned {} usable picture(s)", pictures.size()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         sink(pictures, true);
     });
 }

@@ -99,7 +99,7 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
     QObject::connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
     QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage receivedUsage) {
         results = std::move(received);
-        usage   = receivedUsage;
+        usage   = std::move(receivedUsage);
         loop.quit();
     });
     QObject::connect(&client, &LlmClient::failed, &loop, [&](QString message) {
@@ -411,7 +411,7 @@ TEST_F(LlmTest, SendsTheMultipleSenseRequestAndCapsItsSenses)
     QVector<Explanation> results;
     QString              failure;
     QEventLoop           loop;
-    QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage) {
+    QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage const&) {
         results = std::move(received);
         loop.quit();
     });
@@ -455,7 +455,7 @@ TEST_F(LlmTest, KeepsOneSenseWhenTheSenseFlagIsOff)
 
     QVector<Explanation> results;
     QEventLoop           loop;
-    QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage) {
+    QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage const&) {
         results = std::move(received);
         loop.quit();
     });
@@ -476,7 +476,7 @@ TEST_F(LlmTest, RefusesAnEmptyBatchWithoutPosting)
     LlmClient     client(stubConfig(), &manager);
 
     QString failure;
-    QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = message; });
+    QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = std::move(message); });
     client.explainWords(ExplainRequest{});
 
     EXPECT_TRUE(failure.contains("nothing to look up")) << failure.toStdString();
@@ -492,7 +492,7 @@ TEST_F(LlmTest, RefusesToPostWithoutAnApiKey)
     LlmClient     client(stubConfig(QString()), &manager);
 
     QString failure;
-    QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = message; });
+    QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = std::move(message); });
     client.explainWords(ExplainRequest{.words = {QStringLiteral("ubiquitous")}});
 
     EXPECT_TRUE(failure.contains("API key is missing")) << failure.toStdString();
@@ -571,7 +571,7 @@ private:
 
 /// @return One SSE event carrying @p content, a finish reason and optionally a usage object, as
 ///         an OpenAI-compatible endpoint writes it.
-QByteArray sseEvent(QString const& content, QString const& finishReason = {}, QJsonObject const& usage = {})
+QByteArray sseEvent(QString const& content, QString const& finishReason = {}, QJsonObject const& usage = {}) // NOLINT(bugprone-easily-swappable-parameters): sseEvent takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     QJsonObject choice{{"delta", QJsonObject{{"content", content}}}};
     choice.insert(QStringLiteral("finish_reason"), finishReason.isEmpty() ? QJsonValue() : QJsonValue(finishReason));
@@ -608,7 +608,7 @@ TEST_F(LlmTest, StreamsTheAnswerAsItArrivesAndFinishesWithTheValidatedOne)
     QObject::connect(&client, &LlmClient::batchFinished, &manager, [&](QVector<Explanation> results, Usage received) {
         previewsAtFinish = previews.size();
         finished         = std::move(results);
-        usage            = received;
+        usage            = std::move(received);
     });
 
     QEventLoop loop;
@@ -646,7 +646,7 @@ TEST_F(LlmTest, EndsAStreamThatStoppedShortInTheFailureNotice)
     LlmClient        client(stubConfig(), &manager);
 
     int batchFinished = 0;
-    QObject::connect(&client, &LlmClient::batchFinished, [&](QVector<Explanation>, Usage) { ++batchFinished; });
+    QObject::connect(&client, &LlmClient::batchFinished, [&](QVector<Explanation> const&, Usage const&) { ++batchFinished; });
 
     const QString failure = runToFailure(client, {QStringLiteral("ubiquitous")});
 

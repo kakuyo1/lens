@@ -31,7 +31,7 @@ struct Playback {
 };
 
 /// @return Every tick's answer until the trip ends or `limit` passes.
-std::vector<Playback> drive(PetTaskbar& trip, std::chrono::milliseconds limit = 30s, std::chrono::milliseconds tick = 16ms)
+std::vector<Playback> drive(PetTaskbar& trip, std::chrono::milliseconds limit = 30s, std::chrono::milliseconds tick = 16ms) // NOLINT(bugprone-easily-swappable-parameters): drive takes its 2 std::chrono::milliseconds arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto answers = std::vector<Playback>{};
     for (auto elapsed = 0ms; elapsed < limit and trip.active(); elapsed += tick) {

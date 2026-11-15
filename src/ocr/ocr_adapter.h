@@ -26,7 +26,7 @@ namespace lens::ocr {
 inline constexpr std::size_t kOcrMaxLines           = 2000;
 inline constexpr std::size_t kOcrMaxWords           = 20000;
 inline constexpr std::size_t kOcrMaxTextUnits       = 65536;
-inline constexpr std::size_t kOcrMaxStructuredBytes = 4 * 1024 * 1024;
+inline constexpr std::size_t kOcrMaxStructuredBytes = static_cast<long long>(4 * 1024) * 1024;
 
 /// @brief What an HTTP status means when it means the same thing at every service.
 struct OcrHttpStatus {
@@ -53,11 +53,11 @@ struct OcrImageLimits {
  * The one preflight of the provider table: a consented source, a usable configuration, a readable
  * image inside the service's bounds, no cancellation, and a deadline still open.
  */
-std::optional<capture::OcrResult> refuseOcrRequest(capture::OcrRequest const&        request,
-                                                   QString const&                    engine,
-                                                   OcrImageLimits const&             limits,
-                                                   std::shared_ptr<std::atomic_bool> cancel,
-                                                   bool                              configurationUsable);
+std::optional<capture::OcrResult> refuseOcrRequest(capture::OcrRequest const&               request,
+                                                   QString const&                           engine,
+                                                   OcrImageLimits const&                    limits,
+                                                   std::shared_ptr<std::atomic_bool> const& cancel,
+                                                   bool                                     configurationUsable);
 
 /// @return The failure @p response's transport outcome stands for, or nothing when a complete
 ///         response arrived and the status may still decide.

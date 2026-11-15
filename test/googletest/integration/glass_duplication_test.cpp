@@ -75,7 +75,7 @@ BOOL CALLBACK collectMonitor(HMONITOR monitor, HDC, LPRECT, LPARAM const data)
     auto info   = MONITORINFOEXW{};
     info.cbSize = sizeof(info);
     if (GetMonitorInfoW(monitor, &info) == FALSE) return TRUE;
-    auto& list = *reinterpret_cast<std::vector<Monitor>*>(data);
+    auto& list = *reinterpret_cast<std::vector<Monitor>*>(data); // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
     list.push_back(Monitor{
         QString::fromWCharArray(info.szDevice),
         QRect(info.rcMonitor.left, info.rcMonitor.top, info.rcMonitor.right - info.rcMonitor.left, info.rcMonitor.bottom - info.rcMonitor.top),

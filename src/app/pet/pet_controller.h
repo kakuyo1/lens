@@ -140,7 +140,7 @@ public:
      *         an installed package, an unknown id, or a folder that will not load. Read once and kept until the next
      *         rescan drops it.
      */
-    QVariantMap portrait(QString id);
+    QVariantMap portrait(QString const& id);
     /// @return Every installed package that was refused, as {id, reason}. The reason is the Refusal name, such as "BadName".
     QVariantList refusals() const;
     QString      action() const;
@@ -188,10 +188,10 @@ public:
     Q_INVOKABLE void setPreviewing(bool on);
     /// @brief Shows an action in place of the machine's, from its first frame. Ignored for an unknown name.
     /// @param action Name in animations.json, such as "celebrate".
-    Q_INVOKABLE void preview(QString action);
+    Q_INVOKABLE void preview(QString const& action);
     /// @brief Plays a scene now, for its duration, then back to idle. Ignored for a name this pet has no scene for.
     /// @param id A scene id from scenes(), such as "swing".
-    Q_INVOKABLE void setScene(QString id);
+    Q_INVOKABLE void setScene(QString const& id);
     Q_INVOKABLE void dragStart();
     Q_INVOKABLE void dragEnd();
     /**
@@ -209,15 +209,15 @@ public:
     /// @brief Turns the eyes toward the review sign, or the open card, while a question is up (ADR 0097).
     ///        The sign chooses its side from the room on screen, so only the direction travels, never the word.
     /// @param side "left" or "right" while the sign or its card is visible; empty clears the look.
-    Q_INVOKABLE void setReviewLook(QString side);
+    Q_INVOKABLE void setReviewLook(QString const& side);
     /// @param id Id of an accessory in the catalogue; puts it on, takes it off, or swaps it in its slot.
-    Q_INVOKABLE void toggleAccessory(QString id);
+    Q_INVOKABLE void toggleAccessory(QString const& id);
     /// @brief Chooses a pet from pets(). An installed one the reader has not confirmed is not switched to: confirmationRequested
     ///        is emitted instead, and confirmPet() completes the choice.
     /// @param id A folder name from pets(). Anything else is ignored.
-    void setPet(QString id);
+    void setPet(QString const& id);
     /// @brief Records the reader's confirmation of an installed pet, and switches to it.
-    void confirmPet(QString id);
+    void confirmPet(QString const& id);
     /// @brief Re-reads both folders when their stamp moved since the last read, which is what the settings ask each time
     ///        the extensions section opens. An unchanged pair of folders keeps the catalogue, so opening the section
     ///        costs one stamp over the folders instead of a whole check of every pet (docs/adr/0169). A chosen pet that

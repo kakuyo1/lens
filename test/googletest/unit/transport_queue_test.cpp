@@ -43,8 +43,8 @@ TEST(TransportQueue, OneRequestGoesOutAtATime)
 {
     FakeTransport    queue;
     std::vector<int> answered;
-    queue.send(Request{.kind = Request::Kind::List}, [&](Answer) { answered.push_back(1); });
-    queue.send(Request{.kind = Request::Kind::Read}, [&](Answer) { answered.push_back(2); });
+    queue.send(Request{.kind = Request::Kind::List}, [&](Answer const&) { answered.push_back(1); });
+    queue.send(Request{.kind = Request::Kind::Read}, [&](Answer const&) { answered.push_back(2); });
     ASSERT_EQ(queue.dispatched.size(), 1u) << "the second request waits for the first answer";
 
     queue.deliver(queue.dispatched[0]);
@@ -59,7 +59,7 @@ TEST(TransportQueue, AnAnswerCarryingAnotherIdIsDropped)
 {
     FakeTransport queue;
     int           answered = 0;
-    queue.send(Request{}, [&](Answer) { ++answered; });
+    queue.send(Request{}, [&](Answer const&) { ++answered; });
     const auto callId = queue.dispatched.front();
 
     queue.deliver(callId + 1);
@@ -74,7 +74,7 @@ TEST(TransportQueue, AnAnswerAfterCompletionIsDropped)
 {
     FakeTransport queue;
     int           answered = 0;
-    queue.send(Request{}, [&](Answer) { ++answered; });
+    queue.send(Request{}, [&](Answer const&) { ++answered; });
     const auto callId = queue.dispatched.front();
 
     queue.deliver(callId);
@@ -98,6 +98,6 @@ TEST(TransportQueue, ACallThatAnswersBeforeReturningStillReachesTheFront)
 
     ImmediateTransport queue;
     int                answered = 0;
-    queue.send(Request{}, [&](Answer) { ++answered; });
+    queue.send(Request{}, [&](Answer const&) { ++answered; });
     EXPECT_EQ(answered, 1);
 }

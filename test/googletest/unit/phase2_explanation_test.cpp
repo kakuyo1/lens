@@ -53,7 +53,7 @@ QJsonObject word(int const count = 3, QString const& translation = QStringLitera
     return {{"word", "bank"}, {"ipa", "/bank/"}, {"senses", senses}};
 }
 
-QJsonObject plainWord(QString const& lemma, QString const& etymology = {}, QString const& example = {})
+QJsonObject plainWord(QString const& lemma, QString const& etymology = {}, QString const& example = {}) // NOLINT(bugprone-easily-swappable-parameters): plainWord takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     QJsonObject value{{"word", lemma}, {"ipa", "/x/"}, {"en", "English"}, {"zh", "中文"}};
     if (not etymology.isEmpty()) value["etymology"] = etymology;
@@ -1213,7 +1213,7 @@ TEST_F(LlmTest, Phase2DefaultsToOneSenseAndQueuesTheLatestRequestedMode)
     rig.store.setExplanationLang("es");
     QEventLoop loop;
     int        responses = 0;
-    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, [&](auto, llm::Usage const usage) {
+    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, [&](auto const&, llm::Usage const& usage) {
         EXPECT_EQ(usage.model, "test-model");
         if (++responses == 2) loop.quit();
     });

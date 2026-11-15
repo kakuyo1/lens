@@ -242,16 +242,16 @@ void record(GithubAuth& auth, Reports& seen)
 {
     QObject::connect(&auth, &GithubAuth::codeReady, [&seen](DeviceCode code) {
         ++seen.codeReady;
-        seen.code = code;
+        seen.code = std::move(code);
     });
     QObject::connect(&auth, &GithubAuth::granted, [&seen](Token token) {
         ++seen.granted;
-        seen.token = token;
+        seen.token = std::move(token);
     });
     QObject::connect(&auth, &GithubAuth::refreshed, [&seen](quint64 callId, Token token) {
         ++seen.refreshed;
         seen.refreshCallId = callId;
-        seen.token         = token;
+        seen.token         = std::move(token);
     });
     QObject::connect(&auth, &GithubAuth::refreshFailed, [&seen](quint64 callId, AuthFailure why) {
         ++seen.refreshFailed;

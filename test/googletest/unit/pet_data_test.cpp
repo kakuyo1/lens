@@ -303,7 +303,7 @@ public:
         std::filesystem::create_directories(holder_);
         std::filesystem::copy(std::filesystem::path{LENS_SOURCE_DIR} / "data" / "pet" / "dog", root_, std::filesystem::copy_options::recursive);
     }
-    ~ScratchPet()
+    ~ScratchPet() // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     {
         std::filesystem::remove_all(holder_);
     }
@@ -321,7 +321,7 @@ public:
     }
 
     /// Replaces the first `from` in `file` with `to`; the test fails if `from` is not in the file.
-    void replaceIn(std::string const& file, std::string const& from, std::string const& to) const
+    void replaceIn(std::string const& file, std::string const& from, std::string const& to) const // NOLINT(bugprone-easily-swappable-parameters): replaceIn takes its 2 const std::string & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
     {
         auto const where = root_ / file;
         auto       text  = std::string{};

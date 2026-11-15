@@ -44,8 +44,8 @@ void pressCancelKey()
 
 LRESULT CALLBACK lowLevelKeyboardProc(int const code, WPARAM const wParam, LPARAM const lParam)
 {
-    if (code == HC_ACTION) {
-        auto const* const event    = reinterpret_cast<KBDLLHOOKSTRUCT const*>(lParam);
+    if (code == HC_ACTION) {                                                           // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
+        auto const* const event    = reinterpret_cast<KBDLLHOOKSTRUCT const*>(lParam); // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
         bool const        down     = wParam == WM_KEYDOWN or wParam == WM_SYSKEYDOWN;
         bool const        up       = wParam == WM_KEYUP or wParam == WM_SYSKEYUP;
         bool const        injected = (event->flags & LLKHF_INJECTED) != 0;
@@ -57,7 +57,7 @@ LRESULT CALLBACK lowLevelKeyboardProc(int const code, WPARAM const wParam, LPARA
             if (g_owner and not injected and isAltKey(static_cast<unsigned>(event->vkCode)) and heldBefore != g_hold.held) {
                 AltKeyHook* const owner   = g_owner;
                 bool const        pressed = g_hold.held;
-                QMetaObject::invokeMethod(
+                QMetaObject::invokeMethod( // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
                     owner,
                     [owner, pressed] {
                         if (pressed)

@@ -433,7 +433,7 @@ QVariantList PetController::refusals() const
     return list;
 }
 
-QVariantMap PetController::portrait(QString id)
+QVariantMap PetController::portrait(QString const& id)
 {
     auto const key = id.toStdString();
     if (auto const found = portraits_.find(key); found != portraits_.end())
@@ -779,7 +779,7 @@ void PetController::setPreviewing(bool on)
     updateClock();
 }
 
-void PetController::preview(QString action)
+void PetController::preview(QString const& action)
 {
     auto const picked = actionNamed(action);
     if (not picked) return;
@@ -794,7 +794,7 @@ void PetController::preview(QString action)
     sync(std::chrono::milliseconds{0});
 }
 
-void PetController::setScene(QString id)
+void PetController::setScene(QString const& id)
 {
     if (not machine_) return;
     auto const name = id.toStdString();
@@ -1019,7 +1019,7 @@ void PetController::stopWandering()
     stroll_.hover();
 }
 
-void PetController::setReviewLook(QString side)
+void PetController::setReviewLook(QString const& side)
 {
     auto const look = side == QStringLiteral("left")    ? QPoint{-1, 0}
                       : side == QStringLiteral("right") ? QPoint{1, 0}
@@ -1034,7 +1034,7 @@ void PetController::setReviewLook(QString side)
     }
 }
 
-void PetController::toggleAccessory(QString id)
+void PetController::toggleAccessory(QString const& id)
 {
     if (not wardrobe_ or not knownAccessory(id)) return;
     wardrobe_->toggle(id.toStdString());
@@ -1043,7 +1043,7 @@ void PetController::toggleAccessory(QString id)
     emit outfitChanged();
 }
 
-void PetController::setPet(QString id)
+void PetController::setPet(QString const& id)
 {
     auto const name  = id.toStdString();
     auto const entry = catalog_.find(name);
@@ -1079,7 +1079,7 @@ void PetController::setPet(QString id)
     startSwitch();
 }
 
-void PetController::confirmPet(QString id)
+void PetController::confirmPet(QString const& id)
 {
     auto const name = id.toStdString();
     if (not catalog_.find(name)) return;
@@ -1266,7 +1266,7 @@ void PetController::attachWindow(QObject* object)
     if (not window_) return;
     connect(window_, &QObject::destroyed, this, [this] { window_ = nullptr; });
     onShown(window_, [this](QWindow const& window) {
-        if (not excludeFromCapture(window)) LENS_WARN("the desktop pet can appear in screen captures: Windows refused the exclusion");
+        if (not excludeFromCapture(window)) LENS_WARN("the desktop pet can appear in screen captures: Windows refused the exclusion"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         ::lens::app::setPassthrough(window, enabled() and store_.passthrough());
     });
     connect(qGuiApp, &QGuiApplication::screenAdded, this, &PetController::watchScreen);
@@ -1297,7 +1297,7 @@ void PetController::watchScreen(QScreen* screen)
 void PetController::keepOutOfCapture(QObject* object)
 {
     onShown(qobject_cast<QWindow*>(object), [](QWindow const& window) {
-        if (not excludeFromCapture(window)) LENS_WARN("a window that must stay out of screen captures can appear in them: Windows refused the exclusion");
+        if (not excludeFromCapture(window)) LENS_WARN("a window that must stay out of screen captures can appear in them: Windows refused the exclusion"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
     });
 }
 
@@ -2125,7 +2125,7 @@ QPoint PetController::gazeOffsetAt(QPointF cursor) const
     return gazeToward(cursor, assets_->inkCentre, (assets_->inkTop + assets_->inkBottom) / 2.0);
 }
 
-QPoint PetController::gazeToward(QPointF cursor, double centreX, double middleY) const
+QPoint PetController::gazeToward(QPointF cursor, double centreX, double middleY) const // NOLINT(bugprone-easily-swappable-parameters): gazeToward takes its 2 double arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const dx = cursor.x() - centreX;
     auto const dy = cursor.y() - middleY;
@@ -2331,7 +2331,7 @@ std::optional<core::pet::ActionName> PetController::actionNamed(QString const& n
     auto const action = name.toStdString();
     // The blink is an expression entry, not an action, so it is never a name the settings page can preview.
     if (assets_->animations.playbook.actions.count(action) == 0) return std::nullopt;
-    return action;
+    return action; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 }
 
 bool PetController::wearsInSlot(std::string const& id, Slot slot) const

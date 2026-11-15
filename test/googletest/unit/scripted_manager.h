@@ -35,7 +35,7 @@ namespace lens::test {
 /// has to read as offline.
 class ScriptedReply final : public QNetworkReply {
 public:
-    ScriptedReply(QObject* parent, int status, QString location = {}, qint64 length = 0, bool answers = true, QByteArray body = {}, QByteArray contentType = {}, QByteArray link = {})
+    ScriptedReply(QObject* parent, int status, QString const& location = {}, qint64 length = 0, bool answers = true, QByteArray body = {}, QByteArray const& contentType = {}, QByteArray const& link = {}) // NOLINT(bugprone-easily-swappable-parameters): ScriptedReply takes its 2 QByteArray arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
         : QNetworkReply(parent), status_(status), body_(std::move(body))
     {
         // A reply that never answers has no status: a real connection that times out before its
@@ -153,7 +153,7 @@ protected:
             answer = std::move(queued_.front());
             queued_.pop_front();
         }
-        return new ScriptedReply(this, answer.status, answer.location, announceLength, answer.answers, std::move(answer.body), std::move(answer.contentType), std::move(answer.link));
+        return new ScriptedReply(this, answer.status, answer.location, announceLength, answer.answers, answer.body, answer.contentType, answer.link);
     }
 
 private:

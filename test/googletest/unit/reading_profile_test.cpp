@@ -35,7 +35,7 @@ HistoryEntry entry(std::string lemma, std::string minute, std::string language =
 /// @return A part-of-speech lookup over @p cached; a lemma it does not hold has none.
 auto partsOf(std::map<std::string, std::string> cached)
 {
-    return [cached = std::move(cached)](std::string const& lemma) {
+    return [cached = std::move(cached)](std::string const& lemma) { // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
         const auto it = cached.find(lemma);
         return it == cached.end() ? std::string{} : it->second;
     };

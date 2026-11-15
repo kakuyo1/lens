@@ -154,7 +154,7 @@ void StatsStore::recordPeek(const std::string& minute)
     writeBack();
 }
 
-void StatsStore::recordVerdict(const std::string& lemma, std::string minute, std::string verdict)
+void StatsStore::recordVerdict(const std::string& lemma, std::string const& minute, std::string const& verdict) // NOLINT(bugprone-easily-swappable-parameters): the diagnostic's suggestion does not fit this call site
 {
     // The newest entry for the lemma, not the newest unmarked one: the newest entry is what
     // words() reads, so it is the one a mark has to reach, and a word that already carries a
@@ -189,7 +189,7 @@ void StatsStore::recordUsage(const std::string& minute, long long promptTokens, 
 }
 
 void StatsStore::recordUsage(const std::string& minute,
-                             long long          promptTokens,
+                             long long          promptTokens, // NOLINT(bugprone-easily-swappable-parameters): recordUsage takes its 2 long long arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
                              long long          completionTokens,
                              std::string        model)
 {

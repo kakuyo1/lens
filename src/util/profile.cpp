@@ -77,7 +77,7 @@ ScopeTimer::ScopeTimer(const char* name_)
     : name(name_), startedAt(std::chrono::steady_clock::now())
 {}
 
-ScopeTimer::~ScopeTimer()
+ScopeTimer::~ScopeTimer() // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
 {
     const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
                              std::chrono::steady_clock::now() - startedAt)

@@ -15,7 +15,7 @@ QString errorForDav(lens::sync::WebDavFailure why)
         // The server saw the request and refused the credentials; the form is what to fix.
         case lens::sync::WebDavFailure::Unauthorised: return QStringLiteral("signInExpired");
         case lens::sync::WebDavFailure::Proxy: return QStringLiteral("proxy");
-        case lens::sync::WebDavFailure::NotFound: break;
+        case lens::sync::WebDavFailure::NotFound: break; // NOLINT(bugprone-branch-clone): each status is listed explicitly so a new one cannot fall into a neighbour's branch by accident
         case lens::sync::WebDavFailure::Generic: break;
     }
     return QStringLiteral("generic");

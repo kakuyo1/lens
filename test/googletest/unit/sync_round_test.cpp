@@ -90,7 +90,7 @@ public:
         return waiting.front().request;
     }
 
-    void deliver(Answer answer = {})
+    void deliver(Answer const& answer = {})
     {
         Sent sent = std::move(waiting.front());
         waiting.pop_front();
@@ -103,14 +103,14 @@ public:
         Answer answer;
         answer.gistId  = std::move(id);
         answer.content = std::move(content);
-        deliver(std::move(answer));
+        deliver(answer);
     }
 
     void fail(Answer::Failure why)
     {
         Answer answer;
         answer.failure = why;
-        deliver(std::move(answer));
+        deliver(answer);
     }
 
     std::deque<Sent> waiting;
@@ -161,7 +161,7 @@ struct Fixture {
     {
     }
 
-    ~Fixture()
+    ~Fixture() // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     {
         std::filesystem::remove(path);
     }

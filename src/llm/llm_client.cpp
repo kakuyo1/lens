@@ -25,7 +25,7 @@ namespace {
 constexpr int    kMaxWords           = 20; ///< Contract limit.
 constexpr int    kTimeoutMs          = 30000;
 constexpr int    kModelListTimeoutMs = 10000;
-constexpr qint64 kMaxModelListBytes  = 2 * 1024 * 1024;
+constexpr qint64 kMaxModelListBytes  = static_cast<const qint64>(2 * 1024) * 1024;
 /// A probe should answer while the reader is still looking at the button.
 constexpr int kProbeTimeoutMs = 15000;
 /// A peek answers a reader who is holding a button: it is small and it should not outlast the
@@ -142,7 +142,7 @@ void LlmClient::askSharedSourceModels()
         if (reply->error() != QNetworkReply::NoError or (status != 0 and status != 200)) {
             // Not a failure the reader has to act on: the list is a convenience, and the one
             // already known still works.
-            LENS_WARN("the model list was not fetched: HTTP {} ({})", status, reply->errorString().toStdString());
+            LENS_WARN("the model list was not fetched: HTTP {} ({})", status, reply->errorString().toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             return;
         }
         const QStringList ids = parseModelIds(reply->readAll());
@@ -210,12 +210,12 @@ void LlmClient::probeConnection()
         // An HTTP answer is the service speaking, even when Qt also marks the reply failed;
         // only no status at all, or a 200 that failed mid-transfer, is a reach failure.
         if (status == 0 or (reply->error() != QNetworkReply::NoError and status == 200)) {
-            LENS_WARN("the connection probe could not reach the service");
+            LENS_WARN("the connection probe could not reach the service"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit probeFinished(false, tr("Could not reach the service. Check the address and your connection."));
             return;
         }
         if (status != 200) {
-            LENS_WARN("the connection probe answered HTTP {}", status);
+            LENS_WARN("the connection probe answered HTTP {}", status); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             // A 400 at a completion endpoint is the model's name far more often than anything
             // else, and the service's own words say only "malformed" without naming it: the
             // sentence has to point at the one part the reader can change here.
@@ -226,11 +226,11 @@ void LlmClient::probeConnection()
         // only the shape every compatible service answers a completion with.
         const QJsonDocument answer = QJsonDocument::fromJson(reply->readAll());
         if (not answer.isObject() or not answer.object().value("choices").isArray()) {
-            LENS_WARN("the connection probe answered 200 without a model-shaped body");
+            LENS_WARN("the connection probe answered 200 without a model-shaped body"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit probeFinished(false, tr("The service answered, but not like a model. Check the address."));
             return;
         }
-        LENS_INFO("the model service accepted the connection probe");
+        LENS_INFO("the model service accepted the connection probe"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         emit probeFinished(true, tr("Connected. The key and model are accepted."));
     });
 }
@@ -292,17 +292,17 @@ void LlmClient::explainWords(ExplainRequest request)
         if (reply->error() != QNetworkReply::NoError && (status == 0 || status == 200)) {
             // Qt can retain a successful status after the stream fails. In that case the body is
             // incomplete and must not be passed to the JSON/schema validator.
-            LENS_ERROR("request failed before a response: {}", reply->errorString().toStdString());
+            LENS_ERROR("request failed before a response: {}", reply->errorString().toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit failed(tr("The request could not reach the service: %1").arg(reply->errorString()));
             return;
         }
-        if (status == 0) { // no status code at all: the transfer itself never completed
-            LENS_ERROR("request failed before a response: {}", reply->errorString().toStdString());
+        if (status == 0) {                                                                          // no status code at all: the transfer itself never completed
+            LENS_ERROR("request failed before a response: {}", reply->errorString().toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit failed(tr("The request could not reach the service: %1").arg(reply->errorString()));
             return;
         }
         if (status != 200) {
-            LENS_ERROR("request failed with HTTP {}", status);
+            LENS_ERROR("request failed with HTTP {}", status); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit failed(httpErrorFor(status));
             return;
         }
@@ -313,14 +313,14 @@ void LlmClient::explainWords(ExplainRequest request)
             return;
         }
         const auto& explanations = std::get<QVector<Explanation>>(parsed);
-        LENS_INFO("received {} explanation(s)", explanations.size());
+        LENS_INFO("received {} explanation(s)", explanations.size()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         auto usage  = assembler->usage();
         usage.model = model;
         emit batchFinished(explanations, usage);
     });
 }
 
-void LlmClient::peekWord(QString const& lemma, QString const& language, QString const& sense)
+void LlmClient::peekWord(QString const& lemma, QString const& language, QString const& sense) // NOLINT(bugprone-easily-swappable-parameters): peekWord takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     if (lemma.isEmpty() or config_.apiKey.isEmpty() or not config_.baseUrl.isValid() or
         config_.baseUrl.scheme() != QLatin1String("https") or config_.baseUrl.host().isEmpty()) {
@@ -361,14 +361,14 @@ void LlmClient::peekWord(QString const& lemma, QString const& language, QString 
         // A 200 that failed mid-transfer carries an incomplete body, which parseExplanations()
         // rejects like any other malformed answer -- the same quiet failure either way.
         if (status != 200) {
-            LENS_WARN("the peek for '{}' came back with HTTP {}", lemma.toStdString(), status);
+            LENS_WARN("the peek for '{}' came back with HTTP {}", lemma.toStdString(), status); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit peekAnswered(lemma, {}, {});
             return;
         }
         const QByteArray body   = reply->readAll();
         const auto       parsed = parseExplanations(Channel::Peek, body, {lemma});
         if (const auto* message = std::get_if<QString>(&parsed)) {
-            LENS_WARN("the peek for '{}' was refused: {}", lemma.toStdString(), message->toStdString());
+            LENS_WARN("the peek for '{}' was refused: {}", lemma.toStdString(), message->toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit peekAnswered(lemma, {}, {});
             return;
         }
@@ -412,7 +412,7 @@ void LlmClient::nextSenseWord(QString const& lemma, QString const& input, QStrin
         reply->deleteLater();
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (status != 200) {
-            LENS_WARN("the next sense for '{}' came back with HTTP {}", lemma.toStdString(), status);
+            LENS_WARN("the next sense for '{}' came back with HTTP {}", lemma.toStdString(), status); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit senseAnswered(lemma, {}, {});
             return;
         }
@@ -421,7 +421,7 @@ void LlmClient::nextSenseWord(QString const& lemma, QString const& input, QStrin
         const QByteArray body   = reply->readAll();
         const auto       parsed = parseExplanations(Channel::Sense, body, {lemma});
         if (const auto* message = std::get_if<QString>(&parsed)) {
-            LENS_WARN("the next sense for '{}' was refused: {}", lemma.toStdString(), message->toStdString());
+            LENS_WARN("the next sense for '{}' was refused: {}", lemma.toStdString(), message->toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit senseAnswered(lemma, {}, {});
             return;
         }
@@ -472,7 +472,7 @@ void LlmClient::postCorrection(Channel const channel, QString const& text)
         reply->deleteLater();
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (status != 200) {
-            LENS_WARN("the {} correction came back with HTTP {}", channelKey(channel), status);
+            LENS_WARN("the {} correction came back with HTTP {}", channelKey(channel), status); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit correctionAnswered(text, channel, {}, {}, failureLineFor(status));
             return;
         }
@@ -519,7 +519,7 @@ void LlmClient::breakdownSentence(QString const& sentence, QStringList const& wo
         reply->deleteLater();
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (status != 200) {
-            LENS_WARN("the breakdown came back with HTTP {}", status);
+            LENS_WARN("the breakdown came back with HTTP {}", status); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit breakdownAnswered(sentence, {}, {}, failureLineFor(status));
             return;
         }
@@ -529,7 +529,7 @@ void LlmClient::breakdownSentence(QString const& sentence, QStringList const& wo
         usage.model            = model;
         const auto parsed      = parseBreakdown(body, static_cast<int>(count));
         if (const auto* message = std::get_if<QString>(&parsed)) {
-            LENS_WARN("the breakdown was refused: {}", message->toStdString());
+            LENS_WARN("the breakdown was refused: {}", message->toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit breakdownAnswered(sentence, {}, usage, failureLineFor(status));
             return;
         }
@@ -567,7 +567,7 @@ void LlmClient::requestProfile(QString const& summary, QString const& language)
         reply->deleteLater();
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (status != 200) {
-            LENS_WARN("the reading profile came back with HTTP {}", status);
+            LENS_WARN("the reading profile came back with HTTP {}", status); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit profileAnswered({}, {}, failureLineFor(status));
             return;
         }
@@ -614,7 +614,7 @@ void LlmClient::requestStory(QStringList const& words)
         reply->deleteLater();
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (status != 200) {
-            LENS_WARN("the story came back with HTTP {}", status);
+            LENS_WARN("the story came back with HTTP {}", status); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             emit storyAnswered({}, {}, failureLineFor(status));
             return;
         }

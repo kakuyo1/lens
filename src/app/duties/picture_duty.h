@@ -67,7 +67,7 @@ public:
      *
      * @param query The sense's `imageQuery`. An empty one clears the strip.
      */
-    Q_INVOKABLE void request(QString query);
+    Q_INVOKABLE void request(QString const& query);
 
     /// @brief Take the strip down and stop drawing whatever was arriving.
     Q_INVOKABLE void clear();
@@ -80,7 +80,7 @@ public:
 
     /// @brief Open a picture's source page in the reader's browser.
     /// @param url The `page` a picture's entry carries. Anything that is not https is refused.
-    Q_INVOKABLE void openPage(QString url);
+    Q_INVOKABLE void openPage(QString const& url);
 
     /// @brief Open the image-search fallback for the query now up.
     Q_INVOKABLE void openFallback();
@@ -119,7 +119,7 @@ private:
      * @param fetch Held by value: the deadline's call hands over @c live_ itself, and this body
      *              releases @c live_ on the way -- a reference would dangle before the body ends.
      */
-    void settle(std::shared_ptr<Fetch> fetch);
+    void settle(std::shared_ptr<Fetch> fetch); // NOLINT(performance-unnecessary-value-param): the deadline hands over live_ itself; this body releases it, so a reference would dangle
 
     pictures::PictureSource& source_;
     pictures::PictureCache&  cache_;

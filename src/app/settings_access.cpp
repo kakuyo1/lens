@@ -37,7 +37,7 @@ QString keyOf(Row const& row)
     return QString::fromLatin1(row.key.data(), qsizetype(row.key.size()));
 }
 
-QVariant read(core::SettingsSection section, Row const& row)
+QVariant read(core::SettingsSection const& section, Row const& row)
 {
     switch (row.kind) {
         case Kind::Toggle:

@@ -48,11 +48,11 @@ public:
     QString signpostOf(QString const& lemma) const;
     /// @brief Invalidate queued or in-flight results for a word deleted locally.
     void             invalidateWord(QString const& lemma);
-    Q_INVOKABLE void runSelectionAction(QString action, QString text);
+    Q_INVOKABLE void runSelectionAction(QString const& action, QString const& text);
     /// @brief Record the reader's verdict on a word: "known", "mastered", or "new" -- the explicit
     ///        clear vote (docs/adr/0159). "Mastered" retires the word from the scan, the review pool
     ///        and the chain; selection keeps explaining it either way.
-    Q_INVOKABLE void mark(QString lemma, QString verdict);
+    Q_INVOKABLE void mark(QString const& lemma, QString const& verdict);
     /**
      * @brief Show what is already stored for a word the reader pointed at, and nothing else.
      *
@@ -65,7 +65,7 @@ public:
      * @param anchor     The word's top-left, in the physical pixels the other surfaces anchor with.
      * @param anchorSize The word's size in physical pixels, so the card can sit above it whole or flip below it.
      */
-    void reviewWord(QString lemma, QPoint anchor, QSize anchorSize);
+    void reviewWord(QString const& lemma, QPoint anchor, QSize anchorSize);
     /**
      * @brief Show the stored explanation of a word the reader has just answered about (docs/adr/0050).
      *
@@ -103,10 +103,10 @@ public:
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
     ///
     /// This is the one path from a hover to a request: the word hint's button calls it.
-    void explainLemma(QString lemma);
+    void explainLemma(QString const& lemma);
     /// @brief Ask the model about a word the reader typed by hand (the words panel's search
     ///        row), with the card anchored beside that row rather than at the last review spot.
-    void             explainTypedWord(QString lemma, QPoint anchor, QSize anchorSize);
+    void             explainTypedWord(QString const& lemma, QPoint anchor, QSize anchorSize);
     Q_INVOKABLE void dismissBubble();
     Q_INVOKABLE void dismissNotice();
     /**
@@ -115,7 +115,7 @@ public:
      * The answer comes back through chainAnswered(), or chainFailed() when it cannot. It is drawn on the chain
      * under the card and never on the card itself, and only while the card still stands on the same word.
      */
-    Q_INVOKABLE void explainChainWord(QString lemma);
+    Q_INVOKABLE void explainChainWord(QString const& lemma);
     /// @brief Ask for the standing word's meaning in the mother tongue, as the held globe does.
     ///
     /// The peek belongs to the word, sentence or entity card standing when the hold completed, under
@@ -208,26 +208,26 @@ private:
     void sendNext();
     /// @brief Put one batch on the wire and count the words the request asks about.
     void send(llm::ExplainRequest request, ExplanationBatch const& batch);
-    void onBatchFinished(QVector<llm::Explanation> results, llm::Usage usage);
+    void onBatchFinished(QVector<llm::Explanation> const& results, llm::Usage const& usage);
     void onFailed(QString const& message);
     /// @brief Put a peek answer away for the session, and onto the card when it still stands.
-    void onPeekAnswered(QString const& lemma, QString const& line, llm::Usage usage);
+    void onPeekAnswered(QString const& lemma, QString const& line, llm::Usage const& usage);
     /// @brief Put a next-sense answer away for the session, and onto the card when it still stands.
     ///
     /// An answer without senses is the exhaustion answer when the call reached the model and came
     /// back whole, and a quiet failure when it carries no usage at all -- only the exhaustion one
     /// retires the entry; a failure leaves it up to ask again.
-    void onNextSenseAnswered(QString const& lemma, llm::Explanation const& answer, llm::Usage usage);
+    void onNextSenseAnswered(QString const& lemma, llm::Explanation const& answer, llm::Usage const& usage);
     /// @brief Ask which part of the sentence each run of words plays, onto a breakdown card raised now.
     void breakdown(PendingSelection const& pending);
     /// @brief Draw the answer for the breakdown card standing on @p sentence; an answer for a card the
     ///        reader has moved on from is dropped, though its usage is still paid.
-    void onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage usage, QString const& failure);
+    void onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage const& usage, QString const& failure);
     /// @brief Ask for the spelling or grammar correction of the selection, onto a card raised now.
     /// @param preset kSpellPreset or kGrammarPreset.
     void correct(PendingSelection const& pending, QString const& preset);
     /// @brief Draw the corrected text for the card standing on @p text, or the failure line when none came back.
-    void onCorrectionAnswered(QString const& text, llm::Channel channel, QString const& corrected, llm::Usage usage, QString const& failure);
+    void onCorrectionAnswered(QString const& text, llm::Channel channel, QString const& corrected, llm::Usage const& usage, QString const& failure);
     /// @brief Raise the correction card in @p state, the same shape as the breakdown card; @p failure is the
     ///        reader's reason on a failed card and empty otherwise.
     void showCorrection(PendingSelection const& selection, QString const& state, QVariantList const& segments, QString const& failure);
@@ -272,7 +272,7 @@ private:
     /// this decides whether the payload carries it to the card.
     bool showsCardBlock(char const* key) const;
     /// @brief Put one chain step through the cache, the budget gate and the queue.
-    void askChainStep(PendingSelection pending);
+    void askChainStep(PendingSelection const& pending);
     /// @return The chain entry for one answered step, in the explanation language, with its links.
     QVariantMap chainEntry(llm::Explanation const& explanation, core::CacheContext const& context) const;
     void        clearBubble();

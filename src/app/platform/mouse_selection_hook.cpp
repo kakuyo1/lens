@@ -35,7 +35,7 @@ struct GestureTracker {
     int  downY         = 0;
     bool overOwnWindow = false; ///< The press landed on a surface of this process.
 
-    void onPress(int x, int y, bool own)
+    void onPress(int x, int y, bool own) // NOLINT(bugprone-easily-swappable-parameters): onPress takes its 2 int arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
     {
         downX         = x;
         downY         = y;
@@ -100,7 +100,7 @@ bool                    g_startDone = false;
 /// the surfaces. Queued delivery is what Qt documents for exactly this.
 void postToOwner(MouseSelectionHook* owner, std::function<void()> report)
 {
-    QMetaObject::invokeMethod(owner, std::move(report), Qt::QueuedConnection);
+    QMetaObject::invokeMethod(owner, std::move(report), Qt::QueuedConnection); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
 }
 
 void emitPressedLater(const POINT& pt)
@@ -118,8 +118,8 @@ void emitPressedLater(const POINT& pt)
  */
 LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
 {
-    if (code == HC_ACTION && g_owner != nullptr) {
-        const auto* info = reinterpret_cast<const MSLLHOOKSTRUCT*>(lParam);
+    if (code == HC_ACTION && g_owner != nullptr) {                          // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
+        const auto* info = reinterpret_cast<const MSLLHOOKSTRUCT*>(lParam); // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
         switch (wParam) {
             case WM_LBUTTONDOWN:
                 // WindowFromPoint is a single lookup, on the one message where the answer is

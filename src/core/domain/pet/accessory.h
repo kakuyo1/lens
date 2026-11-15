@@ -25,7 +25,7 @@ enum class Slot : std::uint8_t {
 
 /// @brief One accessory from accessories.json: its id, the slot it wears in, the actions it stays visible in, and the
 ///        scenes it tilts the idle lottery toward (ADR 0102).
-struct AccessorySpec {
+struct AccessorySpec { // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     std::string             id;
     Slot                    slot;
     std::vector<ActionName> supportedActions;

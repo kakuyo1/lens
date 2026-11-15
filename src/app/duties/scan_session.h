@@ -172,7 +172,7 @@ public:
     /// @brief One frame of the track: judge the words it read, and name the candidates it has in view.
     /// @param generation The generation the track was started under; a frame from a track that was
     ///                   since dropped is refused as stale.
-    ScanStep onFrame(std::uint64_t generation, capture::TrackFrame frame);
+    ScanStep onFrame(std::uint64_t generation, capture::TrackFrame const& frame);
     /// @brief The reader changed @p lemma's verdict: every surface it was judged under is re-judged
     ///        now, against the verdict store as it stands, so the next emission draws it right -- a
     ///        retired lemma's lines drop, a known one's restyle -- with no full scan invalidation.

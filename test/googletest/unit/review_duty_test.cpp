@@ -60,7 +60,7 @@ protected:
     }
 
     /// Steps the clock from @p from to @p to, one minute at a time, so every look the duty draws is taken.
-    void runClock(long long from, long long to)
+    void runClock(long long from, long long to) // NOLINT(bugprone-easily-swappable-parameters): runClock takes its 2 long long arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
     {
         for (long long now = from; now <= to; now += kMinute)
             duty->tick(now);

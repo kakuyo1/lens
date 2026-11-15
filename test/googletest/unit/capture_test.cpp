@@ -965,12 +965,12 @@ TEST(CaptureDuty, OnlineUploadWaitsForConsentAndThenSendsExactlyOnce)
     ASSERT_TRUE(awaitSignal(duty, &CaptureDuty::settingsChanged));
 
     QVariantMap consent;
-    QObject::connect(&duty, &CaptureDuty::uploadConsentRequested, [&consent](QVariantMap payload) { consent = payload; });
+    QObject::connect(&duty, &CaptureDuty::uploadConsentRequested, [&consent](QVariantMap payload) { consent = std::move(payload); });
     QString action;
     QString text;
     QObject::connect(&duty, &CaptureDuty::selectionActionRequested, [&action, &text](QString a, QString t) {
-        action = a;
-        text   = t;
+        action = std::move(a);
+        text   = std::move(t);
     });
 
     QImage image{200, 100, QImage::Format_RGB32};

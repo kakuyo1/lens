@@ -95,7 +95,7 @@ SpeechDuty::SpeechDuty(speech::OnlineSources& sources, speech::AudioCache& cache
     connect(&localVoiceIdle_, &QTimer::timeout, this, [this] {
         if (not localVoice_)
             return;
-        LENS_INFO("pronunciation: the local voice has been idle for {} minutes; releasing its engine", kLocalVoiceIdleMs / 60000);
+        LENS_INFO("pronunciation: the local voice has been idle for {} minutes; releasing its engine", kLocalVoiceIdleMs / 60000); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         retireLocalVoice();
     });
     connect(&downloader_, &speech::VoiceDownloader::progressed, this, [this](qint64 received, qint64 total) {
@@ -136,7 +136,7 @@ void SpeechDuty::ensurePlayer()
     });
     connect(player_.get(), &QMediaPlayer::errorOccurred, this, [](QMediaPlayer::Error, QString const&) {
         // A recording that will not decode is a word that is not read: no notification, no retry.
-        LENS_TRACE("pronunciation: the player refused a recording");
+        LENS_TRACE("pronunciation: the player refused a recording"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
     });
 }
 
@@ -213,7 +213,7 @@ bool SpeechDuty::localAvailable() const
     return speech::serves(model, accent()) and speech::installed(model, speech::voiceRoot());
 }
 
-void SpeechDuty::downloadVoice(QString id)
+void SpeechDuty::downloadVoice(QString const& id)
 {
     const auto model = voiceNamed(id);
     if (not model or downloader_.busy())
@@ -228,7 +228,7 @@ void SpeechDuty::cancelVoiceDownload()
     downloader_.cancel();
 }
 
-void SpeechDuty::removeVoice(QString id)
+void SpeechDuty::removeVoice(QString const& id)
 {
     const auto model = voiceNamed(id);
     if (not model or downloader_.busy())
@@ -335,7 +335,7 @@ void SpeechDuty::speakSystem(QString const& word)
     setPlaying(true, word);
 }
 
-void SpeechDuty::speak(QString word)
+void SpeechDuty::speak(QString const& word)
 {
     const QString headword = word.trimmed();
     stop();
@@ -376,7 +376,7 @@ void SpeechDuty::retireLocalVoice()
     localPool_.start(QRunnable::create([voice = std::move(localVoice_)] {}));
 }
 
-void SpeechDuty::speakLocal(QString const& word, QString const& accent)
+void SpeechDuty::speakLocal(QString const& word, QString const& accent) // NOLINT(bugprone-easily-swappable-parameters): speakLocal takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const auto model = speech::voiceFrom(rowValue(storage_, "speechLocalEngine").toString());
     // The engine is kept while the reader stays on one voice and one accent: loading it is the slow part.
@@ -389,10 +389,10 @@ void SpeechDuty::speakLocal(QString const& word, QString const& accent)
     const int request = requestId_;
     localPool_.start(QRunnable::create([this, request, voice = localVoice_, word] {
         const std::optional<QByteArray> wav = voice->speak(word);
-        if (not wav)
+        if (not wav) // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
             return;
         // Posted back to this thread, where the player lives; a press replaced in the meantime is dropped there.
-        QMetaObject::invokeMethod(this, [this, request, word, bytes = *wav] {
+        QMetaObject::invokeMethod(this, [this, request, word, bytes = *wav] { // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
             if (request != requestId_)
                 return;
             playBytes(word, bytes);

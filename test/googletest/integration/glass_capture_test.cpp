@@ -48,7 +48,7 @@ struct Monitor {
 
 BOOL CALLBACK collectMonitor(HMONITOR const handle, HDC, LPRECT, LPARAM const data)
 {
-    auto* const monitors = reinterpret_cast<std::vector<Monitor>*>(data);
+    auto* const monitors = reinterpret_cast<std::vector<Monitor>*>(data); // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
     auto        info     = MONITORINFOEXW{};
     info.cbSize          = sizeof(info);
     if (GetMonitorInfoW(handle, &info) == FALSE) return TRUE;
@@ -98,7 +98,7 @@ TEST(GlassCapture, ReadsFramesFromTheScreensItCanCapture)
                 EXPECT_NE(read.fingerprint, 0u) << "捕获到的帧没有带指纹，幕布无法跳过未改变的画面";
             }
         }
-        auto const rate   = frames > 0 ? frames * 1000.0 / elapsed.elapsed() : 0.0;
+        auto const rate   = frames > 0 ? frames * 1000.0 / static_cast<double>(elapsed.elapsed()) : 0.0;
         auto const status = refusals > 0
                                 ? QStringLiteral("refused")
                                 : QStringLiteral("available, %1 ms watched: %2 frames (%3/s)")

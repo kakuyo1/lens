@@ -110,7 +110,7 @@ inline std::optional<CaptureRefusal> refusalOf(capture::OcrStatus status)
         case capture::OcrStatus::EmptyText: return CaptureRefusal::EmptyText;
         case capture::OcrStatus::Cancelled: return CaptureRefusal::Cancelled;
         case capture::OcrStatus::InputTooLarge: return CaptureRefusal::RegionTooLarge;
-        case capture::OcrStatus::ProtocolError: return CaptureRefusal::ProtocolError;
+        case capture::OcrStatus::ProtocolError: return CaptureRefusal::ProtocolError; // NOLINT(bugprone-branch-clone): each status is listed explicitly so a new one cannot fall into a neighbour's branch by accident
         case capture::OcrStatus::ResultTooLarge: return CaptureRefusal::ProtocolError;
         case capture::OcrStatus::TransportFailed: return CaptureRefusal::TransportFailed;
         case capture::OcrStatus::PartialResult: return CaptureRefusal::PartialResult;

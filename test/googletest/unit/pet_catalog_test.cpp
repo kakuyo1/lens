@@ -32,7 +32,7 @@ std::filesystem::path shippedRoot()
 }
 
 /// Copies the shipped dog into `installed/<folder>` with its id rewritten to `id` and, when given, a display name.
-void installCopyOfDog(std::filesystem::path const& installed, std::string const& folder, std::string const& id, std::string const& name = {})
+void installCopyOfDog(std::filesystem::path const& installed, std::string const& folder, std::string const& id, std::string const& name = {}) // NOLINT(bugprone-easily-swappable-parameters): installCopyOfDog takes its 3 const std::string & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const target = installed / folder;
     std::filesystem::copy(shippedRoot() / "dog", target, std::filesystem::copy_options::recursive);
@@ -53,7 +53,7 @@ public:
         std::filesystem::remove_all(root_);
         std::filesystem::create_directories(root_);
     }
-    ~ScratchInstalled()
+    ~ScratchInstalled() // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
     {
         std::filesystem::remove_all(root_);
     }

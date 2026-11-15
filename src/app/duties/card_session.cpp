@@ -125,7 +125,7 @@ bool CardSession::chainStanding(QString const& parent) const
     return standing() and title_ == parent;
 }
 
-CardSession::Cycle* CardSession::findCycle(QString const& language, QString const& lemma)
+CardSession::Cycle* CardSession::findCycle(QString const& language, QString const& lemma) // NOLINT(bugprone-easily-swappable-parameters): findCycle takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto languageIt = cycles_.find(language);
     if (languageIt == cycles_.end())
@@ -134,7 +134,7 @@ CardSession::Cycle* CardSession::findCycle(QString const& language, QString cons
     return lemmaIt == languageIt->end() ? nullptr : &lemmaIt.value();
 }
 
-CardSession::Cycle const* CardSession::findCycle(QString const& language, QString const& lemma) const
+CardSession::Cycle const* CardSession::findCycle(QString const& language, QString const& lemma) const // NOLINT(bugprone-easily-swappable-parameters): findCycle takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto languageIt = cycles_.constFind(language);
     if (languageIt == cycles_.cend())
@@ -396,7 +396,7 @@ bool CardSession::invalidateWord(QString const& lemma)
     return card;
 }
 
-std::optional<QString> CardSession::peekLine(QString const& mother, QString const& lemma, int const senseIndex) const
+std::optional<QString> CardSession::peekLine(QString const& mother, QString const& lemma, int const senseIndex) const // NOLINT(bugprone-easily-swappable-parameters): peekLine takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const motherIt = peekLines_.constFind(mother);
     if (motherIt == peekLines_.cend())
@@ -415,7 +415,7 @@ QString CardSession::nextHint(Cycle const& cycle)
     // Still on the wire: the entry stands with its offer and no word under it yet.
     if (cycle.fetching)
         return {};
-    const int count = cycle.senses.size();
+    const int count = static_cast<int>(cycle.senses.size());
     if (count <= 1 and cycle.exhausted)
         return {};
     // Past the last sense the cycle turns back to the most common one, and the entry says so

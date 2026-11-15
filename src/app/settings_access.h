@@ -27,7 +27,7 @@ QString keyOf(core::settings::Row const& row);
  * @param section The document, or the object the row's key lives in.
  * @return The stored value brought into the row's rule, or the row's default when nothing is stored.
  */
-QVariant read(core::SettingsSection section, core::settings::Row const& row);
+QVariant read(core::SettingsSection const& section, core::settings::Row const& row);
 
 /**
  * @brief Store @p value through @p row's rule, and save.

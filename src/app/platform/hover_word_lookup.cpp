@@ -167,7 +167,7 @@ void warmPageTreeOf(quintptr const window)
 PageTrack::PageTrack(quintptr const window, QRect const band, Deliver deliver)
     : window_{window}, deliver_{std::move(deliver)}, band_{band}
 {
-    worker_ = std::jthread{[this](std::stop_token stop) { run(stop); }};
+    worker_ = std::jthread{[this](std::stop_token const& stop) { run(stop); }};
 }
 
 PageTrack::~PageTrack()
@@ -181,7 +181,7 @@ void PageTrack::setBand(QRect const band)
     band_ = band;
 }
 
-void PageTrack::run(std::stop_token const stop)
+void PageTrack::run(std::stop_token const& stop)
 {
     ComApartment apartment; // COM lives on this thread; the UIA reader and its pages answer to it
     // The reader is chosen by the window's own controls, not by the foreground gate: a Scintilla
@@ -213,7 +213,7 @@ void PageTrack::run(std::stop_token const stop)
                           report.visibleBottom);
             if (not report.note.empty()) LENS_INFO("scan page {}", report.note);
         }
-        if (out.frame) deliver_(std::move(*out.frame));
+        if (out.frame) deliver_(*out.frame);
         next += kTrackPeriod;
         auto const now = std::chrono::steady_clock::now();
         if (next < now) next = now; // a long step does not make the steps after it burst

@@ -93,9 +93,9 @@ private:
     /// @return This week's profile, counted from the history. Nothing is cached.
     core::ReadingProfile weekProfile() const;
     /// @brief Keep the answer for the week the request was made in, and book its tokens.
-    void onAnswered(QVector<llm::ProfileLine> points, llm::Usage usage, QString failure);
+    void onAnswered(QVector<llm::ProfileLine> const& points, llm::Usage const& usage, QString failure);
     /// @brief Keep the story for the week it was asked in, and book its tokens. The text is cut to the panel's limit here.
-    void onStoryAnswered(llm::StoryAnswer answer, llm::Usage usage, QString failure);
+    void onStoryAnswered(llm::StoryAnswer answer, llm::Usage const& usage, QString failure);
 
     StorageDuty&    storage_;
     llm::LlmClient& llm_;

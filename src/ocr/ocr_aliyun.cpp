@@ -256,7 +256,7 @@ struct AliyunClientImpl final : OnlineOcrClient {
 }
 
 QUrl signedRecognizeUrl(QUrl const&    endpoint,
-                        QString const& accessKeyId,
+                        QString const& accessKeyId, // NOLINT(bugprone-easily-swappable-parameters): signedRecognizeUrl takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
                         QString const& accessKeySecret,
                         QString const& nonce,
                         QString const& timestamp)

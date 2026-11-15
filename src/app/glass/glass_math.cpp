@@ -53,7 +53,7 @@ double tenthPercentile(std::vector<double>& values)
 
 /// One separable box-blur pass over a w-by-h field, clamped at the edges, in place. Running sums keep the cost
 /// independent of the radius. The vertical pass adds whole rows, so memory is walked in order.
-void boxBlur(Field& field, int w, int h, int radius)
+void boxBlur(Field& field, int w, int h, int radius) // NOLINT(bugprone-easily-swappable-parameters): boxBlur takes its 2 int arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const span  = 1.0f / static_cast<float>(2 * radius + 1);
     auto const width = static_cast<std::size_t>(w);
@@ -174,7 +174,7 @@ bool settleTone(ToneRead const& read, bool const settledLight, int& streak, int 
     return !settledLight;
 }
 
-QImage displacementMap(QSize const size, double const radius, double const blurPx)
+QImage displacementMap(QSize const size, double const radius, double const blurPx) // NOLINT(bugprone-easily-swappable-parameters): displacementMap takes its 2 const double arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     int const w = size.width();
     int const h = size.height();

@@ -124,7 +124,7 @@ BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO authInfo(const Bytes& nonce, Bytes& tag)
 }
 
 /// @return The ciphertext of @p plaintext; @p tag receives the tag that authenticates it.
-Bytes encryptGcm(const Bytes& key, const Bytes& nonce, const Bytes& plaintext, Bytes& tag)
+Bytes encryptGcm(const Bytes& key, const Bytes& nonce, const Bytes& plaintext, Bytes& tag) // NOLINT(bugprone-easily-swappable-parameters): encryptGcm takes its 3 const Bytes & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const GcmKey gcm = importGcmKey(key);
     // ponytail: the buffer is never empty, so data() is never null for a zero-length message, which
@@ -140,7 +140,7 @@ Bytes encryptGcm(const Bytes& key, const Bytes& nonce, const Bytes& plaintext, B
 }
 
 /// @return The plaintext, or std::nullopt when @p tag does not verify.
-std::optional<Bytes> decryptGcm(const Bytes& key, const Bytes& nonce, const Bytes& ciphertext, Bytes tag)
+std::optional<Bytes> decryptGcm(const Bytes& key, const Bytes& nonce, const Bytes& ciphertext, Bytes tag) // NOLINT(bugprone-easily-swappable-parameters): decryptGcm takes its 3 const Bytes & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const GcmKey gcm = importGcmKey(key);
     // ponytail: same as encryptGcm, a non-empty buffer; resized to the true length below.

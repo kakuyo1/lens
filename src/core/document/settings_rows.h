@@ -16,7 +16,7 @@ namespace lens::core {
 
 /// @brief Read one Toggle row out of @p section.
 /// @return The stored value, or the row's own default when nothing is stored.
-inline bool readToggle(SettingsSection section, settings::Row const& row)
+inline bool readToggle(SettingsSection const& section, settings::Row const& row)
 {
     return section.value<bool>(row.key, row.fallback.toggle);
 }

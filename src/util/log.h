@@ -41,7 +41,7 @@ inline constexpr spdlog::level::level_enum kDefaultLevel = spdlog::level::trace;
 #endif
 
 /// Size at which the log file rotates.
-inline constexpr std::size_t kLogFileBytes = 10 * 1024 * 1024;
+inline constexpr std::size_t kLogFileBytes = static_cast<long long>(10 * 1024) * 1024;
 
 /// Rotated backups kept. spdlog counts backups only, so the live lens.log is extra:
 /// three rotations leave lens.log plus lens.1.log through lens.3.log on disk.

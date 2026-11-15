@@ -277,7 +277,7 @@ Animations parseAnimations(json const& document)
                 throw Refused(Refusal::BadAnimation, owner + "." + key + " names an action with no playback: " + name);
             if (found->second.loop)
                 throw Refused(Refusal::BadAnimation, owner + "." + key + " must name a one-shot: " + name);
-            return name;
+            return name; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
         };
         auto const delayFor = [&](char const* key, std::chrono::milliseconds fallback) {
             if (not hover.contains(key)) return fallback;
@@ -317,7 +317,7 @@ Animations parseAnimations(json const& document)
                 throw Refused(Refusal::BadAnimation, owner + "." + key + " names an action with no playback: " + name);
             if (not found->second.loop)
                 throw Refused(Refusal::BadAnimation, owner + "." + key + " must name a looping action: " + name);
-            return name;
+            return name; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
         };
 
         MovementSpec spec{};

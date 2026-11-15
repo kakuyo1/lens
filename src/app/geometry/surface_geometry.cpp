@@ -32,7 +32,7 @@ qreal scaleOf(qreal const ratio)
 }
 
 /// @return The area of @p card that lies over [left, right] x [top, bottom].
-qreal covered(QRectF const& card, qreal const left, qreal const top, qreal const right, qreal const bottom)
+qreal covered(QRectF const& card, qreal const left, qreal const top, qreal const right, qreal const bottom) // NOLINT(bugprone-easily-swappable-parameters): covered takes its 2 const qreal arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const width  = std::max<qreal>(0, std::min(card.right(), right) - std::max(card.left(), left));
     auto const height = std::max<qreal>(0, std::min(card.bottom(), bottom) - std::max(card.top(), top));
@@ -49,7 +49,7 @@ QSizeF SurfaceGeometry::boundedSize(QSizeF const size, QRectF const area, qreal 
             std::min(std::max<qreal>(1, size.height()), availableHeight)};
 }
 
-QPoint SurfaceGeometry::besideAnchor(QRectF const anchor, QSizeF const size, QRectF const area, qreal const shadow, qreal const margin) const
+QPoint SurfaceGeometry::besideAnchor(QRectF const anchor, QSizeF const size, QRectF const area, qreal const shadow, qreal const margin) const // NOLINT(bugprone-easily-swappable-parameters): besideAnchor takes its 2 const qreal arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const left   = area.left() + margin;
     auto const top    = area.top() + margin;
@@ -63,7 +63,7 @@ QPoint SurfaceGeometry::besideAnchor(QRectF const anchor, QSizeF const size, QRe
     return {rounded(x), rounded(clamped(y, top, bottom - size.height()))};
 }
 
-QPoint SurfaceGeometry::besidePet(QRectF const pet, QSizeF const size, QRectF const area, qreal const gap, qreal const margin) const
+QPoint SurfaceGeometry::besidePet(QRectF const pet, QSizeF const size, QRectF const area, qreal const gap, qreal const margin) const // NOLINT(bugprone-easily-swappable-parameters): besidePet takes its 2 const qreal arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const left   = area.left() + margin;
     auto const top    = area.top() + margin;
@@ -117,7 +117,7 @@ QPoint SurfaceGeometry::transient(QPointF const anchor, QSizeF const size, QRect
             rounded(clamped(y, top, bottom - size.height()))};
 }
 
-QPoint SurfaceGeometry::reviewCard(QRectF const word, QSizeF const size, QRectF const area, qreal const gap, qreal const shadow, qreal const margin) const
+QPoint SurfaceGeometry::reviewCard(QRectF const word, QSizeF const size, QRectF const area, qreal const gap, qreal const shadow, qreal const margin) const // NOLINT(bugprone-easily-swappable-parameters): reviewCard takes its 2 const qreal arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const left   = area.left() + margin;
     auto const top    = area.top() + margin;

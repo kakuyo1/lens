@@ -18,7 +18,7 @@ constexpr std::size_t kMaxLines           = 2000;
 constexpr std::size_t kMaxWords           = 20000;
 constexpr std::size_t kMaxRows            = 22000;
 constexpr std::size_t kMaxTextUnits       = 65536;
-constexpr std::size_t kMaxStructuredBytes = 4 * 1024 * 1024;
+constexpr std::size_t kMaxStructuredBytes = static_cast<long long>(4 * 1024) * 1024;
 constexpr char const* kHeader             = "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext";
 
 struct LineAccum {
@@ -94,7 +94,7 @@ OcrResult parseTesseractTsv(QByteArray const& tsv, QSize imageSize)
     if (tsv.size() > static_cast<qsizetype>(kMaxStructuredBytes)) return failure(OcrStatus::ResultTooLarge);
     if (tsv.startsWith("\xEF\xBB\xBF")) return failure(OcrStatus::ProtocolError);
 
-    int const newline = tsv.indexOf('\n');
+    int const newline = static_cast<int>(tsv.indexOf('\n'));
     if (newline < 0) return failure(OcrStatus::ProtocolError);
     auto header = tsv.left(newline);
     if (header.endsWith('\r')) header.chop(1);

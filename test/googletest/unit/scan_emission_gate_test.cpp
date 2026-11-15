@@ -20,7 +20,7 @@ using lens::app::ScanStep;
 using Clock = std::chrono::steady_clock;
 
 /// A placement of @p count words, all at distinct boxes, on a fixed monitor.
-ScanStep::Placed placementOf(int const count, int const yOffset = 0)
+ScanStep::Placed placementOf(int const count, int const yOffset = 0) // NOLINT(bugprone-easily-swappable-parameters): placementOf takes its 2 const int arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     ScanStep::Placed placed;
     placed.screen = QRect{0, 0, 1920, 1080};

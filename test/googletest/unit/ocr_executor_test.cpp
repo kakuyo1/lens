@@ -57,13 +57,13 @@ TEST(OcrExecutor, OneTaskAtATimeAndTheWorkerComesFreeWhenTheWorkReturns)
 
     std::uint64_t finishedId    = 0;
     int           finishedCount = 0;
-    QObject::connect(&executor, &OcrExecutor::finished, [&](std::uint64_t id, OcrResult) {
+    QObject::connect(&executor, &OcrExecutor::finished, [&](std::uint64_t id, OcrResult const&) {
         ++finishedCount;
         finishedId = id;
     });
 
     std::atomic<int> runs{0};
-    const auto       work = [&runs](std::shared_ptr<std::atomic_bool>) {
+    const auto       work = [&runs](std::shared_ptr<std::atomic_bool> const&) {
         ++runs;
         return readyResult();
     };

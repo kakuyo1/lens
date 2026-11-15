@@ -19,8 +19,8 @@
 namespace lens::capture {
 namespace {
 
-constexpr qsizetype kMaxOutput = 4 * 1024 * 1024;
-constexpr qsizetype kMaxError  = 64 * 1024;
+constexpr qsizetype kMaxOutput = static_cast<const qsizetype>(4 * 1024) * 1024;
+constexpr qsizetype kMaxError  = static_cast<const qsizetype>(64) * 1024;
 
 /// @return Whether @p path is a traineddata file Tesseract could actually load: an empty file is
 ///         what a half-finished download leaves behind, and passing it as a language fails the run.
@@ -49,9 +49,9 @@ QString psmFor(OcrLayoutHint const layout)
     return QStringLiteral("3");
 }
 
-OcrResult withAttempt(OcrResult result, QString const engine, int const elapsedMs)
+OcrResult withAttempt(OcrResult result, QString const& engine, int const elapsedMs)
 {
-    result.attempts.push_back({.engine = std::move(engine), .status = result.status, .elapsedMs = elapsedMs});
+    result.attempts.push_back({.engine = engine, .status = result.status, .elapsedMs = elapsedMs});
     return result;
 }
 
@@ -93,7 +93,7 @@ struct TesseractOcr final : OcrEngine {
                                static_cast<int>(timer.elapsed()));
         };
         if (request.image.isNull()) return started(OcrStatus::InvalidImage);
-        if (request.image.width() > 8192 or request.image.height() > 8192 or request.image.sizeInBytes() > 128 * 1024 * 1024)
+        if (request.image.width() > 8192 or request.image.height() > 8192 or request.image.sizeInBytes() > static_cast<qsizetype>(128 * 1024) * 1024)
             return started(OcrStatus::InputTooLarge);
         if (cancel and cancel->load(std::memory_order_relaxed)) return started(OcrStatus::Cancelled);
         auto const available = runtimeStatus();

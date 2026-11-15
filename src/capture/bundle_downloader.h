@@ -66,7 +66,7 @@ private:
     /// @brief Unpack the archive with the Windows bundle's tar, then check the unpacked files.
     void extract();
     /// @brief Put the run down: the partial file goes, and `finished(false, @p failure)` is reported.
-    void fail(QString failure);
+    void fail(QString const& failure);
 
     enum class Phase : int {
         Idle,

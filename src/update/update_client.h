@@ -30,11 +30,11 @@ namespace lens::update {
 struct Settings {
     QUrl    source; ///< The release page; a non-https one is refused and nothing is sent.
     int     timeoutMs        = 10000;
-    qint64  maxBytes         = 2 * 1024 * 1024;
-    QString sumsName         = QStringLiteral("SHA256SUMS"); ///< The asset that publishes the installer's digest.
-    qint64  maxDownloadBytes = 200 * 1024 * 1024;            ///< Ceiling on one installer.
-    int     stallTimeoutMs   = 30000;                        ///< A transfer that stops moving is given up on.
-    int     connectTimeoutMs = 15000;                        ///< A transfer that never starts is given up on.
+    qint64  maxBytes         = static_cast<qint64>(2 * 1024) * 1024;
+    QString sumsName         = QStringLiteral("SHA256SUMS");           ///< The asset that publishes the installer's digest.
+    qint64  maxDownloadBytes = static_cast<qint64>(200 * 1024) * 1024; ///< Ceiling on one installer.
+    int     stallTimeoutMs   = 30000;                                  ///< A transfer that stops moving is given up on.
+    int     connectTimeoutMs = 15000;                                  ///< A transfer that never starts is given up on.
 
     /**
      * @brief Read the source and its limits from `data/update.json`.

@@ -33,9 +33,9 @@ HistoryEntry entry(std::string lemma, std::string minute, std::string verdict = 
 }
 
 /// @brief The model's update with the sets a caller of the real controller hands in.
-void update(WordsModel& model, std::vector<HistoryEntry> history, std::unordered_set<std::string> known = {}, std::unordered_set<std::string> mastered = {})
+void update(WordsModel& model, std::vector<HistoryEntry> const& history, std::unordered_set<std::string> const& known = {}, std::unordered_set<std::string> const& mastered = {})
 {
-    model.update(kToday, std::move(history), std::move(known), std::move(mastered));
+    model.update(kToday, history, known, mastered);
 }
 
 QString wordAt(WordsModel const& model, int row)

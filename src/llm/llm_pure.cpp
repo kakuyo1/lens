@@ -27,7 +27,7 @@ namespace {
 // helper taking the context as a parameter would keep the strings out of the .ts files.
 
 /// @brief Render a channel's system prompt with the output-language line filled in.
-QString renderSystemPrompt(Channel channel, const QString& explanationLang, const QString& preset, bool const etymology, bool const example)
+QString renderSystemPrompt(Channel channel, const QString& explanationLang, const QString& preset, bool const etymology, bool const example) // NOLINT(bugprone-easily-swappable-parameters): renderSystemPrompt takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const PromptTemplate& tmpl = promptTemplate(channel, preset);
 
@@ -55,17 +55,17 @@ QByteArray extractJsonObject(const QString& content)
 {
     QString text = content.trimmed();
     if (text.startsWith(QLatin1String("```"))) {
-        const int newline = text.indexOf(QLatin1Char('\n'));
+        const int newline = static_cast<int>(text.indexOf(QLatin1Char('\n')));
         if (newline >= 0)
             text = text.mid(newline + 1);
-        const int fence = text.lastIndexOf(QLatin1String("```"));
+        const int fence = static_cast<int>(text.lastIndexOf(QLatin1String("```")));
         if (fence >= 0)
             text = text.left(fence);
         text = text.trimmed();
     }
     if (!text.startsWith(QLatin1Char('{'))) {
-        const int open  = text.indexOf(QLatin1Char('{'));
-        const int close = text.lastIndexOf(QLatin1Char('}'));
+        const int open  = static_cast<int>(text.indexOf(QLatin1Char('{')));
+        const int close = static_cast<int>(text.lastIndexOf(QLatin1Char('}')));
         if (open >= 0 && close > open)
             text = text.mid(open, close - open + 1);
     }
@@ -141,7 +141,7 @@ int scanSenseArray(QString const& text, int arrayStart, QJsonArray& senses)
         while (i < text.size() and (text.at(i).isSpace() or text.at(i) == QLatin1Char(',')))
             ++i;
         if (i >= text.size())
-            return text.size();
+            return static_cast<int>(text.size());
         if (text.at(i) == QLatin1Char(']'))
             return i + 1;
         if (text.at(i) != QLatin1Char('{'))
@@ -166,7 +166,7 @@ int scanStringArray(QString const& text, int arrayStart, QJsonArray& values)
         while (i < text.size() and (text.at(i).isSpace() or text.at(i) == QLatin1Char(',')))
             ++i;
         if (i >= text.size())
-            return text.size();
+            return static_cast<int>(text.size());
         if (text.at(i) == QLatin1Char(']'))
             return i + 1;
         if (text.at(i) != QLatin1Char('"'))
@@ -174,7 +174,7 @@ int scanStringArray(QString const& text, int arrayStart, QJsonArray& values)
 
         const int valueEnd = endOfJsonString(text, i);
         if (valueEnd < 0)
-            return text.size();
+            return static_cast<int>(text.size());
         values.append(jsonStringValue(text.mid(i, valueEnd - i + 1)));
         i = valueEnd + 1;
     }
@@ -193,7 +193,7 @@ int scanJsonObject(QString const& text, int objectStart, QJsonObject& fields, QJ
         while (i < text.size() and (text.at(i).isSpace() or text.at(i) == QLatin1Char(',')))
             ++i;
         if (i >= text.size())
-            return text.size();
+            return static_cast<int>(text.size());
         if (text.at(i) == QLatin1Char('}'))
             return i + 1;
         if (text.at(i) != QLatin1Char('"'))
@@ -201,7 +201,7 @@ int scanJsonObject(QString const& text, int objectStart, QJsonObject& fields, QJ
 
         const int keyEnd = endOfJsonString(text, i);
         if (keyEnd < 0)
-            return text.size();
+            return static_cast<int>(text.size());
         const QString key = text.mid(i + 1, keyEnd - i - 1);
         i                 = keyEnd + 1;
         while (i < text.size() and text.at(i).isSpace())
@@ -212,12 +212,12 @@ int scanJsonObject(QString const& text, int objectStart, QJsonObject& fields, QJ
         while (i < text.size() and text.at(i).isSpace())
             ++i;
         if (i >= text.size())
-            return text.size();
+            return static_cast<int>(text.size());
 
         if (text.at(i) == QLatin1Char('"')) {
             const int valueEnd = endOfJsonString(text, i);
             if (valueEnd < 0)
-                return text.size(); // the value has not closed; everything after it waits with it
+                return static_cast<int>(text.size()); // the value has not closed; everything after it waits with it
             fields.insert(key, jsonStringValue(text.mid(i, valueEnd - i + 1)));
             i = valueEnd + 1;
             continue;
@@ -236,7 +236,7 @@ int scanJsonObject(QString const& text, int objectStart, QJsonObject& fields, QJ
         }
         if (text.at(i) == QLatin1Char('t')) {
             if (i + 4 > text.size())
-                return text.size(); // "tru" is not a value yet
+                return static_cast<int>(text.size()); // "tru" is not a value yet
             if (text.mid(i, 4) != QLatin1String("true"))
                 return i;
             fields.insert(key, true);
@@ -245,7 +245,7 @@ int scanJsonObject(QString const& text, int objectStart, QJsonObject& fields, QJ
         }
         if (text.at(i) == QLatin1Char('f')) {
             if (i + 5 > text.size())
-                return text.size();
+                return static_cast<int>(text.size());
             if (text.mid(i, 5) != QLatin1String("false"))
                 return i;
             fields.insert(key, false);
@@ -254,7 +254,7 @@ int scanJsonObject(QString const& text, int objectStart, QJsonObject& fields, QJ
         }
         if (text.at(i) == QLatin1Char('n')) {
             if (i + 4 > text.size())
-                return text.size();
+                return static_cast<int>(text.size());
             if (text.mid(i, 4) != QLatin1String("null"))
                 return i;
             i += 4;
@@ -509,7 +509,7 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
 
     /// Reject the whole batch, naming the reason once for both the caller and the log.
     const auto reject = [](const QString& reason) -> Result {
-        LENS_ERROR("parseExplanations rejected the response: {}", reason.toStdString());
+        LENS_ERROR("parseExplanations rejected the response: {}", reason.toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         return reason;
     };
 
@@ -699,7 +699,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
     using Result = std::variant<QVector<Explanation>, QString>;
 
     const auto reject = [](const QString& reason) -> Result {
-        LENS_ERROR("parseExplanations rejected the response: {}", reason.toStdString());
+        LENS_ERROR("parseExplanations rejected the response: {}", reason.toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         return reason;
     };
 
@@ -775,12 +775,12 @@ QVector<BreakdownRun> breakdownRuns(QString const& sentence, QVector<RoleSpan> c
     };
     int cursor = 0;
     for (int i = 0; i < words.size(); ++i) {
-        const int at = sentence.indexOf(words.at(i), cursor);
+        const int at = static_cast<int>(sentence.indexOf(words.at(i), cursor));
         // The whitespace before a word keeps the run's role only when the word before it shares that role.
         const QString gapRole = i > 0 and roles.at(i) == roles.at(i - 1) ? roles.at(i) : QString{};
         append(sentence.mid(cursor, at - cursor), gapRole);
         append(words.at(i), roles.at(i));
-        cursor = at + words.at(i).size();
+        cursor = static_cast<int>(at + words.at(i).size());
     }
     append(sentence.mid(cursor), QString{});
     return runs;
@@ -802,7 +802,7 @@ std::variant<QString, CorrectionRejected> parseCorrection(Channel const channel,
 
     // The reason only reaches the log: a refused correction draws nothing, and says nothing to the reader.
     const auto reject = [](const QString& reason) -> Result {
-        LENS_ERROR("parseCorrection rejected the response: {}", reason.toStdString());
+        LENS_ERROR("parseCorrection rejected the response: {}", reason.toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         return CorrectionRejected{};
     };
 
@@ -829,7 +829,7 @@ std::variant<QString, CorrectionRejected> parseCorrection(Channel const channel,
         return reject(QStringLiteral("a spelling correction holds more than one word"));
 
     LENS_TRACE("parseCorrection: accepted a correction for channel '{}'", channelKey(channel));
-    return corrected;
+    return corrected; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 }
 
 QVector<CorrectionRun> correctionRuns(QString const& original, QString const& corrected)
@@ -863,11 +863,11 @@ QVector<CorrectionRun> correctionRuns(QString const& original, QString const& co
     QVector<CorrectionRun> runs;
     int                    cursor = 0;
     for (int j = 0; j < m; ++j) {
-        const int     at  = corrected.indexOf(after.at(j), cursor);
+        const int     at  = static_cast<int>(corrected.indexOf(after.at(j), cursor));
         const QString gap = corrected.mid(cursor, at - cursor);
         if (not gap.isEmpty()) runs.append(CorrectionRun{gap, false});
         runs.append(CorrectionRun{after.at(j), not kept.at(j)});
-        cursor = at + after.at(j).size();
+        cursor = static_cast<int>(at + after.at(j).size());
     }
     if (cursor < corrected.size()) runs.append(CorrectionRun{corrected.mid(cursor), false});
     return runs;
@@ -903,7 +903,7 @@ std::variant<QVector<RoleSpan>, QString> parseBreakdown(QByteArray const& respon
 
     // The reason only reaches the log: the breakdown card's one failure line is the app's own.
     const auto reject = [](const QString& reason) -> Result {
-        LENS_ERROR("parseBreakdown rejected the response: {}", reason.toStdString());
+        LENS_ERROR("parseBreakdown rejected the response: {}", reason.toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         return reason;
     };
 
@@ -961,7 +961,7 @@ std::variant<QVector<ProfileLine>, QString> parseProfile(QByteArray const& respo
 
     // The reason only reaches the log: the profile's one failure line is the app's own.
     const auto reject = [](const QString& reason) -> Result {
-        LENS_ERROR("parseProfile rejected the response: {}", reason.toStdString());
+        LENS_ERROR("parseProfile rejected the response: {}", reason.toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         return reason;
     };
 
@@ -997,7 +997,7 @@ std::variant<StoryAnswer, QString> parseStory(QByteArray const& responseBody, QS
 
     // The reason only reaches the log: the story's one failure line is the app's own. The story text is never logged.
     const auto reject = [](const QString& reason) -> Result {
-        LENS_ERROR("parseStory rejected the response: {}", reason.toStdString());
+        LENS_ERROR("parseStory rejected the response: {}", reason.toStdString()); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         return reason;
     };
 
@@ -1114,7 +1114,7 @@ std::variant<QVector<Explanation>, QString> StreamAssembler::finish(QByteArray c
     consume(buffer_); // the last event may have arrived without its terminator
     if (const QString reason = finishReasonError(finishReason_); not reason.isEmpty()) {
         LENS_ERROR("parseExplanations rejected the response: {}", reason.toStdString());
-        return reason;
+        return reason; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
     }
     return parseExplanationContent(channel_, content_, expectedInputs_, language_, multipleSenses_);
 }
@@ -1214,8 +1214,8 @@ QVector<QByteArray> takeSsePayloads(QByteArray& buffer)
 {
     QVector<QByteArray> payloads;
     while (true) {
-        const int lf         = buffer.indexOf("\n\n");
-        const int crlf       = buffer.indexOf("\r\n\r\n");
+        const int lf         = static_cast<int>(buffer.indexOf("\n\n"));
+        const int crlf       = static_cast<int>(buffer.indexOf("\r\n\r\n"));
         int       end        = -1;
         int       terminator = 0;
         if (crlf >= 0 and (lf < 0 or crlf < lf)) {
@@ -1279,13 +1279,13 @@ std::optional<StreamDelta> parseStreamDelta(const QByteArray& payload)
 Explanation parsePartialExplanation(Channel const channel, QString const& content)
 {
     Explanation partial;
-    const int   payloadStart = content.indexOf(QLatin1Char('{'));
+    const int   payloadStart = static_cast<int>(content.indexOf(QLatin1Char('{')));
     if (payloadStart < 0)
         return partial;
-    const int resultsKey = content.indexOf(QStringLiteral("\"results\""), payloadStart);
+    const int resultsKey = static_cast<int>(content.indexOf(QStringLiteral("\"results\""), payloadStart));
     if (resultsKey < 0)
         return partial;
-    const int arrayStart = content.indexOf(QLatin1Char('['), resultsKey);
+    const int arrayStart = static_cast<int>(content.indexOf(QLatin1Char('['), resultsKey));
     if (arrayStart < 0)
         return partial;
 

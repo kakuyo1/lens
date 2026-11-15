@@ -28,7 +28,7 @@ using lens::capture::OcrUploadState;
 
 QString const kEngine = QStringLiteral("baidu");
 
-constexpr std::size_t kMaxTokenBodyBytes = 64 * 1024;
+constexpr std::size_t kMaxTokenBodyBytes = static_cast<long long>(64) * 1024;
 constexpr int         kTokenTimeoutMs    = 10000;
 constexpr int         kMaxImageEdge      = 4096; ///< The service's longest accepted side.
 constexpr int         kMinImageEdge      = 15;   ///< The service's shortest accepted side.
@@ -76,7 +76,7 @@ TokenOutcome exchangeToken(BaiduConfig const&                config,
     request.timeoutMs =
         static_cast<int>(std::max<std::int64_t>(1000, std::min<std::int64_t>(kTokenTimeoutMs, remaining.count())));
 
-    auto const response = transport.send(request, cancel);
+    auto const response = transport.send(request, std::move(cancel));
     if (response.cancelled) return {.status = OcrStatus::Cancelled};
     if (response.timedOut) return {.status = OcrStatus::TimedOut};
     if (response.responseTooLarge) return {.status = OcrStatus::ResultTooLarge};
@@ -113,7 +113,7 @@ OcrResult parseResponse(QByteArray const&   body,
                         QSize const         image,
                         QString const&      language,
                         std::uint64_t const requestId,
-                        bool&               tokenRejected,
+                        bool&               tokenRejected, // NOLINT(bugprone-easily-swappable-parameters): the diagnostic's suggestion does not fit this call site
                         int&                errorCode)
 {
     tokenRejected = false;

@@ -73,9 +73,9 @@ std::string SyncPartition::provider() const
     return named.empty() ? std::string(kDefaultProvider) : named;
 }
 
-void SyncPartition::setProvider(std::string provider)
+void SyncPartition::setProvider(std::string const& provider)
 {
-    section().set<std::string>(kProvider, std::move(provider));
+    section().set<std::string>(kProvider, provider);
 }
 
 std::string SyncPartition::server() const
@@ -83,9 +83,9 @@ std::string SyncPartition::server() const
     return section().value<std::string>(kServer, "");
 }
 
-void SyncPartition::setServer(std::string server)
+void SyncPartition::setServer(std::string const& server)
 {
-    section().set<std::string>(kServer, std::move(server));
+    section().set<std::string>(kServer, server);
 }
 
 std::string SyncPartition::username() const
@@ -93,9 +93,9 @@ std::string SyncPartition::username() const
     return section().value<std::string>(kUsername, "");
 }
 
-void SyncPartition::setUsername(std::string username)
+void SyncPartition::setUsername(std::string const& username)
 {
-    section().set<std::string>(kUsername, std::move(username));
+    section().set<std::string>(kUsername, username);
 }
 
 std::string SyncPartition::readSecret(const char* key) const
@@ -104,7 +104,7 @@ std::string SyncPartition::readSecret(const char* key) const
     if (stored.empty())
         return {};
     if (!stored.starts_with(kSealedPrefix))
-        return stored; // A value a build before the seal wrote; the next write seals it.
+        return stored; // A value a build before the seal wrote; the next write seals it. // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 
     const auto                 blob = vault::decodeBase64(stored.substr(kSealedPrefix.size()));
     std::optional<std::string> open;
@@ -132,7 +132,7 @@ std::string SyncPartition::appPassword() const
     return readSecret(kAppPassword);
 }
 
-void SyncPartition::setAppPassword(std::string appPassword)
+void SyncPartition::setAppPassword(std::string const& appPassword)
 {
     writeSecret(kAppPassword, appPassword);
 }
@@ -157,7 +157,7 @@ std::string SyncPartition::refreshToken() const
     return readSecret(kRefreshToken);
 }
 
-void SyncPartition::storeTokens(std::string access, std::string refresh)
+void SyncPartition::storeTokens(std::string const& access, std::string const& refresh)
 {
     // An app whose user tokens do not expire sends no refresh token, and an empty one would make
     // the next 401 look renewable when it is not.
@@ -181,7 +181,7 @@ std::string SyncPartition::login() const
     return section().value<std::string>(kLogin, "");
 }
 
-void SyncPartition::setLogin(std::string login)
+void SyncPartition::setLogin(std::string const& login)
 {
     section().set<std::string>(kLogin, login);
 }
@@ -202,7 +202,7 @@ std::string SyncPartition::gistId() const
     return section().value<std::string>(kGistId, "");
 }
 
-void SyncPartition::setGistId(std::string gistId)
+void SyncPartition::setGistId(std::string const& gistId)
 {
     section().set<std::string>(kGistId, gistId);
 }
@@ -262,7 +262,7 @@ std::string SyncPartition::lastSyncedAt() const
     return section().value<std::string>(kLastSyncedAt, "");
 }
 
-void SyncPartition::setLastSyncedAt(std::string minute)
+void SyncPartition::setLastSyncedAt(std::string const& minute)
 {
     section().set<std::string>(kLastSyncedAt, minute);
 }

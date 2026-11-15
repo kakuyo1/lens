@@ -82,7 +82,7 @@ struct Harness {
     std::vector<ScanStep> routed;
 
     ScanSession session{store,
-                        [](std::function<void()> work) { work(); },
+                        [](const std::function<void()>& work) { work(); },
                         [this](quintptr, QRect, TrackSink sink) {
                             ++started;
                             deliver = std::move(sink);

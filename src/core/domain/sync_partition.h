@@ -40,18 +40,18 @@ public:
     /// @return The storage backend this device syncs through, kDefaultProvider unless the document says otherwise.
     [[nodiscard]] std::string provider() const;
     /// @brief Name the storage backend this device syncs through; a device-local choice.
-    void setProvider(std::string provider);
+    void setProvider(std::string const& provider);
 
     /// @return The WebDAV server address the reader entered, or empty when none is stored.
     [[nodiscard]] std::string server() const;
-    void                      setServer(std::string server);
+    void                      setServer(std::string const& server);
     [[nodiscard]] std::string username() const;
-    void                      setUsername(std::string username);
+    void                      setUsername(std::string const& username);
     /// @return The WebDAV app password, or empty when none is stored. A secret: written once, never
     ///         read back to a surface, and sealed to this account before it reaches the document
     ///         like the sync tokens (docs/adr/0177).
     [[nodiscard]] std::string appPassword() const;
-    void                      setAppPassword(std::string appPassword);
+    void                      setAppPassword(std::string const& appPassword);
 
     /// @return Whether an access token is stored.
     [[nodiscard]] bool        signedIn() const;
@@ -60,18 +60,18 @@ public:
     [[nodiscard]] std::string refreshToken() const;
     /// @brief Keep the pair a sign-in or a refresh produced; an empty refresh removes the key.
     ///        Both values are sealed to this account before they reach the document (docs/adr/0177).
-    void storeTokens(std::string access, std::string refresh);
+    void storeTokens(std::string const& access, std::string const& refresh);
     /// @brief Forget both tokens, as after a refusal that proves the sign-in is dead.
     void forgetTokens();
 
     [[nodiscard]] std::string login() const;
-    void                      setLogin(std::string login);
+    void                      setLogin(std::string const& login);
 
     /// @return This device's id, made and stored on the first call.
     std::string deviceId();
 
     [[nodiscard]] std::string gistId() const;
-    void                      setGistId(std::string gistId);
+    void                      setGistId(std::string const& gistId);
     /// @brief Forget the cloud copy's id alone, as when the gist is no longer there.
     void forgetGistId();
 
@@ -87,7 +87,7 @@ public:
     void                         setSettingsSnapshot(const nlohmann::json& snapshot);
 
     [[nodiscard]] std::string lastSyncedAt() const;
-    void                      setLastSyncedAt(std::string minute);
+    void                      setLastSyncedAt(std::string const& minute);
 
     /// @brief Forget the cloud copy's identity after it was deleted: its id, its key and its time.
     void forgetCloudCopy();

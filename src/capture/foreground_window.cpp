@@ -22,7 +22,7 @@ std::optional<QPoint> physicalScreenOrigin(quintptr const monitor)
     if (monitor == 0) return std::nullopt;
     MONITORINFO info{};
     info.cbSize = sizeof(info);
-    if (not GetMonitorInfoW(reinterpret_cast<HMONITOR>(monitor), &info)) return std::nullopt;
+    if (not GetMonitorInfoW(reinterpret_cast<HMONITOR>(monitor), &info)) return std::nullopt; // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
     return QPoint{info.rcMonitor.left, info.rcMonitor.top};
 }
 
@@ -42,7 +42,7 @@ std::optional<ForegroundWindow> foregroundWindow()
     if (not GetWindowRect(window, &rect)) return std::nullopt;
     auto const width  = std::int64_t{rect.right} - rect.left;
     auto const height = std::int64_t{rect.bottom} - rect.top;
-    if (width <= 0 or height <= 0 or width > 8192 or height > 8192 or width * height > 32 * 1024 * 1024)
+    if (width <= 0 or height <= 0 or width > 8192 or height > 8192 or width * height > static_cast<std::int64_t>(32 * 1024) * 1024)
         return std::nullopt;
     const HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONULL);
     if (monitor == nullptr) return std::nullopt;

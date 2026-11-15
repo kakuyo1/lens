@@ -47,7 +47,7 @@ UploadStep UploadTransaction::begin(QImage image, QPoint anchor, ocr::OnlineOcrC
     return step;
 }
 
-UploadStep UploadTransaction::confirm(qulonglong const requestId, std::uint64_t const screenshotGeneration, std::chrono::steady_clock::time_point const now)
+UploadStep UploadTransaction::confirm(qulonglong const requestId, std::uint64_t const screenshotGeneration, std::chrono::steady_clock::time_point const now) // NOLINT(bugprone-easily-swappable-parameters): the diagnostic's suggestion does not fit this call site
 {
     if (not upload_ or upload_->requestId != requestId) return {};
     if (now >= upload_->absoluteDeadline) return clear(QStringLiteral("expired"), true);

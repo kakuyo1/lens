@@ -21,7 +21,7 @@ GoogleSource::GoogleSource(QNetworkAccessManager* manager, QObject* parent)
 {
 }
 
-QUrl GoogleSource::urlFor(QString const& word, QString const& accent)
+QUrl GoogleSource::urlFor(QString const& word, QString const& accent) // NOLINT(bugprone-easily-swappable-parameters): urlFor takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     QUrl      url{QStringLiteral("https://translate.google.com/translate_tts")};
     QUrlQuery query;
@@ -57,7 +57,7 @@ void GoogleSource::fetch(QString const& word, QString const& accent, AudioSink s
         // An answer that is not audio is a refusal, whatever its status says: the endpoint answers with HTML
         // for a request it does not like, and that must not reach the player.
         if (reply->error() != QNetworkReply::NoError or status != 200 or not type.startsWith(QLatin1String("audio/")) or bytes.isEmpty() or bytes.size() > kMaxBytes) {
-            LENS_TRACE("pronunciation: no recording from google (HTTP {}, {} bytes, error {})", status, bytes.size(), static_cast<int>(reply->error()));
+            LENS_TRACE("pronunciation: no recording from google (HTTP {}, {} bytes, error {})", status, bytes.size(), static_cast<int>(reply->error())); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             sink({}, false);
             return;
         }

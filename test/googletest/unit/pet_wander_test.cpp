@@ -31,7 +31,7 @@ using namespace std::chrono_literals;
 QRect const kArea{0, 0, 1920, 1040};
 QSize const kPet{264, 264};
 
-PetWander makeWander(Gait gait, QPoint home = QPoint{500, 500}, int range = 30, double random = 0.5, double hideChance = lens::core::pet::kHideChance)
+PetWander makeWander(Gait gait, QPoint home = QPoint{500, 500}, int range = 30, double random = 0.5, double hideChance = lens::core::pet::kHideChance) // NOLINT(bugprone-easily-swappable-parameters): makeWander takes its 2 double arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     PetWander wander{gait, range, [random] { return random; }, hideChance};
     wander.setHome(home);

@@ -117,7 +117,7 @@ TEST(LlmSmoke, OneWordRoundTrip)
     std::optional<QVector<Explanation>> results;
     QString                             failure;
 
-    QObject::connect(&client, &LlmClient::batchFinished, [&](const QVector<Explanation>& explained, Usage usage) {
+    QObject::connect(&client, &LlmClient::batchFinished, [&](const QVector<Explanation>& explained, Usage const& usage) {
         results = explained;
         std::cout << "usage: " << usage.promptTokens << " prompt / " << usage.completionTokens
                   << " completion token(s)\n";
@@ -175,7 +175,7 @@ TEST(LlmSmoke, SentenceBreakdownRoundTrip)
 
     QObject::connect(&client, &LlmClient::breakdownAnswered, [&](const QString&, const QVector<RoleSpan>& answered, Usage usage, const QString& failure) {
         spans       = answered;
-        usageSeen   = usage;
+        usageSeen   = std::move(usage);
         failureSeen = failure;
         loop.quit();
     });

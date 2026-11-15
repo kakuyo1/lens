@@ -46,11 +46,11 @@ std::optional<OcrHttpStatus> classifyOcrHttpStatus(int const httpStatus)
     return std::nullopt;
 }
 
-std::optional<OcrResult> refuseOcrRequest(capture::OcrRequest const&        request,
-                                          QString const&                    engine,
-                                          OcrImageLimits const&             limits,
-                                          std::shared_ptr<std::atomic_bool> cancel,
-                                          bool const                        configurationUsable)
+std::optional<OcrResult> refuseOcrRequest(capture::OcrRequest const&               request,
+                                          QString const&                           engine,
+                                          OcrImageLimits const&                    limits,
+                                          std::shared_ptr<std::atomic_bool> const& cancel,
+                                          bool const                               configurationUsable)
 {
     auto const refusal = [&](OcrStatus const status) {
         return ocrResultFor(engine, status, request.requestId, OcrUploadState::NotUploaded);
