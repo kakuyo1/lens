@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0-beta - 2026-11-15
+## 1.0.0-beta - 2026-11-16
 
 This is the beta release of Lens, the second release on the numbering that began at 1.0.0-alpha. It is more settled than the alpha, but it is still a beta: some surfaces are rough and results can still be wrong. Please report what you find as an issue at https://github.com/kakuyo1/lens/issues, with the steps that led to it and your Lens version.
 
