@@ -124,12 +124,18 @@ done
 screenshot selection-bar "ui-prototypes/selection-bar.html" \
     "lang=en&shot=1&theme=liquid&bg=paper&placement=below&page=1" 620 180 2 "$out"
 
-# The copy text's drawer: a sentence is selected, so it lists the two actions a sentence can take.
-screenshot selection-drawer "docs/readme/scenes/selection-drawer.html" "" 900 620 2 "$out"
+# The copy drawer GIF: the sentence state with both items, then the word state with Fix spelling,
+# each with the drawer closed and open. compose_drawer_gif joins drawer-0..3.
+screenshot drawer-0 "docs/readme/scenes/selection-drawer.html" "state=sentence&open=1" 960 600 2 "$frames"
+screenshot drawer-1 "docs/readme/scenes/selection-drawer.html" "state=sentence&open=0" 960 600 2 "$frames"
+screenshot drawer-2 "docs/readme/scenes/selection-drawer.html" "state=word&open=1" 960 600 2 "$frames"
+screenshot drawer-3 "docs/readme/scenes/selection-drawer.html" "state=word&open=0" 960 600 2 "$frames"
 
-# The breakdown answer: the same sentence, back with every part tinted in its role colour and a
-# legend under it (docs/adr/0128).
-screenshot breakdown "docs/readme/scenes/breakdown.html" "" 900 620 2 "$out"
+# The breakdown GIF: the page with the sentence selected, the card with no tint, the first roles
+# tinted, and the full answer. compose_breakdown_gif opens on the full answer and joins 3,0,1,2,3.
+for i in 0 1 2 3; do
+    screenshot "breakdown-$i" "docs/readme/scenes/breakdown.html" "step=$i" 960 600 2 "$frames"
+done
 
 # The feature GIF: select a word, press Explain, read the card, mark it Known. The card leaves out the
 # etymology and the example on purpose; the frames are joined by compose_feature_tour.
@@ -137,10 +143,10 @@ for i in 0 1 2 3 4 5; do
     screenshot "tour-$i" "docs/readme/scenes/feature-tour.html" "step=$i" 960 600 2 "$frames"
 done
 
-# The hover-lookup GIF: the pointer rests on a link word, the compact waiting card breathes at the
-# word (UI-SPEC.md 4.3), the card fills, and the verdict pills open under the pointer.
-# compose_hover_gif joins the frames.
-for i in 0 1 2 3 4; do
+# The hover-lookup GIF: a linked headline, the pointer resting on serendipity in it, the compact
+# waiting card at the word (UI-SPEC.md 4.3), then the card filled. The link needs neither a drag nor
+# a click. compose_hover_gif joins the frames.
+for i in 0 1 2 3; do
     screenshot "hover-$i" "docs/readme/scenes/hover-lookup.html" "step=$i" 960 600 2 "$frames"
 done
 
@@ -150,15 +156,21 @@ for i in 0 1 2 3 4; do
     screenshot_direct "scan-$i" "docs/readme/scenes/scan.html" "step=$i" 960 600 2 "$frames"
 done
 
+# The OCR GIF: a scanned paper page, the capture mask raised, one word framed, then the mask gone
+# and the card. compose_ocr_gif joins the frames.
+for i in 0 1 2 3 4; do
+    screenshot "ocr-$i" "docs/readme/scenes/ocr.html" "step=$i" 960 600 2 "$frames"
+done
+
 # The mother-tongue peek GIF: the English card, the globe held part-way round its ring, the
 # mother-tongue line under the definition, and back to English. The compose step repeats the
 # first frame to close the loop. The frames stay in the scratch directory.
 screenshot fb-page-en "ui-prototypes/bubble.html" \
-    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4" 760 760 2 "$frames"
+    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1" 960 600 2 "$frames"
 screenshot fb-page-hold "ui-prototypes/bubble.html" \
-    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4&hold=70" 760 760 2 "$frames"
+    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1&hold=70" 960 600 2 "$frames"
 screenshot fb-page-peek "ui-prototypes/bubble.html" \
-    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1.4&peek=1" 760 760 2 "$frames"
+    "lang=en&shot=1&theme=liquid&actions=open&page=1&pageScale=1&peek=1" 960 600 2 "$frames"
 
 # Four action-bar shapes over the same reading page, one frame each.
 for style in classic side cards tag; do

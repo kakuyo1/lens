@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · OCR over a scanned PDF</title>
+<!--
+  A README-only scene for the OCR GIF: a scanned paper page on the same warm paper as the other
+  scenes, the capture mask raised, one word framed, then the mask gone and the card explaining what
+  it read. The mask follows src/app/qml/capture/Mask.qml: four shade bands at 38% black, a 1 px white
+  frame around the selection, the hint centred at 12% of the screen, and a crosshair while dragging.
+  The card is the same liquid glass as the other scenes. ?step=0..4 picks one frame; compose_ocr_gif
+  joins them.
+-->
+<style>
+:root{
+  --paper:#f4ecd9; --ink:#101319; --muted:#333846; --faint:#4a4f5e; --ok-ink:#1d7a52;
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11); --panel2:rgba(18,24,36,.075);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --read:"Charter","Iowan Old Style","Sitka Text",Georgia,serif;
+  --glass-fill:rgba(250,252,255,.5); --glass-edge:rgba(255,255,255,.8);
+  --glass-sheen:linear-gradient(115deg,rgba(255,255,255,.55),rgba(255,255,255,.08) 45%,rgba(255,255,255,0) 65%);
+  --sh2:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.4);
+  --shade:rgba(0,0,0,.38);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{width:960px;height:600px;overflow:hidden;position:relative;background:var(--paper);color:var(--ink);
+  font-family:var(--f);-webkit-font-smoothing:antialiased;user-select:none}
+
+/* The scanned paper is the page itself: the same full-bleed warm paper the other scenes use, with
+   none of a reader's chrome around it. */
+.page{position:absolute;left:72px;top:56px;width:640px;color:#2c2a26}
+/* The scan's own grain: faint rows and flecks over the whole page, so it reads as pixels rather
+   than live text. */
+body::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;
+  background-image:repeating-linear-gradient(0deg,rgba(96,78,48,.035) 0 1px,transparent 1px 3px),
+    radial-gradient(circle at 24% 36%,rgba(96,78,48,.05) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 71% 64%,rgba(96,78,48,.045) 0 1px,transparent 1.5px);
+  background-size:auto,7px 9px,11px 13px}
+.journal{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#7c6a4f}
+h1{margin-top:10px;font-family:var(--read);font-size:36px;line-height:1.14;font-weight:600;letter-spacing:-.012em}
+.authors{margin-top:12px;font-family:var(--read);font-size:12px;color:#5a554a}
+.affil{margin-top:3px;font-family:var(--read);font-size:10.5px;color:#7c7466}
+.rule{height:1px;margin-top:14px;background:rgba(70,58,36,.2)}
+.abstract{margin-top:13px;font-family:var(--read);font-size:14px;line-height:1.66;color:#3a3730}
+.abstract b{font-weight:700}
+h2{margin-top:19px;font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--ok-ink)}
+p{margin-top:9px;font-family:var(--read);font-size:15px;line-height:1.7;color:#33302a}
+#word{position:relative}
+
+/* The capture mask: four bands rather than one box with a hole, as Mask.qml draws it. */
+.mask{position:absolute;inset:0;z-index:20;pointer-events:none}
+.mask .band{position:absolute;background:var(--shade)}
+.mask .frame{position:absolute;border:1px solid #fff}
+.mask .hint{position:absolute;left:0;right:0;top:72px;text-align:center;color:#fff;
+  font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+
+.cross{position:absolute;z-index:30;width:22px;height:22px;pointer-events:none}
+.cursor{position:absolute;z-index:30;width:22px;height:22px;color:#1c1c22;
+  filter:drop-shadow(0 1px 1px rgba(255,255,255,.9));pointer-events:none}
+
+/* The card: the same compact bubble the reader sees after a lookup, over the page it just read. */
+.card{position:absolute;z-index:15;width:372px;padding:16px 18px 12px;
+  background:var(--glass-fill);background-image:var(--glass-sheen);border:1px solid var(--glass-edge);
+  border-radius:20px;box-shadow:var(--sh2)}
+.bub-top{display:flex;align-items:center;height:20px;margin-bottom:8px}
+.bub-head{margin-left:auto;display:flex;align-items:center;gap:6px}
+.bub-peek{width:20px;height:20px;display:grid;place-items:center;color:var(--faint)}
+.bub-peek svg{width:13px;height:13px}
+.bub-close{width:14px;height:14px;color:var(--faint)}
+.tag{font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(47,158,110,.12);color:var(--ok-ink);font-weight:650}
+.word{display:flex;align-items:baseline;gap:8px;font-size:26px;font-weight:650;letter-spacing:-.015em}
+.word .meta{display:inline-flex;align-items:center;gap:7px}
+.word .speaker{display:inline-flex;align-self:center;position:relative;top:1px;color:var(--faint)}
+.word .speaker svg{width:12px;height:12px}
+.ipa{font-size:12.5px;font-weight:400;color:var(--faint)}
+.pos{font-family:"Cascadia Code",Consolas,monospace;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.signpost{font-size:11px;font-weight:700;color:var(--ok-ink);margin-top:6px}
+.def{font-size:14px;color:var(--muted);line-height:1.55;margin-top:6px}
+.chain{text-decoration:underline dotted 1px;text-underline-offset:3px;text-decoration-color:var(--faint);border-radius:3px}
+.colloc{margin-top:9px;font-family:"Cascadia Code",Consolas,monospace;font-size:10.5px;color:var(--faint)}
+.foot-meta{margin-top:9px;font-size:10px;color:var(--faint)}
+/* The waiting rows (UI-SPEC.md 4.3): "Explaining…" over three breathing bars standing in the
+   definition lines' heights. */
+.waiting{margin-top:8px}
+.wait-label{font-size:11px;color:var(--muted)}
+.bar{height:10px;border-radius:999px;background:var(--line2);margin-top:9px}
+.bar.w1{width:100%}
+.bar.w2{width:100%}
+.bar.w3{width:62%}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="journal">Urban Studies Review · Vol. 41</div>
+  <h1>Chance Encounters and the Shape of the City</h1>
+  <div class="authors">Mara Ellison · Jonas Reiter</div>
+  <div class="affil">Institute of Reading Studies · Working paper 14</div>
+  <div class="rule"></div>
+  <p class="abstract"><b>Abstract.</b> Reading is not one act but a queue of small decisions: where to look, which word to trust, when to stop. This paper follows those decisions through a year of screen reading, and asks what a reader does with a word that is still out of reach.</p>
+  <h2>1 · Introduction</h2>
+  <p>A study of three European cities suggests that much of what people call <span id="word">serendipity</span> is really a product of street layout. Blocks that funnel foot traffic past shops, benches and small squares produced far more unplanned meetings than wide, car-oriented avenues.</p>
+  <p>The authors tracked more than two thousand volunteers over a year, using phones that logged where they walked and who they passed. Their conclusion is modest: planners cannot schedule luck, but they can make it likelier.</p>
+  <h2>2 · Reading the street</h2>
+  <p>What the eye does with a word it cannot yet own is the question the rest of this paper takes up. The page is a still image here, and no cursor will select it; the only way in is to frame the text and let the reading surface read it back.</p>
+</div>
+
+<div class="card" id="card" data-glass hidden>
+  <div class="bub-top">
+    <span class="tag">New</span>
+    <span class="bub-head" id="cardHead">
+      <span class="bub-peek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></span>
+      <svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </span>
+  </div>
+  <div class="word" id="titleRow"><span class="word-text">serendipity</span><span class="meta"><span class="ipa">/ˌserənˈdɪpəti/</span><span class="speaker" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.4h3.1L12 5.6v12.8L7.1 14.6H4a.9.9 0 0 1-.9-.9V10.3a.9.9 0 0 1 .9-.9Z"/><path d="M15.4 9.3a4 4 0 0 1 0 5.4"/><path d="M18 6.9a7.6 7.6 0 0 1 0 10.2"/></svg></span><span class="pos">noun</span></span></div>
+  <div class="signpost" id="signpost">happy accident</div>
+  <div class="def" id="def">the <span class="chain">occurrence</span> of events by chance in a happy or <span class="chain">beneficial</span> way</div>
+  <div class="waiting" id="waiting" hidden>
+    <div class="wait-label">Explaining…</div>
+    <div class="bar w1"></div>
+    <div class="bar w2"></div>
+    <div class="bar w3"></div>
+  </div>
+  <div class="colloc" id="colloc">~ encounter · pure ~</div>
+  <div class="foot-meta" id="foot">Disappears in 5s</div>
+</div>
+
+<div class="mask" id="mask" hidden>
+  <div id="bands"></div>
+  <div class="frame" id="frame" hidden></div>
+  <div class="hint" id="hint">Drag to frame the text to read · Esc cancels</div>
+</div>
+
+<svg class="cross" id="cross" viewBox="0 0 22 22" aria-hidden="true" hidden>
+  <path d="M11 3v16M3 11h16" stroke="rgba(0,0,0,.55)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M11 3v16M3 11h16" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/>
+</svg>
+<svg class="cursor" id="cursor" viewBox="0 0 24 24" aria-hidden="true" hidden>
+  <path fill="#fff" stroke="currentColor" stroke-width="1.2" d="M9.2 11.5V4.6a1.5 1.5 0 0 1 3 0v5l4.5 1.2a2.4 2.4 0 0 1 1.8 2.3v2.6a4.8 4.8 0 0 1-1.4 3.4l-1.2 1.2a3.4 3.4 0 0 1-2.4 1H11a3.4 3.4 0 0 1-2.6-1.2l-3.2-3.8a1.4 1.4 0 0 1 .1-1.9 1.5 1.5 0 0 1 1.9-.1l2 1.5Z"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" d="M12.2 11.7v-2.2"/>
+</svg>
+
+<script src="liquid-glass.js"></script>
+<script>
+const step = Number(new URLSearchParams(location.search).get('step') || 0);
+const word = document.getElementById('word');
+const card = document.getElementById('card');
+const cardHead = document.getElementById('cardHead');
+const titleMeta = document.querySelector('.word .meta');
+const signpost = document.getElementById('signpost');
+const def = document.getElementById('def');
+const waiting = document.getElementById('waiting');
+const colloc = document.getElementById('colloc');
+const foot = document.getElementById('foot');
+const mask = document.getElementById('mask');
+const bands = document.getElementById('bands');
+const frame = document.getElementById('frame');
+const hint = document.getElementById('hint');
+const cross = document.getElementById('cross');
+const pointer = document.getElementById('cursor');
+
+/* The selection the drag leaves: the word's box plus the breathing room Mask.qml's white frame
+   needs around a line of text. */
+function selectionBox() {
+  const r = word.getBoundingClientRect();
+  const pad = 9;
+  return { left: r.left - pad, top: r.top - pad, right: r.right + pad, bottom: r.bottom + pad,
+           width: r.width + pad * 2, height: r.height + pad * 2 };
+}
+
+function band(x, y, width, height) {
+  const el = document.createElement('div');
+  el.className = 'band';
+  el.style.cssText = `left:${x}px;top:${y}px;width:${Math.max(0, width)}px;height:${Math.max(0, height)}px`;
+  bands.append(el);
+}
+
+/* Four bands around the framed area, never one rectangle with a hole in it (Mask.qml). */
+function drawMask(region) {
+  bands.innerHTML = '';
+  if (!region) { band(0, 0, 960, 600); return; }
+  band(0, 0, 960, region.top);
+  band(0, region.top, region.left, region.height);
+  band(region.right, region.top, 960 - region.right, region.height);
+  band(0, region.bottom, 960, 600 - region.bottom);
+  frame.hidden = false;
+  frame.style.cssText = `left:${region.left}px;top:${region.top}px;width:${region.width}px;height:${region.height}px`;
+}
+
+function placeCross(x, y) {
+  cross.removeAttribute('hidden');
+  cross.style.left = (x - 11) + 'px';
+  cross.style.top = (y - 11) + 'px';
+}
+
+function placePointer(x, y) {
+  pointer.removeAttribute('hidden');
+  pointer.style.left = x + 'px';
+  pointer.style.top = y + 'px';
+}
+
+/* The card lands beside the selection: right when there is room, left when there is not, then
+   below, then above, always kept inside the frame. */
+function placeCard(region) {
+  card.hidden = false;
+  card.style.left = '0px';
+  card.style.top = '0px';
+  const width = card.offsetWidth, height = card.offsetHeight;
+  let left, top;
+  if (region.right + 24 + width <= 936) {
+    left = region.right + 24; top = region.top - 24;
+  } else if (region.left - 24 - width >= 24) {
+    left = region.left - 24 - width; top = region.top - 24;
+  } else if (region.bottom + 16 + height <= 584) {
+    left = Math.min(Math.max(region.left + region.width / 2 - width / 2, 24), 936 - width);
+    top = region.bottom + 16;
+  } else {
+    left = Math.min(Math.max(region.left + region.width / 2 - width / 2, 24), 936 - width);
+    top = region.top - 16 - height;
+  }
+  card.style.left = left + 'px';
+  card.style.top = Math.max(16, Math.min(top, 600 - height - 16)) + 'px';
+}
+
+/* Step 3 is the wait after the mask lifts: the tag row, the reader's word and three bars, nothing
+   else (UI-SPEC.md 4.3). Step 4 is the answer, verdict row still closed. */
+if (step === 3) {
+  waiting.hidden = false;
+  cardHead.style.visibility = 'hidden';
+  titleMeta.style.display = 'none';
+  for (const el of [signpost, def, colloc, foot]) el.style.display = 'none';
+}
+
+document.fonts.ready.then(() => {
+  const region = selectionBox();
+  if (step === 1 || step === 2) {
+    mask.hidden = false;
+    drawMask(step === 1 ? null : region);
+    hint.hidden = step !== 1;
+    if (step === 1) placeCross(region.left, region.top);
+    if (step === 2) placeCross(region.right, region.bottom);
+  } else if (step >= 3) {
+    mask.hidden = true;
+    placeCard(region);
+    placePointer(region.right, region.bottom);
+  }
+});
+</script>
+</body>
+</html>

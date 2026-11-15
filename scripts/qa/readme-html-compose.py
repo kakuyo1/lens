@@ -49,7 +49,8 @@ def compose_peek_gif() -> None:
     """
     frames = []
     for name in ("fb-page-en", "fb-page-hold", "fb-page-peek", "fb-page-en"):
-        frame = Image.open(FRAMES / f"{name}.png").convert("RGB").resize((760, 760), Image.Resampling.LANCZOS)
+        frame = Image.open(FRAMES / f"{name}.png").convert("RGB").resize((960, 600), Image.Resampling.LANCZOS)
+        frame = with_caption(frame, "English first")
         frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
     frames[0].save(
         OUT / "english-first.gif",
@@ -68,6 +69,7 @@ def compose_feature_tour() -> None:
     frames = []
     for step in range(6):
         frame = Image.open(FRAMES / f"tour-{step}.png").convert("RGB").resize((960, 600), Image.Resampling.LANCZOS)
+        frame = with_caption(frame, "Word card")
         frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
     frames[0].save(
         OUT / "feature-tour.gif",
@@ -81,11 +83,17 @@ def compose_feature_tour() -> None:
 
 
 def compose_hover_gif() -> None:
-    """Hover lookup: the pointer rests on a link word, the waiting card breathes, the card fills, the pills open: five frames at 960 x 600."""
-    durations = [900, 1900, 1500, 1900, 2100]
+    """Hover lookup: the answer first so a still viewer sees it, then the page, the pointer resting
+    on the linked headline, and the waiting card.
+
+    Four frames at 960 x 600 (steps 3, 0, 1, 2). The loop ends on the waiting card and returns to
+    the filled card, which is the answer's natural arrival.
+    """
+    durations = [2200, 900, 1900, 1500]
     frames = []
-    for step in range(5):
+    for step in (3, 0, 1, 2):
         frame = Image.open(FRAMES / f"hover-{step}.png").convert("RGB").resize((960, 600), Image.Resampling.LANCZOS)
+        frame = with_caption(frame, "Hover lookup")
         frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
     frames[0].save(
         OUT / "hover-lookup.gif",
@@ -115,6 +123,76 @@ def compose_scan_gif() -> None:
         frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
     frames[0].save(
         OUT / "scan.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=durations,
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
+def compose_ocr_gif() -> None:
+    """OCR over a scanned PDF: the answer first, then the mask raised, the framed word and the wait.
+
+    Five frames at 960 x 600 (steps 4, 0, 1, 2, 3): the loop ends on the waiting card and returns to
+    the answer, which is the card's natural arrival. The scene draws the mask to Mask.qml's geometry.
+    """
+    durations = [2800, 900, 1500, 1200, 1400]
+    frames = []
+    for step in (4, 0, 1, 2, 3):
+        frame = Image.open(FRAMES / f"ocr-{step}.png").convert("RGB").resize((960, 600), Image.Resampling.LANCZOS)
+        frame = with_caption(frame, "OCR capture")
+        frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
+    frames[0].save(
+        OUT / "ocr.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=durations,
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
+def compose_drawer_gif() -> None:
+    """The copy text's drawer: the sentence state with both items, then the word state with Fix spelling.
+
+    Four frames at 960 x 600: sentence open, sentence closed, word open, word closed. The first is
+    the richest state, so a still viewer sees the drawer; compose adds each tile's caption.
+    """
+    durations = [2800, 800, 2400, 800]
+    frames = []
+    for step in range(4):
+        frame = Image.open(FRAMES / f"drawer-{step}.png").convert("RGB").resize((960, 600), Image.Resampling.LANCZOS)
+        frame = with_caption(frame, "Copy drawer")
+        frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
+    frames[0].save(
+        OUT / "selection-drawer.gif",
+        save_all=True,
+        append_images=frames[1:],
+        duration=durations,
+        loop=0,
+        optimize=True,
+        disposal=2,
+    )
+
+
+def compose_breakdown_gif() -> None:
+    """The breakdown answer, then the build: the full card, the sentence alone, the plain card, the
+    first roles tinted, and the full card again.
+
+    Five frames at 960 x 600. The result opens the loop so the tile reads at rest; the middle shows
+    the tints arriving (breakdown-0..3 are page, plain, half, full).
+    """
+    durations = [2600, 700, 1000, 700, 2600]
+    frames = []
+    for step in (3, 0, 1, 2, 3):
+        frame = Image.open(FRAMES / f"breakdown-{step}.png").convert("RGB").resize((960, 600), Image.Resampling.LANCZOS)
+        frame = with_caption(frame, "Breakdown")
+        frames.append(frame.quantize(colors=128, method=Image.MEDIANCUT))
+    frames[0].save(
+        OUT / "breakdown.gif",
         save_all=True,
         append_images=frames[1:],
         duration=durations,
@@ -174,6 +252,24 @@ FONT_DIR = Path(os.environ.get("WINDIR") or os.environ.get("SystemRoot") or "") 
 def font(name: str, size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     path = FONT_DIR / name
     return ImageFont.truetype(str(path), size) if path.exists() else ImageFont.load_default()
+
+
+CAPTION_HEIGHT = 64
+CAPTION_BG = (244, 236, 217)
+CAPTION_DIVIDER = (224, 217, 203)
+CAPTION_INK = (74, 79, 94)
+CAPTION_ACCENT = (47, 158, 110)
+
+
+def with_caption(frame: Image.Image, label: str) -> Image.Image:
+    """Append the README grid's footer: one paper colour, a hairline and the tile's short name."""
+    canvas = Image.new("RGB", (frame.width, frame.height + CAPTION_HEIGHT), CAPTION_BG)
+    canvas.paste(frame.convert("RGB"), (0, 0))
+    draw = ImageDraw.Draw(canvas)
+    draw.line((0, frame.height, frame.width, frame.height), fill=CAPTION_DIVIDER, width=1)
+    draw.ellipse((28, frame.height + 28, 36, frame.height + 36), fill=CAPTION_ACCENT)
+    draw.text((46, frame.height + 32), label, font=font("seguisb.ttf", 26), fill=CAPTION_INK, anchor="lm")
+    return canvas
 
 
 def glass_stage(name: str) -> Image.Image:
@@ -516,6 +612,9 @@ def main() -> None:
     compose_feature_tour()
     compose_hover_gif()
     compose_scan_gif()
+    compose_ocr_gif()
+    compose_drawer_gif()
+    compose_breakdown_gif()
     compose_selection_styles()
     compose_themes()
     compose_learning_loop()
@@ -528,6 +627,9 @@ def main() -> None:
         "feature-tour.gif",
         "hover-lookup.gif",
         "scan.gif",
+        "ocr.gif",
+        "selection-drawer.gif",
+        "breakdown.gif",
         "selection-styles.gif",
         "pets.gif",
         "pet-lantern.gif",
@@ -535,7 +637,6 @@ def main() -> None:
         "themes.png",
         "learning-loop.gif",
         "selection-bar.png",
-        "selection-drawer.png",
     ):
         path = OUT / name
         print(f"  docs/readme/{name}: {path.stat().st_size / 1024:.0f} KB")

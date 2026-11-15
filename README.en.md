@@ -50,20 +50,20 @@ Most lookup tools pull you out of the page and answer in your first language. Yo
 
 ## A quick look
 
-<p align="center"><img src="docs/readme/english-first.gif" width="600" alt="Holding the globe on the card to show the Chinese meaning under the English definition"></p>
+<p align="center">
+  <img src="docs/readme/english-first.gif" width="44%" hspace="8" alt="Holding the globe on the card to show the Chinese meaning under the English definition">
+  <img src="docs/readme/feature-tour.gif" width="44%" hspace="8" alt="Pressing Pictures on the word crane loads its photos; Not the Sense? swaps the card to the machine sense, photos and all">
+</p>
 
-The answer is English. Hold the globe for your mother tongue, let go, and the card is English again.
+<p align="center">
+  <img src="docs/readme/hover-lookup.gif" width="44%" hspace="8" alt="The pointer rests on serendipity in a linked headline; no selection is needed and the card gives its meaning">
+  <img src="docs/readme/ocr.gif" width="44%" hspace="8" alt="Framing serendipity on a scanned PDF; Lens reads it locally with OCR and the card explains it in English">
+</p>
 
-<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="Pressing Pictures on the word crane loads its photos; Not the Sense? swaps the card to the machine sense, photos and all"></p>
-
-Press Pictures on a word to load its photos. Not the Sense? swaps the card in place to the word's other sense, photos and all.
-
-## Text you can't select
-
-Press `Ctrl+Alt+S` (changeable in Settings › OCR), frame a region of a PDF, image, or video still, and Lens reads it locally with OCR by default.
-
-- **The bundled Tesseract is the automatic engine.** You can also download RapidOCR-json in Settings, or point at your own copy, then detect and trust it before choosing it; its model folder must be an ASCII path.
-- **Online OCR is opt-in.** It asks before each upload and can be pointed at Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision, or OCR.space.
+<p align="center">
+  <img src="docs/readme/selection-drawer.gif" width="44%" hspace="8" alt="The Copy text drawer lists what the selection can do: Fix spelling for a word; Fix syntax and Breakdown for a sentence">
+  <img src="docs/readme/breakdown.gif" width="44%" hspace="8" alt="Breakdown tints the sentence by role — subject, verb, complement, adverbial — with a legend under it">
+</p>
 
 ## Automatic scanning
 
@@ -75,25 +75,6 @@ Open a paper in Chrome and every word above your level grows a dashed line, with
 - **Hold Alt for the signpost.** Two to four English words appear above the word's top-right corner, naming the sense it carries here; candidates with nothing cached are bought in batches, into the cache only, with no card.
 - **Retire a word.** Rest the pointer on a dashed word for about 0.4 seconds and a Mastered button rises on its top edge; one press and the scan and the pet's questions both leave that word alone.
 - **Which windows it reads.** Chrome's web pages and the PDFs Chrome opens itself, plus Notepad++ documents; standalone PDF readers and video subtitles are marked Coming soon. The master switch is off by default and the two app switches are on; both have to be on for a scan.
-
-## Hover to look up a word
-
-Links and headlines often can't be selected. Switch to hover lookup (`Ctrl+Alt+H` by default; change it in Settings › Capture & popups), rest the pointer on a word for about a second, and Lens translates it. Press the key again to go back to selection. Hover lookup only reads the text under the pointer. It never clicks or touches the clipboard, skips password fields, and works only in allowed apps.
-
-<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="After switching to hover lookup, the pointer rests on serendipity in a link for a second, and a card gives its meaning"></p>
-
-## Copy drawer and breakdown
-
-<p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="The copy text's drawer listing Fix syntax and Breakdown for a selected sentence"></p>
-
-Copy text is a drawer, not a single action: hover it and only the actions this selection can take come out.
-
-- Fix spelling on a word, Fix syntax on a sentence, and Breakdown on an English sentence of up to 80 words.
-- Corrections and breakdowns are not cached, and each counts toward the daily budget like any other request.
-
-<p align="center"><img src="docs/readme/breakdown.png" width="800" alt="The breakdown answer: the sentence tinted in its four role colours, with a legend under it"></p>
-
-Breakdown tints each part of the sentence in one of four colours — subject, verb, complement, adverbial — with a legend under it; a correction underlines only the words it changed.
 
 ## A small learning loop
 

@@ -50,20 +50,20 @@
 
 ## 先看一眼
 
-<p align="center"><img src="docs/readme/english-first.gif" width="600" alt="按住卡片上的地球，在英文釋義下看到中文意思"></p>
+<p align="center">
+  <img src="docs/readme/english-first.gif" width="44%" hspace="8" alt="按住卡片上的地球，在英文釋義下看到中文意思">
+  <img src="docs/readme/feature-tour.gif" width="44%" hspace="8" alt="在 crane 的卡片上點 “圖片”，照片載入；點 “不是這個義項？”，卡片原地換成起重機的釋義和照片">
+</p>
 
-答案仍然是英文。按住地球看母語，鬆手，卡片又回到英文。
+<p align="center">
+  <img src="docs/readme/hover-lookup.gif" width="44%" hspace="8" alt="指標停在連結標題裡的 serendipity 上約一秒，不用選取，卡片直接給出釋義">
+  <img src="docs/readme/ocr.gif" width="44%" hspace="8" alt="在掃描版 PDF 上框選 serendipity，Lens 在本機用 OCR 讀取，卡片給出英文解釋">
+</p>
 
-<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="在 crane 的卡片上點 “圖片”，照片載入；點 “不是這個義項？”，卡片原地換成起重機的釋義和照片"></p>
-
-單字卡上點 “圖片”，照片就載入；點 “不是這個義項？”，卡片原地換到另一個義項，照片跟著變。
-
-## 無法選取的文字
-
-按 `Ctrl+Alt+S`（可在設定 › OCR 裡修改），框選 PDF、圖片或影片畫面中的一塊區域，Lens 會在本機用 OCR 讀取。
-
-- **隨包的 Tesseract 是自動引擎**。也可以在設定裡下載 RapidOCR-json，或指向自己安裝的一份，檢測並信任後明確選擇它；模型目錄必須是 ASCII 路徑。
-- **線上 OCR 是可選項**。每次上傳前都會詢問，可指向百度 OCR、騰訊雲 OCR、阿里雲 OCR、Google Cloud Vision 或 OCR.space。
+<p align="center">
+  <img src="docs/readme/selection-drawer.gif" width="44%" hspace="8" alt="選取一個單字或一個句子時，複製文本的抽屜列出各自適用的操作：單字是糾正拼寫，句子是糾正語法與句子拆解">
+  <img src="docs/readme/breakdown.gif" width="44%" hspace="8" alt="句子拆解把一句話按主語、述語、表語、狀語染色，下方配一行圖例">
+</p>
 
 ## 自動掃描
 
@@ -75,25 +75,6 @@
 - **按住 Alt 看路標**。詞的右上角浮出兩到四個英文詞，說明它在這裡是哪一義；快取裡沒有的候選按批補買，只寫進快取，不彈卡。
 - **讓一個詞退場**。指標在虛線詞上停約 0.4 秒，詞的上緣升起一枚 “掌握”；點它，掃描與寵物提問都不再找這個詞。
 - **讀哪些視窗**。Chrome 的網頁，以及 Chrome 自己開啟的 PDF；Notepad++ 的文件也算一份。獨立的 PDF 閱讀器與影片字幕標為 “待上線”。總開關預設關，兩個軟體的開關預設開，兩者同時開啟才掃描。
-
-## 懸浮取詞
-
-連結與標題常常選不中。切到懸浮取詞（預設 `Ctrl+Alt+H`，可在設定 › 取詞與彈出視窗裡修改），把指標停在一個字詞上約一秒，Lens 就直接翻譯它；再按一次切回選取取詞。它只讀取指標下的文字，不點擊、不碰剪貼簿、不讀密碼欄，並且只在允許的應用程式中生效。
-
-<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="切到懸浮取詞後，指標停在連結裡的 serendipity 上約一秒，卡片直接給出釋義"></p>
-
-## 複製抽屜與拆解
-
-<p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="選取一個句子時，複製抽屜列出糾正語法與拆解"></p>
-
-複製文字是一張抽屜，不是單一動作：指標停在上面，只有這張選取範圍能做的事會出來。
-
-- 單字可糾正拼寫，句子可糾正語法，80 詞以內的英文句子還可拆解。
-- 糾正與拆解都不入快取，各自按一次請求計入每日預算。
-
-<p align="center"><img src="docs/readme/breakdown.png" width="800" alt="拆解的作答：句子按四類成分染色，下方配一行圖例"></p>
-
-拆解把句子的四類成分各染一色——主語、述語、表語、狀語——下面配一行圖例；糾正只給改動過的詞畫底線。
 
 ## 一個安靜的學習迴圈
 

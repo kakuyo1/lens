@@ -50,20 +50,20 @@
 
 ## 先看一眼
 
-<p align="center"><img src="docs/readme/english-first.gif" width="600" alt="按住卡片上的地球，在英文释义下看到中文意思"></p>
+<p align="center">
+  <img src="docs/readme/english-first.gif" width="44%" hspace="8" alt="按住卡片上的地球，在英文释义下看到中文意思">
+  <img src="docs/readme/feature-tour.gif" width="44%" hspace="8" alt="在 crane 的卡片上点 “图片”，照片加载出来；点 “不是这个义项？”，卡片原地换成起重机的释义和照片">
+</p>
 
-答案仍然是英文。按住地球看母语，松手，卡片又回到英文。
+<p align="center">
+  <img src="docs/readme/hover-lookup.gif" width="44%" hspace="8" alt="指针停在链接标题里的 serendipity 上约一秒，不用选中，卡片直接给出释义">
+  <img src="docs/readme/ocr.gif" width="44%" hspace="8" alt="在扫描版 PDF 上框选 serendipity，Lens 在本机用 OCR 读取，卡片给出英文解释">
+</p>
 
-<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="在 crane 的卡片上点 “图片”，照片加载出来；点 “不是这个义项？”，卡片原地换成起重机的释义和照片"></p>
-
-单词卡上点 “图片”，照片就加载出来；点 “不是这个义项？”，卡片原地换到另一个义项，照片跟着变。
-
-## 选不中的文字
-
-按 `Ctrl+Alt+S`（可在设置 › OCR 里修改），框选 PDF、图片或视频画面中的一块区域，Lens 会在本机用 OCR 读取。
-
-- **随包的 Tesseract 是自动引擎**。也可以在设置里下载 RapidOCR-json，或指向自己安装的一份，检测并信任后明确选择它；模型目录必须是 ASCII 路径。
-- **在线 OCR 是可选项**。每次上传前都会询问，可指向百度 OCR、腾讯云 OCR、阿里云 OCR、Google Cloud Vision 或 OCR.space。
+<p align="center">
+  <img src="docs/readme/selection-drawer.gif" width="44%" hspace="8" alt="选中一个单词或一个句子时，复制文本的抽屉列出各自适用的操作：单词是纠正拼写，句子是纠正语法与句子拆解">
+  <img src="docs/readme/breakdown.gif" width="44%" hspace="8" alt="句子拆解把一句话按主语、谓语、表语、状语染色，下方配一行图例">
+</p>
 
 ## 自动扫描
 
@@ -75,25 +75,6 @@
 - **按住 Alt 看路标**。词的右上角浮出两到四个英文词，说明它在这里是哪一义；缓存里没有的候选按批补买，只写进缓存，不弹卡。
 - **让一个词退场**。指针在虚线词上停约 0.4 秒，词的上缘升起一枚 “掌握”；点它，扫描与宠物提问都不再找这个词。
 - **读哪些窗口**。Chrome 的网页，以及 Chrome 自己打开的 PDF；Notepad++ 的文档也算一份。独立的 PDF 阅读器与视频字幕标为 “待上线”。总开关默认关，两个软件的开关默认开，两者同时打开才扫描。
-
-## 悬浮取词
-
-链接和标题常常选不中。切到悬浮取词（默认 `Ctrl+Alt+H`，可在设置 › 取词与弹窗里修改），把指针停在一个词上约一秒，Lens 就直接翻译它；再按一次切回选区取词。它只读取指针下的文字，不点击，不碰剪贴板，不读密码框，并且只在允许的应用中生效。
-
-<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="切到悬浮取词后，指针停在链接里的 serendipity 上约一秒，气泡直接给出释义"></p>
-
-## 复制抽屉与拆解
-
-<p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="选中一个句子时，复制抽屉列出纠正语法与拆解"></p>
-
-复制文本是一张抽屉，不是单个动作：鼠标停在上面，只有这张选区能做的事会出来。
-
-- 单词可修拼写，句子可修语法，80 词以内的英文句子还可拆解。
-- 纠正与拆解都不入缓存，各自按一次请求计入每日预算。
-
-<p align="center"><img src="docs/readme/breakdown.png" width="800" alt="拆解的作答：句子按四类成分染色，下方配一行图例"></p>
-
-拆解把句子的四类成分各染一色——主语、谓语、表语、状语——下面配一行图例；纠正只给改动过的词画下划线。
 
 ## 一个安静的学习循环
 

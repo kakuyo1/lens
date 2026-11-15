@@ -50,20 +50,20 @@ La mayoría de las herramientas de consulta te sacan de la página y responden e
 
 ## Un vistazo
 
-<p align="center"><img src="docs/readme/english-first.gif" width="600" alt="Mantener pulsado el globo de la tarjeta para ver el significado en chino bajo la definición en inglés"></p>
+<p align="center">
+  <img src="docs/readme/english-first.gif" width="44%" hspace="8" alt="Mantener pulsado el globo de la tarjeta para ver el significado en chino bajo la definición en inglés">
+  <img src="docs/readme/feature-tour.gif" width="44%" hspace="8" alt="Pulsar Imágenes en la palabra crane carga sus fotos; «¿No es este sentido?» cambia la tarjeta al sentido de grúa, con sus fotos">
+</p>
 
-La respuesta sigue en inglés. Mantén el globo para ver tu lengua materna; al soltar, la tarjeta vuelve al inglés.
+<p align="center">
+  <img src="docs/readme/hover-lookup.gif" width="44%" hspace="8" alt="El puntero se queda sobre serendipity en un titular enlazado; sin seleccionar nada, la tarjeta da su significado">
+  <img src="docs/readme/ocr.gif" width="44%" hspace="8" alt="Enmarcar serendipity en un PDF escaneado; Lens lo lee localmente con OCR y la tarjeta lo explica en inglés">
+</p>
 
-<p align="center"><img src="docs/readme/feature-tour.gif" width="600" alt="Pulsar Imágenes en la palabra crane carga sus fotos; «¿No es este sentido?» cambia la tarjeta al sentido de grúa, con sus fotos"></p>
-
-Pulsa Imágenes en una palabra para cargar sus fotos. «¿No es este sentido?» cambia la tarjeta en su sitio al otro sentido de la palabra, con sus fotos.
-
-## Texto que no se puede seleccionar
-
-Pulsa `Ctrl+Alt+S` (se puede cambiar en Ajustes › OCR), enmarca una zona de un PDF, una imagen o un fotograma de vídeo y Lens la lee localmente con OCR.
-
-- **Tesseract, incluido con Lens, es el motor automático.** También puedes descargar RapidOCR-json desde Ajustes, o apuntar a tu propia copia y, tras detectarla y confiar en ella, elegirla; la carpeta de modelos debe ser una ruta ASCII.
-- **El OCR en línea es opcional.** Pregunta antes de cada subida y puede apuntar a Baidu OCR, Tencent Cloud OCR, Alibaba Cloud OCR, Google Cloud Vision u OCR.space.
+<p align="center">
+  <img src="docs/readme/selection-drawer.gif" width="44%" hspace="8" alt="El cajón de Copiar texto muestra lo que puede hacer cada selección: Corregir ortografía en una palabra; Corregir gramática y Análisis en una frase">
+  <img src="docs/readme/breakdown.gif" width="44%" hspace="8" alt="Análisis tiñe la frase por roles — sujeto, verbo, complemento, adverbial — con una leyenda debajo">
+</p>
 
 ## Escaneo automático
 
@@ -75,25 +75,6 @@ Abre un artículo en Chrome y cada palabra por encima de tu nivel recibe una lí
 - **Mantén Alt para la señal.** Dos a cuatro palabras en inglés aparecen sobre la esquina superior derecha de la palabra y nombran el sentido que tiene ahí; los candidatos sin caché se compran por lotes, solo a la caché y sin tarjeta.
 - **Retira una palabra.** Deja el puntero sobre una palabra con línea de puntos unos 0,4 segundos y un botón Dominado se levanta en su borde superior; con una pulsación, el escaneo y las preguntas de la mascota la dejan en paz.
 - **Qué ventanas lee.** Las páginas de Chrome y los PDF que Chrome abre por su cuenta, además de los documentos de Notepad++; los lectores de PDF independientes y los subtítulos de vídeo figuran como Próximamente. El interruptor general está apagado por defecto y los dos de las apps encendidos; hacen falta los dos para escanear.
-
-## Consulta al pasar el cursor
-
-Los enlaces y los titulares suelen no poder seleccionarse. Cambia a la consulta al pasar el cursor (por defecto `Ctrl+Alt+H`; puedes cambiarla en Ajustes › Captura y ventanas), deja el puntero sobre una palabra durante un segundo y Lens la traduce. Pulsa la tecla otra vez para volver a la selección. La consulta solo lee el texto bajo el puntero: no hace clic, no toca el portapapeles, no lee campos de contraseña y solo funciona en las aplicaciones permitidas.
-
-<p align="center"><img src="docs/readme/hover-lookup.gif" width="600" alt="Tras cambiar a la consulta al pasar el cursor, el puntero se queda sobre serendipity en un enlace durante un segundo y una tarjeta da su significado"></p>
-
-## El cajón de copiar y el análisis
-
-<p align="center"><img src="docs/readme/selection-drawer.png" width="800" alt="El cajón de Copiar texto con Corregir gramática y Análisis para una frase seleccionada"></p>
-
-Copiar texto es un cajón, no una sola acción: al pasar el ratón solo salen las acciones que admite esa selección.
-
-- Corregir ortografía en una palabra, Corregir gramática en una frase y Análisis en una frase inglesa de hasta 80 palabras.
-- Ninguna se guarda en caché y cada una cuenta para el presupuesto diario como cualquier otra petición.
-
-<p align="center"><img src="docs/readme/breakdown.png" width="800" alt="La respuesta de Análisis: la frase teñida por sus cuatro roles, con una leyenda debajo"></p>
-
-Análisis tiñe cada parte de la frase con uno de cuatro colores — sujeto, verbo, complemento, adverbial — con una leyenda debajo; una corrección subraya solo las palabras que cambió.
 
 ## Un pequeño bucle de aprendizaje
 

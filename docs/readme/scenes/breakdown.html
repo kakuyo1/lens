@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lens · breakdown</title>
 <!--
-  A README-only still of the copy drawer's Breakdown answer (UI-SPEC.md 4.10, docs/adr/0128): the
-  sentence comes back with each part tinted in its role colour — subject, verb, complement,
-  adverbial — and a legend under it. The tint mode is the one the app shipped (G in
-  ui-prototypes/breakdown-color.html); the role hues are that prototype's. The card and the page
-  follow the other README scenes' liquid-glass chrome.
+  A README-only scene for the breakdown GIF (UI-SPEC.md 4.10, docs/adr/0128): the answer card over
+  the selected sentence, with the role tints arriving in two steps and the legend at the end.
+  ?step=0 is the page with the sentence selected, 1 the card with no tint, 2 the first roles tinted,
+  3 the full answer with the legend. The tint mode is the one the app shipped (G in
+  ui-prototypes/breakdown-color.html); the role hues are that prototype's.
 -->
 <style>
 :root{
@@ -25,7 +25,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{width:900px;height:620px;overflow:hidden;background:var(--paper);color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased}
+body{width:960px;height:600px;overflow:hidden;background:var(--paper);color:var(--text);font-family:var(--f);-webkit-font-smoothing:antialiased}
 .page{position:absolute;inset:0;padding:48px 64px}
 .kicker{font:700 11px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:#1d7a52}
 h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025em;font-weight:600;margin-top:12px}
@@ -48,6 +48,9 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
 .ck[data-r=V]{background:color-mix(in srgb,var(--r-V) 16%,transparent)}
 .ck[data-r=C]{background:color-mix(in srgb,var(--r-C) 16%,transparent)}
 .ck[data-r=A]{background:color-mix(in srgb,var(--r-A) 16%,transparent)}
+.card.plain .ck{background:transparent}
+.card.half .ck[data-r=C],.card.half .ck[data-last]{background:transparent}
+.card.plain .legend,.card.half .legend{visibility:hidden}
 .legend{display:flex;gap:14px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
 .legend span{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:11.5px;font-weight:600}
 .legend i{width:10px;height:10px;border-radius:3px}
@@ -67,12 +70,12 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
   <p class="sample">By morning the square was empty. <span class="sel" id="selected">Although the rain had stopped, the streets remained flooded for hours.</span> Nobody who lived here said why.</p>
 </div>
 
-<div class="card" id="card" data-glass>
+<div class="card" id="card" data-glass hidden>
   <div class="card-top">
     <span class="tag">Breakdown</span>
     <svg class="close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
   </div>
-  <div class="bk"><span class="ck" data-r="A">Although the rain had stopped,</span> <span class="ck" data-r="S">the streets</span> <span class="ck" data-r="V">remained</span> <span class="ck" data-r="C">flooded</span> <span class="ck" data-r="A">for hours.</span></div>
+  <div class="bk"><span class="ck" data-r="A">Although the rain had stopped,</span> <span class="ck" data-r="S">the streets</span> <span class="ck" data-r="V">remained</span> <span class="ck" data-r="C">flooded</span> <span class="ck" data-r="A" data-last>for hours.</span></div>
   <div class="legend">
     <span data-r="S"><i></i>Subject</span>
     <span data-r="V"><i></i>Verb</span>
@@ -84,14 +87,20 @@ h1{font-family:var(--read);font-size:44px;line-height:1.08;letter-spacing:-.025e
 
 <script src="liquid-glass.js"></script>
 <script>
-/// The card sits above the selection, the way the bubble does after the drawer's action runs.
-requestAnimationFrame(() => {
+const step = Number(new URLSearchParams(location.search).get('step') || 3);
+const card = document.getElementById('card');
+card.hidden = step === 0;
+if (step > 0) card.classList.add(step === 1 ? 'plain' : step === 2 ? 'half' : 'full');
+
+/// The card sits above the selection, the way the bubble does after the drawer's action runs. The
+/// legend row keeps its height while it is hidden, so the card does not jump when it lands.
+document.fonts.ready.then(() => requestAnimationFrame(() => {
+  if (step === 0) return;
   const selected = document.getElementById('selected').getBoundingClientRect();
-  const card = document.getElementById('card');
   const left = selected.left + selected.width / 2 - card.offsetWidth / 2;
-  card.style.left = Math.max(24, Math.min(left, 900 - card.offsetWidth - 24)) + 'px';
-  card.style.top = (selected.top - card.offsetHeight - 26) + 'px';
-});
+  card.style.left = Math.max(24, Math.min(left, 960 - card.offsetWidth - 24)) + 'px';
+  card.style.top = Math.max(16, selected.top - card.offsetHeight - 26) + 'px';
+}));
 </script>
 </body>
 </html>
