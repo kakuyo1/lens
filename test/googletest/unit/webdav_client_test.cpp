@@ -16,6 +16,7 @@
 #include <QString>
 
 #include <functional>
+#include <initializer_list>
 #include <optional>
 
 #include <gtest/gtest.h>
@@ -168,4 +169,129 @@ TEST(WebDavClient, AnAddressWithoutASchemeIsAskedOverHttps)
     client.del("dav.example.com/dav/", "reader", "app-pass", "Lens/lens-sync.json");
     ASSERT_TRUE(spinUntil([&] { return not done.isEmpty(); }));
     EXPECT_EQ(done.toStdString(), "Lens/lens-sync.json") << "a delete of a missing collection is a delete";
+}
+
+/// Only http and https go out: a reader's own NAS or an Alist on the LAN is legitimately plain
+/// http, but anything else -- a scheme typed wrong, an empty address -- is not asked at all.
+TEST(WebDavClient, AnAddressThatIsNotHttpOrHttpsIsRefusedWithoutARequest)
+{
+    QtApplication                     qt;
+    ScriptedManager                   manager;
+    dav::WebDavClient                 client(&manager);
+    std::optional<dav::WebDavFailure> why;
+    QObject::connect(&client, &dav::WebDavClient::failed, [&why](quint64, dav::WebDavFailure failure) { why = failure; });
+
+    client.propfind("ftp://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json");
+    ASSERT_TRUE(spinUntil([&] { return why.has_value(); }));
+    EXPECT_EQ(*why, dav::WebDavFailure::Generic);
+    EXPECT_EQ(manager.requests, 0) << "the refusal happens before anything is sent";
+
+    // Every verb checks, and so does an address that never became a URL at all.
+    for (const QString& server : {QStringLiteral("ftp://dav.example.com/dav"), QStringLiteral("  ")}) {
+        for (const auto& call : std::initializer_list<std::function<void()>>{
+                 [&] { client.get(server, "reader", "app-pass", "Lens/lens-sync.json"); },
+                 [&] { client.put(server, "reader", "app-pass", "Lens/lens-sync.json", "{}"); },
+                 [&] { client.del(server, "reader", "app-pass", "Lens/lens-sync.json"); },
+             }) {
+            why.reset();
+            call();
+            ASSERT_TRUE(spinUntil([&] { return why.has_value(); }));
+            EXPECT_EQ(*why, dav::WebDavFailure::Generic);
+        }
+    }
+    EXPECT_EQ(manager.requests, 0);
+}
+
+/// A read that answers hands the file's text over; a probe that answers 200 says the server is
+/// there, the way a sign-in's reachability check reads it.
+TEST(WebDavClient, AReadHandsOverTheTextAndAProbeThatAnsweredIsFound)
+{
+    QtApplication       qt;
+    ScriptedManager     manager;
+    dav::WebDavClient   client(&manager);
+    QString             file;
+    std::optional<bool> found;
+    QObject::connect(&client, &dav::WebDavClient::gotFile, [&file](quint64, QString content) { file = content; });
+    QObject::connect(&client, &dav::WebDavClient::found, [&found](quint64, bool exists) { found = exists; });
+
+    manager.queue(200, QByteArray("{\"format\":1}"));
+    client.get("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json");
+    ASSERT_TRUE(spinUntil([&] { return not file.isEmpty(); }));
+    EXPECT_EQ(file.toStdString(), "{\"format\":1}");
+
+    found.reset();
+    manager.queue(200);
+    client.propfind("https://dav.example.com/dav", "reader", "app-pass", "");
+    ASSERT_TRUE(spinUntil([&] { return found.has_value(); }));
+    EXPECT_TRUE(*found) << "the probe asked about the server itself, and it answered";
+}
+
+/// A file that is not there is NotFound, its own kind: the page offers re-entering the server
+/// rather than a generic "something went wrong".
+TEST(WebDavClient, AFileThatIsNotThereIsNotFound)
+{
+    QtApplication                     qt;
+    ScriptedManager                   manager;
+    dav::WebDavClient                 client(&manager);
+    std::optional<dav::WebDavFailure> why;
+    QObject::connect(&client, &dav::WebDavClient::failed, [&why](quint64, dav::WebDavFailure failure) { why = failure; });
+
+    manager.queue(404);
+    client.get("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json");
+    ASSERT_TRUE(spinUntil([&] { return why.has_value(); }));
+    EXPECT_EQ(*why, dav::WebDavFailure::NotFound);
+}
+
+/// A collection the server refuses to make, a write refused for any other reason, and a delete the
+/// server says no to: all three stop with the server's kind, and never retry.
+TEST(WebDavClient, RefusalsThatAreNotConflictsStopTheCall)
+{
+    QtApplication                     qt;
+    ScriptedManager                   manager;
+    dav::WebDavClient                 client(&manager);
+    std::optional<dav::WebDavFailure> why;
+    QObject::connect(&client, &dav::WebDavClient::failed, [&why](quint64, dav::WebDavFailure failure) { why = failure; });
+
+    // The collection cannot be made: the MKCOL's own refusal ends it, before any retry.
+    manager.queue(409); // the PUT
+    manager.queue(500); // the MKCOL
+    client.put("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json", "{}");
+    ASSERT_TRUE(spinUntil([&] { return why.has_value(); }));
+    EXPECT_EQ(*why, dav::WebDavFailure::Generic);
+    EXPECT_EQ(manager.sent.size(), 2u);
+
+    // A write refused without a 409 never reaches the collection request at all.
+    why.reset();
+    manager.queue(500);
+    client.put("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json", "{}");
+    ASSERT_TRUE(spinUntil([&] { return why.has_value(); }));
+    EXPECT_EQ(*why, dav::WebDavFailure::Generic);
+    EXPECT_EQ(manager.sent.size(), 3u);
+
+    // A delete the server says no to is a failure, not a delete.
+    why.reset();
+    manager.queue(500);
+    client.del("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json");
+    ASSERT_TRUE(spinUntil([&] { return why.has_value(); }));
+    EXPECT_EQ(*why, dav::WebDavFailure::Generic);
+}
+
+/// An answer past the ceiling is not the server speaking to this call: the body is dropped, and the
+/// call reads an empty file rather than ten megabytes of something else.
+TEST(WebDavClient, AnAnswerPastTheCeilingIsDropped)
+{
+    QtApplication     qt;
+    ScriptedManager   manager;
+    dav::WebDavClient client(&manager);
+    QString           file;
+    bool              answered = false;
+    QObject::connect(&client, &dav::WebDavClient::gotFile, [&](quint64, QString content) {
+        answered = true;
+        file     = content;
+    });
+
+    manager.queue(200, QByteArray(10 * 1024 * 1024 + 1, 'x'));
+    client.get("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json");
+    ASSERT_TRUE(spinUntil([&] { return answered; }));
+    EXPECT_TRUE(file.isEmpty());
 }

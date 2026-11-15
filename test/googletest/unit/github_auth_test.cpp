@@ -1,11 +1,12 @@
 /**
  * @file github_auth_test.cpp
  * @brief Offline tests for the sync module's pure parsers: the device-flow answers, the gist body,
- *        the gist list lookup, and the client id config.
+ *        the gist list lookup, and the client id config -- and the flow itself, over the scripted
+ *        network: the code request, the polling loop with its slow-down and its expiry, the cancel,
+ *        and the refresh's own failures.
  *
- * Every case hands a parser the body GitHub would send, written out inline. No socket is opened and
- * no token is read from anywhere. The flow itself (timers, polling, failures) runs over a network
- * manager and is covered by the client's own tests, not here.
+ * Every case hands the object the body GitHub would send, written out inline. No socket is opened
+ * and no token is read from anywhere. The gist client's own requests live in gist_client_test.cpp.
  */
 
 #include <gtest/gtest.h>
@@ -15,18 +16,16 @@
 #include <QElapsedTimer>
 #include <QEventLoop>
 #include <QFile>
-#include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QNetworkRequest>
+#include <QNetworkAccessManager>
 #include <QString>
 #include <QTemporaryDir>
 #include <QTimer>
 
-#include <algorithm>
-#include <cstring>
 #include <functional>
 #include <utility>
 
+#include "scripted_manager.h"
 #include "sync/github_auth.h"
 #include "sync/gist_client.h"
 #include "sync/sync_config.h"
@@ -54,6 +53,15 @@ TEST(DeviceCode, ReadsTheCodesAndTheIntervalGitHubSends)
 TEST(DeviceCode, DefaultsTheIntervalWhenGitHubOmitsIt)
 {
     const auto code = parseDeviceCode(R"({"device_code":"d","user_code":"U-1","verification_uri":"https://github.com/login/device","expires_in":900})");
+    ASSERT_TRUE(code.has_value());
+    EXPECT_EQ(code->interval, 5);
+}
+
+TEST(DeviceCode, ResetsAnIntervalThatIsNotASecondsCount)
+{
+    // A zero or a negative one is GitHub answering a field it did not mean to send; the default
+    // five seconds is what a poll runs at until GitHub names a real one.
+    const auto code = parseDeviceCode(R"({"device_code":"d","user_code":"U-1","verification_uri":"https://github.com/login/device","expires_in":900,"interval":0})");
     ASSERT_TRUE(code.has_value());
     EXPECT_EQ(code->interval, 5);
 }
@@ -197,11 +205,13 @@ TEST(SyncConfig, ReadsAsNotConfiguredWhenTheIdIsEmptyOrMissing)
 namespace {
 
 using lens::sync::AuthFailure;
+using lens::sync::DeviceCode;
 using lens::sync::GithubAuth;
 using lens::sync::Token;
+using lens::test::ScriptedManager;
 
-/// One QCoreApplication for a case's duration: the client's network objects need one, and Qt allows
-/// one at a time, so each case that touches them makes its own.
+/// One QCoreApplication for a case's duration: the auth object's network objects need one, and Qt
+/// allows one at a time, so each case that touches them makes its own.
 struct QtApplication {
     QtApplication()
         : application(argc, argv)
@@ -214,29 +224,39 @@ struct QtApplication {
     QCoreApplication application;
 };
 
-/// What the auth object reported. Plain connections rather than a QSignalSpy: this target links Qt
-/// Core and Network, not Qt Test.
+/// What the object reported. Plain connections rather than a QSignalSpy: this target links Qt Core
+/// and Network, not Qt Test.
 struct Reports {
-    int         granted   = 0;
-    int         refreshed = 0;
-    int         failed    = 0;
+    int         codeReady     = 0;
+    int         granted       = 0;
+    int         refreshed     = 0;
+    int         failed        = 0;
+    int         refreshFailed = 0;
+    DeviceCode  code;
     Token       token;
-    AuthFailure why = AuthFailure::Generic;
+    quint64     refreshCallId = 0;
+    AuthFailure why           = AuthFailure::Generic;
 };
 
 void record(GithubAuth& auth, Reports& seen)
 {
+    QObject::connect(&auth, &GithubAuth::codeReady, [&seen](DeviceCode code) {
+        ++seen.codeReady;
+        seen.code = code;
+    });
     QObject::connect(&auth, &GithubAuth::granted, [&seen](Token token) {
         ++seen.granted;
         seen.token = token;
     });
-    QObject::connect(&auth, &GithubAuth::refreshed, [&seen](quint64, Token token) {
+    QObject::connect(&auth, &GithubAuth::refreshed, [&seen](quint64 callId, Token token) {
         ++seen.refreshed;
-        seen.token = token;
+        seen.refreshCallId = callId;
+        seen.token         = token;
     });
-    QObject::connect(&auth, &GithubAuth::refreshFailed, [&seen](quint64, AuthFailure why) {
-        ++seen.failed;
-        seen.why = why;
+    QObject::connect(&auth, &GithubAuth::refreshFailed, [&seen](quint64 callId, AuthFailure why) {
+        ++seen.refreshFailed;
+        seen.refreshCallId = callId;
+        seen.why           = why;
     });
     QObject::connect(&auth, &GithubAuth::failed, [&seen](AuthFailure why) {
         ++seen.failed;
@@ -254,118 +274,322 @@ bool spinUntil(const std::function<bool()>& done, int ms = 2000)
     return done();
 }
 
-/// One canned answer, finishing on the next turn of the loop so the client's own connections exist
-/// before `finished` arrives. `delivered_` keeps it from finishing twice.
-class CannedReply final : public QNetworkReply {
-public:
-    CannedReply(QObject* parent, int status, QByteArray body)
-        : QNetworkReply(parent),
-          body_(std::move(body))
-    {
-        setAttribute(QNetworkRequest::HttpStatusCodeAttribute, status);
-        open(QIODevice::ReadOnly);
-        QTimer::singleShot(0, this, [this] { deliver(); });
-    }
+/// @brief Abort every reply the manager is still holding, as a connection that never got a byte does.
+void dropTheConnection(ScriptedManager& manager)
+{
+    for (auto* reply : manager.findChildren<QNetworkReply*>())
+        if (not reply->isFinished())
+            reply->abort();
+}
 
-    void abort() override
-    {
-        deliver();
-    }
+/// The device-code answer the flow starts from: a one-second poll, so a case runs its waits in
+/// seconds rather than the production five.
+const QByteArray kCodeBody = R"({"device_code":"d","user_code":"WDJB-MJHT","verification_uri":"https://github.com/login/device",)"
+                             R"("expires_in":900,"interval":1})";
 
-    qint64 readData(char* data, qint64 max) override
-    {
-        if (body_.isEmpty())
-            return -1;
-        const qint64 n = std::min<qint64>(max, body_.size());
-        std::memcpy(data, body_.constData(), static_cast<std::size_t>(n));
-        body_.remove(0, static_cast<int>(n));
-        return n;
-    }
+/// A code whose lifetime GitHub has already cut to one second: the expiry timer is what ends it.
+const QByteArray kDyingCodeBody = R"({"device_code":"d","user_code":"WDJB-MJHT","verification_uri":"https://github.com/login/device",)"
+                                  R"("expires_in":1,"interval":900})";
 
-    /// Finish once, whichever of the two paths arrives first.
-    void deliver()
-    {
-        if (delivered_)
-            return;
-        delivered_ = true;
-        setFinished(true);
-        emit finished();
-    }
-
-private:
-    QByteArray body_;
-    bool       delivered_ = false;
-};
-
-/// The seam GithubAuth takes, keeping what the last request was so a case can read it back.
-class CannedManager final : public QNetworkAccessManager {
-public:
-    CannedManager(int status, QByteArray body)
-        : status_(status),
-          body_(std::move(body))
-    {
-    }
-
-    QString    url;    ///< The address the last request went to.
-    QByteArray posted; ///< The form body of the last POST.
-
-protected:
-    QNetworkReply* createRequest(Operation, const QNetworkRequest& request, QIODevice* outgoing) override
-    {
-        url = request.url().toString();
-        if (outgoing != nullptr) {
-            if (not outgoing->isOpen())
-                outgoing->open(QIODevice::ReadOnly);
-            posted = outgoing->readAll();
-        }
-        return new CannedReply(this, status_, body_);
-    }
-
-private:
-    int        status_;
-    QByteArray body_;
-};
+const QByteArray kPending = QByteArrayLiteral(R"({"error":"authorization_pending"})");
+const QByteArray kGranted = QByteArrayLiteral(R"({"access_token":"gho_ok","token_type":"bearer","scope":"gist"})");
 
 } // namespace
 
-TEST(GithubRefresh, SpendsTheStoredRefreshTokenAndReportsTheRotatedPair)
+TEST(GithubFlow, ASignInAsksForTheCodeAndShowsIt)
 {
-    QtApplication qt;
-    CannedManager manager{200, R"({"access_token":"gho_next","token_type":"bearer","scope":"gist","expires_in":28800,)"
-                               R"("refresh_token":"ghr_after","refresh_token_expires_in":15552000})"};
-    GithubAuth    auth{&manager};
-    Reports       seen;
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, kCodeBody};
+    GithubAuth      auth{&manager};
+    Reports         seen;
     record(auth, seen);
 
-    auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_before");
-    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.failed > 0; }));
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.codeReady > 0; }));
+
+    ASSERT_EQ(seen.codeReady, 1);
+    EXPECT_EQ(seen.code.deviceCode, "d");
+    EXPECT_EQ(seen.code.userCode, "WDJB-MJHT");
+    EXPECT_EQ(seen.code.verificationUri, "https://github.com/login/device");
+    // The one request went to the device endpoint with the app's id and the one scope it needs.
+    ASSERT_EQ(manager.sent.size(), 1u);
+    EXPECT_EQ(manager.sent[0].url.toStdString(), "https://github.com/login/device/code");
+    EXPECT_TRUE(manager.sent[0].body.contains("client_id=Iv1.test"));
+    EXPECT_TRUE(manager.sent[0].body.contains("scope=gist"));
+    EXPECT_EQ(seen.failed, 0);
+}
+
+TEST(GithubFlow, ASignInWithoutAClientIdFailsWhereItStands)
+{
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, kCodeBody};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.requestCode(QString{});
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }));
+
+    EXPECT_EQ(seen.why, AuthFailure::Generic);
+    EXPECT_EQ(manager.requests, 0) << "nothing was asked of the network";
+    EXPECT_EQ(seen.codeReady, 0);
+}
+
+TEST(GithubFlow, ARefusedCodeRequestEndsTheSignIn)
+{
+    QtApplication   qt;
+    ScriptedManager manager{500, {}, true, QByteArray("server says no")};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Generic);
+    EXPECT_EQ(seen.codeReady, 0);
+}
+
+TEST(GithubFlow, ACodeRequestThatNeverAnsweredIsAProxyFailure)
+{
+    // No answer at all is the connection, which is what a blocked route looks like; any answer,
+    // even an error, would be the server's own.
+    QtApplication   qt;
+    ScriptedManager manager{500, {}, false};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    dropTheConnection(manager);
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Proxy);
+}
+
+TEST(GithubFlow, AnUnusableCodeAnswerEndsTheSignIn)
+{
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, QByteArray("not json")};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Generic);
+}
+
+TEST(GithubFlow, ThePollRunsUntilTheReaderApproves)
+{
+    QtApplication   qt;
+    ScriptedManager manager{500};
+    manager.queue(200, kCodeBody); // the code request
+    manager.queue(200, kPending);  // the first poll: the reader is still typing
+    manager.queue(200, kPending);  // the second poll: still typing
+    manager.queue(200, kGranted);  // the third: approved
+    GithubAuth auth{&manager};
+    Reports    seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.granted > 0; }, 8000));
+
+    ASSERT_EQ(seen.granted, 1);
+    EXPECT_EQ(seen.token.access, "gho_ok");
+    // One code request, two pending polls and the granted one -- and nothing further: the timers
+    // stopped when the token arrived.
+    ASSERT_EQ(manager.sent.size(), 4u);
+    EXPECT_EQ(manager.sent[0].url.toStdString(), "https://github.com/login/device/code");
+    EXPECT_EQ(manager.sent[1].url.toStdString(), "https://github.com/login/oauth/access_token");
+    EXPECT_TRUE(manager.sent[1].body.contains("device_code=d"));
+    EXPECT_TRUE(manager.sent[1].body.contains("client_id=Iv1.test"));
+    EXPECT_TRUE(manager.sent[1].body.contains("grant_type"));
+    QElapsedTimer quiet;
+    quiet.start();
+    while (quiet.elapsed() < 1500)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    EXPECT_EQ(manager.sent.size(), 4u) << "a granted flow polls no more";
+    EXPECT_EQ(seen.failed, 0);
+}
+
+TEST(GithubFlow, GitHubSlowingThePollDownDoesNotStopIt)
+{
+    QtApplication   qt;
+    ScriptedManager manager{500};
+    manager.queue(200, kCodeBody);                                     // the code request
+    manager.queue(200, kPending);                                      // poll one
+    manager.queue(200, QByteArrayLiteral(R"({"error":"slow_down"})")); // poll two: back off
+    manager.queue(200, kGranted);                                      // poll three, after the wait
+    GithubAuth auth{&manager};
+    Reports    seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    // The slow-down adds five seconds to the one-second interval, so the granted poll is a few
+    // seconds out: this case carries the flow's real pacing, and it is the unit suite's slowest.
+    ASSERT_TRUE(spinUntil([&seen] { return seen.granted > 0; }, 12000));
+
+    ASSERT_EQ(seen.granted, 1);
+    EXPECT_EQ(manager.sent.size(), 4u);
+}
+
+TEST(GithubFlow, TheReaderDecliningEndsTheSignIn)
+{
+    QtApplication   qt;
+    ScriptedManager manager{500};
+    manager.queue(200, kCodeBody);
+    manager.queue(200, QByteArrayLiteral(R"({"error":"access_denied"})"));
+    GithubAuth auth{&manager};
+    Reports    seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }, 8000));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Denied);
+    EXPECT_EQ(seen.granted, 0);
+}
+
+TEST(GithubFlow, AnExpiredCodeEndsTheSignIn)
+{
+    QtApplication   qt;
+    ScriptedManager manager{500};
+    manager.queue(200, kCodeBody);
+    manager.queue(200, QByteArrayLiteral(R"({"error":"expired_token"})"));
+    GithubAuth auth{&manager};
+    Reports    seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }, 8000));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Expired);
+}
+
+TEST(GithubFlow, TheCodeRunningOutEndsTheSignInToo)
+{
+    // The code's lifetime is GitHub's, not ours: when the timer runs out, sign-in is over whatever
+    // the last poll said. The interval is far longer than the lifetime here, so the timer is what
+    // fires, and no poll is ever sent.
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, kDyingCodeBody};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }, 6000));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Expired);
+    EXPECT_EQ(manager.requests, 1) << "the expiry is the timer's own, not a poll's";
+}
+
+TEST(GithubFlow, AnAnswerThePollDoesNotRecogniseFails)
+{
+    QtApplication   qt;
+    ScriptedManager manager{500};
+    manager.queue(200, kCodeBody);
+    manager.queue(200, QByteArrayLiteral(R"({"error":"unsupported_grant_type"})"));
+    GithubAuth auth{&manager};
+    Reports    seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }, 8000));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Generic);
+}
+
+TEST(GithubFlow, APollThatNeverAnsweredIsAProxyFailure)
+{
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, kCodeBody}; // the code request answers
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.codeReady > 0; }));
+    // The poll goes out on its own timer a second later; its answer is queued now, ahead of it.
+    manager.queue(302, {}, {}, false); // a connection that never speaks
+    ASSERT_TRUE(spinUntil([&manager] { return manager.requests == 2; }));
+    dropTheConnection(manager);
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Proxy);
+}
+
+TEST(GithubFlow, ACancelStopsTheFlowQuietly)
+{
+    // The reply never answers, and the reader backs out: stop() drops the connection before it
+    // aborts it, so the abandoned poll reports nothing, and neither does the object.
+    QtApplication   qt;
+    ScriptedManager manager{500, {}, false};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    auth.cancel();
+
+    QElapsedTimer quiet;
+    quiet.start();
+    while (quiet.elapsed() < 800)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    EXPECT_EQ(seen.failed + seen.granted + seen.codeReady, 0) << "a cancel reports nothing";
+    EXPECT_EQ(manager.sent.size(), 1u);
+}
+
+TEST(GithubRefresh, SpendsTheStoredRefreshTokenAndReportsTheRotatedPair)
+{
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, QByteArrayLiteral(R"({"access_token":"gho_next","token_type":"bearer","scope":"gist","expires_in":28800,)"
+                                                             R"("refresh_token":"ghr_after","refresh_token_expires_in":15552000})")};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    const quint64 callId = auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_before");
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.refreshFailed > 0; }));
 
     ASSERT_EQ(seen.refreshed, 1);
+    EXPECT_EQ(seen.refreshCallId, callId);
     EXPECT_EQ(seen.token.access, "gho_next");
     // Both tokens come back new: GitHub rotates the pair, and the spent one stops working.
     EXPECT_EQ(seen.token.refresh, "ghr_after");
     // The request is the one the endpoint documents: the same address the device flow polls, with
     // the refresh grant rather than the device grant.
-    EXPECT_EQ(manager.url, QStringLiteral("https://github.com/login/oauth/access_token"));
-    EXPECT_TRUE(manager.posted.contains("grant_type=refresh_token"));
-    EXPECT_TRUE(manager.posted.contains("refresh_token=ghr_before"));
-    EXPECT_TRUE(manager.posted.contains("client_id=Ov23li0i58xw4shNcF7I"));
+    ASSERT_EQ(manager.sent.size(), 1u);
+    EXPECT_EQ(manager.sent[0].url.toStdString(), "https://github.com/login/oauth/access_token");
+    EXPECT_TRUE(manager.sent[0].body.contains("grant_type=refresh_token"));
+    EXPECT_TRUE(manager.sent[0].body.contains("refresh_token=ghr_before"));
+    EXPECT_TRUE(manager.sent[0].body.contains("client_id=Ov23li0i58xw4shNcF7I"));
 }
 
 TEST(GithubRefresh, ARefusedRefreshTokenEndsTheSignInRatherThanRetrying)
 {
     // GitHub answers this one with HTTP 200 and an error body, the way it answers a poll.
-    QtApplication qt;
-    CannedManager manager{200, R"({"error":"bad_refresh_token","error_description":"The refresh token is invalid or expired."})"};
-    GithubAuth    auth{&manager};
-    Reports       seen;
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, QByteArrayLiteral(R"({"error":"bad_refresh_token","error_description":"The refresh token is invalid or expired."})")};
+    GithubAuth      auth{&manager};
+    Reports         seen;
     record(auth, seen);
 
     auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_dead");
-    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.failed > 0; }));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.refreshFailed > 0; }));
 
     EXPECT_EQ(seen.refreshed, 0);
-    ASSERT_EQ(seen.failed, 1);
+    ASSERT_EQ(seen.refreshFailed, 1);
     // Its own kind, because it is the only answer that says "sign in again" rather than "try again".
     EXPECT_EQ(seen.why, AuthFailure::BadRefresh);
 }
@@ -376,16 +600,67 @@ TEST(GithubRefresh, ARefusedRefreshTokenEndsTheSignInRatherThanRetrying)
 /// back through the flow, not a Sync now that fails the same way every time.
 TEST(GithubRefresh, ACredentialRefusalEndsTheSignInToo)
 {
-    QtApplication qt;
-    CannedManager manager{200, R"({"error":"incorrect_client_credentials","error_description":"The client_id and/or client_secret passed are incorrect."})"};
-    GithubAuth    auth{&manager};
-    Reports       seen;
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, QByteArrayLiteral(R"({"error":"incorrect_client_credentials","error_description":"The client_id and/or client_secret passed are incorrect."})")};
+    GithubAuth      auth{&manager};
+    Reports         seen;
     record(auth, seen);
 
     auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_old");
-    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.failed > 0; }));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.refreshFailed > 0; }));
 
     EXPECT_EQ(seen.refreshed, 0);
-    ASSERT_EQ(seen.failed, 1);
+    ASSERT_EQ(seen.refreshFailed, 1);
     EXPECT_EQ(seen.why, AuthFailure::BadRefresh);
+}
+
+TEST(GithubRefresh, ARefreshWithoutItsIdsFailsWhereItStands)
+{
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, kGranted};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    const quint64 callId = auth.refresh(QString{}, QString{});
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshFailed > 0; }));
+
+    ASSERT_EQ(seen.refreshFailed, 1);
+    EXPECT_EQ(seen.refreshCallId, callId);
+    EXPECT_EQ(seen.why, AuthFailure::Generic);
+    EXPECT_EQ(manager.requests, 0) << "the ids were checked before anything was asked";
+}
+
+TEST(GithubRefresh, ARefreshThatNeverAnsweredIsAProxyFailure)
+{
+    QtApplication   qt;
+    ScriptedManager manager{500, {}, false};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_before");
+    dropTheConnection(manager);
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.refreshFailed > 0; }));
+
+    ASSERT_EQ(seen.refreshFailed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Proxy);
+}
+
+TEST(GithubRefresh, AnAnswerTheRefreshDoesNotRecogniseFails)
+{
+    // Pending, slow_down and the device-code states do not belong to this endpoint; the answer is
+    // read as the refusal to retry it is, with the kind the caller acts on.
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, kPending};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_before");
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed + seen.refreshFailed > 0; }));
+
+    ASSERT_EQ(seen.refreshFailed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Generic);
+    EXPECT_EQ(seen.refreshed, 0);
 }
