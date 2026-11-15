@@ -12,11 +12,13 @@
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QNetworkReply>
 #include <QString>
 
 #include <chrono>
 #include <filesystem>
 #include <functional>
+#include <initializer_list>
 #include <optional>
 #include <string>
 #include <utility>
@@ -157,6 +159,30 @@ json gistBody(const std::string& id, const std::string& envelope)
             {"files", {{"lens-sync.json", {{"content", envelope}}}}}};
 }
 
+const QByteArray kGistBody = R"({"id":"gist-1","description":"lens-sync","updated_at":"2026-10-26T00:00:00Z",)"
+                             R"("files":{"lens-sync.json":{"content":"{}","truncated":false,)"
+                             R"("raw_url":"https://gist.githubusercontent.com/x/raw"}}})";
+const QByteArray kGranted  = QByteArrayLiteral(R"({"access_token":"access-2","token_type":"bearer","scope":"gist",)"
+                                               R"("refresh_token":"refresh-2"})");
+
+/// The transport alone, for the handler mappings a whole round does not reach: each request sent
+/// directly, its answer captured as the round would receive it.
+struct Direct {
+    lens::test::ScriptedManager manager;
+    lens::sync::GistClient      gist{&manager};
+    lens::sync::GithubAuth      auth{&manager};
+    lens::app::SyncTransport    transport{gist, auth, QStringLiteral("client-id")};
+};
+
+/// @brief Carry one request and wait for its answer, whatever it turns out to be.
+lens::core::sync::Answer asked(Direct& direct, lens::core::sync::Request request)
+{
+    std::optional<lens::core::sync::Answer> got;
+    direct.transport.send(std::move(request), [&got](lens::core::sync::Answer const& answer) { got = answer; });
+    EXPECT_TRUE(spinUntil([&got] { return got.has_value(); }));
+    return got.value_or(lens::core::sync::Answer{});
+}
+
 } // namespace
 
 /// A whole round over the real clients: the list finds the gist, the read brings back the cloud copy,
@@ -249,4 +275,158 @@ TEST(SyncTransport, ARefusedRefreshEndsTheRound)
     EXPECT_FALSE(fixture.round.busy());
     EXPECT_FALSE(fixture.partition.hasRefreshToken());
     EXPECT_TRUE(fixture.partition.token().empty());
+}
+
+/// The mappings a whole round never reaches: the transport alone, each request sent directly and
+/// its answer read the way the round reads it.
+TEST(SyncTransportDirect, AReadHandsTheFileBackUnderItsGistsId)
+{
+    QtApplication qt;
+    Direct        direct;
+
+    direct.manager.queue(200, kGistBody);
+    lens::core::sync::Request request;
+    request.kind      = lens::core::sync::Request::Kind::Read;
+    request.token     = "access-1";
+    request.gistId    = "gist-1";
+    request.fileName  = "lens-sync.json";
+    const auto answer = asked(direct, request);
+
+    ASSERT_EQ(direct.manager.sent.size(), 1u);
+    EXPECT_EQ(direct.manager.sent[0].url.toStdString(), "https://api.github.com/gists/gist-1");
+    EXPECT_EQ(answer.gistId, "gist-1");
+    EXPECT_EQ(answer.content, "{}");
+    EXPECT_EQ(answer.failure, lens::core::sync::Answer::Failure::None);
+}
+
+TEST(SyncTransportDirect, ACreateAsksForTheDescriptionAndNamesTheNewGist)
+{
+    QtApplication qt;
+    Direct        direct;
+
+    direct.manager.queue(201, kGistBody);
+    lens::core::sync::Request request;
+    request.kind        = lens::core::sync::Request::Kind::Create;
+    request.token       = "access-1";
+    request.description = "lens-sync";
+    request.fileName    = "lens-sync.json";
+    request.content     = "{\"format\":1}";
+    const auto answer   = asked(direct, request);
+
+    ASSERT_EQ(direct.manager.sent.size(), 1u);
+    EXPECT_EQ(direct.manager.sent[0].verb, "POST");
+    const json body = json::parse(std::string(direct.manager.sent[0].body.constData()));
+    EXPECT_EQ(body.at("description"), "lens-sync");
+    EXPECT_EQ(body.at("files").at("lens-sync.json").at("content"), "{\"format\":1}");
+    EXPECT_EQ(answer.gistId, "gist-1");
+}
+
+TEST(SyncTransportDirect, AnUpdatePatchesByItsIdAndNamesNoNewOne)
+{
+    QtApplication qt;
+    Direct        direct;
+
+    direct.manager.queue(200, kGistBody);
+    lens::core::sync::Request request;
+    request.kind      = lens::core::sync::Request::Kind::Update;
+    request.token     = "access-1";
+    request.gistId    = "gist-1";
+    request.fileName  = "lens-sync.json";
+    request.content   = "{\"format\":2}";
+    const auto answer = asked(direct, request);
+
+    EXPECT_EQ(direct.manager.sent[0].verb, "PATCH");
+    EXPECT_EQ(answer.gistId, "") << "an update overwrote the copy it was given";
+    EXPECT_EQ(answer.failure, lens::core::sync::Answer::Failure::None);
+}
+
+TEST(SyncTransportDirect, ADeleteAnswersWithTheIdItRemoved)
+{
+    QtApplication qt;
+    Direct        direct;
+
+    direct.manager.queue(204);
+    lens::core::sync::Request request;
+    request.kind      = lens::core::sync::Request::Kind::Delete;
+    request.token     = "access-1";
+    request.gistId    = "gist-1";
+    const auto answer = asked(direct, request);
+
+    EXPECT_EQ(direct.manager.sent[0].verb, "DELETE");
+    EXPECT_EQ(answer.gistId, "gist-1");
+}
+
+TEST(SyncTransportDirect, ARefusalCarriesTheKindTheRoundReads)
+{
+    QtApplication qt;
+    Direct        direct;
+
+    for (const auto [status, expected] : std::initializer_list<std::pair<int, lens::core::sync::Answer::Failure>>{
+             {401, lens::core::sync::Answer::Failure::Unauthorised},
+             {404, lens::core::sync::Answer::Failure::NotFound},
+             {500, lens::core::sync::Answer::Failure::Generic},
+         }) {
+        direct.manager.queue(status);
+        lens::core::sync::Request request;
+        request.kind      = lens::core::sync::Request::Kind::Read;
+        request.token     = "access-1";
+        request.gistId    = "gist-1";
+        const auto answer = asked(direct, request);
+        EXPECT_EQ(answer.failure, expected) << "status " << status;
+        EXPECT_EQ(answer.content, "") << "a refusal carries no text from the server";
+    }
+
+    // And a connection that never got a byte is the proxy kind.
+    direct.manager.queue(302, {}, {}, false);
+    lens::core::sync::Request request;
+    request.kind   = lens::core::sync::Request::Kind::Read;
+    request.token  = "access-1";
+    request.gistId = "gist-1";
+    std::optional<lens::core::sync::Answer> got;
+    direct.transport.send(std::move(request), [&got](lens::core::sync::Answer const& answer) { got = answer; });
+    ASSERT_TRUE(spinUntil([&] {
+        for (auto* reply : direct.manager.findChildren<QNetworkReply*>())
+            if (not reply->isFinished())
+                reply->abort();
+        return got.has_value();
+    }));
+    EXPECT_EQ(got->failure, lens::core::sync::Answer::Failure::Proxy);
+}
+
+TEST(SyncTransportDirect, ARefreshCarriesTheRotatedPairBack)
+{
+    QtApplication qt;
+    Direct        direct;
+
+    direct.manager.queue(200, kGranted);
+    lens::core::sync::Request request;
+    request.kind      = lens::core::sync::Request::Kind::Refresh;
+    request.token     = "refresh-1";
+    const auto answer = asked(direct, request);
+
+    // The refresh went to the token endpoint with the app's own id, and both new tokens are the
+    // answer: the spent pair stops working, so what came back is what gets stored.
+    ASSERT_EQ(direct.manager.sent.size(), 1u);
+    EXPECT_EQ(direct.manager.sent[0].url.toStdString(), "https://github.com/login/oauth/access_token");
+    EXPECT_TRUE(direct.manager.sent[0].body.contains("grant_type=refresh_token"));
+    EXPECT_TRUE(direct.manager.sent[0].body.contains("refresh_token=refresh-1"));
+    EXPECT_EQ(answer.access, "access-2");
+    EXPECT_EQ(answer.refresh, "refresh-2");
+    EXPECT_EQ(answer.failure, lens::core::sync::Answer::Failure::None);
+}
+
+TEST(SyncTransportDirect, ARefusedRefreshCarriesItsOwnKind)
+{
+    // The one failure that ends a sign-in rather than a round: nothing is left to renew with.
+    QtApplication qt;
+    Direct        direct;
+
+    direct.manager.queue(200, QByteArrayLiteral(R"({"error":"bad_refresh_token","error_description":"The refresh token is invalid or expired."})"));
+    lens::core::sync::Request request;
+    request.kind      = lens::core::sync::Request::Kind::Refresh;
+    request.token     = "refresh-1";
+    const auto answer = asked(direct, request);
+
+    EXPECT_EQ(answer.failure, lens::core::sync::Answer::Failure::RefusedRefresh);
+    EXPECT_EQ(answer.access, "");
 }
