@@ -44,6 +44,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/sync_duty_test.cpp
   unit/webdav_client_test.cpp
   unit/webdav_backend_test.cpp
+  unit/webdav_transport_test.cpp
   unit/settings_section_test.cpp
   unit/settings_defaults_test.cpp
   unit/settings_table_test.cpp
@@ -58,6 +59,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/llm_pricing_test.cpp
   unit/picture_pure_test.cpp
   unit/picture_duty_test.cpp
+  unit/commons_source_test.cpp
   unit/speech_test.cpp
   unit/voice_downloader_test.cpp
   unit/youdao_source_test.cpp
@@ -71,6 +73,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/update_pure_test.cpp
   unit/github_auth_test.cpp
   unit/gist_client_test.cpp
+  unit/github_backend_test.cpp
   unit/explanation_cache_test.cpp
   unit/explanation_queue_test.cpp
   unit/explanation_exchange_test.cpp
