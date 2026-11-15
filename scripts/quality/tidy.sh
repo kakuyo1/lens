@@ -249,7 +249,7 @@ fi
 # judgement that was skipped, and a skipped judgement that passes is exactly what this gate
 # exists to refuse.
 #
-# Diagnostics carry a location and a check name in brackets ("D:\...\log.h:44:46: error: ...
+# Diagnostics carry a location and a check name in brackets ("src/.../log.h:44:46: error: ...
 # [performance-enum-size,-warnings-as-errors]"); the tool's own failures ("error: no input
 # files") have neither. Both fail. The earlier whole-tree branch matched only the bare form,
 # which is why a tree full of findings could report itself clean.
