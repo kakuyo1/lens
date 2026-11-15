@@ -23,7 +23,15 @@ constexpr int kTransferTimeoutMs = 60 * 60 * 1000;
 
 VoiceDownloader::VoiceDownloader(QObject* parent)
     : QObject(parent),
-      manager_(new QNetworkAccessManager(this))
+      manager_(new QNetworkAccessManager(this)),
+      catalog_(&voiceSpec)
+{
+}
+
+VoiceDownloader::VoiceDownloader(QNetworkAccessManager* manager, Catalog catalog, QObject* parent)
+    : QObject(parent),
+      manager_(manager != nullptr ? manager : new QNetworkAccessManager(this)),
+      catalog_(catalog != nullptr ? std::move(catalog) : Catalog{&voiceSpec})
 {
 }
 
@@ -31,7 +39,7 @@ void VoiceDownloader::start(VoiceModel model, std::filesystem::path const& root)
 {
     if (active_)
         return;
-    VoiceSpec const& spec = voiceSpec(model);
+    VoiceSpec const& spec = catalog_(model);
     model_                = model;
     folder_               = QString::fromStdWString((root / spec.id.toStdWString()).wstring());
     index_                = 0;
@@ -71,7 +79,7 @@ VoiceModel VoiceDownloader::model() const
 
 void VoiceDownloader::fetchNext()
 {
-    VoiceSpec const& spec = voiceSpec(model_);
+    VoiceSpec const& spec = catalog_(model_);
     if (index_ == spec.files.size()) {
         active_ = false;
         LENS_INFO("voice '{}' is in place", spec.id.toStdString());
@@ -137,7 +145,7 @@ void VoiceDownloader::fail()
         file_ = nullptr;
     }
     active_ = false;
-    LENS_WARN("voice '{}' did not download", voiceSpec(model_).id.toStdString());
+    LENS_WARN("voice '{}' did not download", catalog_(model_).id.toStdString());
     emit finished(false);
 }
 

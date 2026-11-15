@@ -4,6 +4,7 @@
 #include <QString>
 
 #include <filesystem>
+#include <functional>
 
 #include "speech/voice_catalog.h"
 
@@ -31,8 +32,16 @@ namespace lens::speech {
 class VoiceDownloader : public QObject {
     Q_OBJECT
 public:
+    /// @brief The catalogue the downloader reads. The real one is voice_catalog.h's voiceSpec(); a
+    ///        case hands its own, since no test can produce bytes matching a pinned digest.
+    using Catalog = std::function<VoiceSpec const&(VoiceModel)>;
+
     /// @param parent Owns the downloader and the network manager it makes.
     explicit VoiceDownloader(QObject* parent = nullptr);
+
+    /// @brief The seams the tests take: one manager to answer, one catalogue to fetch from. A
+    ///        nullptr keeps the production default for either.
+    VoiceDownloader(QNetworkAccessManager* manager, Catalog catalog, QObject* parent = nullptr);
 
     /**
      * @brief Start fetching @p model into @p root, under the voice's own folder.
@@ -65,6 +74,7 @@ private:
     void fail();
 
     QNetworkAccessManager* manager_;
+    Catalog                catalog_;
     VoiceModel             model_ = VoiceModel::Kokoro;
     QString                folder_;
     std::size_t            index_    = 0;

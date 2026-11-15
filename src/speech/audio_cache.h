@@ -30,8 +30,11 @@ public:
     /// @return The cache under the reader's profile: `%APPDATA%\Lens\audio`.
     static std::filesystem::path defaultRoot();
 
-    /// @param root The cache's directory; nothing is created until the first store.
-    explicit AudioCache(std::filesystem::path root);
+    /// @param root     The cache's directory; nothing is created until the first store.
+    /// @param maxBytes The ceiling prune() keeps the cache under. The default is the shipping one;
+    ///                 a case passes a smaller number so eviction is testable without writing
+    ///                 tens of megabytes.
+    explicit AudioCache(std::filesystem::path root, qint64 maxBytes = kMaxBytes);
 
     /**
      * @brief The recording stored under @p key, if there is one.
@@ -76,6 +79,7 @@ private:
     std::filesystem::path fileFor(QString const& key) const;
 
     std::filesystem::path root_;
+    qint64                maxBytes_;
 };
 
 }
