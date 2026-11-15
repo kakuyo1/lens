@@ -205,7 +205,7 @@ inline std::optional<std::vector<std::string>> importLemmas(QByteArray const& da
         const QJsonDocument doc = QJsonDocument::fromJson(data);
         if (not doc.isArray())
             return std::nullopt;
-        for (const QJsonValue& value : doc.array()) {
+        for (const auto& value : doc.array()) {
             if (value.isString()) {
                 incoming.push_back(value.toString().trimmed().toStdString());
             } else if (value.isObject()) {

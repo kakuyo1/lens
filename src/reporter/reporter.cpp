@@ -214,7 +214,7 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
     // argv[1] is the marker the handler wrote last, its content the summary; argv[2] the folder
     // the artifacts sit in. Anything else is a run nothing asked for, and the dialog stays down.
     if (argc < 3) {
-        LocalFree(argv);
+        LocalFree(reinterpret_cast<HLOCAL>(argv));
         return 0;
     }
     std::ifstream      markerFile(argv[1]);
@@ -224,7 +224,7 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
     summaryOfRun                           = summary;
     dumpsDir                               = argv[2];
     strings                                = stringsFor(interfaceLanguage());
-    LocalFree(argv);
+    LocalFree(reinterpret_cast<HLOCAL>(argv));
 
     // The body carries the explanation, the facts the summary kept, and the folder it all sits
     // in -- the three things a reader needs before the next-launch card repeats them.
@@ -243,7 +243,7 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
     bodyText += dumpsDir;
 
     if (const auto setDpi = reinterpret_cast<SetProcessDpiAwarenessContextFn>(
-            reinterpret_cast<void*>(GetProcAddress(GetModuleHandleW(L"user32"), "SetProcessDpiAwarenessContext"))))
+            GetProcAddress(GetModuleHandleW(L"user32"), "SetProcessDpiAwarenessContext")))
         setDpi(reinterpret_cast<void*>(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2));
 
     WNDCLASSEXW windowClass{sizeof windowClass};

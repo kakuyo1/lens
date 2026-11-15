@@ -240,7 +240,8 @@ CardSession::SenseOutcome CardSession::senseAnswered(QString const&            l
     auto         request = senseInFlight_.find(lemma);
     if (request == senseInFlight_.end())
         return outcome;
-    const PendingSense pending = request.value();
+    // The copy is the point: the entry is erased below, so a reference would dangle.
+    const PendingSense pending = request.value(); // NOLINT(performance-unnecessary-copy-initialization)
     senseInFlight_.erase(request);
 
     Cycle* cycle = findCycle(pending.language, lemma);
@@ -335,7 +336,8 @@ std::optional<QString> CardSession::peekAnswered(QString const& lemma, QString c
     auto request = peekInFlight_.find(lemma);
     if (request == peekInFlight_.end())
         return std::nullopt;
-    const PendingPeek pending = request.value();
+    // The copy is the point: the entry is erased below, so a reference would dangle.
+    const PendingPeek pending = request.value(); // NOLINT(performance-unnecessary-copy-initialization)
     peekInFlight_.erase(request);
 
     // A failed peek stores nothing, and the line is spoken for by the request that just ended.

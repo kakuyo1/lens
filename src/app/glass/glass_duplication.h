@@ -78,7 +78,7 @@ public:
      * @param desktop The output's rectangle on the desktop, in device pixels.
      */
     GlassDuplication(QString deviceName, QRect desktop);
-    ~GlassDuplication();
+    ~GlassDuplication() override;
 
     GlassDuplication(GlassDuplication const&)            = delete;
     GlassDuplication& operator=(GlassDuplication const&) = delete;

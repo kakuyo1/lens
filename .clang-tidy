@@ -1,0 +1,64 @@
+# clang-tidy, held to zero. The checks were picked from a tree-wide probe -- 267 compilation
+# units, the same run scripts/quality/tidy.sh gates on -- rather than from taste: what fires
+# today is excluded, with its count, until its instances are fixed; what does not fire is kept,
+# so a future violation is new code and the gate names the change that brought it. The list only
+# grows, like every other ratchet in this repository.
+#
+# clang-analyzer covers the class the crash dumps keep finding -- a null or emptied handle read
+# after its owner retired it. It is the expensive half, which is why CI runs it only over the
+# files a change touches rather than over the tree. Two of its behaviours this config accounts
+# for: analyzer diagnostics ignore HeaderFilterRegex (they report wherever the bug report points,
+# Qt headers included), and the analyzer cannot see QMetaObject::invokeMethod taking ownership of
+# a queued lambda, which is why NewDeleteLeaks reads every one of those call sites as a leak.
+#
+# HeaderFilterRegex names our files by their src/ or test/ segment; the same regex leaves the
+# vendored headers out, and a suppressed diagnostic is not fatalised by WarningsAsErrors -- the
+# gate only ever judges files in this repository. The probe found no diagnostic inside the
+# googletest headers, whose paths also carry a src/ segment; if one ever appears, that is what
+# this comment explains.
+Checks: >
+  -*,
+  clang-analyzer-core.*,
+  clang-analyzer-cplusplus.*,
+  bugprone-*,
+  performance-*,
+  modernize-use-override,
+  -bugprone-branch-clone,
+  -bugprone-exception-escape,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-lambda-function-name,
+  -bugprone-narrowing-conversions,
+  -bugprone-unchecked-optional-access,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  -performance-enum-size,
+  -performance-move-const-arg,
+  -performance-no-automatic-move,
+  -performance-no-int-to-ptr,
+  -performance-unnecessary-value-param
+
+# The excluded ones, with the counts the tree-wide probe found and why each waits:
+#   bugprone-branch-clone 18 -- identical consecutive cases are often deliberate; each wants a look
+#   bugprone-exception-escape 29 -- value-type moves and destructors that may throw; per-instance review
+#   bugprone-easily-swappable-parameters 26 -- an API-design judgement, not a mechanical fix
+#   bugprone-implicit-widening-of-multiplication-result 133 -- a real overflow class with a backlog of its own
+#   bugprone-lambda-function-name 50
+#   bugprone-narrowing-conversions 32
+#   bugprone-unchecked-optional-access 486 -- the tree's optional invariants span functions the
+#     analyzer cannot see; each of the 486 wants human eyes before the check comes back
+#   clang-analyzer-cplusplus.NewDeleteLeaks 8 -- every one is QMetaObject::invokeMethod with a
+#     lambda; the ownership transfer into QMetaCallEvent is invisible to the analyzer
+#   performance-enum-size 586 -- an underlying type per enum, and the data-bearing ones want
+#     their storage semantics argued, not defaulted
+#   performance-move-const-arg 25
+#   performance-no-automatic-move 11
+#   performance-no-int-to-ptr 15
+#   performance-unnecessary-value-param 36 -- Qt's shared classes make pass-by-value the idiom
+
+CheckOptions:
+  - key:   bugprone-empty-catch.AllowEmptyCatchForExceptions
+    value: winrt::hresult_error
+
+WarningsAsErrors: '*'
+
+HeaderFilterRegex: '[/\\](src|test)[/\\]'

@@ -227,7 +227,7 @@ Animations parseAnimations(json const& document)
         if (not action.is_string()) throw Refused(Refusal::BadAnimation, "animations: role " + roleName + " must name an action");
         auto const name = action.get<std::string>();
         if (playbook.actions.count(name) == 0)
-            throw Refused(Refusal::BadAnimation, "animations: role " + roleName + " names an action with no playback: " + name);
+            throw Refused(Refusal::BadAnimation, std::string("animations: role ") + roleName + " names an action with no playback: " + name);
         playbook.roles.emplace(*role, name);
     }
     for (auto const& named : kNamedRoles) {
@@ -437,7 +437,7 @@ std::vector<AccessorySpec> parseAccessories(json const& document, Playbook const
             if (not name.is_string()) throw Refused(Refusal::BadAccessory, "accessories: " + id + ".supportedActions must be strings");
             auto action = name.get<std::string>();
             if (playbook.actions.count(action) == 0)
-                throw Refused(Refusal::BadAccessory, "accessories: " + id + " supports an action the pet does not have: " + action);
+                throw Refused(Refusal::BadAccessory, std::string("accessories: ") + id + " supports an action the pet does not have: " + action);
             supported.push_back(std::move(action));
         }
 
@@ -452,14 +452,14 @@ std::vector<AccessorySpec> parseAccessories(json const& document, Playbook const
                 if (not isPlainLabel(scene))
                     throw Refused(Refusal::BadAccessory, "accessories: " + id + ".sceneWeights names a scene that is not a plain label");
                 if (playbook.actions.count(scene) == 0)
-                    throw Refused(Refusal::BadAccessory, "accessories: " + id + " favours a scene the pet does not have: " + scene);
+                    throw Refused(Refusal::BadAccessory, std::string("accessories: ") + id + " favours a scene the pet does not have: " + scene);
                 if (not weight.is_number())
-                    throw Refused(Refusal::BadAccessory, "accessories: " + id + ".sceneWeights." + scene + " must be a number");
+                    throw Refused(Refusal::BadAccessory, std::string("accessories: ") + id + ".sceneWeights." + scene + " must be a number");
                 auto const factor = weight.get<double>();
                 if (not std::isfinite(factor) or factor <= 0.0)
-                    throw Refused(Refusal::BadAccessory, "accessories: " + id + ".sceneWeights." + scene + " must be a positive weight");
+                    throw Refused(Refusal::BadAccessory, std::string("accessories: ") + id + ".sceneWeights." + scene + " must be a positive weight");
                 if (factor > kMaxAccessorySceneWeight)
-                    throw Refused(Refusal::TooLarge, "accessories: " + id + ".sceneWeights." + scene + " is above " + std::to_string(kMaxAccessorySceneWeight));
+                    throw Refused(Refusal::TooLarge, std::string("accessories: ") + id + ".sceneWeights." + scene + " is above " + std::to_string(kMaxAccessorySceneWeight));
                 sceneWeights.emplace(scene, factor);
             }
         }

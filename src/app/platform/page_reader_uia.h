@@ -16,6 +16,8 @@
 
 #include "capture/page_reader.h"
 
+#include <QtGlobal>
+
 #include <memory>
 #include <string>
 

@@ -8,10 +8,19 @@
 #   unit            the offline gtest suite and the pet controller QTest. The cheapest job in the
 #                   file: its targets do not pull in the QML module, and it runs on every piece of
 #                   C++ that can reach them.
+#   tidy            clang-tidy over the files the change touches, against a tree configured
+#                   without precompiled headers (clang cannot read the MSVC PCH format). The
+#                   checks live in .clang-tidy and the gate is held to zero, not to a baseline.
 #   app             the executable compiles and links, first as it ships and then with the developer
 #                   surface, which it smokes in the same tree. main.cpp, the translations and the
 #                   icon resources are compiled by no other target, so a break in any of them has
 #                   no other job to fail in.
+#   sanitizer       the unit and pet suites again, built with /fsanitize=address over
+#                   RelWithDebInfo -- the configuration pair whose CRT and Qt DLLs agree, the
+#                   Debug one having died three different deaths on the runner. Qt and the
+#                   sherpa-onnx runtime are not instrumented; the ASan runtime intercepts the
+#                   process allocator either way. Leak detection is not part of MSVC ASan on
+#                   Windows and is not gated here.
 #   qml-components  the QML module and the component suite, with the lint after the build.
 #   qml-surfaces    the same module and the surface suite, sharded by case file. It is the gate's
 #                   longest step, which is why the component half got a runner of its own: both
@@ -70,6 +79,7 @@ jobs:
       unit: ${{ steps.changes.outputs.unit }}
       app: ${{ steps.changes.outputs.app }}
       qml: ${{ steps.changes.outputs.qml }}
+      tidy: ${{ steps.changes.outputs.tidy }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -113,6 +123,47 @@ jobs:
           QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
 
+  tidy:
+    needs: changes
+    if: needs.changes.outputs.tidy == 'true'
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # Nothing is built here; the configure action runs for the compile commands, which are the
+      # flags clang-tidy reads. The reconfigure adds CMAKE_DISABLE_PRECOMPILE_HEADERS=ON, the
+      # second configure pass regenerates them, and clang-tidy gets a db whose every TU parses:
+      # the dev tree's db names the targets' PCH files, which clang cannot read.
+      - uses: ./.github/actions/configure
+      - name: Drop the precompiled headers from the compile commands
+        shell: pwsh
+        run: cmake -S . -B build-ninja -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON
+
+      # The runner image ships LLVM standalone (its clang-tidy is the version the gate judges
+      # against; a local 19.x may differ in the margins) and the VS-bundled toolset behind it.
+      # tidy.sh probes PATH first, and LENS_TIDY_STRICT makes a missing tool a red gate rather
+      # than a silent skip. The standard LLVM install path comes from config, the one file
+      # machine paths may live in.
+      - name: Put clang-tidy on PATH
+        shell: pwsh
+        run: |
+          if (-not (Get-Command clang-tidy -ErrorAction SilentlyContinue)) {
+            . ./scripts/build/paths.ps1
+            $llvm = (Get-LensPaths -Root $PWD).llvmSystemBin
+            if ($llvm -and (Test-Path (Join-Path $llvm 'clang-tidy.exe'))) { $llvm >> $env:GITHUB_PATH }
+            else { throw "clang-tidy is neither on PATH nor at config's llvmSystemBin" }
+          }
+
+      - name: clang-tidy
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          LENS_TIDY_STRICT: "1"
+        run: bash scripts/quality/tidy.sh "$BASE" HEAD
+
   app:
     needs: changes
     if: needs.changes.outputs.app == 'true'
@@ -151,6 +202,94 @@ jobs:
 
       - name: Developer surface smoke
         run: scripts/qa/dev-smoke.ps1 -Exe build-ninja/src/app/lens.exe
+
+  sanitizer:
+    needs: changes
+    if: needs.changes.outputs.unit == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/configure
+
+      # Reconfigure in the same tree as a RelWithDebInfo build with the sanitizer -- the standard
+      # pair for it, and the third configuration this job tried: the first was Debug, and its
+      # Debug-only machinery died three different deaths on the runner (a CRT iterator-debugging
+      # proxy walk on the unwinding of any pet-parse throw, the /EHsc that the flag override had
+      # swallowed, and a memcpy inside Qt6Cored that read across a redzone in the instrumented
+      # frame of Pricing::load). The release Qt DLLs the install ships match /MD, the CRT the
+      # tree links is the one Qt was built against, and the Debug-only machinery is gone by
+      # construction. What NDEBUG costs is the asserts, which the unit job checks; the redzones
+      # stay, and they are the point. The ASan runtime DLLs are beside the compiler and on PATH
+      # once msvc-dev-cmd has run.
+      - name: Reconfigure with AddressSanitizer
+        shell: pwsh
+        run: cmake -S . -B build-ninja "-DCMAKE_BUILD_TYPE=RelWithDebInfo" "-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /fsanitize=address"
+
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_qtest_pet
+
+      # Qt and the sherpa-onnx runtime are not instrumented; the ASan runtime hooks the process
+      # allocator either way, so uninstrumented modules run as they always have, and what the
+      # sanitizer loses is coverage of their internals, not the run. Leak detection is not part
+      # of MSVC ASan on Windows and is not gated here.
+      #
+      # The suite has hung on the runner, twice, at a different test each time and with no ASan
+      # report -- a nondeterministic deadlock, not a test that always trips. So the run is
+      # bounded: four minutes in, cdb attaches and prints every thread's stack before the
+      # process is killed, which is the evidence the next fix needs. A healthy run never meets
+      # the debugger at all.
+      - name: Unit tests under ASan
+        shell: pwsh
+        run: |
+          $suite = Start-Process -FilePath "build-ninja/test/googletest/lens_gtest_unit.exe" `
+            -ArgumentList "--gtest_catch_exceptions=0" -NoNewWindow -PassThru `
+            -RedirectStandardOutput "unit-asan-out.log" -RedirectStandardError "unit-asan-err.log"
+          if (-not $suite.WaitForExit(240000)) {
+            "=== the suite is still running after 240 s; stacks of every thread follow"
+            . ./scripts/build/paths.ps1
+            $cdb = Get-LensPathList -Root $PWD -Key cdbFallbacks |
+                   Where-Object { Test-Path $_ } | Select-Object -First 1
+            if ($cdb) {
+              & $cdb -p $suite.Id -c "~*k200; qd"
+            } else {
+              "no cdb on the runner; only the process snapshot follows"
+              Get-Process -Id $suite.Id | Format-List *
+            }
+            $suite.Kill()
+            "=== killed at the hang; the suite's output up to it follows"
+          }
+          "=== the suite exited with $($suite.ExitCode)"
+          "=== stdout, last 160 lines:"
+          Get-Content "unit-asan-out.log" -Tail 160
+          "=== stderr, full:"
+          Get-Content "unit-asan-err.log"
+          exit $suite.ExitCode
+
+      # The sanitizer's own report for a hard fault carries module offsets, and the in-process
+      # symbolizers cannot read the PDB from inside the dying process -- so the offsets are
+      # mapped offline, against the exe and its PDB from this very run.
+      - name: Upload the suite's symbols
+        if: failure()
+        shell: pwsh
+        run: |
+          Get-ChildItem build-ninja/test/googletest -Filter lens_gtest_unit.* | Select-Object Name, Length
+          Get-ChildItem "build-ninja/test/googletest/lens_gtest_unit.*" |
+            Compress-Archive -DestinationPath asan-suite-symbols.zip -Force
+      - name: Upload the archive
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asan-suite-symbols
+          path: asan-suite-symbols.zip
+
+      - name: Pet controller tests under ASan
+        run: ./build-ninja/test/qtest/lens_qtest_pet.exe
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_FORCE_STDERR_LOGGING: 1
 
   qml-components:
     needs: changes

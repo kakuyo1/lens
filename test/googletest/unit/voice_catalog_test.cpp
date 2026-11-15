@@ -72,7 +72,7 @@ TEST(VoiceCatalog, SpeakersAreTheOnesTheVoicesFileNumbers)
 TEST(VoiceCatalog, EveryLexiconAVoiceReadsWithIsOneOfItsFiles)
 {
     for (VoiceModel const model : {VoiceModel::Kokoro, VoiceModel::LjSpeech}) {
-        for (QString const accent : {QStringLiteral("us"), QStringLiteral("uk")}) {
+        for (QString const& accent : {QStringLiteral("us"), QStringLiteral("uk")}) {
             if (not lens::speech::serves(model, accent))
                 continue;
             const QString lexicon = lens::speech::lexiconFor(model, accent);

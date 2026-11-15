@@ -188,6 +188,9 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          # Full history: the gate diffs the change against the pull request's base, and the base
+          # commit is not in a depth-one clone.
+          fetch-depth: 0
 
       - uses: ./.github/actions/opencppcoverage
 
@@ -200,6 +203,17 @@ jobs:
 
       - name: Merge and report
         run: bash scripts/quality/coverage-merge.sh test/records/coverage
+        shell: bash
+
+      # The thresholds the gate holds: 75% overall on the unioned line coverage, 85% on the lines
+      # the change added under src/. The base is the pull request's own; on a push to main (no
+      # pull_requests entry) the gate falls back to HEAD^, which on a merge commit is the
+      # pre-merge state. A scan that failed uploads partial data and the run is already red, so
+      # this step only ever judges a complete scan.
+      - name: Coverage gate (75% overall, 85% on the lines the change added)
+        env:
+          BASE: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
+        run: python scripts/quality/coverage-gate.py test/records/coverage/coverage.xml --base "$BASE" --overall 75 --changed 85
         shell: bash
 
       # The file is the raw data behind the report under docs/metrics/.

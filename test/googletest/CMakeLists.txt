@@ -22,8 +22,11 @@ endfunction()
 # through, so the command is `scripts/build/build.bat --target lens_gtest_unit`; CI names its own list,
 # and TEST.md section 2 says when each suite is worth running.
 
-# The offline suite: no network, no API key, safe for CI.
+# The offline suite: no network, no API key, safe for CI. Its own main because the Debug CRT's
+# reports must land on stderr, where CI reads them, instead of in a dialog nobody can click
+# (see unit/main.cpp).
 add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
+  unit/main.cpp
   unit/filter_core_test.cpp
   unit/stats_store_test.cpp
   unit/reading_profile_test.cpp
@@ -82,6 +85,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/scan_session_test.cpp
   unit/scan_emission_gate_test.cpp
   unit/ocr_tsv_test.cpp
+  unit/ocr_engine_test.cpp
   unit/ocr_local_test.cpp
   unit/ocr_lifecycle_test.cpp
   unit/ocr_executor_test.cpp
@@ -124,7 +128,15 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/dev_line_framer_test.cpp
   unit/vault_test.cpp
 )
-target_link_libraries(lens_gtest_unit PRIVATE lens_app lens_core lens_llm lens_sync lens_update lens_util GTest::gtest_main)
+target_link_libraries(lens_gtest_unit PRIVATE lens_app lens_core lens_llm lens_sync lens_update lens_util GTest::gtest)
+
+# The tesseract stand-in ocr_engine_test drives: it drains the image from stdin and answers with
+# a fixed TSV, so the engine's success path is covered without the real binary, which no runner
+# has a reason to carry. The stub is built whenever the suite is, and its location reaches the
+# test as a compile definition.
+add_executable(lens_ocr_stub EXCLUDE_FROM_ALL unit/ocr_stub.cpp)
+add_dependencies(lens_gtest_unit lens_ocr_stub)
+target_compile_definitions(lens_gtest_unit PRIVATE LENS_OCR_STUB="$<TARGET_FILE:lens_ocr_stub>")
 lens_gtest_configure(lens_gtest_unit)
 lens_copy_sherpa_runtime(lens_gtest_unit)
 

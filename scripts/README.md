@@ -13,7 +13,7 @@
 | `pet/` | 桌宠美术流水线的配方与渲染（方法见 `docs/pet-art-pipeline.md`，运行入口见其 README） |
 | `profiling/` | QML profiler、QML 结构指标和 trace 解析 |
 | `qa/` | 起应用、gtest 单条/整套、QTest 单条/整套/并行分片、桌面驱动、截图、QML 快照和鼠标停顿探针；长时间浸泡、循环负载与 UMDH 堆快照 diff；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
-| `quality/` | QML lint、分层边界检查、C++ / QML 覆盖率和 AST 指标、CI 变更分类（`ci-changes.sh`）；`zhlintrc.json` 是 CI 上排版检查用的仓库内配置 |
+| `quality/` | QML lint、分层边界检查、C++ / QML 覆盖率（含 `coverage-gate.py`：75% 总体 + 85% 新增行的 CI 门禁）和 AST 指标、CI 变更分类（`ci-changes.sh`）；`tidy.sh` 跑 clang-tidy（清单在 `.clang-tidy`，CI 专属检查，本机要走无 PCH 的 `build-ninja-tidy` 树）；`zhlintrc.json` 是 CI 上排版检查用的仓库内配置 |
 | `release/` | 安装包构建和 GitHub Release 发布 |
 
 ## 构建与验证
@@ -26,6 +26,7 @@ scripts\build\build-release.bat
 ```sh
 sh scripts/quality/qml-lint.sh
 sh scripts/quality/layer-check.sh         # app/core 的分组边界，pre-commit 与 CI 也会跑
+bash scripts/quality/tidy.sh HEAD~1       # clang-tidy，只查这段改动碰到的 TU；需要 build-ninja-tidy（见脚本内说明）
 bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 2   # QML surfaces，每个文件一个进程
 sh scripts/qa/readme-html-shots.sh       # 用无头 Chrome 重画 README 的 HTML 营销图
 python scripts/qa/readme-html-compose.py # 裁图、合成语言切换 GIF、学习循环拼图与主题拼图

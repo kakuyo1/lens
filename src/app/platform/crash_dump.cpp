@@ -185,7 +185,7 @@ void writeArtifacts(DWORD code, EXCEPTION_POINTERS* pointers)
         faultAddress = pointers->ExceptionRecord->ExceptionAddress;
 
     char codeText[16];
-    std::snprintf(codeText, sizeof codeText, "0x%08X", code);
+    std::snprintf(codeText, sizeof codeText, "0x%08lX", code);
     char addressText[32];
     if (faultAddress != nullptr)
         std::snprintf(addressText, sizeof addressText, "0x%016llX", static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(faultAddress)));
@@ -292,7 +292,8 @@ void installCrashDumpHandler(const std::filesystem::path& logDir)
         std::thread([seconds] {
             Sleep(seconds > 0 ? seconds * 1000 : 0);
             volatile int* nowhere = nullptr;
-            *nowhere              = 1;
+            // The point is the crash; the analyzer is told the dereference is deliberate.
+            *nowhere = 1; // NOLINT(clang-analyzer-core.NullDereference)
         }).detach();
     }
 }

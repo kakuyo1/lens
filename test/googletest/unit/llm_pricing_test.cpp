@@ -30,16 +30,27 @@ std::filesystem::path pricingPath()
     return lens::test::sourceDir() / "data" / "llm" / "pricing.json";
 }
 
+int nextPricingTemp = 0;
+
 /// @brief A temp file holding @p body, removed when the test ends.
+///
+/// The path is unique per object because several of these stand at once in RefusesABrokenPriceList:
+/// a shared name would have every construction overwrite the file the earlier ones still mean, and
+/// the seven refusals would all read the last body written. The removal takes the non-throwing
+/// overload for the same reason CI runs this suite under a sanitizer: a file freshly written into
+/// %TEMP% is exactly what the real-time scanner holds open for a moment, and a destructor that
+/// throws a filesystem_error on that sharing violation ends the whole run in terminate.
 struct TempPricing {
     explicit TempPricing(const char* body)
-        : path(std::filesystem::temp_directory_path() / "lens_pricing_test.json")
+        : path(std::filesystem::temp_directory_path() /
+               ("lens_pricing_test-" + std::to_string(nextPricingTemp++) + ".json"))
     {
         std::ofstream(path) << body;
     }
     ~TempPricing()
     {
-        std::filesystem::remove(path);
+        std::error_code ec;
+        std::filesystem::remove(path, ec);
     }
     std::filesystem::path path;
 };

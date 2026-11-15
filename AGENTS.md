@@ -117,6 +117,8 @@ Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_
 
 QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by CI, owns its own argument list and its warning ratchet, because a .qml file only lints correctly beside its whole module.
 
+clang-tidy is the CI-only check: it wants a configured tree and takes minutes, not seconds, so it stays out of the hook. `.clang-tidy` owns the checks (held to zero -- the excluded ones carry the diagnostic count that kept them out, and the list only grows); `scripts/quality/tidy.sh` runs the files a change touches against a tree configured without precompiled headers (clang cannot read the MSVC PCH format; the local recipe is the one tidy.sh prints when it meets a PCH-bearing db). Hand-run: `bash scripts/quality/tidy.sh <base>` from a checkout that has `build-ninja-tidy`.
+
 ## Documentation map
 
 Start at `docs/README.md` for the full routing and the single-owner list. The short version:
