@@ -7,6 +7,7 @@
 #include <memory>
 #include <string_view>
 
+#include "core/domain/file_transport.h"
 #include "core/domain/sync_round.h"
 
 class QNetworkAccessManager;
@@ -17,8 +18,9 @@ class QNetworkAccessManager;
  *        (docs/adr/0156).
  *
  * The round is provider-agnostic: it asks Transport for List, Read, Create, Update, Delete and
- * Refresh, and merges below the seam. What a provider decides is the transport that carries those
- * requests and the sign-in flow that produces the credentials. GitHub Gist is the first backend
+ * Refresh, and merges below the seam; the event channel asks FileTransport for its month files the
+ * same way (docs/adr/0181). What a provider decides is the transport that carries those requests
+ * and the sign-in flow that produces the credentials. GitHub Gist is the first backend
  * (docs/adr/0042); a second one stands beside it without the duty changing.
  */
 
@@ -53,8 +55,14 @@ public:
     ///         server, username and app password.
     [[nodiscard]] virtual bool signedIn() const = 0;
     /// @return The network the sync round runs on; alive for as long as the backend is.
-    [[nodiscard]] virtual core::sync::Transport& transport()         = 0;
-    [[nodiscard]] virtual SignInPhase            signInPhase() const = 0;
+    [[nodiscard]] virtual core::sync::Transport& transport() = 0;
+    /// @return The network the event channel's month files run on; alive for as long as the
+    ///         backend is (docs/adr/0181).
+    [[nodiscard]] virtual core::sync::FileTransport& fileTransport() = 0;
+    /// @return Whether deleting the cloud copy carries the event files away with it -- the gist
+    ///         holds them as its own files, a WebDAV collection keeps them as siblings.
+    [[nodiscard]] virtual bool        eventFilesDieWithTheCopy() const = 0;
+    [[nodiscard]] virtual SignInPhase signInPhase() const              = 0;
     /// @return What the page shows while the sign-in waits for the reader; empty when nothing waits.
     [[nodiscard]] virtual QString userCode() const        = 0;
     [[nodiscard]] virtual QString verificationUri() const = 0;

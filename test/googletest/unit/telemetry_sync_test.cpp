@@ -416,7 +416,6 @@ struct TelemetrySyncRig {
         telemetry = std::make_unique<lens::app::TelemetryDuty>(dir / "events", "device-a", [] { return true; }, [] { return std::string{"chrome.exe"}; }, [] { return lens::app::TelemetryDuty::Now{1750000000000LL, "2026-11"}; }, [](long long) { return lens::core::telemetry::LocalMoment{"2026-11-17", 10}; });
         events    = std::make_unique<lens::app::TelemetrySyncDuty>(*telemetry,
                                                                 *sync,
-                                                                &manager,
                                                                 [] { return lens::app::TelemetrySyncDuty::Now{"2026-11", "2026-11-15"}; });
         dev       = shortDevice("device-a");
     }

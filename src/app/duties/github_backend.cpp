@@ -44,6 +44,7 @@ GithubBackend::GithubBackend(const std::filesystem::path& dataDir, QNetworkAcces
       auth_(manager, this),
       gist_(manager, this),
       transport_(gist_, auth_, config_.clientId, this),
+      fileTransport_(gist_, partition, this),
       partition_(partition)
 {
     connect(&auth_, &lens::sync::GithubAuth::codeReady, this, [this](lens::sync::DeviceCode const& code) {
@@ -105,6 +106,17 @@ bool GithubBackend::signedIn() const
 core::sync::Transport& GithubBackend::transport()
 {
     return transport_;
+}
+
+core::sync::FileTransport& GithubBackend::fileTransport()
+{
+    return fileTransport_;
+}
+
+bool GithubBackend::eventFilesDieWithTheCopy() const
+{
+    // The event files are files of the sync gist; deleting the gist takes them with it.
+    return true;
 }
 
 SignInPhase GithubBackend::signInPhase() const

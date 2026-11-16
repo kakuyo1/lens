@@ -67,6 +67,9 @@ public:
     std::string deviceId();
     /// @return The `sync` section this duty owns; the event channel reads the same credentials and key.
     core::sync::SyncPartition& partition();
+    /// @return The provider backend; the event channel asks it for the file transport its month
+    ///         files run on. Rebuilt when the provider changes -- take it per request, not for a run.
+    SyncBackend& backend();
     /// @return The code the reader types on the backend's site, while sign-in is waiting for it; otherwise empty.
     QString userCode() const;
     QString verificationUri() const;

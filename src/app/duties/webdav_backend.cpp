@@ -27,6 +27,7 @@ WebdavBackend::WebdavBackend(core::sync::SyncPartition& partition, QNetworkAcces
     : SyncBackend(parent),
       dav_(manager, this),
       transport_(dav_, partition, this),
+      fileTransport_(dav_, partition, this),
       partition_(partition)
 {
     connect(&dav_, &lens::sync::WebDavClient::found, this, [this](quint64 callId, bool exists) {
@@ -61,6 +62,18 @@ bool WebdavBackend::signedIn() const
 core::sync::Transport& WebdavBackend::transport()
 {
     return transport_;
+}
+
+core::sync::FileTransport& WebdavBackend::fileTransport()
+{
+    return fileTransport_;
+}
+
+bool WebdavBackend::eventFilesDieWithTheCopy() const
+{
+    // The month files are siblings of the envelope in the collection; deleting the envelope leaves
+    // them, so the channel removes them itself.
+    return false;
 }
 
 SignInPhase WebdavBackend::signInPhase() const

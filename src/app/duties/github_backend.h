@@ -7,6 +7,7 @@
 
 #include "app/duties/sync_backend.h"
 #include "app/duties/sync_transport.h"
+#include "gist_file_transport.h"
 #include "core/domain/sync_partition.h"
 #include "sync/gist_client.h"
 #include "sync/github_auth.h"
@@ -39,13 +40,15 @@ public:
      */
     GithubBackend(const std::filesystem::path& dataDir, QNetworkAccessManager* manager, core::sync::SyncPartition& partition, QObject* parent = nullptr);
 
-    QString                id() const override;
-    bool                   configured() const override;
-    bool                   signedIn() const override;
-    core::sync::Transport& transport() override;
-    SignInPhase            signInPhase() const override;
-    QString                userCode() const override;
-    QString                verificationUri() const override;
+    QString                    id() const override;
+    bool                       configured() const override;
+    bool                       signedIn() const override;
+    core::sync::Transport&     transport() override;
+    core::sync::FileTransport& fileTransport() override;
+    bool                       eventFilesDieWithTheCopy() const override;
+    SignInPhase                signInPhase() const override;
+    QString                    userCode() const override;
+    QString                    verificationUri() const override;
 
     void startLogin() override;
     void cancelLogin() override;
@@ -66,6 +69,7 @@ private:
     lens::sync::GithubAuth     auth_;
     lens::sync::GistClient     gist_;
     SyncTransport              transport_;
+    GistFileTransport          fileTransport_;
     core::sync::SyncPartition& partition_;
     Phase                      phase_ = Phase::Idle;
     QString                    userCode_;

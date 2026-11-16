@@ -7,20 +7,14 @@
 
 #include <utility>
 
+#include "core/domain/file_transport.h"
 #include "sync/webdav_client.h"
 
 namespace lens::app {
 
-namespace {
-
-/// The collection the envelope lives in, under the server address the reader entered.
-constexpr auto kCollection = "Lens";
-
-} // namespace
-
 std::string WebdavTransport::envelopePath(const std::string& fileName)
 {
-    return std::string(kCollection) + "/" + fileName;
+    return std::string(core::sync::kWebdavCollection) + "/" + fileName;
 }
 
 WebdavTransport::WebdavTransport(lens::sync::WebDavClient& dav, core::sync::SyncPartition& partition, QObject* parent)

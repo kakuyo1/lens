@@ -150,6 +150,11 @@ core::sync::SyncPartition& SyncDuty::partition()
     return partition_;
 }
 
+SyncBackend& SyncDuty::backend()
+{
+    return *backend_;
+}
+
 QString SyncDuty::userCode() const
 {
     return backend_->userCode();

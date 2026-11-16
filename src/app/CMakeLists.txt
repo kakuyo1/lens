@@ -80,8 +80,15 @@ add_library(lens_app STATIC
   duties/webdav_backend.cpp
   duties/webdav_transport.h
   duties/webdav_transport.cpp
+  duties/webdav_file_transport.h
+  duties/webdav_file_transport.cpp
   duties/sync_transport.h
   duties/sync_transport.cpp
+  duties/gist_file_transport.h
+  duties/gist_file_transport.cpp
+  duties/call_queue.h
+  duties/transport_queue.h
+  duties/file_transport_queue.h
   duties/telemetry_sink.h
   duties/telemetry_duty.h
   duties/telemetry_duty.cpp

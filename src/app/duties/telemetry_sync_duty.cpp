@@ -7,8 +7,6 @@
 
 #include <QDate>
 #include <QString>
-#include <QStringList>
-#include <QUrl>
 
 #include <exception>
 #include <sstream>
@@ -18,41 +16,27 @@
 #include "app/duties/telemetry_duty.h"
 #include "core/crypto/hash.h"
 #include "core/crypto/vault.h"
-#include "sync/gist_client.h"
-#include "sync/webdav_client.h"
 #include "util/log.h"
 
 namespace lens::app {
 namespace {
 
-constexpr char kWebdavCollection[] = "Lens";
-
-std::string failureName(lens::sync::GistFailure const why)
+std::string failureName(core::sync::FileAnswer::Failure const why)
 {
     switch (why) {
-        case lens::sync::GistFailure::Unauthorised: return "unauthorised";
-        case lens::sync::GistFailure::NotFound: return "not found";
-        case lens::sync::GistFailure::Generic: return "generic";
-        case lens::sync::GistFailure::Proxy: return "proxy";
-    }
-    return "unknown";
-}
-
-std::string failureName(lens::sync::WebDavFailure const why)
-{
-    switch (why) {
-        case lens::sync::WebDavFailure::Unauthorised: return "unauthorised";
-        case lens::sync::WebDavFailure::NotFound: return "not found";
-        case lens::sync::WebDavFailure::Generic: return "generic";
-        case lens::sync::WebDavFailure::Proxy: return "proxy";
+        case core::sync::FileAnswer::Failure::Unauthorised: return "unauthorised";
+        case core::sync::FileAnswer::Failure::NotFound: return "not found";
+        case core::sync::FileAnswer::Failure::Proxy: return "proxy";
+        case core::sync::FileAnswer::Failure::Generic: return "generic";
+        case core::sync::FileAnswer::Failure::Unconfigured: return "not configured";
     }
     return "unknown";
 }
 
 } // namespace
 
-TelemetrySyncDuty::TelemetrySyncDuty(TelemetryDuty& telemetry, SyncDuty& sync, QNetworkAccessManager* manager, Clock clock, QObject* parent)
-    : QObject(parent), telemetry_(telemetry), sync_(sync), gist_(std::make_unique<lens::sync::GistClient>(manager)), dav_(std::make_unique<lens::sync::WebDavClient>(manager)), clock_(std::move(clock))
+TelemetrySyncDuty::TelemetrySyncDuty(TelemetryDuty& telemetry, SyncDuty& sync, Clock clock, QObject* parent)
+    : QObject(parent), telemetry_(telemetry), sync_(sync), clock_(std::move(clock))
 {
     if (!clock_) {
         clock_ = [] {
@@ -63,60 +47,13 @@ TelemetrySyncDuty::TelemetrySyncDuty(TelemetryDuty& telemetry, SyncDuty& sync, Q
 
     connect(&sync_, &SyncDuty::synced, this, [this](bool manual) { run(manual); });
     connect(&sync_, &SyncDuty::cloudDeleted, this, &TelemetrySyncDuty::onCloudDeleted);
+    // The backend carrying this run's requests is being replaced; the answers never arrive, so end
+    // the run rather than leave it in flight.
+    connect(&sync_, &SyncDuty::providerChanged, this, [this] {
+        if (running_)
+            fail("the sync provider changed while a run was in flight");
+    });
     connect(&telemetry_, &TelemetryDuty::cleared, this, [this] { run(false); });
-
-    connect(gist_.get(), &lens::sync::GistClient::listedFiles, this, [this](quint64 callId, lens::sync::Gist const& gist) {
-        if (phase_ != Phase::Listing or callId != call_)
-            return;
-        rawUrls_.clear();
-        std::vector<std::string> remote;
-        for (auto it = gist.files.cbegin(); it != gist.files.cend(); ++it) {
-            remote.push_back(it.key().toStdString());
-            rawUrls_[it.key().toStdString()] = it.value().rawUrl.toString().toStdString();
-        }
-        onListed(remote);
-    });
-    connect(gist_.get(), &lens::sync::GistClient::updated, this, [this](quint64 callId, lens::sync::Gist const&) {
-        if (callId != call_ or (phase_ != Phase::Uploading and phase_ != Phase::Deleting))
-            return;
-        if (phase_ == Phase::Uploading)
-            onUploaded();
-        else
-            onDeleted();
-    });
-    connect(gist_.get(), &lens::sync::GistClient::gotRawFile, this, [this](quint64 callId, QString const& content) {
-        if (phase_ == Phase::Downloading and callId == call_)
-            onDownloaded(content.toStdString());
-    });
-    connect(gist_.get(), &lens::sync::GistClient::failed, this, [this](quint64 callId, lens::sync::GistFailure why) {
-        if (callId == call_ and phase_ != Phase::Idle)
-            fail("a gist request failed: " + failureName(why));
-    });
-
-    connect(dav_.get(), &lens::sync::WebDavClient::listed, this, [this](quint64 callId, QStringList const& names) {
-        if (phase_ != Phase::Listing or callId != call_)
-            return;
-        std::vector<std::string> remote;
-        for (QString const& name : names)
-            remote.push_back(name.toStdString());
-        onListed(remote);
-    });
-    connect(dav_.get(), &lens::sync::WebDavClient::putDone, this, [this](quint64 callId, QString const&) {
-        if (phase_ == Phase::Uploading and callId == call_)
-            onUploaded();
-    });
-    connect(dav_.get(), &lens::sync::WebDavClient::deleted, this, [this](quint64 callId, QString const&) {
-        if (phase_ == Phase::Deleting and callId == call_)
-            onDeleted();
-    });
-    connect(dav_.get(), &lens::sync::WebDavClient::gotFile, this, [this](quint64 callId, QString const& content) {
-        if (phase_ == Phase::Downloading and callId == call_)
-            onDownloaded(content.toStdString());
-    });
-    connect(dav_.get(), &lens::sync::WebDavClient::failed, this, [this](quint64 callId, lens::sync::WebDavFailure why) {
-        if (callId == call_ and phase_ != Phase::Idle)
-            fail("a WebDAV request failed: " + failureName(why));
-    });
 }
 
 TelemetrySyncDuty::~TelemetrySyncDuty() = default;
@@ -137,33 +74,13 @@ void TelemetrySyncDuty::start()
 {
     running_ = true;
     ok_      = true;
-    phase_   = Phase::Listing;
-    call_    = 0;
     telemetry_.flush();
 
-    provider_ = sync_.partition().provider();
-    key_      = sync_.partition().storedKey();
+    key_ = sync_.partition().storedKey();
     if (not key_) {
         LENS_DEBUG("telemetry sync: no derived key on this device; the event channel waits");
         finish();
         return;
-    }
-
-    if (provider_ == "webdav") {
-        server_      = sync_.partition().server();
-        username_    = sync_.partition().username();
-        appPassword_ = sync_.partition().appPassword();
-        if (server_.empty() or username_.empty() or appPassword_.empty()) {
-            finish();
-            return;
-        }
-    } else {
-        token_  = sync_.partition().token();
-        gistId_ = sync_.partition().gistId();
-        if (token_.empty() or gistId_.empty()) {
-            finish();
-            return;
-        }
     }
 
     localText_.clear();
@@ -194,12 +111,13 @@ void TelemetrySyncDuty::start()
 
 void TelemetrySyncDuty::listRemote()
 {
-    phase_ = Phase::Listing;
-    if (provider_ == "webdav") {
-        call_ = dav_->list(QString::fromStdString(server_), QString::fromStdString(username_), QString::fromStdString(appPassword_), QString::fromLatin1(kWebdavCollection));
-        return;
-    }
-    call_ = gist_->listGistFiles(QString::fromStdString(token_), QString::fromStdString(gistId_));
+    core::sync::FileRequest request;
+    request.kind = core::sync::FileRequest::Kind::List;
+    files().send(request, [this](core::sync::FileAnswer const& answer) {
+        if (refused(answer))
+            return;
+        onListed(answer.names);
+    });
 }
 
 void TelemetrySyncDuty::onListed(std::vector<std::string> const& remote)
@@ -210,7 +128,6 @@ void TelemetrySyncDuty::onListed(std::vector<std::string> const& remote)
             finishDownload();
             return;
         }
-        phase_         = Phase::Downloading;
         downloadIndex_ = 0;
         sendDownload();
         return;
@@ -265,7 +182,6 @@ void TelemetrySyncDuty::startUpload()
         startDeletes(true);
         return;
     }
-    phase_ = Phase::Uploading;
 
     core::telemetry::UploadAction const& action = uploads_[uploadIndex_];
     auto const                           text   = localText_.find(action.month);
@@ -281,17 +197,15 @@ void TelemetrySyncDuty::startUpload()
         return;
     }
 
-    if (provider_ == "webdav") {
-        call_ = dav_->put(QString::fromStdString(server_),
-                          QString::fromStdString(username_),
-                          QString::fromStdString(appPassword_),
-                          QString::fromStdString(webdavPath(action.file)),
-                          QString::fromStdString(sealed));
-        return;
-    }
-    call_ = gist_->updateGistFiles(QString::fromStdString(token_),
-                                   QString::fromStdString(gistId_),
-                                   {{QString::fromStdString(action.file), QString::fromStdString(sealed)}});
+    core::sync::FileRequest request;
+    request.kind    = core::sync::FileRequest::Kind::Put;
+    request.name    = action.file;
+    request.content = std::move(sealed);
+    files().send(request, [this](core::sync::FileAnswer const& answer) {
+        if (refused(answer))
+            return;
+        onUploaded();
+    });
 }
 
 void TelemetrySyncDuty::onUploaded()
@@ -307,7 +221,6 @@ void TelemetrySyncDuty::onUploaded()
 
 void TelemetrySyncDuty::startDeletes(bool const allPending)
 {
-    phase_ = Phase::Deleting;
     if (allPending) {
         deletes_.assign(state_.pendingDeletes.begin(), state_.pendingDeletes.end());
         deleteIndex_ = 0;
@@ -334,19 +247,20 @@ void TelemetrySyncDuty::sendDelete()
     }
     std::string const& file = deletes_[deleteIndex_];
     // A state file is local and editable; only a name this channel could have written is ever
-    // turned into a path or a gist key to delete.
+    // turned into a request to delete.
     if (not core::telemetry::parseEventFileName(file)) {
         fail("refusing a queued deletion whose name is not an event file");
         return;
     }
-    if (provider_ == "webdav") {
-        call_ = dav_->del(QString::fromStdString(server_),
-                          QString::fromStdString(username_),
-                          QString::fromStdString(appPassword_),
-                          QString::fromStdString(webdavPath(file)));
-        return;
-    }
-    call_ = gist_->updateGistFiles(QString::fromStdString(token_), QString::fromStdString(gistId_), {{QString::fromStdString(file), std::nullopt}});
+
+    core::sync::FileRequest request;
+    request.kind = core::sync::FileRequest::Kind::Delete;
+    request.name = file;
+    files().send(request, [this](core::sync::FileAnswer const& answer) {
+        if (refused(answer))
+            return;
+        onDeleted();
+    });
 }
 
 void TelemetrySyncDuty::onDeleted()
@@ -383,34 +297,15 @@ void TelemetrySyncDuty::downloadMonth(std::string month, DownloadDone done)
     downloadDone_  = std::move(done);
     downloadRefs_.clear();
     downloadEvents_.clear();
-    running_ = true;
-    ok_      = true;
-    phase_   = Phase::Listing;
-    call_    = 0;
+    downloadIndex_ = 0;
+    running_       = true;
+    ok_            = true;
 
-    provider_ = sync_.partition().provider();
-    key_      = sync_.partition().storedKey();
+    key_ = sync_.partition().storedKey();
     if (not key_) {
         finishDownload();
         return;
     }
-    if (provider_ == "webdav") {
-        server_      = sync_.partition().server();
-        username_    = sync_.partition().username();
-        appPassword_ = sync_.partition().appPassword();
-        if (server_.empty() or username_.empty() or appPassword_.empty()) {
-            finishDownload();
-            return;
-        }
-    } else {
-        token_  = sync_.partition().token();
-        gistId_ = sync_.partition().gistId();
-        if (token_.empty() or gistId_.empty()) {
-            finishDownload();
-            return;
-        }
-    }
-    rawUrls_.clear();
     listRemote();
 }
 
@@ -420,21 +315,15 @@ void TelemetrySyncDuty::sendDownload()
         finishDownload();
         return;
     }
-    phase_          = Phase::Downloading;
-    auto const& ref = downloadRefs_[downloadIndex_];
-    if (provider_ == "webdav") {
-        call_ = dav_->get(QString::fromStdString(server_),
-                          QString::fromStdString(username_),
-                          QString::fromStdString(appPassword_),
-                          QString::fromStdString(webdavPath(ref.name)));
-        return;
-    }
-    auto const raw = rawUrls_.find(ref.name);
-    if (raw == rawUrls_.end() or raw->second.empty()) {
-        fail("the gist listing carried no raw address for a month file");
-        return;
-    }
-    call_ = gist_->getRawFile(QString::fromStdString(token_), QUrl{QString::fromStdString(raw->second)});
+
+    core::sync::FileRequest request;
+    request.kind = core::sync::FileRequest::Kind::Get;
+    request.name = downloadRefs_[downloadIndex_].name;
+    files().send(request, [this](core::sync::FileAnswer const& answer) {
+        if (refused(answer))
+            return;
+        onDownloaded(answer.content);
+    });
 }
 
 void TelemetrySyncDuty::onDownloaded(std::string const& content)
@@ -467,10 +356,7 @@ void TelemetrySyncDuty::finishDownload()
 {
     running_ = false;
     mode_    = Mode::None;
-    phase_   = Phase::Idle;
-    call_    = 0;
     key_.reset();
-    rawUrls_.clear();
 
     auto const month  = downloadMonth_;
     auto       done   = std::move(downloadDone_);
@@ -496,7 +382,7 @@ void TelemetrySyncDuty::onCloudDeleted()
         cloudDeletePending_ = true;
         return;
     }
-    if (sync_.partition().provider() != "webdav") {
+    if (sync_.backend().eventFilesDieWithTheCopy()) {
         state_ = core::telemetry::syncStateFromJson(telemetry_.log().state());
         state_.uploaded.clear();
         state_.pendingDeletes.clear();
@@ -505,18 +391,9 @@ void TelemetrySyncDuty::onCloudDeleted()
         return;
     }
 
-    server_      = sync_.partition().server();
-    username_    = sync_.partition().username();
-    appPassword_ = sync_.partition().appPassword();
-    if (server_.empty() or username_.empty() or appPassword_.empty())
-        return;
-
-    provider_        = "webdav";
     mode_            = Mode::CloudDelete;
     running_         = true;
     ok_              = true;
-    phase_           = Phase::Listing;
-    call_            = 0;
     state_           = core::telemetry::syncStateFromJson(telemetry_.log().state());
     state_.deleteAll = true;
     if (not saveState()) {
@@ -540,7 +417,7 @@ bool TelemetrySyncDuty::saveState()
     }
 }
 
-void TelemetrySyncDuty::fail(std::string_view what)
+void TelemetrySyncDuty::fail(std::string_view const what)
 {
     LENS_WARN("telemetry sync: {}", std::string(what));
     ok_ = false;
@@ -554,8 +431,6 @@ void TelemetrySyncDuty::finish()
 {
     running_ = false;
     mode_    = Mode::None;
-    phase_   = Phase::Idle;
-    call_    = 0;
     key_.reset();
     localText_.clear();
     local_.clear();
@@ -563,7 +438,6 @@ void TelemetrySyncDuty::finish()
     uploadIndex_ = 0;
     deletes_.clear();
     deleteIndex_ = 0;
-    rawUrls_.clear();
 
     emit finished(ok_);
 
@@ -580,9 +454,25 @@ void TelemetrySyncDuty::finish()
     }
 }
 
-std::string TelemetrySyncDuty::webdavPath(std::string_view const file)
+core::sync::FileTransport& TelemetrySyncDuty::files()
 {
-    return std::string(kWebdavCollection) + "/" + std::string(file);
+    return sync_.backend().fileTransport();
+}
+
+bool TelemetrySyncDuty::refused(core::sync::FileAnswer const& answer)
+{
+    if (answer.failure == core::sync::FileAnswer::Failure::None)
+        return false;
+    if (answer.failure == core::sync::FileAnswer::Failure::Unconfigured) {
+        // The reader has not finished signing in; nothing to report and nothing to retry.
+        if (mode_ == Mode::Download)
+            finishDownload();
+        else
+            finish();
+        return true;
+    }
+    fail("an event file request failed: " + failureName(answer.failure));
+    return true;
 }
 
 }

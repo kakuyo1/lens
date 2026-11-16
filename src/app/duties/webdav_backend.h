@@ -5,6 +5,7 @@
 
 #include "app/duties/sync_backend.h"
 #include "app/duties/webdav_transport.h"
+#include "webdav_file_transport.h"
 #include "core/domain/sync_partition.h"
 #include "sync/webdav_client.h"
 
@@ -34,13 +35,15 @@ public:
      */
     WebdavBackend(core::sync::SyncPartition& partition, QNetworkAccessManager* manager, QObject* parent = nullptr);
 
-    QString                id() const override;
-    bool                   configured() const override;
-    bool                   signedIn() const override;
-    core::sync::Transport& transport() override;
-    SignInPhase            signInPhase() const override;
-    QString                userCode() const override;
-    QString                verificationUri() const override;
+    QString                    id() const override;
+    bool                       configured() const override;
+    bool                       signedIn() const override;
+    core::sync::Transport&     transport() override;
+    core::sync::FileTransport& fileTransport() override;
+    bool                       eventFilesDieWithTheCopy() const override;
+    SignInPhase                signInPhase() const override;
+    QString                    userCode() const override;
+    QString                    verificationUri() const override;
 
     void startLogin() override;
     void cancelLogin() override;
@@ -58,6 +61,7 @@ private:
 
     lens::sync::WebDavClient   dav_;
     WebdavTransport            transport_;
+    WebdavFileTransport        fileTransport_;
     core::sync::SyncPartition& partition_;
     Phase                      phase_ = Phase::Idle;
     /// The probe this backend asked for; a round's own WebDAV call carries another id.
