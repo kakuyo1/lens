@@ -482,6 +482,20 @@ QtObject {
     }
     // qmllint enable missing-property
 
+    /// @return The review card standing over the words panel, or null when none is.
+    ///
+    /// Only the words panel raises one (WordsListRow's hover), and placeBubble() records where it
+    /// was placed; a card the reader dragged keeps the frame it was left at. It is a window of its
+    /// own, taller than the panel's header, so its title row -- the pronunciation included -- stands
+    /// over the panel's top edge while the row it belongs to is inside the panel.
+    function reviewCardStanding() {
+        const placement = placements.find(function (candidate) {
+            return candidate.kind === "review" && candidate.surface.visible
+                   && candidate.surface.surfaceShown;
+        });
+        return placement ? placement.surface : null;
+    }
+
     function dismissOutside(point) {
         // The report card is modal: a press elsewhere takes nothing down, and only its own controls close it.
         if (reportCard.visible)
@@ -514,6 +528,12 @@ QtObject {
                        : Qt.rect(surface.x + margin, surface.y + margin,
                                  surface.width - 2 * margin, surface.height - 2 * margin);
             if (!contains(card, point)) {
+                // A press on the review card the panel raised is a press on the panel's reading --
+                // the pronunciation, a sense's pictures -- wherever the card's frame stands, so it
+                // must not take the panel down under the reader's hand.
+                const review = surface === wordsPopup ? reviewCardStanding() : null;
+                if (review && contains(Qt.rect(review.x, review.y, review.width, review.height), point))
+                    continue;
                 // The bar draws the fade itself; a `visible = false` here would cut it off.
                 if (surface === bar)
                     bar.dismiss();
