@@ -12,7 +12,7 @@
   --text:#1a1a1f; --muted:#66666f; --faint:#73737d;
   --ok:#2f9e6e; --ok-bg:#e6f4ee; --ok-text:#1d7a52;
   --ink:#1a1a1f; --on:#fff; --danger:#b3564a; --warn:#b0893c;
-  --tooltip-bg:#2a2a30; --sw-off:#d6dae1;
+  --tooltip-bg:#2a2a30; --sw-off:#d6dae1; --td-menu:#fff;
   --sh-card:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
   --r-card:18px; --r-menu:13px; --r-field:9px;
   --glass-blur:6px;
@@ -26,7 +26,7 @@ html[data-theme=dark]{
   --text:#e9edf3; --muted:#a8b3c2; --faint:#8a95a6;
   --ok:#4dc492; --ok-bg:#1a4031; --ok-text:#7ad7b0;
   --ink:#eef3fa; --on:#0c1016; --danger:#ec9282; --warn:#d6ac6b;
-  --tooltip-bg:#3a3a44; --sw-off:#36404e;
+  --tooltip-bg:#3a3a44; --sw-off:#36404e; --td-menu:#171c25;
   --sh-card:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
 html[data-theme=frosted]{
@@ -34,7 +34,7 @@ html[data-theme=frosted]{
   --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
   --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
   --text:#14161c; --muted:#3c4250; --faint:#535865;
-  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22);
+  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22); --td-menu:rgba(255,255,255,.9);
   --sh-card:0 4px 14px rgb(255 255 255/5.5%);
 }
 html[data-theme=liquid]{
@@ -42,7 +42,7 @@ html[data-theme=liquid]{
   --panel:transparent; --panel2:rgba(18,24,36,.075);
   --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
   --text:#101319; --muted:#333846; --faint:#4a4f5e;
-  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24);
+  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24); --td-menu:rgba(248,250,254,.94);
   --sh-card:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
 }
 
@@ -85,6 +85,26 @@ html[data-theme=frosted] body,html[data-theme=liquid] body{background-image:var(
 .wizbody{flex:1;margin-top:14px;overflow:auto}
 .wizbody .lead{font-size:13px;line-height:1.55;color:var(--text);text-wrap:pretty;word-break:auto-phrase}
 .sample{margin-top:16px;padding:12px;border:1px solid var(--line);border-radius:var(--r-field);background:var(--panel2);font-size:13px;line-height:1.55;color:var(--text);user-select:text;cursor:text;word-break:auto-phrase}
+/* 第三步的托盘近景（UI-SPEC 4.19，ADR 0185）：画出来的托盘菜单，不是真实表面。 */
+.traydemo{position:relative;height:144px;margin-top:16px;overflow:hidden;cursor:pointer}
+.td-menu{position:absolute;right:10px;bottom:34px;width:192px;padding:4px;border-radius:9px;background:var(--td-menu);border:1px solid var(--line);box-shadow:0 6px 16px -8px rgba(20,20,26,.28);opacity:0;visibility:hidden;transform:translateY(6px);transition:opacity 180ms,transform 180ms,visibility 0s linear 180ms}
+.td-menu.on{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.td-state{display:flex;align-items:center;gap:6px;height:26px;padding:0 8px;border-bottom:1px solid var(--line2);border-radius:5px;font-size:11px}
+.td-state b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.td-state .mark{width:11px;height:11px;flex:none;color:var(--warn)}
+.td-state[data-state=ok] .mark{color:var(--ok)}
+.td-item{display:flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:5px;font-size:11px}
+.td-item svg{width:12px;height:12px;color:var(--muted);flex:none}
+.td-item .sub{margin-left:auto;font-size:11px;color:var(--faint)}
+.td-state.tour,.td-item.tour{background:var(--panel2)}
+.td-bar{position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 8px;background:var(--taskbar);border-top:1px solid var(--line2)}
+.td-chev{width:12px;height:12px;color:var(--muted);display:grid;place-items:center}
+.td-chev svg{width:10px;height:10px;transform:rotate(180deg)}
+.td-tray{position:relative;width:28px;height:28px;border-radius:6px;display:grid;place-items:center}
+.td-tray.cue{background:var(--panel2)}
+.td-tray .mark{width:13px;height:13px;color:var(--ok)}
+.td-ring{position:absolute;inset:2px;border:1.5px solid var(--ok);border-radius:7px;opacity:0;pointer-events:none}
+.td-clock{font-size:11px;color:var(--muted);line-height:1}
 .foot{display:flex;gap:8px;padding:14px 0 16px;border-top:1px solid var(--line2)}
 .foot .pill{margin-top:0}
 
@@ -139,6 +159,7 @@ html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-
 @media (prefers-reduced-motion:reduce){
   .card{animation:none}
   .pill{transition:none}
+  .td-menu{transition:none!important}
 }
 
 /* 演示控制与主题切换：演示用，不是 Lens 的界面，固定配色，截图时可隐去（?shot）。 */
@@ -224,7 +245,24 @@ html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-
       <div id="wiz3" hidden>
         <p class="lead" data-i18n="s3.lead"></p>
         <div class="sample" id="sample" tabindex="0" spellcheck="false">The evening was "quiet", and the page felt close.<br>One small word at a time, the reading opens.</div>
-        <p class="hint" data-i18n="s3.note"></p>
+      </div>
+      <div id="wiz4" hidden>
+        <p class="lead" data-i18n="s4.lead"></p>
+        <div class="traydemo" id="trayDemo" title="点一下重播">
+          <div class="td-menu" id="tdMenu" aria-hidden="true">
+            <div class="td-state" id="tdState" data-state="warn">
+              <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg><b id="tdStateText"></b>
+            </div>
+            <div class="td-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-6"/></svg><span data-i18n="menu.stats"></span></div>
+            <div class="td-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.6 2.8 2.6 13.2 0 16M12 4c-2.6 2.8-2.6 13.2 0 16"/></svg><span data-i18n="menu.lang"></span><span class="sub" data-i18n="langName"></span></div>
+            <div class="td-item" id="tdSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="11" cy="7" r="1.8" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="8.5" cy="17" r="1.8" fill="currentColor" stroke="none"/></svg><span data-i18n="menu.settings"></span></div>
+          </div>
+          <div class="td-bar">
+            <span class="td-chev" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 8l4-4 4 4"/></svg></span>
+            <span class="td-tray" id="tdTray"><i class="td-ring" id="tdRing"></i><svg class="mark" id="tdMark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg></span>
+            <span class="td-clock">09:41</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="foot">
@@ -293,7 +331,7 @@ html[data-theme=liquid][data-refract] #setCard{backdrop-filter:blur(var(--glass-
 
 <aside class="harness" id="harness">
   <h1>首次运行引导 · 演示</h1>
-  <p class="hn">演示控制，不是 Lens 的界面。首次启动弹出三步向导，完成或跳过都记 done；第三步拖选 quiet 看演示气泡。跳过后点菜单首行进设置占位面板。</p>
+  <p class="hn">演示控制，不是 Lens 的界面。首次启动弹出四步向导，完成或跳过都记 done；第三步拖选 quiet 看演示气泡，第四步是托盘近景。跳过后点菜单首行进设置占位面板。</p>
   <div class="hrow">
     <span>启动前的状态</span>
     <div class="seg" role="group" aria-label="启动前的状态">
@@ -328,7 +366,7 @@ const L = {
   zh: {
     'wiz.title': '欢迎使用 Lens',
     'wiz.close': '跳过设置',
-    'wiz.step': '第 {n} 步 · 共 3 步',
+    'wiz.step': '第 {n} 步 · 共 4 步',
     'wiz.back': '上一步',
     'wiz.next': '下一步',
     'wiz.done': '完成',
@@ -345,8 +383,8 @@ const L = {
     's2.ph': '粘贴你的 API key',
     's2.stored': 'key 在服务商的控制台里创建，只保存在本机。',
     's2.cost': '在 DeepSeek 上，一次查词约 0.001 元，1 元大约够查 1000 次；花费面板记录累计。',
-    's3.lead': '整个循环就是这样：随手选中英文，解释出现在文字旁。在这里试一次——拖选下句里的 quiet，卡片会出现在面板旁。不会发送任何内容；卡片是样例。',
-    's3.note': 'Lens 常驻托盘。托盘菜单的设置项再进设置面板；没设 key 时菜单首行会一直提醒。',
+    's3.lead': '整个循环就是这样：随手选中英文，解释出现在文字旁。在这里试一次——拖选下面这句里的 "quiet"，卡片会出现在窗口旁。不会发送任何内容；这张卡是样例。',
+    's4.lead': 'Lens 没有主窗口；菜单与设置都在托盘里。',
     'demo.tag': '预览',
     'demo.def': '安静的，几乎没有声音的；平静的。',
     'noKey': '尚未设置 API key',
@@ -370,7 +408,7 @@ const L = {
   en: {
     'wiz.title': 'Welcome to Lens',
     'wiz.close': 'Skip the setup',
-    'wiz.step': 'Step {n} of 3',
+    'wiz.step': 'Step {n} of 4',
     'wiz.back': 'Back',
     'wiz.next': 'Next',
     'wiz.done': 'Done',
@@ -387,8 +425,8 @@ const L = {
     's2.ph': 'Paste your API key',
     's2.stored': 'Create a key in your provider’s dashboard; it is stored on this device only.',
     's2.cost': 'On DeepSeek a word lookup costs about 0.001 CNY, so one yuan covers about 1000; the cost panel keeps the running total.',
-    's3.lead': 'This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here — drag across “quiet” in the line below, and the card appears beside the window. Nothing is sent; the card is a sample.',
-    's3.note': 'Lens lives in the tray. The tray menu’s settings entry opens the panel again, and its first row speaks up until a key is set.',
+    's3.lead': 'This is the whole loop: select English text anywhere, and the explanation appears beside it. Drag across “quiet” below; nothing is sent.',
+    's4.lead': 'No main window; menu and settings live in the tray.',
     'demo.tag': 'Preview',
     'demo.def': 'Making little or no noise; calm, without much movement or activity.',
     'noKey': 'No API key yet',
@@ -412,7 +450,7 @@ const L = {
   es: {
     'wiz.title': 'Bienvenido a Lens',
     'wiz.close': 'Omitir la configuración',
-    'wiz.step': 'Paso {n} de 3',
+    'wiz.step': 'Paso {n} de 4',
     'wiz.back': 'Atrás',
     'wiz.next': 'Siguiente',
     'wiz.done': 'Listo',
@@ -429,8 +467,8 @@ const L = {
     's2.ph': 'Pega tu clave API',
     's2.stored': 'Crea la clave en el panel de tu proveedor; se guarda solo en este equipo.',
     's2.cost': 'Una consulta es una petición pequeña que cuesta una fracción de céntimo; el panel de costes lleva el total.',
-    's3.lead': 'Este es todo el ciclo: selecciona texto en inglés y la explicación aparece junto a él. Pruébalo aquí: arrastra sobre «quiet» en la línea de abajo y la tarjeta aparece junto a la ventana. No se envía nada; la tarjeta es una muestra.',
-    's3.note': 'Lens vive en la bandeja. La entrada de Ajustes del menú vuelve a abrir el panel, y su primera línea avisa hasta que haya clave.',
+    's3.lead': 'Este es todo el ciclo: selecciona texto en inglés y la explicación aparece junto a él. Arrastra sobre «quiet» abajo; no se envía nada.',
+    's4.lead': 'No hay ventana principal; el menú y los ajustes están en la bandeja.',
     'demo.tag': 'Vista previa',
     'demo.def': 'Que hace poco o ningún ruido; tranquilo, sin mucho movimiento.',
     'noKey': 'Falta la clave API',
@@ -454,7 +492,7 @@ const L = {
   ja: {
     'wiz.title': 'Lens へようこそ',
     'wiz.close': 'セットアップを省略',
-    'wiz.step': 'ステップ {n} / 3',
+    'wiz.step': 'ステップ {n} / 4',
     'wiz.back': '戻る',
     'wiz.next': '次へ',
     'wiz.done': '完了',
@@ -472,7 +510,7 @@ const L = {
     's2.stored': 'キーはプロバイダーのダッシュボードで作成します。この PC にだけ保存されます。',
     's2.cost': '1 回の照会はごく小さなリクエストで、費用はわずかです。コストパネルに累計が記録されます。',
     's3.lead': 'これが一連の流れです。英文を選ぶと、そのそばに解説が現れます。ここで試してみましょう。下の行の quiet をドラッグで選ぶと、カードがウィンドウのそばに現れます。送信は行われません。カードは見本です。',
-    's3.note': 'Lens はトレイに常駐します。トレイメニューの設定からもう一度このパネルを開けます。キーが未設定の間、メニューの先頭行が表示され続けます。',
+    's4.lead': 'メインウィンドウはありません。メニューも設定もトレイにあります。',
     'demo.tag': 'プレビュー',
     'demo.def': '音がほとんどなく、静かなさま。落ち着いているさま。',
     'noKey': 'API キーが未設定です',
@@ -510,6 +548,7 @@ const refractOK = (() => { const p = document.createElement('div'); p.style.back
 let lang = Object.hasOwn(L, q.get('lang')) ? q.get('lang') : 'zh';
 let scenario = Object.hasOwn(SCENARIOS, q.get('state')) ? q.get('state') : 'first';
 let S = {}, menuOpen = false, settingsOpen = false, wizOpen = false, wizStep = 1, demoOpen = false;
+let trayDemoPlayed = false, trayDemoToken = 0;
 const t = (k) => L[lang][k];
 
 function setScenario(name) {
@@ -520,6 +559,7 @@ function setScenario(name) {
   wizOpen = !S.done && S.key === '';
   wizStep = 1;
   demoOpen = false;
+  resetTrayDemo();
   render();
 }
 
@@ -602,12 +642,14 @@ function render() {
   setShown($('wiz1'), wizStep === 1);
   setShown($('wiz2'), wizStep === 2);
   setShown($('wiz3'), wizStep === 3);
+  setShown($('wiz4'), wizStep === 4);
   $('wizStep').textContent = t('wiz.step').replace('{n}', wizStep);
   $('wizBack').hidden = wizStep === 1;
-  $('wizNext').hidden = wizStep === 3;
-  $('wizDone').hidden = wizStep !== 3;
-  setShown($('demoCard'), wizOpen && demoOpen);
+  $('wizNext').hidden = wizStep === 4;
+  $('wizDone').hidden = wizStep !== 4;
+  setShown($('demoCard'), wizOpen && demoOpen && wizStep === 3);
   $('demoDef').textContent = t('demo.def');
+  updateTrayDemoState();
 
   $('rdDone').textContent = S.done ? 'true' : 'false';
   $('rdKey').textContent = hasKey ? '"••••••"' : '""';
@@ -625,6 +667,59 @@ function applyTheme(name) {
   render();
 }
 
+/* 第三步的托盘近景（UI-SPEC 4.19，ADR 0185）：只播一次，减少动效时直接停在展开态。 */
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+function updateTrayDemoState() {
+  const hasKey = S.key !== '';
+  $('tdState').dataset.state = hasKey ? 'ok' : 'warn';
+  $('tdStateText').textContent = t(hasKey ? 'mode' : 'noKey');
+}
+function cueTray() {
+  $('tdTray').classList.add('cue');
+  setTimeout(() => $('tdTray').classList.remove('cue'), 340);
+  $('tdMark').animate([{ transform: 'scale(1)' }, { transform: 'scale(1.16)', offset: .4 }, { transform: 'scale(1)' }], { duration: 180, easing: 'ease-in-out' });
+  $('tdRing').animate([{ opacity: .9, transform: 'scale(.55)' }, { opacity: 0, transform: 'scale(1.65)' }], { duration: 220, easing: 'ease-out' });
+}
+function stopTrayDemo() {
+  trayDemoToken++;
+  $('tdMenu').classList.remove('on');
+  $('tdState').classList.remove('tour');
+  $('tdSettings').classList.remove('tour');
+  $('tdTray').classList.remove('cue');
+  $('tdMark').getAnimations().forEach((a) => a.cancel());
+  $('tdRing').getAnimations().forEach((a) => a.cancel());
+}
+function resetTrayDemo() {
+  trayDemoPlayed = false;
+  stopTrayDemo();
+}
+async function playTrayDemo() {
+  if (trayDemoPlayed) { $('tdMenu').classList.add('on'); return; }
+  trayDemoPlayed = true;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    $('tdMenu').classList.add('on');
+    return;
+  }
+  const token = ++trayDemoToken;
+  await wait(540); if (token !== trayDemoToken) return;
+  cueTray();
+  await wait(220); if (token !== trayDemoToken) return;
+  $('tdMenu').classList.add('on');
+  await wait(360); if (token !== trayDemoToken) return;
+  $('tdState').classList.add('tour');
+  await wait(440); if (token !== trayDemoToken) return;
+  $('tdState').classList.remove('tour');
+  await wait(150); if (token !== trayDemoToken) return;
+  $('tdSettings').classList.add('tour');
+  await wait(440); if (token !== trayDemoToken) return;
+  $('tdSettings').classList.remove('tour');
+}
+$('trayDemo').addEventListener('click', () => {
+  if (!wizOpen || wizStep !== 3) return;
+  resetTrayDemo();
+  playTrayDemo();
+});
+
 // 托盘与菜单
 $('trayBtn').addEventListener('click', () => { menuOpen = !menuOpen; render(); });
 document.addEventListener('pointerdown', (e) => {
@@ -640,14 +735,18 @@ function commitKey() {
 }
 function gotoStep(n) {
   commitKey();
-  wizStep = Math.min(3, Math.max(1, n));
+  wizStep = Math.min(4, Math.max(1, n));
+  if (wizStep !== 3) demoOpen = false;
   render();
+  if (wizStep === 4) playTrayDemo();
+  else stopTrayDemo();
 }
 function finishWizard() {
   commitKey();
   S.done = true;
   wizOpen = false;
   demoOpen = false;
+  stopTrayDemo();
   render();
 }
 $('wizNext').addEventListener('click', () => gotoStep(wizStep + 1));

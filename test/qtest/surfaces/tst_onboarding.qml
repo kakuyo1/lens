@@ -82,11 +82,16 @@ Item {
             compare(wizard.apiDraft, "");
 
             compare(wizard.step, 3);
+            compare(byName(wizard, "nextButton").visible, true);
+            compare(byName(wizard, "doneButton").visible, false);
+
+            wizard.forward();
+            compare(wizard.step, 4);
             verify(!byName(wizard, "nextButton").visible);
             compare(byName(wizard, "doneButton").visible, true);
 
             wizard.back();
-            compare(wizard.step, 2);
+            compare(wizard.step, 3);
         }
 
         function test_theSampleSelectionRaisesTheDemoCard() {
@@ -108,6 +113,11 @@ Item {
             // A selection that is not the word raises nothing further.
             sample.select(0, 3);
             compare(bubbles[0].visible, true);
+
+            // Leaving the try-it step takes the demo card with it.
+            wizard.forward();
+            compare(wizard.step, 4);
+            compare(bubbles[0].visible, false);
         }
 
         /// The fixed card keeps a long step body inside it: the body is a clipped scroll area, and
@@ -132,8 +142,65 @@ Item {
             }
         }
 
+        /// The fourth step's tray close-up (UI-SPEC.md 4.19): a drawing that opens its menu once,
+        /// names the live tray state in its first row, and leaves the menu open after the tour.
+        function test_theTrayCloseUpOpensTheMenuOnce() {
+            const wizard = opened();
+            wizard.forward();
+            wizard.forward();
+            wizard.forward();
+            const demo = byName(wizard, "trayDemo");
+
+            tryCompare(demo, "open", true, 5000);
+            compare(demo.highlight, "");
+            verify(Util.textWith(Util.textsUnder(demo), [demo.stateLabel]),
+                   "the close-up's first row is not the live tray state");
+            verify(Util.textWith(Util.textsUnder(demo), [qsTranslate("TrayMenu", "Settings")]),
+                   "the close-up has no Settings row");
+
+            if (!wizard.tokens.motion.reduced) {
+                // The tour visits the state row and Settings before it settles.
+                tryCompare(demo, "highlight", "settings", 3000);
+                tryCompare(demo, "highlight", "", 2000);
+            }
+
+            // Going back and forward again keeps the diagram open instead of replaying it.
+            wizard.back();
+            wizard.forward();
+            compare(wizard.trayDemoPlayed, true);
+            compare(demo.open, true);
+        }
+
+        /// With animation switched off the close-up is the still diagram: no cue, no tour.
+        function test_theTrayCloseUpIsStillWhenMotionIsReduced() {
+            const wizard = opened();
+            wizard.tokens.motion.reduced = true;
+            wizard.forward();
+            wizard.forward();
+            wizard.forward();
+            const demo = byName(wizard, "trayDemo");
+            compare(demo.open, true);
+            compare(demo.highlight, "");
+        }
+
+        /// The source strings fit both steps: the try-it keeps its room, and the tray close-up gets
+        /// a step of its own.
+        function test_theTryAndTrayStepsFitTheCard() {
+            const wizard = opened();
+            const body = byName(wizard, "onboardingBody");
+            wizard.forward();
+            wizard.forward();
+            compare(body.contentHeight <= body.height, true,
+                    "step 3 overflows the card: " + body.contentHeight + " > " + body.height);
+            wizard.forward();
+            compare(wizard.step, 4);
+            compare(body.contentHeight <= body.height, true,
+                    "step 4 overflows the card: " + body.contentHeight + " > " + body.height);
+        }
+
         function test_theDoneChipPressesThrough() {
             const wizard = opened();
+            wizard.forward();
             wizard.forward();
             wizard.forward();
 

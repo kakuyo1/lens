@@ -7,7 +7,8 @@
 | 文件 | 表面 |
 | --- | --- |
 | `tray-menu.html` | 托盘菜单，含语言子菜单 |
-| `first-run-onboarding.html` | 首次运行引导：三步向导（档位 / 服务商与 key / 试一次，第三步拖选 quiet 出演示气泡）、托盘菜单首行的未设 key 态、设置占位面板；`?state=first\|dismissed\|keyed` 选启动前状态，`?menu`、`?settings`、`?wizard` 直接打开面板，`?shot` 隐去演示控件 |
+| `first-run-onboarding.html` | 首次运行引导：四步向导（档位 / 服务商与 key / 试一次 / 看托盘；第三步拖选 quiet 出演示气泡，第四步是托盘近景——C 已选定，播一次图标轻弹与迷你菜单，停在展开态，面板可点重播）、托盘菜单首行的未设 key 态、设置占位面板；`?state=first\|dismissed\|keyed` 选启动前状态，`?menu`、`?settings`、`?wizard` 直接打开面板，`?shot` 隐去演示控件 |
+| `onboarding-tray-candidates.html` | 引导页收尾的托盘动画候选：A 入座（卡内容淡出、卡身收成 44 px 小卡、飞进托盘、菜单自开）/ B 自开（卡片退场、菜单自升、逐行点亮）/ C 微距（独立成第四步的托盘近景）/ D 系统气泡（交给 Windows 的托盘气泡）/ 现状（只有一行字）。只做中文，四套主题都可切；`?c=a\|b\|c\|d\|base` 锁候选，`?motion=off` 与「减少动效」同效，`?play` 载入后自动演一遍（C 除外，它在卡里自己演），`?shot` 隐去页头与对照栏。C 已选定并落成 QML 与 `first-run-onboarding.html`（ADR 0185）；落地版把近景独立成第四步、去掉外框、压到 144 px、菜单 192 px，A / B / D 留作对照 |
 | `stats.html` | 统计弹窗 |
 | `words.html` | 词汇弹窗，含搜索行（ADR 0176：键入即过滤，落空提示行带 “现在解释”，点胶囊或回车看等待落定、词以新词进表） |
 | `words-search-candidates.html` | 词汇弹窗搜索行的三个候选（A 常驻行过滤优先 / B 常驻行查词优先 / C 折叠放大镜）；**A 已选定并落成 QML 与 `words.html`**，B、C 留作对照。只做明暗两套主题；`?v=a|b|c` 单看一个，`?q=vacillate` 预填查询，`?lang=` 照旧，`?wait` 演示查词回环，`?shot` 隐去控件 |

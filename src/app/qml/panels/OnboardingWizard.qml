@@ -2,14 +2,15 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
+import QtQuick.Effects
 import "../util/Numbers.js" as Numbers
 
 /**
  * The first-run wizard from UI-SPEC.md section 4.19 and ui-prototypes/first-run-onboarding.html
  * (docs/adr/0148).
  *
- * Three steps in the settings panel's shell: the level to read at, the service and its key, and one
- * sample lookup. Every step takes effect as it is touched, like the settings panel's own rows; the
+ * Four steps in the settings panel's shell: the level to read at, the service and its key, one
+ * sample lookup, and the tray's own menu. Every step takes effect as it is touched, like the settings panel's own rows; the
  * guidance record is the one write that waits for the end, and a skip writes it too. The window is
  * fixed-size, like the panel whose shell it borrows.
  */
@@ -29,11 +30,14 @@ Window {
     readonly property int cardHeight: 480
     /// The step the card shows, 1..stepCount.
     property int step: 1
-    readonly property int stepCount: 3
+    readonly property int stepCount: 4
     /// The key typed but not yet written, committed when the reader leaves the step or the panel.
     property string apiDraft: ""
     /// The word the sample text asks the reader to drag across, and the demo card answers.
     readonly property string demoWord: "quiet"
+    /// Whether the fourth step's tray close-up has played. It teaches once per showing: a later
+    /// visit keeps the drawn menu open as a still diagram (docs/adr/0185).
+    property bool trayDemoPlayed: false
 
     /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("onboarding")
@@ -53,6 +57,8 @@ Window {
         leaving = false
         step = 1
         apiDraft = ""
+        trayDemoPlayed = false
+        trayDemo.reset()
         body.contentY = 0
         // Typing broke the field's binding to the draft, so a second showing (a forced build) has
         // to clear it by hand: the masked placeholder reads back only on an empty field.
@@ -122,6 +128,9 @@ Window {
     function goTo(next) {
         commitApiDraft();
         step = Math.max(1, Math.min(stepCount, next));
+        // The demo bubble belongs to the try-it step; the tray step must not carry it along.
+        if (step !== 3)
+            previewBubble.visible = false;
         body.contentY = 0
     }
 
@@ -131,6 +140,24 @@ Window {
 
     function forward() {
         goTo(step + 1)
+    }
+
+    /// @brief Play the fourth step's tray close-up on its first visit.
+    ///
+    /// A later visit keeps the drawn menu open instead of replaying the tour. The close-up is a
+    /// diagram inside the card, not the tray menu: the shell owns the tray icon, cannot animate
+    /// it, and may keep it in Windows 11's overflow (docs/adr/0185).
+    function startTrayDemo() {
+        if (trayDemoPlayed) {
+            trayDemo.open = true;
+            return;
+        }
+        trayDemoPlayed = true;
+        if (tokens.motion.reduced) {
+            trayDemo.open = true;
+            return;
+        }
+        trayDemo.play();
     }
 
     /// @brief The selection in the sample is the demo word: raise the demo card beside the window.
@@ -199,6 +226,7 @@ Window {
         // rather than a beat later: a card left standing over the desktop belongs to no window.
         commitApiDraft();
         previewBubble.visible = false;
+        trayDemo.stop();
     }
 
     GlassHost {
@@ -314,7 +342,8 @@ Window {
             contentWidth: width
             contentHeight: Math.max(height, 32 + (wizard.step === 1 ? stepLevel.implicitHeight
                                                           : wizard.step === 2 ? stepService.implicitHeight
-                                                                              : stepTry.implicitHeight))
+                                                          : wizard.step === 3 ? stepTry.implicitHeight
+                                                                              : stepTray.implicitHeight))
 
             Column {
                 id: stepLevel
@@ -567,14 +596,40 @@ Window {
                     }
                 }
 
+            }
+
+            Column {
+                id: stepTray
+                visible: wizard.step === 4
+                x: 20
+                y: 16
+                width: wizard.cardWidth - 40
+                spacing: 16
+
+                onVisibleChanged: {
+                    if (visible)
+                        wizard.startTrayDemo();
+                    else
+                        trayDemo.stop();
+                }
+
                 Text {
                     width: parent.width
-                    text: qsTranslate("OnboardingWizard", "Lens lives in the tray. The tray menu's settings entry opens this panel again, and its first row speaks up until a key is set.")
-                    color: wizard.tokens.muted
-                    font.pixelSize: 11
+                    text: qsTranslate("OnboardingWizard", "No main window; menu and settings live in the tray.")
+                    color: wizard.tokens.text
+                    font.pixelSize: 13
+                    lineHeight: 1.35
+                    lineHeightMode: Text.ProportionalHeight
                     wrapMode: Text.WordWrap
                 }
+
+                TrayCloseUp {
+                    id: trayDemo
+                    objectName: "trayDemo"
+                    width: parent.width
+                }
             }
+
         }
 
         // The six-pixel thumb the settings shell uses (UI-SPEC.md 4.4): transparent track, faint

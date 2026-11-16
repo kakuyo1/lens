@@ -290,98 +290,98 @@
 <context>
     <name>OnboardingWizard</name>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="267"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="295"/>
         <source>Welcome to Lens</source>
         <translation>Lens へようこそ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="279"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="307"/>
         <source>Step %1 of %2</source>
         <translation>ステップ %1 / %2</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="298"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="326"/>
         <source>Skip the setup</source>
         <translation>セットアップを省略</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="329"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="358"/>
         <source>Choose how much of what you read should be explained. The level decides which words Lens explains and which it leaves alone; you can change it later under Reading &amp; learning.</source>
         <translation>読む文章のうち、どの程度を解説するかを選びます。レベルが、Lens がどの語を解説し、どの語を見過ごすかを決めます。あとで「読書と学習」で変更できます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="342"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="351"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="371"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="380"/>
         <source>Vocabulary level</source>
         <translation>語彙レベル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="372"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="401"/>
         <source>Pick the service that writes the explanations, and paste the key it gave you. DeepSeek is the default and takes Chinese payment; any provider below works the same.</source>
         <translation>解説を書くサービスを選び、発行されたキーを貼り付けます。既定は DeepSeek で、中国元での支払いに対応します。どのプロバイダーも同じように使えます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="385"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="394"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="414"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="423"/>
         <source>Provider</source>
         <translation>プロバイダー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="406"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="434"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="435"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="463"/>
         <source>Service address</source>
         <translation>サービスのアドレス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="442"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="471"/>
         <source>The address is the provider&apos;s default; override it when it moves or when you use a custom service.</source>
         <translation>アドレスはプロバイダーの既定値です。変わった場合やカスタムサービスのときは、ここで上書きします。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="454"/>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="481"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="483"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="510"/>
         <source>API key</source>
         <translation>API キー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="509"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="538"/>
         <source>Create a key in your provider&apos;s dashboard; it is stored on this device only.</source>
         <translation>キーはプロバイダーのダッシュボードで作成します。この PC にだけ保存されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="517"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="546"/>
         <source>On DeepSeek a word lookup costs about 0.001 CNY, so one yuan covers about 1000; the cost panel keeps the running total.</source>
         <translation>DeepSeek では単語の照会 1 回が約 0.001 CNY で、1 CNY でおよそ 1000 回調べられます。コストパネルに累計が記録されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="535"/>
-        <source>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</source>
-        <translation>これが一連の流れです。英文を選ぶと、そのそばに解説が現れます。ここで試してみましょう。下の行の quiet をドラッグで選ぶと、カードがウィンドウのそばに現れます。送信は行われません。カードは見本です。</translation>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="618"/>
+        <source>No main window; menu and settings live in the tray.</source>
+        <translation>メインウィンドウはありません。メニューも設定もトレイにあります。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="557"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="586"/>
         <source>The evening was &quot;quiet&quot;, and the page felt close.
 One small word at a time, the reading opens.</source>
         <translation>The evening was &quot;quiet&quot;, and the page felt close.
 One small word at a time, the reading opens.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="572"/>
-        <source>Lens lives in the tray. The tray menu&apos;s settings entry opens this panel again, and its first row speaks up until a key is set.</source>
-        <translation>Lens はトレイに常駐します。トレイメニューの設定からもう一度このパネルを開けます。キーが未設定の間、メニューの先頭行が表示され続けます。</translation>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="564"/>
+        <source>This is the whole loop: select English text anywhere, and the explanation appears beside it. Try it here -- drag across &quot;quiet&quot; in the line below, and the card appears beside this window. Nothing is sent; the card is a sample.</source>
+        <translation>これが一連の流れです。英文を選ぶと、そのそばに解説が現れます。ここで試してみましょう。下の行の quiet をドラッグで選ぶと、カードがウィンドウのそばに現れます。送信は行われません。カードは見本です。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="620"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="675"/>
         <source>Back</source>
         <translation>戻る</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="628"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="683"/>
         <source>Next</source>
         <translation>次へ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="636"/>
+        <location filename="../src/app/qml/panels/OnboardingWizard.qml" line="691"/>
         <source>Done</source>
         <translation>完了</translation>
     </message>
@@ -810,7 +810,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="108"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="43"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
-        <location filename="../src/app/app_controller.cpp" line="617"/>
+        <location filename="../src/app/app_controller.cpp" line="614"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -822,7 +822,7 @@ One small word at a time, the reading opens.</translation>
         <translation>自動スキャン</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="607"/>
+        <location filename="../src/app/app_controller.cpp" line="604"/>
         <source>The OCR language data is missing</source>
         <translation>OCR 言語データがありません</translation>
     </message>
@@ -1722,12 +1722,12 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="46"/>
-        <location filename="../src/app/app_controller.cpp" line="606"/>
+        <location filename="../src/app/app_controller.cpp" line="603"/>
         <source>Checking OCR</source>
         <translation>OCR を確認中</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="614"/>
+        <location filename="../src/app/app_controller.cpp" line="611"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR ランタイムが利用できません</translation>
     </message>
@@ -3238,16 +3238,19 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>TrayMenu</name>
     <message>
+        <location filename="../src/app/qml/panels/TrayCloseUp.qml" line="37"/>
         <location filename="../src/app/qml/panels/TrayMenu.qml" line="83"/>
         <source>No API key yet</source>
         <translation>API キーが未設定です</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/TrayCloseUp.qml" line="38"/>
         <location filename="../src/app/qml/panels/TrayMenu.qml" line="85"/>
         <source>Today&apos;s budget is used up</source>
         <translation>今日の予算を使い切りました</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/TrayCloseUp.qml" line="41"/>
         <location filename="../src/app/qml/panels/TrayMenu.qml" line="89"/>
         <source>Selection capture is off</source>
         <translation>選択による取得はオフです</translation>
@@ -3258,16 +3261,19 @@ One small word at a time, the reading opens.</translation>
         <translation>回</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/TrayCloseUp.qml" line="211"/>
         <location filename="../src/app/qml/panels/TrayMenu.qml" line="270"/>
         <source>Statistics</source>
         <translation>統計</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/TrayCloseUp.qml" line="238"/>
         <location filename="../src/app/qml/panels/TrayMenu.qml" line="280"/>
         <source>Language</source>
         <translation>言語</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/panels/TrayCloseUp.qml" line="283"/>
         <location filename="../src/app/qml/panels/TrayMenu.qml" line="299"/>
         <source>Settings</source>
         <translation>設定</translation>
@@ -3790,177 +3796,177 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="363"/>
+        <location filename="../src/app/app_controller.cpp" line="360"/>
         <source>The file could not be read.</source>
         <translation>ファイルを読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="374"/>
+        <location filename="../src/app/app_controller.cpp" line="371"/>
         <source>Imported %1 word(s).</source>
         <translation>%1 語を取り込みました。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="597"/>
+        <location filename="../src/app/app_controller.cpp" line="594"/>
         <source>Screenshot capture is off.</source>
         <translation>スクリーンショットからの取得はオフです。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="598"/>
+        <location filename="../src/app/app_controller.cpp" line="595"/>
         <source>Online OCR is not configured.</source>
         <translation>オンライン OCR は設定されていません。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="599"/>
-        <location filename="../src/app/app_controller.cpp" line="833"/>
-        <location filename="../src/app/app_controller.cpp" line="844"/>
+        <location filename="../src/app/app_controller.cpp" line="596"/>
+        <location filename="../src/app/app_controller.cpp" line="798"/>
+        <location filename="../src/app/app_controller.cpp" line="809"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>本日の予算を使い切りました。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="600"/>
+        <location filename="../src/app/app_controller.cpp" line="597"/>
         <source>A recognition is already running.</source>
         <translation>すでに認識中です。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="602"/>
+        <location filename="../src/app/app_controller.cpp" line="599"/>
         <source>That region cannot be captured.</source>
         <translation>この範囲は取得できません。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="603"/>
+        <location filename="../src/app/app_controller.cpp" line="600"/>
         <source>No text was found in that region.</source>
         <translation>その範囲に文字が見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="604"/>
+        <location filename="../src/app/app_controller.cpp" line="601"/>
         <source>That region could not be read.</source>
         <translation>その範囲を読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="605"/>
+        <location filename="../src/app/app_controller.cpp" line="602"/>
         <source>The recognition was cancelled.</source>
         <translation>認識はキャンセルされました。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="608"/>
+        <location filename="../src/app/app_controller.cpp" line="605"/>
         <source>The OCR result could not be read.</source>
         <translation>OCR の結果を読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="609"/>
+        <location filename="../src/app/app_controller.cpp" line="606"/>
         <source>The online OCR service could not be reached.</source>
         <translation>オンライン OCR サービスに接続できませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="610"/>
+        <location filename="../src/app/app_controller.cpp" line="607"/>
         <source>The online OCR service returned an incomplete result.</source>
         <translation>オンライン OCR サービスから不完全な結果が返されました。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="644"/>
+        <location filename="../src/app/duties/crash_notice_duty.cpp" line="54"/>
         <source>The previous run crashed</source>
         <translation>前回の実行がクラッシュしました</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="645"/>
+        <location filename="../src/app/duties/crash_notice_duty.cpp" line="55"/>
         <source>A crash dump was saved in the log&apos;s dumps folder. Nothing in it leaves this machine; attach it when you report the crash.</source>
         <translation>クラッシュ ダンプはログの dumps フォルダーに保存されました。内容がこのマシンの外に出ることはありません。クラッシュを報告するときは添付してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="647"/>
+        <location filename="../src/app/duties/crash_notice_duty.cpp" line="57"/>
         <source>Open dump folder</source>
         <translation>ダンプ フォルダーを開く</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="649"/>
+        <location filename="../src/app/duties/crash_notice_duty.cpp" line="59"/>
         <source>Report issue</source>
         <translation>問題を報告</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="714"/>
+        <location filename="../src/app/app_controller.cpp" line="679"/>
         <source>%1 px</source>
         <translation>%1 px</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="716"/>
+        <location filename="../src/app/app_controller.cpp" line="681"/>
         <source>Default</source>
         <translation>既定</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="929"/>
+        <location filename="../src/app/app_controller.cpp" line="894"/>
         <source>American</source>
         <translation>アメリカ英語</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="931"/>
+        <location filename="../src/app/app_controller.cpp" line="896"/>
         <source>British</source>
         <translation>イギリス英語</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="936"/>
+        <location filename="../src/app/app_controller.cpp" line="901"/>
         <source>System voice</source>
         <translation>システム音声</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="938"/>
-        <location filename="../src/app/app_controller.cpp" line="945"/>
+        <location filename="../src/app/app_controller.cpp" line="903"/>
+        <location filename="../src/app/app_controller.cpp" line="910"/>
         <source>Online audio</source>
         <translation>オンライン音声</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="940"/>
-        <location filename="../src/app/app_controller.cpp" line="947"/>
+        <location filename="../src/app/app_controller.cpp" line="905"/>
+        <location filename="../src/app/app_controller.cpp" line="912"/>
         <source>Local model</source>
         <translation>ローカルモデル</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="949"/>
+        <location filename="../src/app/app_controller.cpp" line="914"/>
         <source>Silent</source>
         <translation>発音しない</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="967"/>
+        <location filename="../src/app/app_controller.cpp" line="932"/>
         <source>Automatic</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="969"/>
+        <location filename="../src/app/app_controller.cpp" line="934"/>
         <source>Kokoro</source>
         <translation>Kokoro</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="971"/>
+        <location filename="../src/app/app_controller.cpp" line="936"/>
         <source>LJSpeech</source>
         <translation>LJSpeech</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="1218"/>
+        <location filename="../src/app/app_controller.cpp" line="1183"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="1218"/>
+        <location filename="../src/app/app_controller.cpp" line="1183"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="897"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="913"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>現在の解説言語では、この単語の保存された解説がありません。</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="654"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="670"/>
         <source>Explaining…</source>
         <translation>解説中…</translation>
     </message>
     <message>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="880"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="896"/>
         <source>Request failed</source>
         <translation>リクエストに失敗しました</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsSearchHint.qml" line="69"/>
-        <location filename="../src/app/duties/explanation_duty.cpp" line="898"/>
+        <location filename="../src/app/duties/explanation_duty.cpp" line="914"/>
         <source>Explain now</source>
         <translation>今すぐ解説</translation>
     </message>
@@ -4161,53 +4167,53 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="157"/>
+        <location filename="../src/llm/llm_client.cpp" line="153"/>
         <source>Enter an API key first.</source>
         <translation>先に API キーを入力してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="161"/>
+        <location filename="../src/llm/llm_client.cpp" line="157"/>
         <source>Choose a model first.</source>
         <translation>先にモデルを選択してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="165"/>
+        <location filename="../src/llm/llm_client.cpp" line="161"/>
         <source>Enter a service address that starts with https://.</source>
         <translation>https:// で始まるサービスアドレスを入力してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="214"/>
+        <location filename="../src/llm/llm_client.cpp" line="210"/>
         <source>Could not reach the service. Check the address and your connection.</source>
         <translation>サービスに接続できませんでした。アドレスと接続を確認してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="222"/>
+        <location filename="../src/llm/llm_client.cpp" line="218"/>
         <source>The service refused &apos;%1&apos;. Check the model name against the list it serves.</source>
         <translation>サービスが「%1」を拒否しました。サービスが提供するモデル名と照らし合わせてください。&gt;</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="230"/>
+        <location filename="../src/llm/llm_client.cpp" line="226"/>
         <source>The service answered, but not like a model. Check the address.</source>
         <translation>サービスは応答しましたが、モデルの応答ではありません。アドレスを確認してください。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="234"/>
+        <location filename="../src/llm/llm_client.cpp" line="230"/>
         <source>Connected. The key and model are accepted.</source>
         <translation>接続できました。キーとモデルは受け付けられました。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="243"/>
+        <location filename="../src/llm/llm_client.cpp" line="314"/>
         <source>There is nothing to look up.</source>
         <translation>調べる内容がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="251"/>
+        <location filename="../src/llm/llm_client.cpp" line="322"/>
         <source>The API key is missing.</source>
         <translation>API キーが設定されていません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="296"/>
-        <location filename="../src/llm/llm_client.cpp" line="301"/>
+        <location filename="../src/llm/llm_client.cpp" line="347"/>
+        <location filename="../src/llm/llm_client.cpp" line="352"/>
         <source>The request could not reach the service: %1</source>
         <translation>リクエストがサービスに届きませんでした：%1</translation>
     </message>

@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 引导页托盘动画候选</title>
+<style>
+/* 表面令牌照抄 DESIGN.md 3.1 / 3.1b / 3.1c / 3.1d 与 first-run-onboarding.html；字重只取 400 与 700。 */
+:root{
+  --desk:#d5dbe4; --taskbar:rgba(246,247,249,.94); --wall:none;
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#73737d;
+  --ok:#2f9e6e; --ok-bg:#e6f4ee; --ok-text:#1d7a52;
+  --ink:#1a1a1f; --on:#fff; --danger:#b3564a; --warn:#b0893c;
+  --tooltip-bg:#2a2a30; --sw-off:#d6dae1;
+  --sh-card:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --r-card:18px; --r-menu:13px; --r-field:9px;
+  --glass-blur:6px;
+  --f:"Noto Sans SC","Segoe UI Variable","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Code",Consolas,ui-monospace,monospace; /* taste-skill-ignore: DESIGN.md 4.2 的元信息等宽 */
+  /* 本页的文档外壳，不是任何 Lens 表面。 */
+  --doc-bg:#eef0f3; --doc-surface:#fff; --doc-line:#dfe3e9; --doc-text:#1a1a1f; --doc-muted:#66666f;
+  --doc-ink:#1a1a1f; --doc-on:#fff;
+}
+html[data-theme=dark]{
+  --desk:#1b2029; --taskbar:rgba(23,28,37,.94);
+  --bg:#0b0e13; --panel:#171c25; --panel2:#212936; --line:#36404e; --line2:#242b37;
+  --text:#e9edf3; --muted:#a8b3c2; --faint:#8a95a6;
+  --ok:#4dc492; --ok-bg:#1a4031; --ok-text:#7ad7b0;
+  --ink:#eef3fa; --on:#0c1016; --danger:#ec9282; --warn:#d6ac6b;
+  --tooltip-bg:#3a3a44; --sw-off:#36404e;
+  --sh-card:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+  --doc-bg:#0b0e13; --doc-surface:#171c25; --doc-line:#36404e; --doc-text:#e9edf3; --doc-muted:#a8b3c2;
+  --doc-ink:#eef3fa; --doc-on:#0c1016;
+}
+html[data-theme=frosted]{--wall:url("frosted-backdrops/night-lines.png")}
+html[data-theme=liquid]{--wall:url("liquid-backdrops/cool-wall.png"); --r-card:22px}
+html[data-theme=frosted]{
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22);
+  --sh-card:0 4px 14px rgb(255 255 255/5.5%);
+}
+html[data-theme=liquid]{
+  --panel:transparent; --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24);
+  --sh-card:0 1px 2px rgba(10,14,24,.14),0 22px 54px -20px rgba(10,14,24,.48);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);background:var(--doc-bg);color:var(--doc-text)}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--doc-ink);outline-offset:2px}
+
+/* ——— 文档外壳（不是表面） ——— */
+.page{max-width:1200px;margin:0 auto;padding:0 32px 56px}
+.toprow{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding-top:28px}
+.wordmark{display:flex;align-items:baseline;gap:10px;font-size:13px;font-weight:700}
+.wordmark span{font-size:12px;font-weight:400;color:var(--doc-muted)}
+.controls{display:flex;gap:6px;flex-wrap:wrap}
+.ctl{height:28px;padding:0 12px;border:1px solid var(--doc-line);border-radius:999px;background:var(--doc-surface);color:var(--doc-muted);font-size:11.5px;cursor:pointer}
+.ctl:hover{color:var(--doc-text)}
+.ctl[aria-pressed=true]{background:var(--doc-ink);border-color:var(--doc-ink);color:var(--doc-on)}
+h1{margin-top:30px;font-size:30px;font-weight:700;line-height:1.18;letter-spacing:-.02em}
+.lede{max-width:780px;margin-top:10px;font-size:13px;line-height:1.7;color:var(--doc-muted)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+.tab{height:30px;padding:0 13px;border:1px solid var(--doc-line);border-radius:999px;background:var(--doc-surface);color:var(--doc-muted);font-size:11.5px;font-weight:700;cursor:pointer}
+.tab[aria-pressed=true]{background:var(--doc-ink);border-color:var(--doc-ink);color:var(--doc-on)}
+.main{padding-top:22px}
+.meta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,1.35fr);gap:36px;margin-top:26px;padding-top:22px;border-top:1px solid var(--doc-line)}
+.meta h2{font-size:16px;font-weight:700}
+.meta h3{font-size:12px;font-weight:700;margin-top:2px}
+.meta p{margin-top:8px;font-size:12.5px;line-height:1.7;color:var(--doc-muted);text-wrap:pretty;word-break:auto-phrase}
+.fineprint{max-width:1000px;margin-top:24px;font-size:11.5px;line-height:1.7;color:var(--doc-muted)}
+@media (max-width:900px){.meta{grid-template-columns:1fr;gap:20px}.page{padding:0 18px 40px}.stage{height:600px}}
+
+/* ——— 演示桌面：任务栏与托盘照抄 first-run-onboarding.html ——— */
+.stage{position:relative;height:620px;border-radius:18px;overflow:hidden;border:1px solid var(--doc-line);
+  background-color:var(--desk);background-image:var(--wall);background-size:cover;background-position:center}
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:48px;display:flex;align-items:center;justify-content:flex-end;gap:4px;padding:0 16px;background:var(--taskbar);z-index:3}
+.tb-btn{width:32px;height:36px;border:0;border-radius:6px;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:default}
+.tb-btn svg{width:12px;height:12px}
+.tray-wrap{position:relative}
+.tray{position:relative;width:36px;height:36px;border:0;border-radius:6px;background:transparent;display:grid;place-items:center;cursor:pointer}
+.tray:hover{background:var(--panel2)}
+.tray.cue{background:var(--panel2)}
+.tray .mark{width:16px;height:16px}
+.ring{position:absolute;inset:4px;border:1.5px solid var(--ok);border-radius:8px;opacity:0;pointer-events:none}
+.tip{position:absolute;right:0;bottom:50px;display:none;padding:6px 9px;border-radius:4px;background:var(--tooltip-bg);color:#fff;font-size:12px;line-height:1.3;white-space:nowrap;z-index:4}
+.tray-wrap:hover .tip{display:block}
+.clock{margin-left:8px;padding-left:8px;font-size:12px;line-height:1.3;text-align:right;color:var(--text)}
+
+/* ——— 向导卡：380×480，第三步（UI-SPEC 4.19） ——— */
+.wizwrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5}
+.card{background:var(--panel);border-radius:var(--r-card);box-shadow:var(--sh-card)} /* taste-skill-ignore: DESIGN.md Elevation 的卡片阴影 */
+.wizard{width:380px;height:480px;padding:16px 20px 0;display:flex;flex-direction:column}
+.wizhead{display:flex;align-items:baseline;gap:10px;padding-right:28px}
+.wizhead h2{font-size:14px;font-weight:700}
+.stepd{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.x{position:absolute;top:10px;right:10px;width:24px;height:24px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:400 16px/1 var(--f);cursor:pointer}
+.x:hover{background:var(--panel2)}
+.wizbody{flex:1;margin-top:14px;overflow:auto}
+.lead{font-size:13px;line-height:1.55;color:var(--text);text-wrap:pretty;word-break:auto-phrase}
+.sample{margin-top:16px;padding:12px;border:1px solid var(--line);border-radius:var(--r-field);background:var(--panel2);font-size:13px;line-height:1.55;color:var(--text);user-select:text;cursor:text;word-break:auto-phrase}
+.hint{margin-top:8px;font-size:11px;line-height:1.5;color:var(--faint);text-wrap:pretty;word-break:auto-phrase}
+.foot{display:flex;gap:8px;padding:14px 0 16px;border-top:1px solid var(--line2)}
+.pill{display:inline-flex;align-items:center;height:30px;padding:0 14px;border:0;border-radius:999px;background:var(--ink);color:var(--on);font:700 12px/1 var(--f);cursor:pointer;transition:transform 150ms}
+.pill:active{transform:scale(.97)}
+.pill.ghost{background:var(--panel2);color:var(--text)}
+.pill:focus-visible,.x:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.wizard.gone{visibility:hidden}
+/* 飞行段换成实底：玻璃幕布跟不上窗口缩放（候选 A 的代价）。 */
+.wizard.solid{background:#fff;border-color:transparent;backdrop-filter:none!important}
+html[data-theme=dark] .wizard.solid{background:#171c25}
+html[data-theme=frosted] .wizard.solid{background:#f5f7fa}
+html[data-theme=liquid] .wizard.solid{background:#f8fafd}
+.wizhead,.wizbody,.foot{transition:opacity 150ms linear}
+
+/* 玻璃主题（3.1c / 3.1d）：卡片、菜单都是玻璃本体。 */
+html[data-theme=frosted] .glass{backdrop-filter:blur(var(--glass-blur)) saturate(120%);border:1px solid rgba(255,255,255,.2)} /* taste-skill-ignore: DESIGN.md 3.1c 雾面玻璃 */
+html[data-theme=liquid] .glass{background:transparent;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(var(--glass-blur)) contrast(1.05)} /* taste-skill-ignore: DESIGN.md 3.1d 流光玻璃 */
+html[data-theme=liquid][data-refract] #wiz{backdrop-filter:blur(var(--glass-blur)) url(#lg-wiz)} /* taste-skill-ignore: DESIGN.md 3.1d 折射 */
+html[data-theme=liquid][data-refract] #menu{backdrop-filter:blur(var(--glass-blur)) url(#lg-menu)} /* taste-skill-ignore: DESIGN.md 3.1d 折射 */
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme=frosted] .glass,html[data-theme=liquid] .glass{backdrop-filter:none!important;background:#fafbfd!important;border-color:var(--line)!important} /* taste-skill-ignore: 玻璃的减弱透明回退 */
+}
+
+/* ——— 托盘菜单（UI-SPEC 4.2），舞台里由完成动作打开 ——— */
+.menu{position:absolute;right:12px;bottom:58px;width:240px;padding:6px;border-radius:var(--r-menu);background:var(--panel);border:1px solid var(--line);box-shadow:var(--sh-card);z-index:6;
+  opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity 180ms,transform 180ms,visibility 0s linear 180ms} /* taste-skill-ignore: 托盘菜单是浮层，UI-SPEC 4.2 */
+.menu.on{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.state{display:flex;align-items:center;gap:9px;width:100%;height:34px;margin-bottom:4px;padding:0 11px;border:0;border-bottom:1px solid var(--line2);border-radius:8px;background:transparent;color:var(--text);font:inherit;font-size:12px;text-align:left;cursor:default}
+.state b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item{display:flex;align-items:center;gap:9px;width:100%;padding:8px 11px;border:0;border-radius:9px;background:transparent;color:var(--text);font:inherit;font-size:13px;text-align:left;cursor:default}
+.item svg{width:15px;height:15px;color:var(--muted);flex:none}
+.item>span:first-of-type{flex:none;white-space:nowrap}
+.item .sub{margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 11px/1 var(--mono);color:var(--faint);white-space:nowrap}
+.item.danger,.item.danger svg{color:var(--danger)}
+.sep{height:1px;background:var(--line2);margin:5px 8px}
+.state.tour,.item.tour{background:var(--panel2)}
+.mark{transform-box:fill-box;transform-origin:center}
+.state .mark{width:15px;height:15px;flex:none;color:var(--ok)}
+.state[data-state=warn] .mark{color:var(--warn)}
+
+/* ——— 第三步的卡内托盘近景（候选 C） ——— */
+.tdemo{position:relative;height:152px;margin-top:16px;border:1px solid var(--line);border-radius:var(--r-field);background:var(--panel2);overflow:hidden;cursor:pointer}
+.td-menu{position:absolute;right:10px;bottom:34px;width:176px;padding:4px;border-radius:9px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--sh-card);
+  opacity:0;visibility:hidden;transform:translateY(6px);transition:opacity 180ms,transform 180ms,visibility 0s linear 180ms}
+html[data-theme=frosted] .td-menu{background:rgba(255,255,255,.9)}
+html[data-theme=liquid] .td-menu{background:rgba(248,250,254,.94)}
+.td-menu.on{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.td-state{display:flex;align-items:center;gap:6px;height:26px;margin-bottom:2px;padding:0 8px;border-bottom:1px solid var(--line2);border-radius:6px;font-size:11px}
+.td-state b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.td-state .mark{width:11px;height:11px;flex:none;color:var(--warn)}
+.td-item{display:flex;align-items:center;gap:6px;height:26px;padding:0 8px;border-radius:6px;font-size:11px}
+.td-item svg{width:12px;height:12px;color:var(--muted);flex:none}
+.td-item .sub{margin-left:auto;font-size:11px;color:var(--faint)}
+.td-state.tour,.td-item.tour{background:var(--panel2)}
+.td-bar{position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 8px;background:var(--taskbar);border-top:1px solid var(--line2)}
+.td-chev{width:12px;height:12px;color:var(--muted);display:grid;place-items:center}
+.td-chev svg{width:10px;height:10px}
+.td-tray{position:relative;width:28px;height:28px;border-radius:6px;display:grid;place-items:center}
+.td-tray.cue{background:var(--panel2)}
+.td-tray .mark{width:13px;height:13px;color:var(--ok)}
+.td-ring{position:absolute;inset:3px;border:1.5px solid var(--ok);border-radius:7px;opacity:0}
+.td-clock{font-size:11px;color:var(--muted);line-height:1}
+
+/* ——— 候选 D：Windows 气泡（示意，不是自绘表面） ——— */
+.toast{position:absolute;right:16px;bottom:60px;width:364px;padding:12px 14px;border-radius:8px;background:#f9f9f9;border:1px solid rgba(0,0,0,.07);box-shadow:0 8px 28px rgba(10,14,24,.22);color:#1a1a1f;z-index:7;
+  opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity 220ms,transform 220ms,visibility 0s linear 220ms}
+.toast.on{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+html[data-theme=dark] .toast{background:#2b2b2b;color:#f3f3f3;border-color:rgba(255,255,255,.08)}
+.toast-app{display:flex;align-items:center;gap:7px;font-size:11px;color:#66666f}
+html[data-theme=dark] .toast-app{color:#b9b9b9}
+.toast-app .mark{width:16px;height:16px;color:var(--ok)}
+.toast-x{margin-left:auto;width:22px;height:22px;border:0;border-radius:999px;background:transparent;color:inherit;font-size:14px;line-height:1;cursor:pointer}
+.toast-x:hover{background:rgba(0,0,0,.06)}
+html[data-theme=dark] .toast-x:hover{background:rgba(255,255,255,.08)}
+.toast-title{margin-top:8px;font-size:13px;font-weight:700}
+.toast p{margin-top:4px;font-size:12px;line-height:1.55}
+
+/* 减少动效：过渡归零；逐段序列由脚本跳过。 */
+body.reduced .menu,body.reduced .toast,body.reduced .td-menu,body.reduced .wizhead,body.reduced .wizbody,body.reduced .foot,body.reduced .pill{transition:none!important}
+
+/* 截图模式：隐去文档外壳。 */
+body.shot .doc-head,body.shot .meta,body.shot .fineprint{display:none!important}
+body.shot .page{padding:0;max-width:none}
+body.shot .main{padding-top:0}
+body.shot .stage{border:0;border-radius:0;height:100vh}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-wiz" filterUnits="userSpaceOnUse" x="0" y="0" width="380" height="480" color-interpolation-filters="sRGB">
+    <feImage x="0" y="0" width="380" height="480" preserveAspectRatio="none"/>
+    <feDisplacementMap in="SourceGraphic" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="lg-menu" filterUnits="userSpaceOnUse" x="0" y="0" width="240" height="200" color-interpolation-filters="sRGB">
+    <feImage x="0" y="0" width="240" height="200" preserveAspectRatio="none"/>
+    <feDisplacementMap in="SourceGraphic" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
+
+<div class="page">
+  <header class="doc-head">
+    <div class="toprow">
+      <div class="wordmark"><b>Lens</b><span>引导页 · 托盘动画候选</span></div>
+      <div class="controls">
+        <button class="ctl" id="replayBtn" type="button">重播</button>
+        <button class="ctl" id="motionBtn" type="button" aria-pressed="false">减少动效</button>
+        <button class="ctl" id="themeBtn" type="button">晴朗白昼</button>
+      </div>
+    </div>
+    <h1>完成之后，窗口去哪了</h1>
+    <p class="lede">三步向导在第三步只用一行字交代 Lens 常驻托盘。下面五种收尾：三种在卡外把话说完，一种在卡里说完，一种交给 Windows。选一个候选，按卡片上的「完成」；或者按「重播」直接看演出。卡内近景只在候选 C 出现。C 已选定（ADR 0185），落地时独立成第四步并去掉近景外框；以 first-run-onboarding.html 为准。</p>
+    <div class="tabs" role="group" aria-label="候选">
+      <button class="tab" type="button" data-c="a" aria-pressed="true">A · 入座</button>
+      <button class="tab" type="button" data-c="b" aria-pressed="false">B · 自开</button>
+      <button class="tab" type="button" data-c="c" aria-pressed="false">C · 微距 · 已选</button>
+      <button class="tab" type="button" data-c="d" aria-pressed="false">D · 系统气泡</button>
+      <button class="tab" type="button" data-c="base" aria-pressed="false">现状</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="stage" id="stage">
+      <div class="wizwrap">
+        <section class="card glass wizard" id="wiz" role="dialog" aria-label="首次运行引导">
+          <div class="wizhead">
+            <h2>欢迎使用 Lens</h2>
+            <span class="stepd">第 3 步 · 共 3 步</span>
+            <button class="x" id="wizClose" type="button" aria-label="跳过设置">×</button>
+          </div>
+          <div class="wizbody">
+            <p class="lead">整个循环就是这样：随手选中英文，解释出现在文字旁。在这里试一次——拖选下句里的 quiet，卡片会出现在面板旁。不会发送任何内容；卡片是样例。</p>
+            <div class="sample" tabindex="0" spellcheck="false">The evening was "quiet", and the page felt close.<br>One small word at a time, the reading opens.</div>
+
+            <div class="tdemo" id="tdemo" hidden title="点一下重播">
+              <div class="td-menu" id="tdMenu" aria-hidden="true">
+                <div class="td-state" id="tdState">
+                  <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg><b>尚未设置 API key</b>
+                </div>
+                <div class="td-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-6"/></svg>今日统计</div>
+                <div class="td-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.6 2.8 2.6 13.2 0 16M12 4c-2.6 2.8-2.6 13.2 0 16"/></svg>语言<span class="sub">中文</span></div>
+                <div class="td-item" id="tdSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="11" cy="7" r="1.8" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="8.5" cy="17" r="1.8" fill="currentColor" stroke="none"/></svg>设置</div>
+              </div>
+              <div class="td-bar">
+                <span class="td-chev" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 8l4-4 4 4"/></svg></span>
+                <span class="td-tray" id="tdTray"><i class="td-ring" id="tdRing"></i><svg class="mark" id="tdMark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg></span>
+                <span class="td-clock">09:41</span>
+              </div>
+            </div>
+
+            <p class="hint" id="wizHint">Lens 常驻托盘。托盘菜单的设置项再进设置面板；没设 key 时菜单首行会一直提醒。</p>
+          </div>
+          <div class="foot">
+            <button class="pill ghost" id="wizBack" type="button">上一步</button>
+            <button class="pill" id="wizDone" type="button">完成</button>
+          </div>
+        </section>
+      </div>
+
+      <aside class="menu glass" id="menu" role="menu" aria-label="托盘菜单">
+        <button class="state" id="menuState" type="button" data-state="warn">
+          <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg><b>尚未设置 API key</b>
+        </button>
+        <button class="item" id="menuStats" type="button" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-6"/></svg>
+          <span>今日统计</span><span class="sub">0 次查阅 · ¥0.00</span>
+        </button>
+        <button class="item" id="menuLang" type="button" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.6 2.8 2.6 13.2 0 16M12 4c-2.6 2.8-2.6 13.2 0 16"/></svg>
+          <span>语言</span><span class="sub">中文</span>
+        </button>
+        <button class="item" id="menuSettings" type="button" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="11" cy="7" r="1.8" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="8.5" cy="17" r="1.8" fill="currentColor" stroke="none"/></svg>
+          <span>设置</span>
+        </button>
+        <div class="sep"></div>
+        <button class="item danger" type="button" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3v8"/><path d="M6.3 5.8a8 8 0 1 0 11.4 0"/></svg>
+          <span>退出</span>
+        </button>
+      </aside>
+
+      <div class="toast" id="toast" role="status">
+        <div class="toast-app">
+          <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg>
+          <span>Lens</span>
+          <button class="toast-x" id="toastClose" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="toast-title">正在托盘里运行</div>
+        <p>没有主窗口。点托盘图标打开菜单。</p>
+      </div>
+
+      <div class="taskbar" aria-label="任务栏（示意）">
+        <button class="tb-btn" type="button" aria-label="隐藏的图标（示意）">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2 8l4-4 4 4"/></svg>
+        </button>
+        <div class="tray-wrap">
+          <button class="tray" id="trayBtn" type="button" aria-label="Lens" aria-expanded="false" aria-haspopup="menu"><i class="ring" id="trayRing"></i><svg class="mark" id="trayMark" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M13.22 5.11 A7 7 0 1 0 18.89 10.78"/><path d="M16.95 16.95 L19.42 19.42"/></g><circle cx="16.95" cy="7.05" r="2" fill="currentColor"/></svg></button>
+          <div class="tip" role="tooltip">Lens · 尚未设置 API key · 今日 0 次查阅</div>
+        </div>
+        <div class="clock" aria-hidden="true"><div>09:41</div><div>2026/11/16</div></div>
+      </div>
+    </div>
+
+    <section class="meta" id="meta" aria-live="polite"></section>
+
+    <p class="fineprint">共同约束：托盘图标由 Windows 绘制，应用既不能缩放它，也读不到它是否躺在溢出菜单（^）里；A、B 的图标反馈要么是一层贴在托盘上的小浮层（新表面，先改 UI-SPEC §4.0 并记 ADR），要么放弃。C 完全画进卡里，是唯一不受这层约束的做法；D 不依赖图标位置，但外观不由我们决定。本页是候选对照，不是规格；四套主题都能切，「减少动效」看静态版本，<code>?c=</code> 锁候选、<code>?theme=</code> 锁主题、<code>?shot</code> 隐去页头、<code>?play</code> 载入后自动演一遍。</p>
+  </main>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+const THEMES = ['light', 'dark', 'frosted', 'liquid'];
+const THEME_NAME = { light: '晴朗白昼', dark: '静谧暗夜', frosted: '雾面玻璃', liquid: '流光玻璃' };
+const EASE = 'cubic-bezier(.455,.03,.515,.955)'; // InOutQuad，DESIGN.md 的缓动
+const BASE_HINT = 'Lens 常驻托盘。托盘菜单的设置项再进设置面板；没设 key 时菜单首行会一直提醒。';
+const C_HINT = 'Lens 没有主窗口；菜单与设置都在托盘里。';
+
+const stage = $('stage'), wiz = $('wiz');
+const wizHead = wiz.querySelector('.wizhead'), wizBody = wiz.querySelector('.wizbody'), wizFoot = wiz.querySelector('.foot');
+const menu = $('menu'), trayBtn = $('trayBtn'), trayMark = $('trayMark'), trayRing = $('trayRing');
+const toast = $('toast');
+const tdPanel = $('tdemo'), tdMenu = $('tdMenu'), tdTray = $('tdTray'), tdMark = $('tdMark'), tdRing = $('tdRing');
+const tdState = $('tdState'), tdSettings = $('tdSettings');
+const menuRows = { state: $('menuState'), stats: $('menuStats'), lang: $('menuLang'), settings: $('menuSettings') };
+const tabs = [...document.querySelectorAll('.tab')];
+const hintEl = $('wizHint'), metaEl = $('meta');
+const motionBtn = $('motionBtn'), themeBtn = $('themeBtn'), replayBtn = $('replayBtn');
+
+const CANDIDATES = {
+  a: {
+    tab: 'A · 入座', title: 'A · 入座', tagline: '窗口飞进托盘',
+    claim: '刚用完的窗口飞进托盘，落到图标上。「没有主窗口」用一段位移说清，不靠第二句文案。',
+    seq: '完成 → 卡内容 150 ms 淡出 → 卡身 220 ms 收成一张 44 px 的小卡 → 小卡 440 ms（2 × bubble）飞向托盘 → 图标轻弹 180 ms、外圈 220 ms → 托盘菜单 180 ms 升起 → 停 2.4 s → 菜单 180 ms 收起。缓动都取 InOutQuad。',
+    cost: '动的是向导窗口自己的几何（432×532 → 约 44×52），60 fps 要实测；玻璃主题的幕布跟不上窗口缩放，飞行段得先换实底。图标外圈与轻弹在系统托盘上画不出来，需要托盘旁一层小浮层（新表面），图标在溢出菜单里时没有锚点。'
+  },
+  b: {
+    tab: 'B · 自开', title: 'B · 自开', tagline: '菜单自己打开',
+    claim: '卡片照常退场，托盘菜单自己升起来，四行依次亮一下。它教的是入口在哪、里面有什么。',
+    seq: '完成 → 卡片 180 ms 退出 → 300 ms 后图标轻弹与外圈 → 菜单 180 ms 升起 → 首行、今日统计、语言、设置各停 200 ms（瞬时填充，与 hover 同一条规则）→ 停 0.7 s → 收起。',
+    cost: '菜单的开与关都是现成的；逐行点亮要给菜单加一个一次性的高亮状态，菜单平时没有。图标反馈与 A 同一条浮层代价。'
+  },
+  c: {
+    tab: 'C · 微距', title: 'C · 微距', tagline: '卡里放一块托盘近景',
+    claim: '第三步里嵌一块托盘近景：图标亮一下，迷你菜单展开，亮到设置那一行。它不依赖真实桌面，也不抢完成的瞬间。',
+    seq: '落地版中，进入第四步 0.54 s 后 → 图标轻弹与外圈 → 迷你菜单 180 ms 展开 → 首行与设置各亮 0.44 s → 菜单留在展开态，作为静态示意图。近景 144 px、菜单 192 px。',
+    cost: '全部画在卡片内，一个新窗口都不加；减少动效时直接停在展开态。落地版把它独立成第四步：第三步恢复原来的试一次，第四步是一句导语加一块 144 px 近景。产品里这个演示只播一次，面板可点重播只是原型的方便。'
+  },
+  d: {
+    tab: 'D · 系统气泡', title: 'D · 系统气泡', tagline: '交给 Windows 说',
+    claim: '用 Windows 自己的托盘气泡说这句话：正在运行、没有主窗口。不开菜单，也不跟主题。',
+    seq: '完成 → 卡片 180 ms 退出 → 系统气泡从任务栏上方滑入（系统时长，约 6 s 后由系统收起）。',
+    cost: 'QSystemTrayIcon::showMessage 一条调用，零自绘；messageClicked 可以顺手打开托盘菜单。外观、位置与时长都由 Windows 决定（同 4.6 的 tooltip），Focus Assist 开启时可能根本不出现。'
+  },
+  base: {
+    tab: '现状', title: '现状', tagline: '只有一行字',
+    claim: '不做动画，只靠第三步那行提示。作为对照：新增动画之前，读者对「常驻托盘」的全部线索就是这句话。',
+    seq: '完成 → 卡片 180 ms 淡出。',
+    cost: '零成本。代价是读者可能从没看见托盘图标——Windows 11 默认把新图标收进溢出菜单，提示里也没有说图标长什么样。'
+  }
+};
+
+let cand = Object.hasOwn(CANDIDATES, q.get('c')) ? q.get('c') : 'a';
+let epoch = 0;
+let replayTimer = 0;
+let reduced = q.get('motion') === 'off' || matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const contentEls = [wizHead, wizBody, wizFoot];
+
+/* ——— 主题与流光的位移图（照抄 first-run-onboarding.html，数值不动） ——— */
+const refractOK = (() => { const p = document.createElement('div'); p.style.backdropFilter = 'url(#lg-menu)'; return p.style.backdropFilter !== ''; })();
+
+function liquidMap(W, H, R, S) {
+  const mask = document.createElement('canvas');
+  mask.width = W; mask.height = H;
+  const mctx = mask.getContext('2d');
+  mctx.filter = `blur(${S}px)`;
+  mctx.fillStyle = '#fff';
+  mctx.beginPath(); mctx.roundRect(0, 0, W, H, R); mctx.fill();
+  const m = mctx.getImageData(0, 0, W, H).data;
+  const at = (x, y) => m[(Math.min(Math.max(y, 0), H - 1) * W + Math.min(Math.max(x, 0), W - 1)) * 4 + 3] / 255;
+  const gx = new Float32Array(W * H), gy = new Float32Array(W * H);
+  let max = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    gx[i] = (at(x + 1, y) - at(x - 1, y)) / 2;
+    gy[i] = (at(x, y + 1) - at(x, y - 1)) / 2;
+    max = Math.max(max, Math.hypot(gx[i], gy[i]));
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d'), img = ctx.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) img.data.set([128 + 127 * gx[i] / max, 128 + 127 * gy[i] / max, 128, 255], i * 4);
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
+}
+
+function bake(el, id) {
+  const w = el.offsetWidth, h = el.offsetHeight;
+  if (!w || !h) return;
+  const r = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+  const f = $(id), img = f.querySelector('feImage');
+  for (const node of [f, img]) { node.setAttribute('width', w); node.setAttribute('height', h); }
+  img.setAttribute('href', liquidMap(w, h, r, 9));
+}
+
+function bakeAll() {
+  if (!refractOK || document.documentElement.dataset.theme !== 'liquid') return;
+  bake(wiz, 'lg-wiz');
+  bake(menu, 'lg-menu');
+}
+
+function applyTheme(name) {
+  document.documentElement.dataset.theme = name;
+  themeBtn.textContent = THEME_NAME[name];
+  if (refractOK && name === 'liquid') document.documentElement.dataset.refract = 'on';
+  else delete document.documentElement.dataset.refract;
+  requestAnimationFrame(bakeAll);
+}
+
+/* ——— 舞台动作 ——— */
+function cue(btn, mark, ring) {
+  btn.classList.add('cue');
+  setTimeout(() => btn.classList.remove('cue'), 340);
+  mark.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.16)', offset: .4 }, { transform: 'scale(1)' }], { duration: 180, easing: EASE });
+  ring.animate([{ opacity: .9, transform: 'scale(.55)' }, { opacity: 0, transform: 'scale(1.65)' }], { duration: 220, easing: 'ease-out' });
+}
+
+function openMenu() {
+  menu.classList.add('on');
+  trayBtn.setAttribute('aria-expanded', 'true');
+  if (document.documentElement.dataset.theme === 'liquid') requestAnimationFrame(() => bake(menu, 'lg-menu'));
+}
+
+function closeMenu() {
+  menu.classList.remove('on');
+  trayBtn.setAttribute('aria-expanded', 'false');
+}
+
+function resetMini() {
+  tdMenu.classList.remove('on');
+  tdState.classList.remove('tour');
+  tdSettings.classList.remove('tour');
+  tdTray.classList.remove('cue');
+  tdMark.getAnimations().forEach((a) => a.cancel());
+  tdRing.getAnimations().forEach((a) => a.cancel());
+}
+
+function resetStage() {
+  epoch++;
+  clearTimeout(replayTimer);
+  [wiz, menu, toast, trayMark, trayRing, tdMark, tdRing].forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
+  wiz.classList.remove('gone');
+  wiz.classList.remove('solid');
+  contentEls.forEach((el) => { el.style.opacity = ''; });
+  closeMenu();
+  Object.values(menuRows).forEach((row) => row.classList.remove('tour'));
+  trayBtn.classList.remove('cue');
+  toast.classList.remove('on');
+  resetMini();
+  tdPanel.hidden = cand !== 'c';
+  hintEl.textContent = cand === 'c' ? C_HINT : BASE_HINT;
+  requestAnimationFrame(() => { if (document.documentElement.dataset.theme === 'liquid') bakeAll(); });
+}
+
+async function exitCard(token, instant) {
+  contentEls.forEach((el) => { el.style.opacity = ''; });
+  if (instant) { wiz.classList.add('gone'); return; }
+  const anim = wiz.animate(
+    [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(8px)' }],
+    { duration: 180, easing: EASE, fill: 'forwards' });
+  await anim.finished.catch(() => {});
+  if (token !== epoch) return;
+  wiz.classList.add('gone');
+}
+
+async function playA() {
+  const token = ++epoch;
+  try {
+    contentEls.forEach((el) => { el.style.opacity = 0; });
+    if (!reduced) {
+      await wait(150); if (token !== epoch) return;
+      const card = wiz.getBoundingClientRect(), tray = trayBtn.getBoundingClientRect();
+      const dx = (tray.left + tray.width / 2) - (card.left + card.width / 2);
+      const dy = (tray.top + tray.height / 2) - (card.top + card.height / 2);
+      const from = parseFloat(getComputedStyle(wiz).borderTopLeftRadius) || 18;
+      const sx1 = 44 / card.width, sy1 = 44 / card.height;
+      const sx2 = 38 / card.width, sy2 = 38 / card.height;
+      wiz.classList.add('solid');
+      const shrink = wiz.animate([
+        { transform: 'translate(0,0) scale(1)', borderRadius: `${from}px`, opacity: 1 },
+        { transform: `translate(0,0) scale(${sx1},${sy1})`, borderRadius: '12px', opacity: 1 }
+      ], { duration: 220, easing: EASE, fill: 'forwards' });
+      await shrink.finished.catch(() => {});
+      if (token !== epoch) return;
+      const fly = wiz.animate([
+        { transform: `translate(0,0) scale(${sx1},${sy1})`, borderRadius: '12px', opacity: 1 },
+        { transform: `translate(${dx}px,${dy}px) scale(${sx2},${sy2})`, borderRadius: '10px', opacity: 1, offset: .8 },
+        { transform: `translate(${dx}px,${dy}px) scale(${sx2},${sy2})`, borderRadius: '10px', opacity: 0 }
+      ], { duration: 440, easing: EASE, fill: 'forwards' });
+      await fly.finished.catch(() => {});
+      if (token !== epoch) return;
+    } else {
+      await wait(40); if (token !== epoch) return;
+    }
+    wiz.classList.add('gone');
+    if (!reduced) {
+      cue(trayBtn, trayMark, trayRing);
+      await wait(220); if (token !== epoch) return;
+    }
+    openMenu();
+    await wait(reduced ? 1800 : 2400 + 180); if (token !== epoch) return;
+    closeMenu();
+    await wait(220); if (token !== epoch) return;
+    trayBtn.classList.remove('cue');
+  } catch {}
+}
+
+async function playB() {
+  const token = ++epoch;
+  try {
+    await exitCard(token, reduced);
+    if (token !== epoch) return;
+    await wait(reduced ? 120 : 300); if (token !== epoch) return;
+    if (!reduced) {
+      cue(trayBtn, trayMark, trayRing);
+      await wait(220); if (token !== epoch) return;
+    }
+    openMenu();
+    await wait(200); if (token !== epoch) return;
+    if (!reduced) {
+      for (const row of Object.values(menuRows)) {
+        if (token !== epoch) return;
+        row.classList.add('tour');
+        await wait(200); if (token !== epoch) return;
+        row.classList.remove('tour');
+        await wait(110);
+      }
+    }
+    await wait(reduced ? 1500 : 700); if (token !== epoch) return;
+    closeMenu();
+  } catch {}
+}
+
+async function playC() {
+  const token = ++epoch;
+  resetMini();
+  try {
+    if (reduced) { tdMenu.classList.add('on'); return; }
+    await wait(600); if (token !== epoch) return;
+    cue(tdTray, tdMark, tdRing);
+    await wait(240); if (token !== epoch) return;
+    tdMenu.classList.add('on');
+    await wait(220); if (token !== epoch) return;
+    tdState.classList.add('tour');
+    await wait(420); if (token !== epoch) return;
+    tdState.classList.remove('tour');
+    await wait(80); if (token !== epoch) return;
+    tdSettings.classList.add('tour');
+    await wait(420); if (token !== epoch) return;
+    tdSettings.classList.remove('tour');
+  } catch {}
+}
+
+async function playD() {
+  const token = ++epoch;
+  try {
+    await exitCard(token, reduced);
+    if (token !== epoch) return;
+    await wait(reduced ? 100 : 360); if (token !== epoch) return;
+    toast.classList.add('on');
+    await wait(reduced ? 2200 : 3400); if (token !== epoch) return;
+    toast.classList.remove('on');
+  } catch {}
+}
+
+function finishSimple() {
+  const token = ++epoch;
+  exitCard(token, reduced);
+}
+
+function complete() {
+  if (cand === 'a') playA();
+  else if (cand === 'b') playB();
+  else if (cand === 'd') playD();
+  else finishSimple();
+}
+
+/* ——— 页头与接线 ——— */
+function renderMeta() {
+  const c = CANDIDATES[cand];
+  metaEl.innerHTML =
+    `<div><h2>${c.title} · ${c.tagline}</h2><p>${c.claim}</p></div>` +
+    `<div><h3>动作序列</h3><p>${c.seq}</p></div>` +
+    `<div><h3>实现与代价</h3><p>${c.cost}</p></div>`;
+}
+
+function select(key) {
+  cand = key;
+  tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.c === key)));
+  renderMeta();
+  resetStage();
+  if (key === 'c') playC();
+}
+
+function setReduced(value) {
+  reduced = value;
+  motionBtn.setAttribute('aria-pressed', String(value));
+  document.body.classList.toggle('reduced', value);
+}
+
+tabs.forEach((b) => b.addEventListener('click', () => select(b.dataset.c)));
+motionBtn.addEventListener('click', () => setReduced(!reduced));
+themeBtn.addEventListener('click', () => applyTheme(THEMES[(THEMES.indexOf(document.documentElement.dataset.theme) + 1) % THEMES.length]));
+replayBtn.addEventListener('click', () => {
+  resetStage();
+  if (cand === 'c') { playC(); return; }
+  if (cand === 'base') return;
+  clearTimeout(replayTimer);
+  replayTimer = setTimeout(() => { if (cand !== 'c' && cand !== 'base') complete(); }, 500);
+});
+
+$('wizDone').addEventListener('click', complete);
+$('wizClose').addEventListener('click', complete);
+$('wizBack').addEventListener('click', () => resetStage());
+$('toastClose').addEventListener('click', () => { epoch++; toast.classList.remove('on'); });
+
+trayBtn.addEventListener('click', () => {
+  Object.values(menuRows).forEach((row) => row.classList.remove('tour'));
+  if (menu.classList.contains('on')) closeMenu();
+  else openMenu();
+});
+
+tdPanel.addEventListener('click', () => { if (cand === 'c' && !wiz.classList.contains('gone')) playC(); });
+
+stage.addEventListener('pointerdown', (e) => {
+  if (menu.classList.contains('on') && !e.target.closest('#menu, #trayBtn')) closeMenu();
+});
+
+/* ——— 初始 ——— */
+document.documentElement.dataset.theme = 'light';
+const initialTheme = THEMES.includes(q.get('theme')) ? q.get('theme') : 'light';
+applyTheme(initialTheme);
+setReduced(reduced);
+tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.c === cand)));
+renderMeta();
+resetStage();
+if (cand === 'c') playC();
+if (q.has('shot')) document.body.classList.add('shot');
+if (q.has('play') && cand !== 'c') setTimeout(complete, 600);
+</script>
+</body>
+</html>
