@@ -69,12 +69,11 @@ La mayoría de las herramientas de consulta te sacan de la página y responden e
 
 <p align="center"><img src="docs/readme/scan.gif" width="900" alt="Un artículo abierto en Chrome, con una línea de puntos bajo cada palabra por encima de tu nivel; al mantener Alt aparece la señal del sentido y al dejar el puntero se levanta un botón Dominado"></p>
 
-Abre un artículo en Chrome y cada palabra por encima de tu nivel recibe una línea de puntos, con Alt pulsado o no. Lens lee el texto que Chrome y Notepad++ entregan al sistema: sin OCR y sin subir nada.
+Abre un artículo en Chrome y cada palabra por encima de tu nivel recibe una línea de puntos, con Alt pulsado o no. Lens lee el texto que Chrome entrega al sistema: sin OCR y sin subir nada.
 
 - **La línea conoce tus veredictos.** Una palabra nueva lleva una línea de puntos tenue; una marcada como Conocida se dibuja más firme, y una Dominada no se dibuja. Un nombre que solo aparece en mayúscula dentro de la frase se deja en paz.
-- **Mantén Alt para la señal.** Dos a cuatro palabras en inglés aparecen sobre la esquina superior derecha de la palabra y nombran el sentido que tiene ahí; los candidatos sin caché se compran por lotes, solo a la caché y sin tarjeta.
+- **Mantén Alt para la señal.** Dos a cuatro palabras en inglés aparecen sobre la esquina superior derecha de la palabra y nombran el sentido que tiene ahí.
 - **Retira una palabra.** Deja el puntero sobre una palabra con línea de puntos unos 0,4 segundos y un botón Dominado se levanta en su borde superior; con una pulsación, el escaneo y las preguntas de la mascota la dejan en paz.
-- **Qué ventanas lee.** Las páginas de Chrome y los PDF que Chrome abre por su cuenta, además de los documentos de Notepad++; los lectores de PDF independientes y los subtítulos de vídeo figuran como Próximamente. El interruptor general está apagado por defecto y los dos de las apps encendidos; hacen falta los dos para escanear.
 
 ## Un pequeño bucle de aprendizaje
 
@@ -84,7 +83,7 @@ Conocida, Dominado y Nueva viven en una sola lista de palabras, con un segmento 
 
 - Pasa el ratón por una fila para releer una explicación que Lens ya guardó, sin enviar ninguna petición.
 - Cuando toca repasar una palabra, aparece junto al compañero de escritorio un pequeño cartel, el suyo; responde Olvidé o Lo recordaba y volverá con un intervalo de entre diez minutos y sesenta días. Una palabra dominada no vuelve a preguntarse.
-- El registro anual mantiene visible el hábito sin convertirlo en una racha: un cuadro por consulta, en uno de doce colores a tu elección (verde por defecto).
+- El registro anual mantiene visible el hábito sin convertirlo en una racha: un cuadro por consulta.
 
 ## Mascotas que te devuelven las palabras
 
@@ -109,7 +108,6 @@ Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del reposi
 - **Informe de lectura semanal.** El perfil semanal de Estadísticas muestra las consultas de la semana por hora, categoría gramatical y palabras más consultadas; pulsa «Interpretar la semana» y el modelo escribe cinco observaciones en una tarjeta de informe semanal, y su botón «Relato» escribe un relato corto con las palabras de la semana. Solo se envía cuando pulsas, y solo lleva recuentos y palabras.
 - **Sincronización cuando la quieras.** Los veredictos, el historial, las estadísticas y los ajustes seleccionados se cifran con tu frase de contraseña y se guardan en un gist secreto de tu propia cuenta de GitHub. La clave de API se queda en este dispositivo.
 - **Listas de palabras de ida y vuelta.** La ventana de palabras importa y exporta `.txt` y `.json`, y exporta CSV y Anki TSV con las explicaciones ya guardadas; la fila Palabras dominadas de Ajustes › Lectura y aprendizaje importa una vez una lista con una palabra por línea y marca sus palabras como dominadas. Borra una palabra con una confirmación.
-- **Fotos cuando ayudan.** Si el modelo cree que una foto explica mejor un sentido, la tarjeta puede abrir tres imágenes de Wikimedia Commons. Se guardan en caché local y «Acerca de» muestra su tamaño y permite borrarla.
 - **Palabras en voz alta.** El altavoz junto a la pronunciación lee la palabra una vez por pulsación; primero habla la voz de Windows y, si falta el acento, entra la alternativa que hayas elegido; la reproducción automática está desactivada por defecto.
 
 ## Temas
@@ -121,7 +119,6 @@ Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del reposi
 
 Descarga `Lens-<version>-setup.exe` desde la [página de versiones](https://github.com/kakuyo1/lens/releases/latest), o `Lens-<version>-portable.zip` de la misma versión.
 
-- **El instalador** es por usuario, así que Windows nunca pide permisos de administrador; **el zip portátil** se ejecuta desde cualquier carpeta.
 - **Windows 10/11 x64.** Necesitarás una clave de API de un proveedor compatible.
 - Lens no incluye un diccionario de definiciones; incluye una lista de unas 168.000 palabras inglesas solo para comprobar que un candidato es una palabra real.
 
@@ -136,8 +133,8 @@ Lens no tiene firma de código y SmartScreen bloquea los programas que no recono
 
 Lens no tiene cuenta ni servidor propio.
 
-- **Lo que se envía.** El texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos. La interpretación semanal y el relato solo se envían cuando pulsas su botón, llevan solo recuentos y palabras, y estas se enmascaran igual.
-- **OCR.** Se ejecuta localmente por defecto. El OCR en línea es opcional: cada captura muestra el recorte congelado y el destino exacto, se sube solo cuando lo confirmas, y el escaneo automático nunca lo usa.
+- **Lo que se envía.** El texto que seleccionas o capturas va al proveedor que configures, después de ocultar localmente URL, direcciones de correo y cadenas de seis o más dígitos.
+- **OCR.** Se ejecuta localmente por defecto. El OCR en línea es opcional: cada captura muestra el recorte congelado y el destino exacto, y se sube solo cuando lo confirmas.
 - **El altavoz.** Lee en local con la voz del sistema o un modelo local descargado; cuando recurre a un audio en línea, solo esa palabra sale del dispositivo, y la grabación se guarda en `%APPDATA%\Lens\audio`.
 - **En este dispositivo.** Tu clave de API, las credenciales de OCR y tus datos de aprendizaje se quedan en `%APPDATA%\Lens\settings.json`.
 - **Sincronización.** Si la activas, la copia en la nube se cifra con tu frase de contraseña y se guarda en tu propio gist de GitHub; la clave se queda en este dispositivo.

@@ -69,12 +69,11 @@ Most lookup tools pull you out of the page and answer in your first language. Yo
 
 <p align="center"><img src="docs/readme/scan.gif" width="900" alt="A paper opened in Chrome, a dashed line under each word above the reader's level; holding Alt raises a signpost, and a resting pointer raises a Mastered button"></p>
 
-Open a paper in Chrome and every word above your level grows a dashed line, with Alt held or not. Lens reads the text Chrome and Notepad++ hand to the system — no OCR, no upload.
+Open a paper in Chrome and every word above your level grows a dashed line, with Alt held or not. Lens reads the text Chrome hands to the system — no OCR, no upload.
 
 - **The line knows your verdicts.** A new word takes a faint dashed line; one you marked Known draws firmer, and a Mastered one is not drawn at all. A name that only appears capitalised in the sentence is left alone.
-- **Hold Alt for the signpost.** Two to four English words appear above the word's top-right corner, naming the sense it carries here; candidates with nothing cached are bought in batches, into the cache only, with no card.
+- **Hold Alt for the signpost.** Two to four English words appear above the word's top-right corner, naming the sense it carries here.
 - **Retire a word.** Rest the pointer on a dashed word for about 0.4 seconds and a Mastered button rises on its top edge; one press and the scan and the pet's questions both leave that word alone.
-- **Which windows it reads.** Chrome's web pages and the PDFs Chrome opens itself, plus Notepad++ documents; standalone PDF readers and video subtitles are marked Coming soon. The master switch is off by default and the two app switches are on; both have to be on for a scan.
 
 ## A small learning loop
 
@@ -84,7 +83,7 @@ Known, Mastered, and New live on one word list, with a segment for each at the t
 
 - Hover a row to reread an explanation Lens already stored, without sending a request.
 - When a word is due, a small sign appears beside the desktop pet — its own, drawn for that pet; answer Forgot or Remembered and it comes back on a spaced schedule from ten minutes to sixty days. A mastered word is never asked again.
-- The year-in-words graph keeps the habit visible without turning it into a streak: one square per lookup, in one of twelve colours you pick (green by default).
+- The year-in-words graph keeps the habit visible without turning it into a streak: one square per lookup.
 
 ## Pets that ask you the words back
 
@@ -109,7 +108,6 @@ Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Cl
 - **A weekly reading report.** Statistics keeps this week's lookups as a Week profile, broken down by hour, part of speech, and the words you looked up most. Press **Interpret this week** and the model writes five observations into a weekly report card; its Story button writes a short story from the week's words. It is sent only when you press, and carries only counts and words.
 - **Sync when you want it.** Verdicts, lookup history, statistics, and selected settings are encrypted with your passphrase and kept in a secret gist in your own GitHub account. The API key stays on this device.
 - **Word lists in and out.** The words popup imports and exports `.txt` and `.json`, and exports CSV and Anki TSV with the explanations already stored; the Mastered words row in Settings › Reading & learning imports a one-word-per-line list once, marking its words mastered. Delete a word with one confirmation.
-- **Pictures when they help.** A sense the model thinks a photo explains better can open three Wikimedia Commons pictures. They are cached locally, and About shows the cache size and clears it in place.
 - **Say the word.** The speaker beside a card's pronunciation reads the headword once per press; the Windows voice speaks first, your chosen fallback covers a missing accent, and auto-play is off by default.
 
 ## Themes
@@ -121,7 +119,6 @@ Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Cl
 
 Download `Lens-<version>-setup.exe` from the [releases page](https://github.com/kakuyo1/lens/releases/latest), or `Lens-<version>-portable.zip` from the same release.
 
-- **The installer** is per user, so Windows never asks for administrator rights; **the portable zip** runs from any folder.
 - **Windows 10/11 x64.** You will need an API key from a supported provider.
 - Lens does not ship a definition dictionary; it includes a list of about 168,000 English words only to check that a candidate is a real word.
 
@@ -136,8 +133,8 @@ Lens is not code-signed, and SmartScreen blocks programs it does not recognise. 
 
 Lens has no account and no server of its own.
 
-- **What is sent.** The text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits. The weekly report's interpretation and story are sent only when you press their button, carry only counts and words, and mask the words the same way.
-- **OCR.** It runs locally by default. Online OCR is opt-in: each capture shows the frozen crop and the exact destination, uploads only after you confirm, and automatic scanning never uses it.
+- **What is sent.** The text you select or capture is sent to the provider you configure, after local masking of URLs, email addresses, and digit strings of six or more digits.
+- **OCR.** It runs locally by default. Online OCR is opt-in: each capture shows the frozen crop and the exact destination, and uploads only after you confirm.
 - **The speaker.** It reads on this device through the system voice or a downloaded local model; when it falls back to an online recording, only that word leaves the device, and the recording is cached under `%APPDATA%\Lens\audio`.
 - **On this device.** Your explanation key, OCR credentials, and learning data stay in `%APPDATA%\Lens\settings.json`.
 - **Sync.** If you turn it on, the cloud copy is encrypted with your passphrase and stored in your own GitHub gist; the keys stay on this device.
