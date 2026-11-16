@@ -18,6 +18,7 @@
 #include <iostream>
 #include <optional>
 #include <string>
+#include <variant>
 
 #include <QCoreApplication>
 #include <QEventLoop>
@@ -38,7 +39,10 @@
 
 namespace {
 
+using lens::llm::BreakdownAnswer;
+using lens::llm::BreakdownRequest;
 using lens::llm::Config;
+using lens::llm::ExplainAnswer;
 using lens::llm::ExplainRequest;
 using lens::llm::LlmClient;
 using lens::llm::Usage;
@@ -117,19 +121,19 @@ TEST(LlmSmoke, OneWordRoundTrip)
     std::optional<QVector<Explanation>> results;
     QString                             failure;
 
-    QObject::connect(&client, &LlmClient::batchFinished, [&](const QVector<Explanation>& explained, Usage const& usage) {
-        results = explained;
-        std::cout << "usage: " << usage.promptTokens << " prompt / " << usage.completionTokens
+    QObject::connect(&client, &LlmClient::answered, [&](lens::llm::Handle, lens::llm::Answer const& answer) {
+        auto const* explain = std::get_if<ExplainAnswer>(&answer);
+        if (explain == nullptr)
+            return;
+        results = explain->results;
+        failure = explain->failure;
+        std::cout << "usage: " << explain->usage.promptTokens << " prompt / " << explain->usage.completionTokens
                   << " completion token(s)\n";
-        loop.quit();
-    });
-    QObject::connect(&client, &LlmClient::failed, [&](const QString& message) {
-        failure = message;
         loop.quit();
     });
     QTimer::singleShot(kTimeoutMs, &loop, &QEventLoop::quit);
 
-    client.explainWords(ExplainRequest{.words = {word}});
+    client.request(ExplainRequest{.words = {word}});
     loop.exec();
 
     ASSERT_TRUE(failure.isEmpty()) << "the request failed: " << failure.toStdString();
@@ -173,15 +177,18 @@ TEST(LlmSmoke, SentenceBreakdownRoundTrip)
     Usage                            usageSeen;
     QString                          failureSeen;
 
-    QObject::connect(&client, &LlmClient::breakdownAnswered, [&](const QString&, const QVector<RoleSpan>& answered, Usage usage, const QString& failure) {
-        spans       = answered;
-        usageSeen   = std::move(usage);
-        failureSeen = failure;
+    QObject::connect(&client, &LlmClient::answered, [&](lens::llm::Handle, lens::llm::Answer const& answer) {
+        auto const* breakdown = std::get_if<BreakdownAnswer>(&answer);
+        if (breakdown == nullptr)
+            return;
+        spans       = breakdown->spans;
+        usageSeen   = breakdown->usage;
+        failureSeen = breakdown->failure;
         loop.quit();
     });
     QTimer::singleShot(kTimeoutMs, &loop, &QEventLoop::quit);
 
-    client.breakdownSentence(sentence, words);
+    client.request(BreakdownRequest{.sentence = sentence, .words = words});
     loop.exec();
 
     std::cout << "usage: " << usageSeen.promptTokens << " prompt / " << usageSeen.completionTokens

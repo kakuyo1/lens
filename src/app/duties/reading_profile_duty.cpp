@@ -55,8 +55,7 @@ ReadingProfileDuty::ReadingProfileDuty(StorageDuty& storage, llm::LlmClient& llm
     // budget moves whether a story can be asked for, so the story hears it too.
     connect(&cost_, &CostDuty::statsChanged, this, &ReadingProfileDuty::factsChanged);
     connect(&cost_, &CostDuty::statsChanged, this, &ReadingProfileDuty::storyChanged);
-    connect(&llm_, &llm::LlmClient::profileAnswered, this, &ReadingProfileDuty::onAnswered);
-    connect(&llm_, &llm::LlmClient::storyAnswered, this, &ReadingProfileDuty::onStoryAnswered);
+    connect(&llm_, &llm::LlmClient::answered, this, &ReadingProfileDuty::onAnswered);
 }
 
 void ReadingProfileDuty::setTelemetry(TelemetrySink* telemetry)
@@ -134,7 +133,7 @@ void ReadingProfileDuty::interpret()
     // line, so the observations read in the language of the panel that shows them.
     const QString language = settings::read(storage_.section(), *core::settings::find("uiLanguage")).toString();
     interpretStartedMs_    = QDateTime::currentMSecsSinceEpoch();
-    llm_.requestProfile(now.value("summary").toString(), language);
+    llm_.request(llm::ProfileRequest{.summary = now.value("summary").toString(), .language = language});
 }
 
 void ReadingProfileDuty::tellStory()
@@ -155,7 +154,7 @@ void ReadingProfileDuty::tellStory()
     storyFailure_.clear();
     emit storyChanged();
     storyStartedMs_ = QDateTime::currentMSecsSinceEpoch();
-    llm_.requestStory(listed);
+    llm_.request(llm::StoryRequest{.words = listed});
 }
 
 bool ReadingProfileDuty::interpreting() const
@@ -204,28 +203,41 @@ QDate ReadingProfileDuty::weekStart() const
     return today.addDays(1 - today.dayOfWeek());
 }
 
-void ReadingProfileDuty::onAnswered(QVector<llm::ProfileLine> const& points, llm::Usage const& usage, QString failure)
+void ReadingProfileDuty::onAnswered(llm::Handle handle, llm::Answer const& answer)
+{
+    Q_UNUSED(handle)
+    // The card's calls ride the same signal from the one client this program shares; they are the
+    // explanation duty's, and land nowhere here.
+    if (auto const* interpretation = std::get_if<llm::ProfileAnswer>(&answer)) {
+        onInterpretation(*interpretation);
+        return;
+    }
+    if (auto const* story = std::get_if<llm::StoryAnswer>(&answer))
+        onStory(*story);
+}
+
+void ReadingProfileDuty::onInterpretation(llm::ProfileAnswer const& answer)
 {
     interpreting_ = false;
-    cost_.recordUsage(util::localMinuteNow(), usage);
-    recordLlmCall(telemetry_, "portrait", usage, interpretStartedMs_, failure.isEmpty());
+    cost_.recordUsage(util::localMinuteNow(), answer.usage);
+    recordLlmCall(telemetry_, "portrait", answer.usage, interpretStartedMs_, answer.failure.isEmpty());
     interpretStartedMs_ = 0;
     storage_.save();
     points_.clear();
-    for (const llm::ProfileLine& point : points)
+    for (llm::ProfileLine const& point : answer.points)
         points_.append(QVariantMap{{"text", point.text}, {"fact", point.fact}});
-    failure_ = std::move(failure);
+    failure_ = answer.failure;
     emit interpretationChanged();
 }
 
-void ReadingProfileDuty::onStoryAnswered(llm::StoryAnswer answer, llm::Usage const& usage, QString failure)
+void ReadingProfileDuty::onStory(llm::StoryAnswer const& answer)
 {
     storyWriting_ = false;
-    cost_.recordUsage(util::localMinuteNow(), usage);
-    recordLlmCall(telemetry_, "story", usage, storyStartedMs_, failure.isEmpty());
+    cost_.recordUsage(util::localMinuteNow(), answer.usage);
+    recordLlmCall(telemetry_, "story", answer.usage, storyStartedMs_, answer.failure.isEmpty());
     storyStartedMs_ = 0;
     storage_.save();
-    story_ = std::move(answer);
+    story_ = answer.story;
     // The story is never logged, only its length: the prompt asks for 100 to 300 words, and a longer answer is cut to the panel's limit.
     if (!story_.text.isEmpty()) {
         const std::string text  = story_.text.toStdString();
@@ -234,7 +246,7 @@ void ReadingProfileDuty::onStoryAnswered(llm::StoryAnswer answer, llm::Usage con
             LENS_INFO("the story came back at {} word(s), outside the 100 to 300 asked for", words);
         story_.text = QString::fromStdString(core::truncateWords(text, core::kStoryTextMaxWords));
     }
-    storyFailure_ = std::move(failure);
+    storyFailure_ = answer.failure;
     emit storyChanged();
 }
 

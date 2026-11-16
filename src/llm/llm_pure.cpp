@@ -991,9 +991,9 @@ std::variant<QVector<ProfileLine>, QString> parseProfile(QByteArray const& respo
     return points;
 }
 
-std::variant<StoryAnswer, QString> parseStory(QByteArray const& responseBody, QStringList const& listed)
+std::variant<Story, QString> parseStory(QByteArray const& responseBody, QStringList const& listed)
 {
-    using Result = std::variant<StoryAnswer, QString>;
+    using Result = std::variant<Story, QString>;
 
     // The reason only reaches the log: the story's one failure line is the app's own. The story text is never logged.
     const auto reject = [](const QString& reason) -> Result {
@@ -1018,8 +1018,8 @@ std::variant<StoryAnswer, QString> parseStory(QByteArray const& responseBody, QS
     if (results.size() != 1 or not matchesSchema(results.at(0), resultSchema(Channel::Story)))
         return reject(QStringLiteral("the content does not hold one story entry"));
 
-    const auto  entry = results.at(0).toObject();
-    StoryAnswer answer{entry.value("text").toString().trimmed(), {}};
+    const auto entry = results.at(0).toObject();
+    Story      answer{entry.value("text").toString().trimmed(), {}};
     for (auto const& value : entry.value("words").toArray()) {
         const QString word = value.toString();
         if (listed.contains(word) and not answer.words.contains(word))

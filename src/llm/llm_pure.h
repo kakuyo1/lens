@@ -272,7 +272,7 @@ std::variant<QVector<ProfileLine>, QString> parseProfile(QByteArray const& respo
  * @param listed       The words the request sent.
  * @return The story and its used words, or a reason for the log.
  */
-std::variant<StoryAnswer, QString> parseStory(QByteArray const& responseBody, QStringList const& listed);
+std::variant<Story, QString> parseStory(QByteArray const& responseBody, QStringList const& listed);
 
 /**
  * @brief One answer assembled from the bytes of a streamed or whole-body reply.

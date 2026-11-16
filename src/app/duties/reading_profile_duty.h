@@ -96,10 +96,12 @@ private:
     QDate weekStart() const;
     /// @return This week's profile, counted from the history. Nothing is cached.
     core::ReadingProfile weekProfile() const;
+    /// @brief One answer from the client, routed to the week's interpretation or story (docs/adr/0182).
+    void onAnswered(llm::Handle handle, llm::Answer const& answer);
     /// @brief Keep the answer for the week the request was made in, and book its tokens.
-    void onAnswered(QVector<llm::ProfileLine> const& points, llm::Usage const& usage, QString failure);
+    void onInterpretation(llm::ProfileAnswer const& answer);
     /// @brief Keep the story for the week it was asked in, and book its tokens. The text is cut to the panel's limit here.
-    void onStoryAnswered(llm::StoryAnswer answer, llm::Usage const& usage, QString failure);
+    void onStory(llm::StoryAnswer const& answer);
 
     StorageDuty&    storage_;
     llm::LlmClient& llm_;
@@ -110,11 +112,11 @@ private:
     QVariantList    points_;
     QString         failure_;
 
-    bool             storyWriting_ = false;
-    QString          storyWeek_; ///< The Monday the story was asked for, "YYYY-MM-DD".
-    llm::StoryAnswer story_;     ///< The week's story and the listed words it uses; empty until it is written.
-    QString          storyFailure_;
-    std::mt19937     rng_{std::random_device{}()};
+    bool         storyWriting_ = false;
+    QString      storyWeek_; ///< The Monday the story was asked for, "YYYY-MM-DD".
+    llm::Story   story_;     ///< The week's story and the listed words it uses; empty until it is written.
+    QString      storyFailure_;
+    std::mt19937 rng_{std::random_device{}()};
     /// The behavior-event sink. Null in a duty test that does not care about events.
     TelemetrySink* telemetry_ = nullptr;
     /// When each request went out, for the model-call event's latency. Zero when none is out.

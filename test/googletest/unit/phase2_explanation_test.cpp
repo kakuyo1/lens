@@ -133,11 +133,19 @@ struct Manager final : QNetworkAccessManager {
     }
 };
 
+/// @brief Quit @p loop when an explanation answer reaches @p client: a settled batch, or a refusal.
+void quitOnExplain(llm::LlmClient& client, QEventLoop& loop)
+{
+    QObject::connect(&client, &llm::LlmClient::answered, &loop, [&loop](llm::Handle, llm::Answer const& answer) {
+        if (std::get_if<llm::ExplainAnswer>(&answer) != nullptr)
+            loop.quit();
+    });
+}
+
 void run(app::ExplanationDuty& duty, llm::LlmClient& client, QString const& text = QStringLiteral("bank"))
 {
     QEventLoop loop;
-    QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-    QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    quitOnExplain(client, loop);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     duty.runSelectionAction("explain", text);
     loop.exec();
@@ -199,8 +207,7 @@ struct Rig {
         const int before = manager.posts;
         duty.setSelection(selectionFor(lemma));
         QEventLoop loop;
-        QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-        QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+        quitOnExplain(client, loop);
         QTimer::singleShot(2000, &loop, &QEventLoop::quit);
         duty.runSelectionAction("explain", lemma);
         if (manager.posts > before) loop.exec();
@@ -354,8 +361,7 @@ TEST_F(LlmTest, Phase2TheClickPutsTheCardUpBeforeTheAnswerIsWritten)
 
     rig.duty.setSelection(selection());
     QEventLoop loop;
-    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-    QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    quitOnExplain(rig.client, loop);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     rig.duty.runSelectionAction("explain", "bank");
 
@@ -395,7 +401,7 @@ TEST_F(LlmTest, Phase2AWaitingCardComesDownWithTheNoticeWhenNoAnswerArrives)
 
     rig.duty.setSelection(selection());
     QEventLoop loop;
-    QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    quitOnExplain(rig.client, loop);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     rig.duty.runSelectionAction("explain", "bank");
     ASSERT_TRUE(rig.duty.bubble().value("waiting").toBool());
@@ -416,7 +422,7 @@ TEST_F(LlmTest, Phase2AWaitingCardGoesDownWhenTheReaderMovesOnFromItsWord)
 
     rig.duty.setSelection(selection());
     QEventLoop loop;
-    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    quitOnExplain(rig.client, loop);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     rig.duty.runSelectionAction("explain", "bank");
     ASSERT_TRUE(rig.duty.bubble().value("waiting").toBool());
@@ -735,8 +741,7 @@ TEST_F(LlmTest, Phase2WordHintButtonAsksTheModelOnce)
 
     const int  before = rig.manager.posts;
     QEventLoop loop;
-    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-    QObject::connect(&rig.client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+    quitOnExplain(rig.client, loop);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     rig.duty.explainLemma(QStringLiteral("bank"));
     EXPECT_TRUE(rig.duty.wordHint().isEmpty()) << "the button left the hint up";
@@ -997,7 +1002,7 @@ TEST_F(LlmTest, Phase2ChangingSettingsDuringResponseKeepsTheOriginalCacheContext
     rig.store.document()["multiSense"] = "true";
     rig.duty.setSelection(selection());
     QEventLoop loop;
-    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    quitOnExplain(rig.client, loop);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     rig.duty.runSelectionAction("explain", "bank");
     rig.store.setExplanationLang("ja");
@@ -1213,8 +1218,11 @@ TEST_F(LlmTest, Phase2DefaultsToOneSenseAndQueuesTheLatestRequestedMode)
     rig.store.setExplanationLang("es");
     QEventLoop loop;
     int        responses = 0;
-    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, [&](auto const&, llm::Usage const& usage) {
-        EXPECT_EQ(usage.model, "test-model");
+    QObject::connect(&rig.client, &llm::LlmClient::answered, &loop, [&](llm::Handle, llm::Answer const& answer) {
+        auto const* explain = std::get_if<llm::ExplainAnswer>(&answer);
+        if (explain == nullptr)
+            return;
+        EXPECT_EQ(explain->usage.model, "test-model");
         if (++responses == 2) loop.quit();
     });
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
@@ -1244,7 +1252,7 @@ TEST_F(LlmTest, Phase2BudgetStopsQueuedDispatchWithoutAnErrorNotice)
     rig.duty.runSelectionAction("explain", "river");
 
     QEventLoop loop;
-    QObject::connect(&rig.client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+    quitOnExplain(rig.client, loop);
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     loop.exec();
 
@@ -1291,10 +1299,12 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
 
     auto const request = [&](llm::LlmClient& active) {
         QEventLoop loop;
-        QObject::connect(&active, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
-        QObject::connect(&active, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+        QObject::connect(&active, &llm::LlmClient::answered, &loop, [&](llm::Handle, llm::Answer const& answer) {
+            if (std::get_if<llm::ExplainAnswer>(&answer) != nullptr)
+                loop.quit();
+        });
         QTimer::singleShot(2000, &loop, &QEventLoop::quit);
-        active.explainWords(llm::ExplainRequest{.words = {"bank"}});
+        active.request(llm::ExplainRequest{.words = {"bank"}});
         loop.exec();
         EXPECT_TRUE(manager.usesTestToken);
         return QJsonDocument::fromJson(manager.posted).object();

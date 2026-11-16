@@ -219,26 +219,28 @@ private:
     void sendNext();
     /// @brief Put one batch on the wire and count the words the request asks about.
     void send(llm::ExplainRequest request, ExplanationBatch const& batch);
-    void onBatchFinished(QVector<llm::Explanation> const& results, llm::Usage const& usage);
-    void onFailed(QString const& message);
+    /// @brief One answer from the client, routed to the handler its type names (docs/adr/0182).
+    void onAnswered(llm::Handle handle, llm::Answer const& answer);
+    /// @brief Settle the batch in flight, or refuse the exchange when the answer carries a failure.
+    void onExplainAnswered(llm::ExplainAnswer const& answer);
     /// @brief Put a peek answer away for the session, and onto the card when it still stands.
-    void onPeekAnswered(QString const& lemma, QString const& line, llm::Usage const& usage);
+    void onPeekAnswered(llm::PeekAnswer const& answer);
     /// @brief Put a next-sense answer away for the session, and onto the card when it still stands.
     ///
     /// An answer without senses is the exhaustion answer when the call reached the model and came
     /// back whole, and a quiet failure when it carries no usage at all -- only the exhaustion one
     /// retires the entry; a failure leaves it up to ask again.
-    void onNextSenseAnswered(QString const& lemma, llm::Explanation const& answer, llm::Usage const& usage);
+    void onNextSenseAnswered(llm::SenseAnswer const& answer);
     /// @brief Ask which part of the sentence each run of words plays, onto a breakdown card raised now.
     void breakdown(PendingSelection const& pending);
-    /// @brief Draw the answer for the breakdown card standing on @p sentence; an answer for a card the
+    /// @brief Draw the answer for the breakdown card standing on its sentence; an answer for a card the
     ///        reader has moved on from is dropped, though its usage is still paid.
-    void onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage const& usage, QString const& failure);
+    void onBreakdownAnswered(llm::BreakdownAnswer const& answer);
     /// @brief Ask for the spelling or grammar correction of the selection, onto a card raised now.
     /// @param preset kSpellPreset or kGrammarPreset.
     void correct(PendingSelection const& pending, QString const& preset);
-    /// @brief Draw the corrected text for the card standing on @p text, or the failure line when none came back.
-    void onCorrectionAnswered(QString const& text, llm::Channel channel, QString const& corrected, llm::Usage const& usage, QString const& failure);
+    /// @brief Draw the corrected text for the card standing on its text, or the failure line when none came back.
+    void onCorrectionAnswered(llm::CorrectionAnswer const& answer);
     /// @brief Raise the correction card in @p state, the same shape as the breakdown card; @p failure is the
     ///        reader's reason on a failed card and empty otherwise.
     void showCorrection(PendingSelection const& selection, QString const& state, QVariantList const& segments, QString const& failure);
@@ -254,7 +256,7 @@ private:
     void emitSenseSwapped(CardSession::CycleView const& view, QString const& language);
     /// @brief Draw an answer that is still arriving, on the card of the request in flight.
     /// @param partial Whatever fields have completed so far; the rest are absent.
-    void onPartial(llm::Explanation partial);
+    void onPartial(llm::Handle handle, llm::Explanation partial);
     /// @brief Draw the card the exchange raised. The countdown, the verdict buttons and the card's
     ///        identity are settled there; the payload built here is their projection.
     /// @param holding Whether the answer is still on its way: the card the reader's click raised keeps
@@ -328,6 +330,12 @@ private:
     qint64 senseStartedMs_      = 0;
     qint64 breakdownStartedMs_  = 0;
     qint64 correctionStartedMs_ = 0;
+    /// The card-only calls in flight. Their answers have nowhere to go once the bubble is gone, so
+    /// clearBubble() aborts them rather than let them answer into nothing (docs/adr/0182).
+    llm::Handle peekRequest_;
+    llm::Handle senseRequest_;
+    llm::Handle breakdownRequest_;
+    llm::Handle correctionRequest_;
 };
 
 }

@@ -61,13 +61,8 @@ QVariantList correctionSegments(QString const& original, QString const& correcte
 ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, CostDuty& cost, QObject* parent)
     : QObject(parent), storage_(storage), llm_(llm), cost_(cost), exchange_(storage.knownStore())
 {
-    connect(&llm_, &llm::LlmClient::batchFinished, this, &ExplanationDuty::onBatchFinished);
-    connect(&llm_, &llm::LlmClient::failed, this, &ExplanationDuty::onFailed);
+    connect(&llm_, &llm::LlmClient::answered, this, &ExplanationDuty::onAnswered);
     connect(&llm_, &llm::LlmClient::partial, this, &ExplanationDuty::onPartial);
-    connect(&llm_, &llm::LlmClient::peekAnswered, this, &ExplanationDuty::onPeekAnswered);
-    connect(&llm_, &llm::LlmClient::senseAnswered, this, &ExplanationDuty::onNextSenseAnswered);
-    connect(&llm_, &llm::LlmClient::breakdownAnswered, this, &ExplanationDuty::onBreakdownAnswered);
-    connect(&llm_, &llm::LlmClient::correctionAnswered, this, &ExplanationDuty::onCorrectionAnswered);
 }
 
 void ExplanationDuty::setReviewSource(ReviewDuty* review)
@@ -111,8 +106,34 @@ void ExplanationDuty::recordLlmCall(std::string_view kind, llm::Usage const& usa
     telemetry_->record("llm.call", std::move(data));
 }
 
-void ExplanationDuty::onPartial(llm::Explanation partial)
+void ExplanationDuty::onAnswered(llm::Handle handle, llm::Answer const& answer)
 {
+    Q_UNUSED(handle)
+    // The profile and the story ride the same signal from the one client this program shares;
+    // their answers are the profile duty's, and land nowhere here.
+    if (auto const* explain = std::get_if<llm::ExplainAnswer>(&answer)) {
+        onExplainAnswered(*explain);
+        return;
+    }
+    if (auto const* peek = std::get_if<llm::PeekAnswer>(&answer)) {
+        onPeekAnswered(*peek);
+        return;
+    }
+    if (auto const* sense = std::get_if<llm::SenseAnswer>(&answer)) {
+        onNextSenseAnswered(*sense);
+        return;
+    }
+    if (auto const* breakdown = std::get_if<llm::BreakdownAnswer>(&answer)) {
+        onBreakdownAnswered(*breakdown);
+        return;
+    }
+    if (auto const* correction = std::get_if<llm::CorrectionAnswer>(&answer))
+        onCorrectionAnswered(*correction);
+}
+
+void ExplanationDuty::onPartial(llm::Handle handle, llm::Explanation partial)
+{
+    Q_UNUSED(handle)
     // A preview is only ever the answer to the batch in flight: the model-list fetch, and a reply
     // for a request already disposed of, reach nothing here.
     if (not exchange_.inFlight())
@@ -142,42 +163,40 @@ void ExplanationDuty::onPartial(llm::Explanation partial)
     }
 }
 
-void ExplanationDuty::onBatchFinished(QVector<llm::Explanation> const& results, llm::Usage const& usage)
+void ExplanationDuty::onExplainAnswered(llm::ExplainAnswer const& answer)
 {
-    // The client answers the model-list fetch through the same signal, and that is not an
-    // explanation anybody asked for.
+    // A batch for a request the exchange already disposed of -- a sign-out, a budget rollover --
+    // is not an answer anybody is waiting for.
     if (not exchange_.inFlight())
         return;
 
+    if (not answer.failure.isEmpty()) {
+        const auto subject = exchange_.refuse();
+        busyLabel_.clear();
+        emit busyChanged();
+        recordLlmCall("explain", llm::Usage{}, explainStartedMs_, false);
+        explainStartedMs_ = 0;
+        if (subject and subject->chain)
+            emit chainFailed(subject->lemma);
+        else if (subject)
+            showNotice(noticeTitle(*subject), answer.failure, kNoticeError);
+        sendNext();
+        return;
+    }
+
     busyLabel_.clear();
     emit busyChanged();
-    cost_.recordUsage(nowMinute().toStdString(), usage);
-    recordLlmCall("explain", usage, explainStartedMs_);
+    cost_.recordUsage(nowMinute().toStdString(), answer.usage);
+    recordLlmCall("explain", answer.usage, explainStartedMs_);
     explainStartedMs_ = 0;
 
-    auto const outcome = exchange_.settle(results, facts());
-    if (results.isEmpty())
+    auto const outcome = exchange_.settle(answer.results, facts());
+    if (answer.results.isEmpty())
         LENS_WARN("the model returned no explanation");
     storage_.save();
     emit statsChanged();
-    if (not results.isEmpty())
+    if (not answer.results.isEmpty())
         apply(outcome);
-    sendNext();
-}
-
-void ExplanationDuty::onFailed(QString const& message)
-{
-    if (not exchange_.inFlight())
-        return;
-    const auto subject = exchange_.refuse();
-    busyLabel_.clear();
-    emit busyChanged();
-    recordLlmCall("explain", llm::Usage{}, explainStartedMs_, false);
-    explainStartedMs_ = 0;
-    if (subject and subject->chain)
-        emit chainFailed(subject->lemma);
-    else if (subject)
-        showNotice(noticeTitle(*subject), message, kNoticeError);
     sendNext();
 }
 
@@ -379,7 +398,7 @@ void ExplanationDuty::requestPeek()
         case CardSession::PeekStep::Kind::Show: emit peekArrived(step.line); break;
         case CardSession::PeekStep::Kind::Ask:
             peekStartedMs_ = QDateTime::currentMSecsSinceEpoch();
-            llm_.peekWord(step.lemma, step.language, step.senseEn);
+            peekRequest_   = llm_.request(llm::PeekRequest{.lemma = step.lemma, .language = step.language, .sense = step.senseEn});
             break;
         case CardSession::PeekStep::Kind::Waiting: break;
         case CardSession::PeekStep::Kind::None:
@@ -391,12 +410,12 @@ void ExplanationDuty::requestPeek()
     }
 }
 
-void ExplanationDuty::onPeekAnswered(QString const& lemma, QString const& line, llm::Usage const& usage)
+void ExplanationDuty::onPeekAnswered(llm::PeekAnswer const& answer)
 {
-    cost_.recordUsage(nowMinute().toStdString(), usage);
-    recordLlmCall("peek", usage, peekStartedMs_);
+    cost_.recordUsage(nowMinute().toStdString(), answer.usage);
+    recordLlmCall("peek", answer.usage, peekStartedMs_);
     peekStartedMs_ = 0;
-    if (auto const shown = exchange_.card().peekAnswered(lemma, line, exchange_.readerContext()))
+    if (auto const shown = exchange_.card().peekAnswered(answer.lemma, answer.line, exchange_.readerContext()))
         emit peekArrived(*shown);
 }
 
@@ -417,7 +436,7 @@ void ExplanationDuty::cycleSense()
         case CardSession::SenseStep::Kind::Ask:
             LENS_INFO("asking for the next sense of '{}' ({} known, advance={})", step.lemma.toStdString(), step.known.size(), step.advance);
             senseStartedMs_ = QDateTime::currentMSecsSinceEpoch();
-            llm_.nextSenseWord(step.lemma, step.lemma + QLatin1Char('\n') + step.known.join(QLatin1Char('\n')), step.language);
+            senseRequest_   = llm_.request(llm::SenseRequest{.lemma = step.lemma, .input = step.lemma + QLatin1Char('\n') + step.known.join(QLatin1Char('\n')), .language = step.language});
             break;
         case CardSession::SenseStep::Kind::None:
             // Out of budget the click buys nothing and says nothing: the definition on the card is
@@ -433,26 +452,26 @@ void ExplanationDuty::ensureNextSense()
     const auto step = exchange_.card().ensureNextSense(exchange_.readerContext(), cost_.canRequest());
     if (step.kind == CardSession::SenseStep::Kind::Ask) {
         senseStartedMs_ = QDateTime::currentMSecsSinceEpoch();
-        llm_.nextSenseWord(step.lemma, step.lemma + QLatin1Char('\n') + step.known.join(QLatin1Char('\n')), step.language);
+        senseRequest_   = llm_.request(llm::SenseRequest{.lemma = step.lemma, .input = step.lemma + QLatin1Char('\n') + step.known.join(QLatin1Char('\n')), .language = step.language});
     }
 }
 
-void ExplanationDuty::onNextSenseAnswered(QString const& lemma, llm::Explanation const& answer, llm::Usage const& usage)
+void ExplanationDuty::onNextSenseAnswered(llm::SenseAnswer const& answer)
 {
-    cost_.recordUsage(nowMinute().toStdString(), usage);
-    const auto outcome = exchange_.card().senseAnswered(lemma, answer, usage, exchange_.readerContext());
-    recordLlmCall("sense", usage, senseStartedMs_, outcome.result != CardSession::SenseOutcome::Result::Refused);
+    cost_.recordUsage(nowMinute().toStdString(), answer.usage);
+    const auto outcome = exchange_.card().senseAnswered(answer.lemma, answer.answer, answer.usage, exchange_.readerContext());
+    recordLlmCall("sense", answer.usage, senseStartedMs_, outcome.result != CardSession::SenseOutcome::Result::Refused);
     senseStartedMs_ = 0;
     switch (outcome.result) {
         case CardSession::SenseOutcome::Result::Refused:
             // An answer that never reached the model leaves the entry up to ask again.
-            LENS_DEBUG("the next sense of '{}' was refused; the entry stays", lemma.toStdString());
+            LENS_DEBUG("the next sense of '{}' was refused; the entry stays", answer.lemma.toStdString());
             break;
         case CardSession::SenseOutcome::Result::Exhausted:
             if (outcome.repeated)
-                LENS_INFO("the model repeated a sense of '{}'; the cycle is exhausted", lemma.toStdString());
+                LENS_INFO("the model repeated a sense of '{}'; the cycle is exhausted", answer.lemma.toStdString());
             else
-                LENS_INFO("the model has no further sense for '{}'", lemma.toStdString());
+                LENS_INFO("the model has no further sense for '{}'", answer.lemma.toStdString());
             break;
         case CardSession::SenseOutcome::Result::Grown:
         case CardSession::SenseOutcome::Result::None:
@@ -498,7 +517,7 @@ void ExplanationDuty::breakdown(PendingSelection const& pending)
         return;
     showBreakdown(pending, QStringLiteral("pending"), plainSegments(pending.text), {}, {});
     breakdownStartedMs_ = QDateTime::currentMSecsSinceEpoch();
-    llm_.breakdownSentence(pending.text, llm::breakdownWords(pending.text));
+    breakdownRequest_   = llm_.request(llm::BreakdownRequest{.sentence = pending.text, .words = llm::breakdownWords(pending.text)});
 }
 
 void ExplanationDuty::correct(PendingSelection const& pending, QString const& preset)
@@ -517,27 +536,24 @@ void ExplanationDuty::correct(PendingSelection const& pending, QString const& pr
     selection.preset           = preset;
     showCorrection(selection, QStringLiteral("pending"), plainSegments(pending.text), {});
     correctionStartedMs_ = QDateTime::currentMSecsSinceEpoch();
-    if (preset == kSpellPreset)
-        llm_.correctSpelling(pending.text);
-    else
-        llm_.correctGrammar(pending.text);
+    correctionRequest_   = llm_.request(llm::CorrectionRequest{.text = pending.text, .channel = preset == kSpellPreset ? llm::Channel::Spell : llm::Channel::Grammar});
 }
 
-void ExplanationDuty::onCorrectionAnswered(QString const& text, llm::Channel const channel, QString const& corrected, llm::Usage const& usage, QString const& failure)
+void ExplanationDuty::onCorrectionAnswered(llm::CorrectionAnswer const& answer)
 {
-    cost_.recordUsage(nowMinute().toStdString(), usage);
-    recordLlmCall("correction", usage, correctionStartedMs_, failure.isEmpty());
+    cost_.recordUsage(nowMinute().toStdString(), answer.usage);
+    recordLlmCall("correction", answer.usage, correctionStartedMs_, answer.failure.isEmpty());
     correctionStartedMs_ = 0;
     // The answer belongs to the card standing on this text and no other, as the breakdown's does.
     auto const*   card   = exchange_.card().subject();
-    const QString preset = channel == llm::Channel::Spell ? kSpellPreset : kGrammarPreset;
-    if (card == nullptr or card->preset != preset or card->text != text) return;
+    const QString preset = answer.channel == llm::Channel::Spell ? kSpellPreset : kGrammarPreset;
+    if (card == nullptr or card->preset != preset or card->text != answer.text) return;
     const PendingSelection selection = *card;
-    if (corrected.isEmpty()) {
-        showCorrection(selection, QStringLiteral("failed"), plainSegments(text), failure);
+    if (answer.corrected.isEmpty()) {
+        showCorrection(selection, QStringLiteral("failed"), plainSegments(answer.text), answer.failure);
         return;
     }
-    showCorrection(selection, QStringLiteral("ready"), correctionSegments(text, corrected), {});
+    showCorrection(selection, QStringLiteral("ready"), correctionSegments(answer.text, answer.corrected), {});
 }
 
 void ExplanationDuty::showCorrection(PendingSelection const& selection, QString const& state, QVariantList const& segments, QString const& failure)
@@ -573,21 +589,21 @@ void ExplanationDuty::showCorrection(PendingSelection const& selection, QString 
         emit petEvent(core::pet::PetEvent::ExplanationShown);
 }
 
-void ExplanationDuty::onBreakdownAnswered(QString const& sentence, QVector<llm::RoleSpan> const& spans, llm::Usage const& usage, QString const& failure)
+void ExplanationDuty::onBreakdownAnswered(llm::BreakdownAnswer const& answer)
 {
-    cost_.recordUsage(nowMinute().toStdString(), usage);
-    recordLlmCall("breakdown", usage, breakdownStartedMs_, failure.isEmpty());
+    cost_.recordUsage(nowMinute().toStdString(), answer.usage);
+    recordLlmCall("breakdown", answer.usage, breakdownStartedMs_, answer.failure.isEmpty());
     breakdownStartedMs_ = 0;
     // The answer belongs to the card standing on this sentence and to nothing else: the reader may have
     // moved on, and a breakdown is never kept for later.
     auto const* card = exchange_.card().subject();
-    if (card == nullptr or card->preset != kBreakdownPreset or card->text != sentence) return;
+    if (card == nullptr or card->preset != kBreakdownPreset or card->text != answer.sentence) return;
     const PendingSelection selection = *card;
-    if (spans.isEmpty()) {
-        showBreakdown(selection, QStringLiteral("failed"), plainSegments(sentence), {}, failure);
+    if (answer.spans.isEmpty()) {
+        showBreakdown(selection, QStringLiteral("failed"), plainSegments(answer.sentence), {}, answer.failure);
         return;
     }
-    showBreakdown(selection, QStringLiteral("ready"), breakdownSegments(sentence, spans), llm::breakdownRoles(spans), {});
+    showBreakdown(selection, QStringLiteral("ready"), breakdownSegments(answer.sentence, answer.spans), llm::breakdownRoles(answer.spans), {});
 }
 
 void ExplanationDuty::showBreakdown(PendingSelection const& selection, QString const& state, QVariantList const& segments, QStringList const& roles, QString const& failure)
@@ -657,7 +673,7 @@ void ExplanationDuty::send(llm::ExplainRequest request, ExplanationBatch const& 
     storage_.save();
     emit statsChanged();
     explainStartedMs_ = QDateTime::currentMSecsSinceEpoch();
-    llm_.explainWords(std::move(request));
+    llm_.request(std::move(request));
 }
 
 void ExplanationDuty::sendNext()
@@ -917,6 +933,13 @@ void ExplanationDuty::clearBubble()
 {
     // Every way a bubble goes -- the countdown, the cross, a deletion, a notice replacing it --
     // leaves nothing for the pointer to be holding afterwards.
+    // A peek line, a grown sense, a breakdown or a correction is drawn on the card and nowhere
+    // else: with the card gone, the calls still out for it would buy nothing, so they are aborted
+    // rather than left to answer into a surface that no longer exists (docs/adr/0182).
+    llm_.cancel(peekRequest_);
+    llm_.cancel(senseRequest_);
+    llm_.cancel(breakdownRequest_);
+    llm_.cancel(correctionRequest_);
     exchange_.card().clear();
     if (bubble_.isEmpty()) return;
     bubble_.clear();

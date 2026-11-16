@@ -24,19 +24,28 @@
 #include <algorithm>
 #include <cstring>
 #include <utility>
+#include <variant>
 
 #include "llm/llm_client.h"
 #include "llm_support.h"
 
 namespace {
 
+using lens::llm::Answer;
 using lens::llm::Channel;
 using lens::llm::Config;
+using lens::llm::ExplainAnswer;
 using lens::llm::ExplainRequest;
 using lens::llm::Explanation;
 using lens::llm::LlmClient;
 using lens::llm::Usage;
 using lens::test::LlmTest;
+
+/// @return The explanation half of @p answer; null for the other features' answers.
+ExplainAnswer const* explainIn(Answer const& answer)
+{
+    return std::get_if<ExplainAnswer>(&answer);
+}
 
 QByteArray entityResponse()
 {
@@ -97,17 +106,17 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
     timeout.setSingleShot(true);
     timeout.setInterval(2000);
     QObject::connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
-    QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage receivedUsage) {
-        results = std::move(received);
-        usage   = std::move(receivedUsage);
-        loop.quit();
-    });
-    QObject::connect(&client, &LlmClient::failed, &loop, [&](QString message) {
-        failure = std::move(message);
+    QObject::connect(&client, &LlmClient::answered, &loop, [&](lens::llm::Handle, Answer const& answer) {
+        auto const* explain = explainIn(answer);
+        if (explain == nullptr)
+            return;
+        results = explain->results;
+        usage   = explain->usage;
+        failure = explain->failure;
         loop.quit();
     });
 
-    client.explainWords(ExplainRequest{.words = {QStringLiteral("New York")}, .channel = Channel::Entity});
+    client.request(ExplainRequest{.words = {QStringLiteral("New York")}, .channel = Channel::Entity});
     timeout.start();
     loop.exec();
 
@@ -172,12 +181,14 @@ public:
     {}
 
     QByteArray postedBody;
+    /// The transfer timeout the last request carried, so a case can see the injected policy.
+    int lastTimeout = -1;
 
 protected:
     QNetworkReply* createRequest(Operation operation, const QNetworkRequest& request, QIODevice* device) override
     {
         Q_UNUSED(operation)
-        Q_UNUSED(request)
+        lastTimeout = request.transferTimeout();
         if (device != nullptr) postedBody = device->readAll();
         auto* reply = new StubReply(status_, body_, error_);
         reply->setParent(this);
@@ -226,17 +237,18 @@ ProbeResult runProbe(LlmClient& client)
     return result;
 }
 
-/// @brief Run one explainWords() to completion and return the failure it reported, if any.
+/// @brief Run one explanation request to its answer and return the failure it reported, if any.
 QString runToFailure(LlmClient& client, const QStringList& words)
 {
     QString    failure;
     QEventLoop loop;
-    QObject::connect(&client, &LlmClient::failed, &loop, [&](QString message) {
-        failure = std::move(message);
+    QObject::connect(&client, &LlmClient::answered, &loop, [&](lens::llm::Handle, Answer const& answer) {
+        if (auto const* explain = explainIn(answer))
+            failure = explain->failure;
         loop.quit();
     });
     QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
-    client.explainWords(ExplainRequest{.words = words});
+    client.request(ExplainRequest{.words = words});
     loop.exec();
     return failure;
 }
@@ -411,21 +423,20 @@ TEST_F(LlmTest, SendsTheMultipleSenseRequestAndCapsItsSenses)
     QVector<Explanation> results;
     QString              failure;
     QEventLoop           loop;
-    QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage const&) {
-        results = std::move(received);
-        loop.quit();
-    });
-    QObject::connect(&client, &LlmClient::failed, &loop, [&](QString message) {
-        failure = std::move(message);
+    QObject::connect(&client, &LlmClient::answered, &loop, [&](lens::llm::Handle, Answer const& answer) {
+        if (auto const* explain = explainIn(answer)) {
+            results = explain->results;
+            failure = explain->failure;
+        }
         loop.quit();
     });
     QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
-    client.explainWords(ExplainRequest{.words          = {QStringLiteral("bank")},
-                                       .preset         = QStringLiteral("translate"),
-                                       .language       = QStringLiteral("zh"),
-                                       .multipleSenses = true,
-                                       .etymology      = true,
-                                       .example        = true});
+    client.request(ExplainRequest{.words          = {QStringLiteral("bank")},
+                                  .preset         = QStringLiteral("translate"),
+                                  .language       = QStringLiteral("zh"),
+                                  .multipleSenses = true,
+                                  .etymology      = true,
+                                  .example        = true});
     loop.exec();
 
     EXPECT_TRUE(failure.isEmpty()) << failure.toStdString();
@@ -455,13 +466,13 @@ TEST_F(LlmTest, KeepsOneSenseWhenTheSenseFlagIsOff)
 
     QVector<Explanation> results;
     QEventLoop           loop;
-    QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage const&) {
-        results = std::move(received);
+    QObject::connect(&client, &LlmClient::answered, &loop, [&](lens::llm::Handle, Answer const& answer) {
+        if (auto const* explain = explainIn(answer))
+            results = explain->results;
         loop.quit();
     });
-    QObject::connect(&client, &LlmClient::failed, &loop, &QEventLoop::quit);
     QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
-    client.explainWords(ExplainRequest{.words = {QStringLiteral("bank")}, .preset = QStringLiteral("multiple")});
+    client.request(ExplainRequest{.words = {QStringLiteral("bank")}, .preset = QStringLiteral("multiple")});
     loop.exec();
 
     ASSERT_EQ(results.size(), 1);
@@ -476,8 +487,11 @@ TEST_F(LlmTest, RefusesAnEmptyBatchWithoutPosting)
     LlmClient     client(stubConfig(), &manager);
 
     QString failure;
-    QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = std::move(message); });
-    client.explainWords(ExplainRequest{});
+    QObject::connect(&client, &LlmClient::answered, [&](lens::llm::Handle, Answer const& answer) {
+        if (auto const* explain = explainIn(answer))
+            failure = explain->failure;
+    });
+    client.request(ExplainRequest{});
 
     EXPECT_TRUE(failure.contains("nothing to look up")) << failure.toStdString();
     EXPECT_TRUE(manager.postedBody.isEmpty());
@@ -492,11 +506,88 @@ TEST_F(LlmTest, RefusesToPostWithoutAnApiKey)
     LlmClient     client(stubConfig(QString()), &manager);
 
     QString failure;
-    QObject::connect(&client, &LlmClient::failed, [&](QString message) { failure = std::move(message); });
-    client.explainWords(ExplainRequest{.words = {QStringLiteral("ubiquitous")}});
+    QObject::connect(&client, &LlmClient::answered, [&](lens::llm::Handle, Answer const& answer) {
+        if (auto const* explain = explainIn(answer))
+            failure = explain->failure;
+    });
+    client.request(ExplainRequest{.words = {QStringLiteral("ubiquitous")}});
 
     EXPECT_TRUE(failure.contains("API key is missing")) << failure.toStdString();
     EXPECT_TRUE(manager.postedBody.isEmpty());
+}
+
+namespace {
+
+/// @brief A reply that never answers on its own, so only cancel() can end it.
+class SilentReply : public QNetworkReply {
+public:
+    explicit SilentReply(QObject* parent)
+        : QNetworkReply(parent)
+    {
+        open(QIODevice::ReadOnly);
+    }
+
+    bool aborted = false;
+
+    void abort() override
+    {
+        aborted = true;
+    }
+
+protected:
+    qint64 readData(char*, qint64) override
+    {
+        return -1;
+    }
+};
+
+/// @brief A manager whose every request hangs, and whose last reply a case can inspect.
+class SilentManager : public QNetworkAccessManager {
+public:
+    SilentReply* lastReply = nullptr;
+
+protected:
+    QNetworkReply* createRequest(Operation, const QNetworkRequest&, QIODevice*) override
+    {
+        lastReply = new SilentReply(this);
+        return lastReply;
+    }
+};
+
+} // namespace
+
+/// The handle names the request in flight: cancelling aborts it and no answer is reported.
+TEST_F(LlmTest, CancellingARequestAbortsItAndReportsNothing)
+{
+    QtApplication qt;
+    SilentManager manager;
+    LlmClient     client(stubConfig(), &manager);
+
+    int answers = 0;
+    QObject::connect(&client, &LlmClient::answered, [&](lens::llm::Handle, Answer const&) { ++answers; });
+
+    const lens::llm::Handle handle = client.request(ExplainRequest{.words = {QStringLiteral("ubiquitous")}});
+    ASSERT_NE(manager.lastReply, nullptr);
+    client.cancel(handle);
+
+    QEventLoop loop;
+    QTimer::singleShot(100, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    EXPECT_TRUE(manager.lastReply->aborted) << "cancel did not reach the reply";
+    EXPECT_EQ(answers, 0) << "a cancelled request still reported an answer";
+}
+
+/// The timeouts are the caller's policy: what the constructor receives is what the request carries.
+TEST_F(LlmTest, InjectedTimeoutPolicyReachesTheRequest)
+{
+    QtApplication qt;
+    StubManager   manager(402, QByteArray());
+    LlmClient     client(stubConfig(), &manager, lens::llm::Timeouts{.explainMs = 1234});
+
+    runToFailure(client, {QStringLiteral("ubiquitous")});
+
+    EXPECT_EQ(manager.lastTimeout, 1234) << "the injected explain timeout did not reach the wire";
 }
 
 namespace {
@@ -584,7 +675,7 @@ QByteArray sseEvent(QString const& content, QString const& finishReason = {}, QJ
 } // namespace
 
 /// The answer is drawn as it arrives: one `partial()` per field that completes, then a single
-/// `batchFinished()` with the whole validated result. The first event is split across two reads,
+/// `answered()` with the whole validated result. The first event is split across two reads,
 /// so the buffer has to hold half an event without losing it.
 TEST_F(LlmTest, StreamsTheAnswerAsItArrivesAndFinishesWithTheValidatedOne)
 {
@@ -604,18 +695,18 @@ TEST_F(LlmTest, StreamsTheAnswerAsItArrivesAndFinishesWithTheValidatedOne)
     QVector<Explanation> finished;
     Usage                usage;
     qsizetype            previewsAtFinish = -1;
-    QObject::connect(&client, &LlmClient::partial, [&](Explanation preview) { previews.push_back(std::move(preview)); });
-    QObject::connect(&client, &LlmClient::batchFinished, &manager, [&](QVector<Explanation> results, Usage received) {
-        previewsAtFinish = previews.size();
-        finished         = std::move(results);
-        usage            = std::move(received);
-    });
-
+    QObject::connect(&client, &LlmClient::partial, [&](lens::llm::Handle, Explanation preview) { previews.push_back(std::move(preview)); });
     QEventLoop loop;
-    QObject::connect(&client, &LlmClient::batchFinished, &loop, &QEventLoop::quit);
-    QObject::connect(&client, &LlmClient::failed, &loop, &QEventLoop::quit);
+    QObject::connect(&client, &LlmClient::answered, &manager, [&](lens::llm::Handle, Answer const& answer) {
+        if (auto const* explain = explainIn(answer)) {
+            previewsAtFinish = previews.size();
+            finished         = explain->results;
+            usage            = explain->usage;
+        }
+    });
+    QObject::connect(&client, &LlmClient::answered, &loop, &QEventLoop::quit);
     QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
-    client.explainWords(ExplainRequest{.words = {QStringLiteral("ubiquitous")}});
+    client.request(ExplainRequest{.words = {QStringLiteral("ubiquitous")}});
     loop.exec();
 
     ASSERT_GE(previewsAtFinish, 3) << "the answer arrived in more chunks than were reported";
@@ -645,11 +736,14 @@ TEST_F(LlmTest, EndsAStreamThatStoppedShortInTheFailureNotice)
     StreamingManager manager({sseEvent(body, QStringLiteral("length"))});
     LlmClient        client(stubConfig(), &manager);
 
-    int batchFinished = 0;
-    QObject::connect(&client, &LlmClient::batchFinished, [&](QVector<Explanation> const&, Usage const&) { ++batchFinished; });
+    int batches = 0;
+    QObject::connect(&client, &LlmClient::answered, [&](lens::llm::Handle, Answer const& answer) {
+        if (auto const* explain = explainIn(answer); explain != nullptr and explain->failure.isEmpty())
+            ++batches;
+    });
 
     const QString failure = runToFailure(client, {QStringLiteral("ubiquitous")});
 
     EXPECT_TRUE(failure.contains("stopped before finishing")) << failure.toStdString();
-    EXPECT_EQ(batchFinished, 0) << "a cut-off answer must not reach the store";
+    EXPECT_EQ(batches, 0) << "a cut-off answer must not reach the store";
 }

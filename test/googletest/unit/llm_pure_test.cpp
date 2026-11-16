@@ -825,8 +825,8 @@ TEST_F(LlmTest, TheStoryKeepsOnlyTheListedWordsOnceAndRefusesAnEmptyStory)
     const QStringList listed{QStringLiteral("quay"), QStringLiteral("bank")};
     const auto        parsed = lens::llm::parseStory(
         envelope(QStringLiteral(R"({"results":[{"text":"The quay was busy.","words":["quay","quay","tide","bank"]}]})")), listed);
-    ASSERT_TRUE(std::holds_alternative<lens::llm::StoryAnswer>(parsed));
-    auto const& answer = std::get<lens::llm::StoryAnswer>(parsed);
+    ASSERT_TRUE(std::holds_alternative<lens::llm::Story>(parsed));
+    auto const& answer = std::get<lens::llm::Story>(parsed);
     EXPECT_EQ(answer.text, QStringLiteral("The quay was busy."));
     EXPECT_EQ(answer.words, (QStringList{QStringLiteral("quay"), QStringLiteral("bank")})) << "a word the story invented is dropped, a repeat is kept once";
 
