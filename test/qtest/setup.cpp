@@ -116,6 +116,7 @@ QStringList surfaceSheetDevNames()
 #include "core/document/known_store.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
+#include "speech/voice_output.h"
 
 namespace {
 
@@ -161,6 +162,41 @@ protected:
     }
 };
 
+/// @brief The pronunciation output a case gets: every verb is the silent answer.
+///
+/// The controller takes the machine's voice engines and player from its composition root
+/// (docs/adr/0183). A case has neither -- and the surfaces never assert on sound -- so it lends
+/// this, which is also what a machine with no voice pack answers. The press path itself is
+/// exercised in lens_gtest_unit over the same seam.
+class SilentVoiceOutput final : public lens::speech::VoiceOutput {
+public:
+    QString systemVoice(QString const&) override
+    {
+        return {};
+    }
+    bool installed(QString const&) override
+    {
+        return false;
+    }
+    bool say(QString const&, QString const&) override
+    {
+        return false;
+    }
+    bool play(QByteArray const&) override
+    {
+        return false;
+    }
+    void speakLocal(QString const&, QString const&, QString const&, LocalSink) override
+    {
+    }
+    void stop() override
+    {
+    }
+    void releaseLocalVoice(QString const&) override
+    {
+    }
+};
+
 /// The singletons one run hands to every engine it builds.
 ///
 /// One instance for the process rather than one per test file: QuickTest builds a fresh engine
@@ -178,6 +214,7 @@ struct Singletons {
     QString                               settingsPath;
     std::unique_ptr<KnownStore>           store;
     std::unique_ptr<lens::llm::LlmClient> llm;
+    std::unique_ptr<SilentVoiceOutput>    speechOutput;
     std::unique_ptr<MouseSelectionHook>   hook;
     std::unique_ptr<AltKeyHook>           altHook;
     std::unique_ptr<GlobalHotkey>         hotkey;
@@ -244,8 +281,9 @@ Singletons& singletons()
         // main() loads them: a mark made here is keyed by its base form, which needs both.
         lens::core::loadWordlist(std::filesystem::path(LENS_DATA_DIR) / "wordlist.txt");
         lens::core::loadIrregulars(std::filesystem::path(LENS_DATA_DIR) / "irregulars.tsv");
-        built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.altHook, *built.hotkey, *built.pricing, std::filesystem::path(LENS_DATA_DIR));
-        built.tray       = std::make_unique<Tray>([controller = built.controller.get()] { return controller->trayReadout(); });
+        built.speechOutput = std::make_unique<SilentVoiceOutput>();
+        built.controller   = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.altHook, *built.hotkey, *built.speechOutput, *built.pricing, std::filesystem::path(LENS_DATA_DIR));
+        built.tray         = std::make_unique<Tray>([controller = built.controller.get()] { return controller->trayReadout(); });
         // The pet as main() builds it: a refused data directory leaves it off, and the QML still gets a singleton. The
         // reader's folder is a path that does not exist, so a surfaces run never reads the packages on this machine.
         built.petStore = std::make_unique<PetStore>(*built.store);

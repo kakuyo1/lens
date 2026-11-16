@@ -392,12 +392,12 @@ private:
 
     /// @brief Build and send one request per alternative; each answers @p handle exactly once.
     void askExplain(Handle handle, ExplainRequest request);
-    void askPeek(Handle handle, PeekRequest request);
-    void askSense(Handle handle, SenseRequest request);
-    void askBreakdown(Handle handle, BreakdownRequest request);
-    void askCorrection(Handle handle, CorrectionRequest request);
-    void askProfile(Handle handle, ProfileRequest request);
-    void askStory(Handle handle, StoryRequest request);
+    void askPeek(Handle handle, PeekRequest const& request);
+    void askSense(Handle handle, SenseRequest const& request);
+    void askBreakdown(Handle handle, BreakdownRequest const& request);
+    void askCorrection(Handle handle, CorrectionRequest const& request);
+    void askProfile(Handle handle, ProfileRequest const& request);
+    void askStory(Handle handle, StoryRequest const& request);
 
     /// @return Whether this client can post at all: a key, and an endpoint it will speak to.
     /// @param requireHttps True for the calls that stand alone (a held gesture, a drawer); the

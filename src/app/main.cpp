@@ -41,6 +41,7 @@
 #endif
 #include "app/platform/alt_key_hook.h"
 #include "app/platform/global_hotkey.h"
+#include "app/platform/qt_voice_output.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
 #include "llm/llm_protocol.h"
@@ -353,8 +354,12 @@ int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw
     MouseSelectionHook hook;
     AltKeyHook         altHook;
     GlobalHotkey       hotkey;
+    // The machine's pronunciation devices -- the player, the Windows synthesiser and the local
+    // voices (docs/adr/0183). Built here rather than in the controller because device code lives
+    // in the executable: no test target links it, and the seam above it takes a silent output.
+    lens::app::QtVoiceOutput speechOutput;
 
-    AppController controller(store, llm, hook, altHook, hotkey, pricing, dataDir);
+    AppController controller(store, llm, hook, altHook, hotkey, speechOutput, pricing, dataDir);
 
     // A refused pet data directory leaves the pet off and says why; the rest of the program is unaffected. The reader's
     // packages sit beside the settings document, in %APPDATA%\Lens\pets (docs/adr/0043).

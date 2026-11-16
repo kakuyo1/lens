@@ -23,6 +23,7 @@
 #include "llm/llm_pricing.h"
 #include "llm_support.h"
 #include "support.h"
+#include "voice_support.h"
 
 namespace {
 
@@ -90,6 +91,7 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     app::AltKeyHook         altHookB;
     app::GlobalHotkey       hotkeyA;
     app::GlobalHotkey       hotkeyB;
+    test::SilentVoiceOutput speechOutput;
     QuietManager            managerA;
     QuietManager            managerB;
     auto const              config = [] {
@@ -98,8 +100,8 @@ TEST_F(LlmTest, RestoreDefaultsMatchesAFreshInstallAndLeavesOwnedStateAlone)
     llm::LlmClient clientA{config(), &managerA};
     llm::LlmClient clientB{config(), &managerB};
 
-    app::AppController a{storeA, clientA, hookA, altHookA, hotkeyA, pricing(), test::sourceDir() / "data"};
-    app::AppController b{storeB, clientB, hookB, altHookB, hotkeyB, pricing(), test::sourceDir() / "data"};
+    app::AppController a{storeA, clientA, hookA, altHookA, hotkeyA, speechOutput, pricing(), test::sourceDir() / "data"};
+    app::AppController b{storeB, clientB, hookB, altHookB, hotkeyB, speechOutput, pricing(), test::sourceDir() / "data"};
 
     a.setSetting(QStringLiteral("level"), 5);
     a.setSetting(QStringLiteral("explanationLang"), QStringLiteral("ja"));

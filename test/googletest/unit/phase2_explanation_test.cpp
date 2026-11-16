@@ -30,6 +30,7 @@
 #include "llm/llm_pricing.h"
 #include "llm/llm_pure.h"
 #include "llm_support.h"
+#include "voice_support.h"
 #include "util/text.h"
 
 namespace {
@@ -1145,11 +1146,12 @@ TEST_F(LlmTest, ModelListRefreshKeepsTheUserCacheWhenAResponseIsMalformed)
     app::MouseSelectionHook hook;
     app::AltKeyHook         altHook;
     app::GlobalHotkey       hotkey;
+    test::SilentVoiceOutput speechOutput;
     Manager                 manager;
     manager.modelResponseOverride = QByteArrayLiteral(R"({"data":"malformed"})");
     llm::LlmClient     client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
     auto const         pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::AppController controller{store, client, hook, altHook, hotkey, pricing, test::sourceDir() / "data"};
+    app::AppController controller{store, client, hook, altHook, hotkey, speechOutput, pricing, test::sourceDir() / "data"};
 
     ASSERT_EQ(controller.modelCatalogDuty()->models().size(), 1);
     EXPECT_EQ(controller.modelCatalogDuty()->models().front().toMap().value("value").toString(), "cached-model");
@@ -1273,9 +1275,10 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     app::MouseSelectionHook hook;
     app::AltKeyHook         altHook;
     app::GlobalHotkey       hotkey;
+    test::SilentVoiceOutput speechOutput;
     Manager                 manager;
     llm::LlmClient          client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    app::AppController      controller{store, client, hook, altHook, hotkey, pricing, test::sourceDir() / "data"};
+    app::AppController      controller{store, client, hook, altHook, hotkey, speechOutput, pricing, test::sourceDir() / "data"};
     int                     settingsChanges = 0;
     QObject::connect(&controller, &app::AppController::settingsChanged, [&] { ++settingsChanges; });
     auto const initial   = controller.settings();
@@ -1338,7 +1341,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     controller.setApiUrl("https://example.invalid/v2");
     auto               restored = core::KnownStore::load(path);
     llm::LlmClient     restarted{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
-    app::AppController restoredController{restored, restarted, hook, altHook, hotkey, pricing, test::sourceDir() / "data"};
+    app::AppController restoredController{restored, restarted, hook, altHook, hotkey, speechOutput, pricing, test::sourceDir() / "data"};
     auto const         restoredBody = request(restarted);
     EXPECT_EQ(restoredBody.value("model").toString(), "gpt-4.1-nano");
     EXPECT_FALSE(restoredBody.contains("thinking"));
@@ -1350,7 +1353,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     controller.setModel("custom-model");
     auto               customStore = core::KnownStore::load(path);
     llm::LlmClient     custom{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
-    app::AppController customController{customStore, custom, hook, altHook, hotkey, pricing, test::sourceDir() / "data"};
+    app::AppController customController{customStore, custom, hook, altHook, hotkey, speechOutput, pricing, test::sourceDir() / "data"};
     auto const         customBody = request(custom);
     EXPECT_EQ(customBody.value("model").toString(), "custom-model");
     EXPECT_FALSE(customBody.contains("thinking"));
@@ -1371,9 +1374,10 @@ TEST_F(LlmTest, Phase2ControllerRejectsAnInsecurePersistedServiceUrl)
     app::MouseSelectionHook hook;
     app::AltKeyHook         altHook;
     app::GlobalHotkey       hotkey;
+    test::SilentVoiceOutput speechOutput;
     llm::LlmClient          client{{QUrl{"https://safe.invalid"}, "fake-test-token", "test-model"}};
 
-    app::AppController controller{store, client, hook, altHook, hotkey, pricing, test::sourceDir() / "data"};
+    app::AppController controller{store, client, hook, altHook, hotkey, speechOutput, pricing, test::sourceDir() / "data"};
 
     EXPECT_EQ(client.baseUrl(), QUrl{"https://api.deepseek.com"});
     EXPECT_EQ(controller.settings().value("url").toString(), "https://api.deepseek.com");
@@ -1389,9 +1393,10 @@ TEST_F(LlmTest, Phase2RemovingAWordClearsItsOwnBubbleAndLeavesAnotherAlone)
     app::MouseSelectionHook hook;
     app::AltKeyHook         altHook;
     app::GlobalHotkey       hotkey;
+    test::SilentVoiceOutput speechOutput;
     Manager                 manager;
     llm::LlmClient          client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    app::AppController      controller{store, client, hook, altHook, hotkey, pricing, test::sourceDir() / "data"};
+    app::AppController      controller{store, client, hook, altHook, hotkey, speechOutput, pricing, test::sourceDir() / "data"};
     controller.explanationDuty()->setSelection(selection());
     run(*controller.explanationDuty(), client);
     ASSERT_EQ(controller.explanationDuty()->bubble().value("title").toString(), "bank");

@@ -194,16 +194,18 @@ target_link_libraries(lens_app
   PRIVATE lens_core lens_util lens_capture
 )
 
-# Multimedia is the player behind the pronunciation duty (SpeechDuty), and it is PRIVATE: no header
-# in this module names a QMediaPlayer or a QAudioOutput, they are built in speech_duty.cpp and
-# nowhere else. Only the Windows backend ships (installer/lens.iss), which is why main.cpp pins
+# Multimedia is on this library for the mode-switch tone, the QSoundEffect app_controller.cpp
+# builds. The pronunciation output's player is not part of this library: platform/qt_voice_output.cpp
+# is compiled into the lens executable alone (docs/adr/0183), so no test target links a
+# QMediaPlayer. Only the Windows backend ships (installer/lens.iss), which is why main.cpp pins
 # QT_MEDIA_BACKEND=windows before the application is built.
 #
-# TextToSpeech is the default pronunciation engine, the Windows synthesiser Qt wraps. It is
-# PRIVATE for the same reason: QTextToSpeech is named in speech_duty.cpp alone. The module is an
-# add-on of the Qt install rather than part of the base, so a machine that lacks it fails here at
-# configure time with a message that names the component -- see config/README.md.
-target_link_libraries(lens_app PRIVATE Qt6::Multimedia Qt6::TextToSpeech)
+# TextToSpeech is the default pronunciation engine, the Windows synthesiser Qt wraps; it is
+# linked on the executable beside the adapter, for the same reason, and named in
+# platform/qt_voice_output.cpp alone. The module is an add-on of the Qt install rather than part
+# of the base, so a machine that lacks it fails at configure time with a message that names the
+# component -- see config/README.md.
+target_link_libraries(lens_app PRIVATE Qt6::Multimedia)
 
 # The sherpa-onnx C API is the engine behind the local voices (docs/adr/0135), linked from the runtime
 # config/paths.default.json names. Only this module and the lens executable name it: the voice catalogue
@@ -278,6 +280,14 @@ qt_add_executable(lens
 )
 
 lens_copy_sherpa_runtime(lens)
+
+# The pronunciation output (docs/adr/0183): the player, the Windows synthesiser and the local
+# voices, the devices behind speech::VoiceOutput. It sits in the executable beside main.cpp --
+# the composition root that builds it and hands it to AppController -- so no test target links
+# it; a case lends the controller a silent output instead. The coverage gate's changed-lines
+# metric only measures files a scan target links, which is the same rule main.cpp follows.
+target_sources(lens PRIVATE platform/qt_voice_output.cpp platform/qt_voice_output.h)
+target_link_libraries(lens PRIVATE Qt6::Multimedia Qt6::TextToSpeech)
 
 # The developer command surface (docs/adr/0068), only when the build asks for it. It sits in the executable because
 # main.cpp is its one caller and it reaches the windows through the Main window that caller hands it.

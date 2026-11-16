@@ -1,43 +1,30 @@
 #pragma once
 
-#include <QBuffer>
 #include <QByteArray>
 #include <QObject>
 #include <QString>
-#include <QUrl>
-#include <QtQml/qqmlregistration.h>
-
-#include <QThreadPool>
-#include <QTimer>
 #include <QVariantMap>
-
-#include <map>
-#include <memory>
+#include <QtQml/qqmlregistration.h>
 
 #include "app/duties/storage_duty.h"
 #include "speech/audio_cache.h"
 #include "speech/online_sources.h"
-#include "speech/pronunciation_source.h"
 #include "speech/voice_downloader.h"
 
-class QAudioOutput;
-class QMediaPlayer;
-class QTextToSpeech;
-
-namespace lens::app {
-class LocalVoice;
+namespace lens::speech {
+class VoiceOutput;
 }
 
 /**
  * @file speech_duty.h
  * @brief One word, spoken once: the engine the reader chose, the recording that answers, and the
- *        player that puts it out.
+ *        press that owns the speaker.
  *
  * The contract is docs/adr/0134 and it is narrow on purpose. Only a word card's headword is ever
  * spoken -- not a sentence, an entity, a translation or a breakdown -- because the online fallback
  * is a dictionary's entry recordings rather than a synthesiser and answers 500 for a sentence. The
  * surface rules (where the speaker is drawn, what turns it) live in UI-SPEC.md 4.3; this class owns
- * the three engines and the order they are tried in, and nothing about a card.
+ * which of the three engines a press goes to and nothing about a card.
  *
  * Three things are deliberately absent:
  *   - No notification, no retry, no focus. A word that cannot be spoken is not spoken, and the card
@@ -47,15 +34,13 @@ class LocalVoice;
  *   - No state that outlives the sound. `playing` drives the speaker icon's colour and nothing else:
  *     it never changes the card's layout, its anchor or its clock.
  *
- * Three engines: the Windows synthesiser Qt wraps (the default, through Qt's TextToSpeech module --
- * WinRT's engine first, SAPI when the platform has no WinRT one), the online recordings the reader picked
- * (API.md sections 9 and 9.2, docs/adr/0138), and a local voice the reader downloaded and verified (docs/adr/0135), spoken
- * through sherpa-onnx on one worker thread. The local voice is never named by a fallback the reader did
- * not choose.
- *
- * The synthesiser is built on first use rather than at construction. A run that never speaks and
- * never opens the settings page never initialises a speech engine, and a machine whose voice pack
- * has nothing for the accent in force answers "unavailable" once and keeps answering it.
+ * Three engines: the Windows synthesiser Qt wraps (the default), the online recordings the reader
+ * picked (API.md sections 9 and 9.2, docs/adr/0138), and a local voice the reader downloaded and
+ * verified (docs/adr/0135). The local voice is never named by a fallback the reader did not choose.
+ * What the engines and the player are is behind speech::VoiceOutput (docs/adr/0183): a press is
+ * planned here, and every device question -- whether this machine has a voice for the accent,
+ * whether the local voice is installed, how a word comes out -- is the output's answer. A case
+ * replaces the output with a silent one and drives the whole press path without a sound card.
  */
 
 namespace lens::app {
@@ -66,17 +51,20 @@ class SpeechDuty final : public QObject {
     QML_UNCREATABLE("Owned by Controller; reached as Controller.speechDuty")
 public:
     /**
-     * @brief Bind the duty to the source that fetches and the cache that remembers.
+     * @brief Bind the duty to the source that fetches, the cache that remembers, and the machine's
+     *        output.
      *
-     * Both are taken rather than built, the seam PictureDuty takes: the cache root and the network
-     * manager are the composition root's, so the duty's own decisions can be reached without a
-     * socket or a sound card.
+     * The source and the cache are taken rather than built, the seam PictureDuty takes: the cache
+     * root and the network manager are the composition root's, so the duty's own decisions can be
+     * reached without a socket or a sound card.
      *
-     * @param source  The recording source, owned by the caller.
+     * @param sources The recording source, owned by the caller.
      * @param cache   The audio cache, owned by the caller.
+     * @param output  The machine's voice engines and player, owned by the caller and outliving this
+     *                object.
      * @param storage The document the two switches and the two engine rows are read from.
      */
-    SpeechDuty(speech::OnlineSources& sources, speech::AudioCache& cache, StorageDuty& storage, QObject* parent = nullptr);
+    SpeechDuty(speech::OnlineSources& sources, speech::AudioCache& cache, speech::VoiceOutput& output, StorageDuty& storage, QObject* parent = nullptr);
     ~SpeechDuty() override;
 
     /**
@@ -143,80 +131,25 @@ signals:
     void voicesChanged();
 
 private:
-    /// @brief Build the player on first use, so a run that never speaks never opens an audio device.
-    void ensurePlayer();
-    /// @brief The engine named @p name, built on first ask and kept.
-    /// @return The engine, or nullptr when this Qt has no engine of that name.
-    QTextToSpeech* engineFor(QString const& name);
-    /// @brief The engine that serves @p accent and the voice it speaks, resolved once per accent.
-    ///
-    /// AppController::settings() reads the two answers below on every projection, and QML rebuilds
-    /// a projection on every settings change; enumerating the engine's voices costs a WinRT round
-    /// trip per read. What the engine's constructor enumerated cannot change during a run, so the
-    /// answer is kept per accent.
-    struct SystemVoice {
-        QTextToSpeech* engine = nullptr;
-        /// The chosen voice's name; empty when no engine has one for the accent.
-        QString name;
-    };
-    SystemVoice const& systemVoiceFor(QString const& accent);
-    /// @brief The engine that can read @p accent, or nullptr when none on this machine can.
-    QTextToSpeech* systemFor(QString const& accent);
     /// @brief Read @p word through the system voice for the accent in force.
     void speakSystem(QString const& word);
     /// @brief The dictionary's recording: the cache first, the source only on a miss.
     void playOnline(QString const& word, QString const& accent);
-    /// @brief Read @p word through the local voice the setting names, on the worker; the recording is
-    ///        played back on this thread, and only if it is still the press that is current.
+    /// @brief Read @p word through the local voice the setting names, on the output's worker; the
+    ///        recording is played back on this thread, and only if it is still the press that is current.
     void speakLocal(QString const& word, QString const& accent);
-    /// @brief Hand the local engine to the worker to be released there, after whatever is queued for it.
-    void retireLocalVoice();
-    /**
-     * @brief Put @p bytes through the player.
-     *
-     * The old source is unbound before the new buffer is attached, and the buffer is held for as
-     * long as the player reads it: a QBuffer destroyed under a player that still holds it is a
-     * dangling read, which is why goldendict-ng's player unbinds in stop() and this one does too
-     * (docs/research/tts-survey-2026-10-28.html section 04).
-     */
+    /// @brief Put @p bytes through the output and light the speaker.
     void playBytes(QString const& word, QByteArray const& bytes);
-    /// @brief Detach the buffer and put the player down; the playing flags follow.
-    void release();
     void setPlaying(bool playing, QString const& word = {});
 
     speech::OnlineSources& sources_;
     speech::AudioCache&    cache_;
+    speech::VoiceOutput&   output_;
     StorageDuty&           storage_;
 
-    std::unique_ptr<QMediaPlayer> player_;
-    std::unique_ptr<QAudioOutput> output_;
-    /// The mp3 the player is reading. Alive from play() to EndOfMedia and not one frame longer.
-    std::unique_ptr<QBuffer> buffer_;
-
-    /// The Windows synthesiser, built on first use. Its own `stateChanged` is what says the word is
-    /// being read and when it stopped, so this class never guesses at how long a voice takes.
-    ///
-    /// Keyed by engine name because the engine is chosen per accent: WinRT's is asked first and
-    /// SAPI is asked when WinRT has no voice for the accent, so a machine whose English voice is
-    /// only in the older engine still speaks. Each is built at most once.
-    std::map<QString, std::unique_ptr<QTextToSpeech>> engines_;
-    /// Each accent's answer, kept: see systemVoiceFor(). Keyed by accent because the engine is
-    /// chosen per accent, and a machine may serve British from one engine and American from another.
-    std::map<QString, SystemVoice> systemVoices_;
-    /// The word the synthesiser was handed, which its state signals do not carry back.
-    QString systemWord_;
-
-    /// The local engine, bound to the voice and accent it was made for. Replaced when either changes, and
-    /// released after five minutes without a press (localVoiceIdle_). Only the worker uses it: a queued task
-    /// holds its own copy, so the engine outlives a release until the task that needs it has finished.
-    std::shared_ptr<LocalVoice> localVoice_;
-    /// Counts from the last local press. When it runs out the engine is released, and the next press loads it again.
-    QTimer localVoiceIdle_;
     /// Fetches the local voices. Built with no parent: a member that also had the duty as its parent
     /// would be deleted twice, once by the parent and once as a member.
     speech::VoiceDownloader downloader_;
-    /// Runs the local engine on one thread: sherpa-onnx's engine is not entered from two threads at once.
-    QThreadPool localPool_;
     /// The percent of the voice being downloaded, moved on whole steps so the page is not redrawn per chunk.
     int voicePercent_ = 0;
 
@@ -225,9 +158,6 @@ private:
     int     requestId_ = 0;
     bool    playing_   = false;
     QString playingWord_;
-    /// Set while release() runs: clearing the source makes the player report NoMedia, and that
-    /// report would come straight back here. The guard is what keeps one unbind one unbind.
-    bool releasing_ = false;
 };
 
 }

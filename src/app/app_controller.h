@@ -76,6 +76,8 @@ public:
      * @param llm Explanation client, owned by main().
      * @param hook Desktop selection hook, owned by main().
      * @param hotkey System-wide capture trigger, owned by main().
+     * @param speechOutput The machine's voice engines and player, owned by the composition root
+     *        (docs/adr/0183); a case lends a silent one.
      * @param pricing Loaded model price list, owned by main().
      * @param dataDir Directory `data/update.json` is read from, the same one `data/llm/` is.
      */
@@ -84,6 +86,7 @@ public:
                   MouseSelectionHook&          hook,
                   AltKeyHook&                  altHook,
                   GlobalHotkey&                hotkey,
+                  speech::VoiceOutput&         speechOutput,
                   const llm::Pricing&          pricing,
                   const std::filesystem::path& dataDir,
                   QObject*                     parent = nullptr);
@@ -401,7 +404,8 @@ private:
     PictureDuty             pictureDuty_;
     /// Pronunciation: the online sources that fetch a recording, the cache beside the settings document,
     /// and the duty the speaker icon reads. Declared in this order for the same reason the three
-    /// above are -- the duty borrows the other two.
+    /// above are -- the duty borrows the other two. The machine's engines and player are the
+    /// composition root's and reach the duty through the constructor (docs/adr/0183).
     speech::OnlineSources speechSources_;
     speech::AudioCache    speechCache_;
     SpeechDuty            speechDuty_;

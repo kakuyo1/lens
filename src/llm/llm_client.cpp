@@ -238,19 +238,19 @@ Handle LlmClient::request(Request request)
         [this, handle](auto&& typed) {
             using T = std::decay_t<decltype(typed)>;
             if constexpr (std::is_same_v<T, ExplainRequest>)
-                askExplain(handle, std::move(typed));
+                askExplain(handle, std::forward<T>(typed));
             else if constexpr (std::is_same_v<T, PeekRequest>)
-                askPeek(handle, std::move(typed));
+                askPeek(handle, std::forward<T>(typed));
             else if constexpr (std::is_same_v<T, SenseRequest>)
-                askSense(handle, std::move(typed));
+                askSense(handle, std::forward<T>(typed));
             else if constexpr (std::is_same_v<T, BreakdownRequest>)
-                askBreakdown(handle, std::move(typed));
+                askBreakdown(handle, std::forward<T>(typed));
             else if constexpr (std::is_same_v<T, CorrectionRequest>)
-                askCorrection(handle, std::move(typed));
+                askCorrection(handle, std::forward<T>(typed));
             else if constexpr (std::is_same_v<T, ProfileRequest>)
-                askProfile(handle, std::move(typed));
+                askProfile(handle, std::forward<T>(typed));
             else
-                askStory(handle, std::move(typed));
+                askStory(handle, std::forward<T>(typed));
         },
         std::move(request));
     return handle;
@@ -370,7 +370,7 @@ void LlmClient::askExplain(Handle const handle, ExplainRequest request)
              answer(handle, ExplainAnswer{.results = explanations, .usage = usage}); });
 }
 
-void LlmClient::askPeek(Handle const handle, PeekRequest request)
+void LlmClient::askPeek(Handle const handle, PeekRequest const& request)
 {
     if (request.lemma.isEmpty() or not configured(/*requireHttps=*/true)) {
         // Quietly: the peek is a gesture on a card the reader is already reading, and a missing
@@ -413,7 +413,7 @@ void LlmClient::askPeek(Handle const handle, PeekRequest request)
     });
 }
 
-void LlmClient::askSense(Handle const handle, SenseRequest request)
+void LlmClient::askSense(Handle const handle, SenseRequest const& request)
 {
     if (request.lemma.isEmpty() or request.input.isEmpty() or not configured(/*requireHttps=*/true)) {
         // Quietly, like the peek: the entry lives on a card the reader is already reading, and a
@@ -450,7 +450,7 @@ void LlmClient::askSense(Handle const handle, SenseRequest request)
     });
 }
 
-void LlmClient::askBreakdown(Handle const handle, BreakdownRequest request)
+void LlmClient::askBreakdown(Handle const handle, BreakdownRequest const& request)
 {
     if (request.words.isEmpty() or not configured(/*requireHttps=*/true)) {
         LENS_DEBUG("the breakdown went nowhere: the client is not configured");
@@ -460,7 +460,7 @@ void LlmClient::askBreakdown(Handle const handle, BreakdownRequest request)
 
     LENS_INFO("breaking down a {}-word sentence with '{}'", request.words.size(), config_.model.toStdString());
     const QString sentence = request.sentence;
-    const int     count    = request.words.size();
+    const int     count    = static_cast<int>(request.words.size());
     const auto    model    = config_.model;
 
     post(handle, buildRequestBody(config_, Channel::Breakdown, breakdownLines(request.words), QStringLiteral("en")), timeouts_.explainMs, {}, [this, handle, sentence, count, model](QNetworkReply& reply) {
@@ -484,7 +484,7 @@ void LlmClient::askBreakdown(Handle const handle, BreakdownRequest request)
     });
 }
 
-void LlmClient::askCorrection(Handle const handle, CorrectionRequest request)
+void LlmClient::askCorrection(Handle const handle, CorrectionRequest const& request)
 {
     const Channel channel = request.channel;
     if (request.text.isEmpty() or not configured(/*requireHttps=*/true)) {
@@ -517,7 +517,7 @@ void LlmClient::askCorrection(Handle const handle, CorrectionRequest request)
     });
 }
 
-void LlmClient::askProfile(Handle const handle, ProfileRequest request)
+void LlmClient::askProfile(Handle const handle, ProfileRequest const& request)
 {
     if (request.summary.isEmpty() or not configured(/*requireHttps=*/true)) {
         LENS_DEBUG("the reading profile went nowhere: the client is not configured");
@@ -548,7 +548,7 @@ void LlmClient::askProfile(Handle const handle, ProfileRequest request)
     });
 }
 
-void LlmClient::askStory(Handle const handle, StoryRequest request)
+void LlmClient::askStory(Handle const handle, StoryRequest const& request)
 {
     if (request.words.isEmpty() or not configured(/*requireHttps=*/true)) {
         LENS_DEBUG("the story went nowhere: the client is not configured");
