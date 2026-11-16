@@ -19,7 +19,8 @@ Item {
     readonly property string apiDraft: draftOwner ? draftOwner.ocrApiDraft : ""
     readonly property string secretDraft: draftOwner ? draftOwner.ocrSecretDraft : ""
     readonly property var openChildRect: providerField.openChildRect || languageField.openChildRect
-    property bool confirmingClear: false
+    /// Asking the panel before an irreversible action; the panel owns the question window.
+    signal confirmRequested(string heading, string message, string confirmLabel, var action)
     signal credentialEdited(string slot, string value)
     signal credentialCommitted()
     implicitHeight: content.implicitHeight
@@ -329,23 +330,12 @@ Item {
 
                 Chip {
                     objectName: "clearOnlineOcrButton"
-                    visible: !page.confirmingClear
                     label: qsTranslate("SettingsPopup", "Clear configuration")
-                    onPicked: page.confirmingClear = true
-                }
-                Chip {
-                    visible: page.confirmingClear
-                    label: qsTranslate("SettingsPopup", "Confirm")
-                    selected: true
-                    onPicked: {
-                        page.confirmingClear = false;
-                        Controller.clearOcrOnlineConfiguration();
-                    }
-                }
-                Chip {
-                    visible: page.confirmingClear
-                    label: qsTranslate("SettingsPopup", "Cancel")
-                    onPicked: page.confirmingClear = false
+                    onPicked: page.confirmRequested(
+                        qsTranslate("SettingsPopup", "Clear configuration"),
+                        qsTranslate("SettingsPopup", "The service address and the credentials on this device are removed."),
+                        qsTranslate("SettingsPopup", "Clear"),
+                        () => Controller.clearOcrOnlineConfiguration())
                 }
             }
 

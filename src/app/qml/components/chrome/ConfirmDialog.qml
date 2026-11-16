@@ -4,29 +4,33 @@ import QtQuick
 import QtQuick.Window
 
 /**
- * The question the words panel's cross asks, as a window of its own over that panel.
+ * The question a surface asks before an irreversible action: clear a cache, remove a download,
+ * delete data.
  *
- * A window rather than a face drawn inside the panel's card, for two reasons. The card's height is
- * not the panel's to change: SurfaceHost.placeBeside puts its bottom edge on the tray icon and
- * nothing re-places a panel that changes size afterwards, so a card that shrank for the question
- * would lift away from the icon it was opened from. And it is a window: docs/QML.md section 1 draws
- * the surface/component line there, so it is a file of its own.
+ * A window rather than a face drawn inside the asking surface's card, for the reason the words
+ * panel's removal question gives: a placed card's height is not the panel's to change, and a card
+ * that grew for the question would lift away from the anchor it was opened from. It is a window,
+ * so it is a file of its own (docs/QML.md section 1).
  *
- * Modal to the window that raises it, so a press landing on the list behind cannot reach a row:
- * one word cannot be deleted while another is being asked about.
+ * Modal to the window that raises it, so a press landing on the surface behind cannot reach a row
+ * or a button: the action being asked about cannot be started twice.
  *
- * Neither answer pill is filled; the sentence carries the decision -- PRODUCT.md asks a removal to
- * confirm before it happens, not to alarm the reader into it.
+ * The confirm key is filled with `danger` and its label in `on`, so the irreversible answer is the
+ * one the eye finds first; the fill keeps its contrast in every theme because `on` inverts with
+ * the table (UI-SPEC.md 4.4 and 4.8). Cancel stays the secondary pill.
  *
- * Its strings are spelled in the words panel's translation context rather than this file's, the way
- * SettingsPopup's sub-pages are: the question belongs to that panel, and a context of its own would
- * read as a new string to every translator.
+ * The component carries no strings of its own: the caller spells every one in its own translation
+ * context, the way SettingsPopup's sub-pages are.
  */
 Window {
     id: root
-    objectName: "removal"
+
+    /// The surface table's name: this window's objectName and its image://glass key.
+    required property string surfaceName
+    objectName: root.surfaceName
+
     /// The desktop under this window, which its glass draws (docs/adr/0041).
-    readonly property var glass: Controller.glassBackdrop.surface("removal")
+    readonly property var glass: Controller.glassBackdrop.surface(root.surfaceName)
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
         glassLightText: root.glass.lightText
@@ -45,12 +49,18 @@ Window {
     /// releases it.
     modality: Qt.WindowModal
 
-    /// The lemma being asked about. The caller owns it -- this window only draws it.
-    property string word: ""
+    /// The question's words. The caller sets them before ask().
+    property string heading: ""
+    property string message: ""
+    property string confirmLabel: ""
+    property string cancelLabel: ""
 
-    /// The lemma the sentence is drawn with, copied when the question is asked: the caller clears
-    /// `word` as soon as it is answered, and the sentence must not lose its subject mid-fade.
-    property string displayWord: ""
+    /// A row under the message that silences this question, or "" when it carries none.
+    property string switchLabel: ""
+    /// What that switch says. Not reset per question on purpose: `components/Switch.qml` writes its
+    /// `checked` itself when tapped, so writing it from elsewhere leaves the switch and the decision
+    /// disagreeing.
+    property bool switchOn: false
 
     /// ShadowCard fades it and hides the window when the fade is done; the answer itself is
     /// emitted at once, not after it.
@@ -60,27 +70,25 @@ Window {
     /// (answered or put down, fading before the window goes).
     readonly property string phase: !visible ? "hidden" : leaving ? "closing" : "asking"
 
-    /// @p dontAsk is what the switch under the sentence says.
-    signal answered(bool dontAsk)
+    /// The reader took the irreversible answer; @p switchOn is what the switch says, and is
+    /// always false when the question carries no switch.
+    signal confirmed(bool switchOn)
     /// The question is on its way out, answered or not. The caller's idea of what is being asked
-    /// ends here rather than when the fade does; this window keeps drawing `displayWord`.
+    /// ends here rather than when the fade does.
     signal dismissed()
 
     readonly property int shadowMargin: 26
-    readonly property int minCardWidth: 320
-    readonly property int maxCardWidth: 460
+    property int minCardWidth: 320
+    /// The ceiling the caller may lower: a dialog centred on a narrow host card stays over that
+    /// card rather than hanging past its sides.
+    property int maxCardWidth: 460
 
-    /// Whether this answer also settles the asking. Off, so an irreversible removal is asked about
-    /// every time until the reader chooses otherwise; once chosen it stays where they left it.
-    ///
-    /// Not reset per question on purpose: `components/Switch.qml` writes its `checked` itself when
-    /// tapped, so writing it from elsewhere leaves the switch and the decision disagreeing.
-    property bool dontAsk: false
-
-    /// As wide as the sentence needs and no wider, like the panel's widest row: 320 px floor, and
-    /// past 460 a long word or translation wraps rather than widening the card off the screen.
+    /// As wide as the wider of the heading and the sentence needs and no wider: 320 px floor, and
+    /// past 460 a long sentence or heading wraps rather than widening the card off the screen.
     readonly property int cardWidth: Math.min(maxCardWidth,
-                                              Math.max(minCardWidth, Math.ceil(questionText.implicitWidth) + 40))
+                                              Math.max(minCardWidth,
+                                                       Math.ceil(Math.max(headingText.implicitWidth,
+                                                                          messageText.implicitWidth)) + 40))
     width: cardWidth + 2 * shadowMargin
     height: questionColumn.implicitHeight + 36 + 2 * shadowMargin
 
@@ -91,7 +99,6 @@ Window {
      * that is not settled on the same turn the window is shown.
      */
     function ask() {
-        root.displayWord = root.word;
         root.leaving = false;
         root.visible = true;
         root.raise();
@@ -100,10 +107,10 @@ Window {
 
     /// @brief Put the question down, fading it out before the window goes.
     ///
-    /// Escape and Cancel report nothing: leaving a question unanswered is not an answer. Remove
-    /// emits `answered` first, so the word is settled while the card is still on screen. Both
-    /// ways out emit `dismissed` at once, because the caller's pending subject is the question's,
-    /// not the fade's.
+    /// Escape and Cancel report nothing: leaving a question unanswered is not an answer. Confirm
+    /// emits `confirmed` first, so the action runs while the card is still on screen. Both ways
+    /// out emit `dismissed` at once, because the caller's pending subject is the question's, not
+    /// the fade's.
     function dismiss() {
         if (!root.visible || root.leaving)
             return;
@@ -120,7 +127,7 @@ Window {
         root.y = Math.round(host.y + (host.height - root.height) / 2);
     }
 
-    /// Escape means "not this word", and is offered exactly while the question is up.
+    /// Escape means "not this", and is offered exactly while the question is up.
     ///
     /// Application-wide rather than the default window scope: the offscreen platform the suite runs
     /// on never gives a window the active state, so a window-scoped Escape cannot be exercised
@@ -154,19 +161,19 @@ Window {
             spacing: 12
 
             Text {
+                id: headingText
                 width: parent.width
-                text: qsTranslate("WordsPopup", "Remove word")
+                text: root.heading
                 color: root.tokens.text
                 font.pixelSize: 14
                 font.weight: Font.Bold
+                wrapMode: Text.WordWrap
             }
 
-            // The word being removed is the sentence's own %1 rather than a field of its own:
-            // where it sits in that sentence is the translator's to place.
             Text {
-                id: questionText
+                id: messageText
                 width: parent.width
-                text: qsTranslate("WordsPopup", "Remove %1 from your word list and history?").arg(root.displayWord)
+                text: root.message
                 color: root.tokens.text
                 font.pixelSize: 13
                 lineHeight: 1.35
@@ -174,12 +181,11 @@ Window {
                 wrapMode: Text.WordWrap
             }
 
-            // The only control here that is not an answer to the removal: it decides whether this
-            // question is asked again, and it is read when the answer is Remove.
             SwitchRow {
-                label: qsTranslate("WordsPopup", "Don't ask again")
-                checked: root.dontAsk
-                onToggled: (on) => root.dontAsk = on
+                visible: root.switchLabel !== ""
+                label: root.switchLabel
+                checked: root.switchOn
+                onToggled: (on) => root.switchOn = on
             }
 
             Item {
@@ -192,7 +198,8 @@ Window {
                     spacing: 8
 
                     Rectangle {
-                        width: cancelLabel.width + 28
+                        objectName: "cancelButton"
+                        width: cancelText.width + 28
                         height: 27
                         radius: root.tokens.radiusPill
                         color: root.tokens.panel2
@@ -208,7 +215,7 @@ Window {
 
                         activeFocusOnTab: true
                         Accessible.role: Accessible.Button
-                        Accessible.name: cancelLabel.text
+                        Accessible.name: cancelText.text
                         Accessible.onPressAction: cancelTap.tapped()
                         Keys.onPressed: (event) => {
                             if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return
@@ -220,9 +227,9 @@ Window {
                         FocusRing { radius: root.tokens.radiusPill }
 
                         Text {
-                            id: cancelLabel
+                            id: cancelText
                             anchors.centerIn: parent
-                            text: qsTranslate("WordsPopup", "Cancel")
+                            text: root.cancelLabel
                             color: root.tokens.muted
                             font.pixelSize: 12
                             font.weight: Font.Bold
@@ -236,13 +243,12 @@ Window {
                     }
 
                     Rectangle {
-                        width: removeLabel.width + 28
+                        objectName: "confirmButton"
+                        width: confirmText.width + 28
                         height: 27
                         radius: root.tokens.radiusPill
-                        color: root.tokens.panel2
-                        border.width: 1
-                        border.color: root.tokens.line
-                        scale: removeTap.pressed ? 0.97 : 1.0
+                        color: root.tokens.danger
+                        scale: confirmTap.pressed ? 0.97 : 1.0
                         Behavior on scale {
                             NumberAnimation {
                                 duration: root.tokens.motion.press
@@ -252,31 +258,31 @@ Window {
 
                         activeFocusOnTab: true
                         Accessible.role: Accessible.Button
-                        Accessible.name: removeLabel.text
-                        Accessible.onPressAction: removeTap.tapped()
+                        Accessible.name: confirmText.text
+                        Accessible.onPressAction: confirmTap.tapped()
                         Keys.onPressed: (event) => {
                             if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return
                                  || event.key === Qt.Key_Space) && !event.isAutoRepeat) {
                                 event.accepted = true;
-                                removeTap.tapped();
+                                confirmTap.tapped();
                             }
                         }
                         FocusRing { radius: root.tokens.radiusPill }
 
                         Text {
-                            id: removeLabel
+                            id: confirmText
                             anchors.centerIn: parent
-                            text: qsTranslate("WordsPopup", "Remove")
-                            color: root.tokens.danger
+                            text: root.confirmLabel
+                            color: root.tokens.on
                             font.pixelSize: 12
                             font.weight: Font.Bold
                         }
 
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
                         TapHandler {
-                            id: removeTap
+                            id: confirmTap
                             onTapped: {
-                                root.answered(root.dontAsk);
+                                root.confirmed(root.switchOn);
                                 root.dismiss();
                             }
                         }

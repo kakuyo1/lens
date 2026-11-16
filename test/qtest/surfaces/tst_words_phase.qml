@@ -35,7 +35,7 @@ Item {
             const panel = createTemporaryObject(wordsComponent, root);
             verify(panel);
             wait(50);
-            const question = Util.ofType(panel, "RemovalQuestion");
+            const question = Util.ofType(panel, "ConfirmDialog");
             verify(question, "the panel has no removal question");
             compare(question.phase, "hidden");
             // The list's card: the one in the panel's own window, not the question's card.

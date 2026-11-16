@@ -136,6 +136,7 @@ Window {
             return;
         }
         pendingRemoval = word;
+        question.message = qsTranslate("WordsPopup", "Remove %1 from your word list and history?").arg(word);
         question.ask();
     }
 
@@ -497,18 +498,21 @@ Window {
     // The question this panel raises. It is a Window, so it is a surface of its own under
     // docs/QML.md section 1 rather than a block in this file -- and it is the one place the
     // pending lemma is drawn, while WordsPopup keeps owning it.
-    RemovalQuestion {
+    ConfirmDialog {
         id: question
+        surfaceName: "removal"
         transientParent: words
-        word: words.pendingRemoval
-        onAnswered: (dontAsk) => {
-            if (dontAsk)
+        heading: qsTranslate("WordsPopup", "Remove word")
+        confirmLabel: qsTranslate("WordsPopup", "Remove")
+        cancelLabel: qsTranslate("WordsPopup", "Cancel")
+        switchLabel: qsTranslate("WordsPopup", "Don't ask again")
+        onConfirmed: (switchOn) => {
+            if (switchOn)
                 words.askBeforeRemoving = false;
             words.removeWordAnimated(words.pendingRemoval);
         }
         // The question is the pending subject's owner, so the list lets go of it the moment the
-        // question is put down -- not when its fade ends. The sentence being drawn is displayWord,
-        // which the question copied when it was asked.
+        // question is put down -- not when its fade ends. The sentence stays as the caller set it.
         onDismissed: words.pendingRemoval = ""
     }
 

@@ -75,6 +75,7 @@ inline constexpr Row kRows[]{
     {"notice", true, true, nullptr, false, 0, nullptr},
     {"update", true, true, nullptr, false, 0, nullptr},
     {"removal", true, true, nullptr, false, 0, nullptr},
+    {"confirm", true, true, nullptr, false, 0, nullptr},
     {"onboarding", true, true, nullptr, false, 0, nullptr},
     // The review sign: the dev surface reports it, but the review flow raises it and it holds no
     // sheet of its own -- its answer card is a Bubble, which has one (docs/adr/0067).

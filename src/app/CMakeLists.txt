@@ -417,6 +417,7 @@ qt_add_qml_module(lens_app
     qml/panels/TrayCloseUp.qml
     qml/capture/Mask.qml
     qml/settings/SettingsPopup.qml
+    qml/settings/SettingsFooter.qml
     qml/settings/previews/ThemePreview.qml
     qml/settings/previews/VocabPreview.qml
     qml/settings/previews/NotePreview.qml
@@ -451,7 +452,7 @@ qt_add_qml_module(lens_app
     qml/panels/WordsSearchHint.qml
      qml/panels/YearWordsPopup.qml
     qml/panels/YearPalette.qml
-     qml/panels/RemovalQuestion.qml
+    qml/components/chrome/ConfirmDialog.qml
     qml/panels/CostPopup.qml
     qml/panels/ReadingProfilePopup.qml
     qml/panels/ReportCard.qml

@@ -12,7 +12,8 @@ Item {
     property var sync: Controller.syncDuty
     readonly property bool linked: sync.state === "signedIn" || sync.state === "syncing"
     readonly property bool canSync: sync.state === "signedIn" && sync.hasPassphrase
-    property bool confirmingDelete: false
+    /// Asking the panel before an irreversible action; the panel owns the question window.
+    signal confirmRequested(string heading, string message, string confirmLabel, var action)
     readonly property var openChildRect: null
     implicitHeight: content.implicitHeight
 
@@ -482,36 +483,14 @@ Item {
                 wrapMode: Text.WordWrap
             }
 
-            Row {
-                spacing: 8
-                visible: !page.confirmingDelete
-
-                Chip {
-                    objectName: "deleteButton"
-                    label: qsTranslate("SettingsPopup", "Delete cloud data")
-                    onPicked: page.confirmingDelete = true
-                }
-            }
-
-            Row {
-                spacing: 8
-                visible: page.confirmingDelete
-
-                Chip {
-                    objectName: "confirmDeleteButton"
-                    label: qsTranslate("SettingsPopup", "Confirm delete")
-                    selected: true
-                    onPicked: {
-                        page.confirmingDelete = false;
-                        page.sync.deleteCloudData();
-                    }
-                }
-
-                Chip {
-                    objectName: "cancelDeleteButton"
-                    label: qsTranslate("SettingsPopup", "Cancel")
-                    onPicked: page.confirmingDelete = false
-                }
+            Chip {
+                objectName: "deleteButton"
+                label: qsTranslate("SettingsPopup", "Delete cloud data")
+                onPicked: page.confirmRequested(
+                    qsTranslate("SettingsPopup", "Delete cloud data"),
+                    qsTranslate("SettingsPopup", "The encrypted copy in the cloud is deleted. This device's data stays."),
+                    qsTranslate("SettingsPopup", "Delete"),
+                    () => page.sync.deleteCloudData())
             }
         }
 

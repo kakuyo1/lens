@@ -18,6 +18,9 @@ Item {
     readonly property var openChildRect: null
     implicitHeight: content.implicitHeight
 
+    /// Asking the panel before an irreversible action; the panel owns the question window.
+    signal confirmRequested(string heading, string message, string confirmLabel, var action)
+
     function closeChild() {}
 
     /// The pinned distribution's download state, straight off the duty: it moves during a
@@ -104,7 +107,11 @@ Item {
                     objectName: "removeRapidOcrButton"
                     visible: page.bundle.installed && !page.bundle.downloading
                     label: qsTranslate("SettingsPopup", "Remove")
-                    onPicked: Controller.captureDuty.removeRapidOcrBundle()
+                    onPicked: page.confirmRequested(
+                        qsTranslate("SettingsPopup", "Remove RapidOCR"),
+                        qsTranslate("SettingsPopup", "The downloaded program and its model files are deleted from this device. You can download them again."),
+                        qsTranslate("SettingsPopup", "Remove"),
+                        () => Controller.captureDuty.removeRapidOcrBundle())
                 }
             }
 

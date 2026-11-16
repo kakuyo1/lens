@@ -446,7 +446,19 @@ Item {
             verify(question, "the card is not asking about " + word);
             verify(question.parent.visible, "the question is on a face that is not drawn");
 
-            mouseClick(pillWith(popup, "Remove"), 5, 5);
+            // The irreversible key is the one filled with danger: the red is the warning, and its
+            // label uses the table's `on` so it reads in every theme (UI-SPEC.md 4.4 and 4.8).
+            const dialog = Util.ofType(popup, "ConfirmDialog");
+            verify(dialog, "the question is not a ConfirmDialog");
+            const remove = pillWith(popup, "Remove");
+            const removeLabel = Util.textWith(Util.textsUnder(remove), [qsTr("Remove")]);
+            verify(removeLabel, "the Remove pill draws no label");
+            compare(Qt.colorEqual(remove.color, dialog.tokens.danger), true,
+                    "the confirm key is not filled with danger");
+            compare(Qt.colorEqual(removeLabel.color, dialog.tokens.on), true,
+                    "the confirm label does not read on the danger fill");
+
+            mouseClick(remove, 5, 5);
 
             compare(popup.pendingRemoval, "", "the card stayed on the question after its answer");
             // The model removes the row at once; the view's remove transition is what closes it,

@@ -18,7 +18,7 @@
 `src/app/qml/util/` 放纯函数 JS 库，按职责分文件：`Numbers.js` 收 `clamp`，`Format.js` 收字节与金额的展示格式。它们带 `.pragma library`，拿不到 QML 状态，也不注册成 QML 类型；用它的文件按相对路径 import，如 `import "../util/Format.js" as Format`。页面与控件里不留同一段工具函数的第二份实现；带翻译的句子和领域映射（设置页标题、词表时间文案）不算纯工具，留在自己的模块。落点几何是例外：它跨表面、要进程内值测试，住在 `app/geometry`（`docs/adr/0116`）。
 
 `src/app/qml/components/` 只放一个以上表面家族都用得到的件，并按角色分四组：`chrome/`（玻璃、阴影、淡入
-淡出、高度保持）、`controls/`（图标、按钮、开关、滑块、下拉、路径与热键输入）、`content/`（混排文字、逐字
+淡出、高度保持、清空 / 删除的确认卡）、`controls/`（图标、按钮、开关、滑块、下拉、路径与热键输入）、`content/`（混排文字、逐字
 揭示、释义行）、`preview/`（预览框与样例数据）。只被一个家族使用的件跟着家族走——`BubbleTitleRow` /
 `BubbleVerdictRow` / `BubbleHeaderActions` 在 `bubble/`，`MenuRow` / `StatRow` 在 `panels/`。
 
@@ -43,8 +43,8 @@
 **单个 `.qml` 文件不得超过 32768 字符**（实测：32767 字符能解析，32768 就报 `Invalid argument`）。这条限制
 来自 CI 与 `docs/metrics/` 共用的那份 `tree-sitter`（`package.json` 里 pin 的 0.21.1），与文件内容无关；
 `scripts/quality/qml-coverage.js` 会在超限时直接点名文件与字符数，而不是抛那句无从下手的 `Invalid argument`。
-判据还是上面那条 “是不是窗口”——文件一旦逼近这个数，就是把里面的窗口拆出去的时候（`RemovalQuestion.qml`
-就是 2026-10-07 从 `WordsPopup.qml` 拆出来的：那个文件当时 34060 字符，CI 的 QML 覆盖率作业因此整条失败）。
+判据还是上面那条 “是不是窗口”——文件一旦逼近这个数，就是把里面的窗口拆出去的时候（词汇的删除确认卡
+2026-10-07 从 `WordsPopup.qml` 拆出，今天通用为 `components/chrome/ConfirmDialog.qml`：那个文件当时 34060 字符，CI 的 QML 覆盖率作业因此整条失败）。
 
 `qt_add_qml_module` 在 `src/app/CMakeLists.txt`：新增 QML 文件改 `QML_FILES` 即可，单例另需
 `set_source_files_properties`（本仓库只有 `Tokens` 一个，那一行必须先于 `qt_add_qml_module`，它在那儿

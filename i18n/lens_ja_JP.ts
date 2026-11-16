@@ -809,7 +809,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="108"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="43"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="81"/>
         <location filename="../src/app/app_controller.cpp" line="614"/>
         <source>OCR</source>
         <translation>OCR</translation>
@@ -817,7 +817,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="28"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="80"/>
         <source>Auto scan</source>
         <translation>自動スキャン</translation>
     </message>
@@ -871,7 +871,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsCapturePage.qml" line="124"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="87"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="91"/>
         <source>Popup &amp; clipboard</source>
         <translation>ポップアップとクリップボード</translation>
     </message>
@@ -899,7 +899,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="18"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="72"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
         <source>General</source>
         <translation>一般</translation>
     </message>
@@ -910,7 +910,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="23"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="73"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="77"/>
         <source>Reading &amp; learning</source>
         <translation>読解と学習</translation>
     </message>
@@ -926,7 +926,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="33"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="75"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
         <source>Capture &amp; popups</source>
         <translation>取得とポップアップ</translation>
     </message>
@@ -937,7 +937,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="48"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="82"/>
         <source>Model service</source>
         <translation>モデルサービス</translation>
     </message>
@@ -948,7 +948,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="53"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="83"/>
         <source>Extensions</source>
         <translation>拡張</translation>
     </message>
@@ -966,7 +966,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="63"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="81"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="85"/>
         <source>About</source>
         <translation>情報</translation>
     </message>
@@ -1035,70 +1035,104 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsConnectionPage.qml" line="139"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="243"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="244"/>
         <source>Test connection</source>
         <translation>接続をテスト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="28"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="31"/>
         <source>Checking...</source>
         <translation>確認中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="30"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="33"/>
         <source>Up to date (version %1)</source>
         <translation>最新です（バージョン %1）</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="32"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="35"/>
         <source>Version %1 is available</source>
         <translation>バージョン %1 が利用できます</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="34"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="37"/>
         <source>Cannot connect</source>
         <translation>接続できません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="68"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="94"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="71"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="97"/>
         <source>GitHub repository</source>
         <translation>GitHub リポジトリ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="140"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="143"/>
         <source>Current version %1</source>
         <translation>現在のバージョン %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="221"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="224"/>
         <source>Picture cache</source>
         <translation>画像キャッシュ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="251"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="298"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="345"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="254"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="258"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="305"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="309"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="356"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="360"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="337"/>
         <source>Clear</source>
         <translation>消去</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="268"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="256"/>
+        <source>Clear picture cache</source>
+        <translation>画像キャッシュを消去</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="257"/>
+        <source>The pictures are downloaded again the next time you open a word.</source>
+        <translation>次に単語を開いたときに画像を再ダウンロードします。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="275"/>
         <source>Audio cache</source>
         <translation>音声キャッシュ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="315"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="307"/>
+        <source>Clear audio cache</source>
+        <translation>音声キャッシュを消去</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="308"/>
+        <source>The recordings are downloaded again the next time you play a word.</source>
+        <translation>次に単語を再生したときに録音を再ダウンロードします。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="326"/>
         <source>Behavior data</source>
         <translation>行動データ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="375"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="358"/>
+        <source>Clear behavior data</source>
+        <translation>行動データを消去</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="359"/>
+        <source>The local months are removed, and their encrypted cloud copies are deleted at the next sync.</source>
+        <translation>ローカルの月次ファイルが削除され、暗号化されたクラウド上のコピーは次回の同期で削除されます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="390"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · MIT ライセンス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="382"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="397"/>
         <source>Built %1</source>
         <translation>ビルド日 %1</translation>
     </message>
@@ -1232,7 +1266,7 @@ One small word at a time, the reading opens.</translation>
         <translation>読書に使ったアプリを記録</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="60"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="63"/>
         <source>Accent</source>
         <translation>アクセント</translation>
     </message>
@@ -1254,7 +1288,7 @@ One small word at a time, the reading opens.</translation>
         <translation>入力速度</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="195"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="198"/>
         <source>Check for updates</source>
         <translation>更新を確認</translation>
     </message>
@@ -1265,7 +1299,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="58"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="80"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="84"/>
         <source>Account &amp; sync</source>
         <translation>アカウントと同期</translation>
     </message>
@@ -1349,63 +1383,73 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="28"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="74"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="78"/>
         <source>Pronunciation</source>
         <translation>発音</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="49"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="52"/>
         <source>Auto-play</source>
         <translation>自動再生</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="68"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="71"/>
         <source>American</source>
         <translation>アメリカ英語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="68"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="71"/>
         <source>British</source>
         <translation>イギリス英語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="78"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="86"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="81"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="89"/>
         <source>Engine</source>
         <translation>エンジン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="98"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="101"/>
         <source>Voice: %1</source>
         <translation>音声: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="99"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="102"/>
         <source>No system voice is installed for this accent.</source>
         <translation>このアクセントのシステム音声がインストールされていません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="110"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="118"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="113"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="121"/>
         <source>Fallback</source>
         <translation>フォールバック</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="132"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="140"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="135"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="143"/>
         <source>Online source</source>
         <translation>オンラインの提供元</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="147"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="150"/>
         <source>Only the word is sent, to the source you pick.</source>
         <translation>送信されるのは単語のみで、選んだ提供元に送られます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="160"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="168"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="163"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="171"/>
         <source>Local voice</source>
         <translation>ローカル音声</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="203"/>
+        <source>Remove local voice</source>
+        <translation>ローカル音声を削除</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="204"/>
+        <source>The downloaded voice files are deleted from this computer. You can download them again.</source>
+        <translation>ダウンロードした音声ファイルをこのコンピューターから削除します。再ダウンロードできます。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsLearningPage.qml" line="404"/>
@@ -1413,24 +1457,24 @@ One small word at a time, the reading opens.</translation>
         <translation>テキストファイル (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="40"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="20"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="43"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="23"/>
         <source>Downloaded and verified.</source>
         <translation>ダウンロード済み・検証済み。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="32"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="16"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="35"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="19"/>
         <source>Downloading %1%</source>
         <translation>ダウンロード中 %1%</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="18"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="21"/>
         <source>LJSpeech has only an American voice, so this accent stays silent.</source>
         <translation>LJSpeech はアメリカ英語の音声のみのため、このアクセントは無音のままです。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="21"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="24"/>
         <source>Not downloaded. The local engine stays silent.</source>
         <translation>未ダウンロード。ローカルエンジンは無音のままです。</translation>
     </message>
@@ -1456,18 +1500,20 @@ One small word at a time, the reading opens.</translation>
         <translation>カード上で地球を長押しすると母語をのぞけますが、英語の説明のときだけです。この設定では、説明が選択した言語で表示されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="186"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="189"/>
         <source>Download</source>
         <translation>ダウンロード</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="106"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="198"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="109"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="113"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="201"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="205"/>
         <source>Remove</source>
         <translation>削除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="204"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="211"/>
         <source>Voice files stay on this computer and are not synced.</source>
         <translation>音声ファイルはこのコンピューターにのみ保存され、同期されません。</translation>
     </message>
@@ -1506,7 +1552,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="90"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="94"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
@@ -1522,181 +1568,191 @@ One small word at a time, the reading opens.</translation>
         <translation>未設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="314"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="343"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="321"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="350"/>
         <source>Saved</source>
         <translation>保存しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="351"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="369"/>
         <source>Defaults restored</source>
         <translation>初期設定に戻しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="460"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="479"/>
         <source>Back</source>
         <translation>戻る</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="516"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="535"/>
         <source>Close</source>
         <translation>閉じる</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="651"/>
+        <location filename="../src/app/qml/settings/SettingsFooter.qml" line="46"/>
+        <source>Restore defaults</source>
+        <translation>初期設定に戻す</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/SettingsFooter.qml" line="47"/>
         <source>API key, launch at login and daily budget stay as they are.</source>
         <translation>API キー、自動起動、1 日の予算は変更されません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="76"/>
+        <location filename="../src/app/qml/settings/SettingsFooter.qml" line="48"/>
+        <source>Restore</source>
+        <translation>戻す</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="77"/>
         <source>Recognized in %1 ms.</source>
         <translation>%1 ミリ秒で認識しました。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="78"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="79"/>
         <source>Online OCR is not configured.</source>
         <translation>オンライン OCR は設定されていません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="80"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="81"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>本日の予算を使い切りました。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="108"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="109"/>
         <source>Service</source>
         <translation>サービス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="132"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="133"/>
         <source>Endpoint</source>
         <translation>エンドポイント</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="153"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="154"/>
         <source>OCR endpoint</source>
         <translation>OCR エンドポイント</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="189"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="190"/>
         <source>Online recognition language</source>
         <translation>オンライン認識言語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="60"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="61"/>
         <source>Automatic (service default)</source>
         <translation>自動（サービスの既定値）</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="82"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="83"/>
         <source>The service did not answer in time. Try again later.</source>
         <translation>サービスが時間内に応答しませんでした。しばらくしてから再試行してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="84"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="85"/>
         <source>The service could not be reached. Check the network or proxy.</source>
         <translation>サービスに接続できませんでした。ネットワークまたはプロキシを確認してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="86"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="87"/>
         <source>The service answered but found no text in the test image.</source>
         <translation>サービスは応答しましたが、テスト画像からテキストを検出できませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="88"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="89"/>
         <source>The service is not enabled for this account. Activate it in the service&apos;s console, then try again.</source>
         <translation>このアカウントではサービスが有効になっていません。サービスのコンソールで有効にしてから再試行してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="90"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="91"/>
         <source>The service rejected the key or its permissions. Check that the key is active and allowed to call this service.</source>
         <translation>サービスがキーまたはその権限を拒否しました。キーが有効で、このサービスを呼び出せる権限があるか確認してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="92"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="93"/>
         <source>The service&apos;s quota or rate limit is used up. Check the plan or billing state in the service&apos;s console.</source>
         <translation>サービスの割り当てまたはレート制限を使い切りました。サービスのコンソールでプランや課金状態を確認してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="94"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="95"/>
         <source>The service refused the image. Check its size and format limits.</source>
         <translation>サービスが画像を拒否しました。サイズと形式の制限を確認してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="96"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="97"/>
         <source>The service is temporarily unavailable. Try again later.</source>
         <translation>サービスは一時的に利用できません。しばらくしてから再試行してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="97"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="98"/>
         <source>The service refused the test. Its error code is in the log.</source>
         <translation>サービスがテストを拒否しました。エラーコードはログに記録されています。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="113"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="114"/>
         <source>Online OCR service</source>
         <translation>オンライン OCR サービス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="121"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="122"/>
         <source>Choose a service, then enter the credentials it needs.</source>
         <translation>サービスを選び、必要な認証情報を入力してください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="123"/>
         <source>The service&apos;s own terms and billing apply. Switching services clears the address and credentials below.</source>
         <translation>サービスの規約と課金が適用されます。サービスを切り替えると、以下のアドレスと認証情報は消去されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="174"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="175"/>
         <source>The full HTTPS address. Leave it empty to use the service&apos;s own; nothing is sent until a capture is confirmed.</source>
         <translation>完全な HTTPS アドレス。空欄の場合はサービス自身のアドレスを使用します。キャプチャを確認するまで何も送信されません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="297"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="298"/>
         <source>Separate from the explanation key. Stored on this device only, never synced, exported or logged.</source>
         <translation>解説用キーとは別です。この端末にのみ保存され、同期・エクスポート・ログ出力はされません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="310"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="311"/>
         <source>Ready to ask for confirmation.</source>
         <translation>準備完了。キャプチャ後に確認を求めます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="311"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="312"/>
         <source>Not configured.</source>
         <translation>未設定です。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="324"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="325"/>
         <source>Test online OCR</source>
         <translation>オンライン OCR をテスト</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="333"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="335"/>
         <source>Clear configuration</source>
         <translation>設定を消去</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="338"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="623"/>
-        <source>Confirm</source>
-        <translation>確認</translation>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="336"/>
+        <source>The service address and the credentials on this device are removed.</source>
+        <translation>このデバイスのサービスアドレスと認証情報を削除します。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="354"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="344"/>
         <source>The test sends a small synthetic image, never the screen, and may be billed by the service.</source>
         <translation>テストは小さな合成画像のみを送信し、画面は送信しません。サービス側で課金される場合があります。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="472"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="491"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="260"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="609"/>
+        <location filename="../src/app/qml/settings/SettingsFooter.qml" line="40"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
     </message>
@@ -2557,12 +2613,10 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/pet/PetPackageDialog.qml" line="115"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="99"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="347"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="192"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="366"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="512"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="632"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="102"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="195"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="367"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="611"/>
         <source>Cancel</source>
         <translation>キャンセル</translation>
     </message>
@@ -2572,198 +2626,204 @@ One small word at a time, the reading opens.</translation>
         <translation>有効にする</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="25"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="26"/>
         <source>The server could not be reached; check the address</source>
         <translation>サーバーに接続できませんでした。アドレスを確認してください</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="26"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="27"/>
         <source>Needs a proxy from mainland China</source>
         <translation>中国本土からはプロキシが必要です</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="27"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="28"/>
         <source>The passphrase does not open the cloud copy</source>
         <translation>パスフレーズではクラウドのコピーを開けません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="28"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="29"/>
         <source>Sync failed; try again</source>
         <translation>同期に失敗しました。もう一度お試しください</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="29"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="30"/>
         <source>The sign-in code expired</source>
         <translation>サインインコードの有効期限が切れました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="34"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="35"/>
         <source>The server refused the credentials; check the form</source>
         <translation>サーバーが資格情報を拒否しました。フォームを確認してください</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="35"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="36"/>
         <source>The GitHub sign-in expired; sign in again</source>
         <translation>GitHub のサインインの有効期限が切れました。もう一度サインインしてください</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="36"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="37"/>
         <source>Sign-in was refused</source>
         <translation>サインインが拒否されました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="37"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="38"/>
         <source>No cloud copy to delete</source>
         <translation>削除するクラウドのコピーがありません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="50"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="51"/>
         <source>GitHub</source>
         <translation>GitHub</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="50"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="51"/>
         <source>WebDAV</source>
         <translation>WebDAV</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="59"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="60"/>
         <source>Sync is not available in this build yet. The project has not registered its GitHub sign-in.</source>
         <translation>このビルドではまだ同期を利用できません。プロジェクトで GitHub サインインが登録されていません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="77"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="78"/>
         <source>Sync with your own WebDAV server: Nutstore, Alist, a NAS. The cloud copy is encrypted with your passphrase.</source>
         <translation>自分の WebDAV サーバー（坚果云、Alist、NAS など）で同期します。クラウドのコピーはパスフレーズで暗号化されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="88"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="112"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="89"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="113"/>
         <source>Server address</source>
         <translation>サーバーアドレス</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="140"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="164"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="141"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="165"/>
         <source>Username</source>
         <translation>ユーザー名</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="175"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="176"/>
         <source>For Nutstore, the email or phone the account registered with; other servers follow their own rule.</source>
         <translation>坚果云ではアカウント登録に使ったメールアドレスまたは電話番号を入力してください。他のサーバーはそれぞれの規則に従います。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="187"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="212"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="188"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="213"/>
         <source>App password</source>
         <translation>アプリパスワード</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="234"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="235"/>
         <source>An app password created in your server&apos;s settings, not your login password.</source>
         <translation>サーバーの設定で作成したアプリパスワードです。ログインのパスワードではありません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="257"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="258"/>
         <source>Connected. The server accepted the credentials.</source>
         <translation>接続しました。サーバーが資格情報を受け入れました。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="274"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="275"/>
         <source>Sync your settings and learning data with your GitHub account. The cloud copy is encrypted with your passphrase.</source>
         <translation>設定と学習データを GitHub アカウントと同期します。クラウドのコピーはパスフレーズで暗号化されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="282"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="283"/>
         <source>Sign in with GitHub</source>
         <translation>GitHub でサインイン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="298"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="299"/>
         <source>Open this address in a browser, then enter the code:</source>
         <translation>次のアドレスをブラウザで開き、コードを入力してください:</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="323"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="324"/>
         <source>Copy address</source>
         <translation>アドレスをコピー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="332"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="333"/>
         <source>Open in browser</source>
         <translation>ブラウザで開く</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="351"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="352"/>
         <source>Copy code</source>
         <translation>コードをコピー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="359"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="360"/>
         <source>Waiting for GitHub to confirm</source>
         <translation>GitHub の確認を待っています</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="383"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="384"/>
         <source>Signed in as %1</source>
         <translation>%1 としてサインイン中</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="392"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="393"/>
         <source>Last synced %1</source>
         <translation>最終同期: %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="393"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="394"/>
         <source>Not synced yet</source>
         <translation>まだ同期していません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="407"/>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="432"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="408"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="433"/>
         <source>Passphrase</source>
         <translation>パスフレーズ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="438"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="439"/>
         <source>Encrypts the cloud copy. The passphrase is never stored; only a derived key stays on this device.</source>
         <translation>クラウドのコピーを暗号化します。パスフレーズは保存されず、この端末には派生キーのみが残ります。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="446"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="447"/>
         <source>Set passphrase</source>
         <translation>パスフレーズを設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="460"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="461"/>
         <source>Sync now</source>
         <translation>今すぐ同期</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="471"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="472"/>
         <source>Log out</source>
         <translation>サインアウト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="478"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="479"/>
         <source>Log out keeps this device&apos;s data. Delete cloud data removes the copy on your WebDAV server.</source>
         <translation>ログアウトしてもこの端末のデータは残ります。クラウドデータを削除すると、WebDAV サーバー上のコピーが削除されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="479"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="480"/>
         <source>Log out keeps this device&apos;s data. Delete cloud data removes the copy in your GitHub account.</source>
         <translation>サインアウトしても端末のデータは残ります。クラウドのデータを削除すると、GitHub アカウント内のコピーだけが削除されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="491"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="488"/>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="490"/>
         <source>Delete cloud data</source>
         <translation>クラウドのデータを削除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="502"/>
-        <source>Confirm delete</source>
-        <translation>削除を確認</translation>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="491"/>
+        <source>The encrypted copy in the cloud is deleted. This device&apos;s data stays.</source>
+        <translation>クラウド上の暗号化されたコピーを削除します。このデバイスのデータは残ります。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="492"/>
+        <source>Delete</source>
+        <translation>削除</translation>
     </message>
     <message>
         <location filename="../src/app/pet/pet_controller.cpp" line="1154"/>
@@ -2774,7 +2834,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="51"/>
         <location filename="../src/app/qml/settings/pages/SettingsFontPage.qml" line="59"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="289"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="86"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="90"/>
         <source>Font</source>
         <translation>フォント</translation>
     </message>
@@ -2862,7 +2922,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="277"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="89"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="93"/>
         <source>Local engine paths</source>
         <translation>ローカルエンジンのパス</translation>
     </message>
@@ -2873,7 +2933,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="268"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="88"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="92"/>
         <source>Online OCR</source>
         <translation>オンライン OCR</translation>
     </message>
@@ -2884,23 +2944,23 @@ One small word at a time, the reading opens.</translation>
         <translation>ローカルエンジン</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="36"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="39"/>
         <source>The download failed; nothing was kept.</source>
         <translation>ダウンロードに失敗しました。ファイルは保持されていません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="38"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="41"/>
         <source>The downloaded archive could not be unpacked on this Windows; it is saved at %1: unpack it and choose the folders below.</source>
         <translation>ダウンロードしたアーカイブはこの Windows では自動展開できませんでした。%1 に保存済みです。手動で展開し、下でフォルダーを選んでください。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="41"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="44"/>
         <source>Not downloaded. Download a local copy, or choose your own below.</source>
         <translation>未ダウンロードです。ローカルコピーをダウンロードするか、下で自分のものを選んでください。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="48"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="145"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="152"/>
         <source>RapidOCR&apos;s model folder path must contain only ASCII characters. Move the models to an ASCII-only path and choose it again.</source>
         <translation>RapidOCR のモデルフォルダーのパスには ASCII 文字のみ使用できます。モデルを ASCII 文字のみのパスに移動してから、もう一度選択してください。</translation>
     </message>
@@ -2923,39 +2983,39 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="61"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="88"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="53"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="56"/>
         <source>RapidOCR is not installed.</source>
         <translation>RapidOCR はインストールされていません。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="78"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="51"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="54"/>
         <source>RapidOCR&apos;s model folder path must contain only ASCII characters.</source>
         <translation>RapidOCR のモデルフォルダーのパスには ASCII 文字のみ使用できます。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="83"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="55"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="58"/>
         <source>RapidOCR&apos;s model files are missing.</source>
         <translation>RapidOCR のモデルファイルがありません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="49"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="52"/>
         <source>RapidOCR is trusted and ready (%1 ms).</source>
         <translation>RapidOCR は信頼され、使用可能です（%1 ミリ秒）。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="57"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="60"/>
         <source>RapidOCR could not read the test image.</source>
         <translation>RapidOCR はテスト画像を読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="59"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="62"/>
         <source>RapidOCR did not finish in time.</source>
         <translation>RapidOCR は時間内に完了しませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="60"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="63"/>
         <source>Detection failed; RapidOCR is not trusted.</source>
         <translation>検出に失敗しました。RapidOCR は信頼されていません。</translation>
     </message>
@@ -2967,13 +3027,13 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="214"/>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="222"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="185"/>
         <source>Recognition language</source>
         <translation>認識言語</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="224"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="58"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="59"/>
         <source>English</source>
         <translation>英語</translation>
     </message>
@@ -2994,7 +3054,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="247"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="323"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="324"/>
         <source>Testing…</source>
         <translation>テスト中…</translation>
     </message>
@@ -3004,46 +3064,56 @@ One small word at a time, the reading opens.</translation>
         <translation>OCR をテスト</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="92"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="95"/>
         <source>Download RapidOCR-json</source>
         <translation>RapidOCR-json をダウンロード</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="111"/>
+        <source>Remove RapidOCR</source>
+        <translation>RapidOCR を削除</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="112"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="120"/>
+        <source>The downloaded program and its model files are deleted from this device. You can download them again.</source>
+        <translation>ダウンロードしたプログラムとモデルファイルをこのデバイスから削除します。再ダウンロードできます。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="119"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="127"/>
         <source>RapidOCR executable</source>
         <translation>RapidOCR 実行ファイル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="126"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="134"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="133"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="141"/>
         <source>RapidOCR model folder</source>
         <translation>RapidOCR モデルフォルダー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="154"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="161"/>
         <source>Detecting…</source>
         <translation>検出中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="155"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="162"/>
         <source>Detect and trust</source>
         <translation>検出して信頼</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="176"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="183"/>
         <source>RapidOCR-json is a third-party program. It runs with your user permissions and can read other files or use the network; the copy the download button fetches is pinned and checksum-verified, and it is not signed.</source>
         <translation>RapidOCR-json はサードパーティーのプログラムで、ユーザー権限で動作し、他のファイルを読んだりネットワークを使ったりできます。ダウンロードボタンが取るのはピン留めされたチェックサム検証済みのリリースですが、プログラムは署名されていません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="190"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="195"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="197"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="202"/>
         <source>Tesseract executable</source>
         <translation>Tesseract 実行ファイル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="206"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="211"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="213"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="218"/>
         <source>Tesseract data folder</source>
         <translation>Tesseract データフォルダー</translation>
     </message>
@@ -3303,7 +3373,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/UpdateCard.qml" line="75"/>
-        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="34"/>
+        <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="37"/>
         <source>Downloads from GitHub usually need a proxy in mainland China. Turn on your proxy and try again.</source>
         <translation>中国本土では、GitHub からのダウンロードに通常プロキシが必要です。プロキシを有効にしてから、もう一度お試しください。</translation>
     </message>
@@ -3469,57 +3539,57 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="464"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="464"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="326"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="327"/>
         <source>Words</source>
         <translation>単語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="196"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="197"/>
         <source>Today %1</source>
         <translation>今日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="198"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="199"/>
         <source>Yesterday %1</source>
         <translation>昨日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="388"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="389"/>
         <source>Year in words</source>
         <translation>単語の年間記録</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="416"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="417"/>
         <source>Back</source>
         <translation>戻る</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="423"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="424"/>
         <source>Close</source>
         <translation>閉じる</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="441"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="442"/>
         <source>%1 words</source>
         <translation>%1 語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="464"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
         <source>All</source>
         <translation>すべて</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="464"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
         <source>Mastered</source>
         <translation>習得済み</translation>
     </message>
@@ -3535,7 +3605,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="23"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
         <source>JSON files (*.json)</source>
         <translation>JSON ファイル (*.json)</translation>
     </message>
@@ -3550,61 +3620,61 @@ One small word at a time, the reading opens.</translation>
         <translation>解説付き Anki TSV ファイル (*.tsv)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="533"/>
         <source>Words imported</source>
         <translation>単語をインポートしました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="533"/>
         <source>Import failed</source>
         <translation>インポートに失敗しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="406"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="523"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="407"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="527"/>
         <source>Import words</source>
         <translation>単語を読み込む</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="180"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="508"/>
         <source>Don&apos;t ask again</source>
         <translation>次回から確認しない</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="225"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="507"/>
         <source>Cancel</source>
         <translation>キャンセル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="269"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="506"/>
         <source>Remove</source>
         <translation>削除</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="17"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="399"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="400"/>
         <source>Export words</source>
         <translation>単語を書き出す</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="22"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
         <source>Text files (*.txt)</source>
         <translation>テキストファイル (*.txt)</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="26"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="525"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
         <source>All files (*)</source>
         <translation>すべてのファイル (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="158"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="505"/>
         <source>Remove word</source>
         <translation>単語を削除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/RemovalQuestion.qml" line="169"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="139"/>
         <source>Remove %1 from your word list and history?</source>
         <translation>%1 を単語リストと履歴から削除しますか？</translation>
     </message>

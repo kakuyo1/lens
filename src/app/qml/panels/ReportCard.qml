@@ -27,7 +27,7 @@ Window {
     visible: false
     /// Set by Close, Done and Escape: the card fades out in place, and the window goes when it has.
     property bool leaving: false
-    /// Fixed for the window's life: changing modality while it is shown leaves Qt's modal list out of step (RemovalQuestion.qml).
+    /// Fixed for the window's life: changing modality while it is shown leaves Qt's modal list out of step (ConfirmDialog.qml).
     modality: Qt.ApplicationModal
 
     readonly property int shadowMargin: 26

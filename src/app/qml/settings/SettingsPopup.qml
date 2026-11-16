@@ -45,18 +45,22 @@ Window {
     property string ocrApiDraft: ""
     property string ocrSecretDraft: ""
     property string saveStatus: ""
-    /// The footer's Defaults asks a second time before it writes anything: one press turns the
-    /// pill into Confirm beside Cancel, and only Confirm calls restoreDefaults().
-    property bool confirmingDefaults: false
+    /// The action a raised confirmation runs on Confirm; cleared on Cancel and Escape.
+    property var pendingConfirmAction: null
     // qmllint disable missing-property
-    readonly property var openChildRect: viewLoader.status === Loader.Ready && viewLoader.item
-        ? viewLoader.item.openChildRect
-        : null
+    readonly property var openChildRect: confirmDialog.visible
+        ? Qt.rect(confirmDialog.x + confirmDialog.shadowMargin,
+                  confirmDialog.y + confirmDialog.shadowMargin,
+                  confirmDialog.width - 2 * confirmDialog.shadowMargin,
+                  confirmDialog.height - 2 * confirmDialog.shadowMargin)
+        : viewLoader.status === Loader.Ready && viewLoader.item
+            ? viewLoader.item.openChildRect
+            : null
     // qmllint enable missing-property
 
-    /// The open child here is a dropdown, so a press anywhere else puts it down. The words panel's
-    /// removal question is the other kind and says so itself.
-    readonly property bool openChildIsModal: false
+    /// The open child here is either a dropdown, which a press elsewhere puts down, or the
+    /// confirmation, which is a question: a press elsewhere is not an answer to it.
+    readonly property bool openChildIsModal: confirmDialog.visible
 
     /// The desktop under this window, and the colours it reads: glass on, the text tone judged over its own sheet.
     readonly property var glass: Controller.glassBackdrop.surface("settings")
@@ -92,6 +96,7 @@ Window {
     }
 
     function closeChild() {
+        confirmDialog.dismiss();
         // The keys are the settings typed into drafts; leaving the page or the panel has to write
         // them, since the footer no longer carries a Save button for either.
         settings.commitApiDraft();
@@ -106,7 +111,6 @@ Window {
         closeChild();
         category = value;
         route = "";
-        confirmingDefaults = false;
         body.contentY = 0;
         // The page that raised a preview is being swapped for another one, and an item that goes
         // away with its page never reports the pointer leaving it: the key would outlive the row.
@@ -116,7 +120,6 @@ Window {
     function openRoute(value) {
         closeChild();
         route = value;
-        confirmingDefaults = false;
         body.contentY = 0;
         previewKey = "";
     }
@@ -276,6 +279,10 @@ Window {
     /// @return Whether the page had a question up, which this closed. Backing out waits for it, so one Escape answers it
     ///         and the next one backs out.
     function closeQuestion() {
+        if (confirmDialog.visible) {
+            confirmDialog.dismiss();
+            return true;
+        }
         // qmllint disable missing-property
         if (viewLoader.status === Loader.Ready && viewLoader.item && viewLoader.item.questionOpen) {
             viewLoader.item.closeQuestion();
@@ -343,13 +350,23 @@ Window {
             saveStatus = qsTranslate("SettingsPopup", "Saved");
     }
 
+    /// @brief Ask before a page's irreversible action; @p action runs only when the reader confirms.
+    ///
+    /// The question is one window for the whole panel, so a page raises it rather than carrying a
+    /// card of its own; Cancel and Escape leave @p action unrun.
+    function askConfirm(heading, message, confirmLabel, action) {
+        pendingConfirmAction = action;
+        confirmDialog.heading = heading;
+        confirmDialog.message = message;
+        confirmDialog.confirmLabel = confirmLabel;
+        confirmDialog.ask();
+    }
+
     function restoreDefaults() {
         Controller.restoreDefaults();
-        confirmingDefaults = false;
         // The interface language is not here on purpose: it belongs to the tray menu, and a
         // panel is not the place that changes a setting the panel does not show.
         saveStatus = qsTranslate("SettingsPopup", "Defaults restored");
-        Qt.callLater(() => defaultsButton.forceActiveFocus());
     }
 
     onVisibleChanged: {
@@ -360,7 +377,6 @@ Window {
             ocrApiDraft = "";
             ocrSecretDraft = "";
             saveStatus = "";
-            confirmingDefaults = false;
             body.contentY = 0;
         } else {
             closeChild();
@@ -380,6 +396,9 @@ Window {
 
     Shortcut {
         sequence: "Escape"
+        // The confirmation answers Escape first (its own shortcut); with that one up, two
+        // application-wide shortcuts on one key would be ambiguous.
+        enabled: !confirmDialog.visible || confirmDialog.leaving
         onActivated: settings.navigateBack()
     }
 
@@ -578,87 +597,26 @@ Window {
             opacity: body.moving ? 0.9 : 0.55
         }
 
-        Item {
+        SettingsFooter {
             id: footer
-            x: 0
-            y: settings.cardHeight - height
-            width: settings.cardWidth
-            height: 56
-
-            Rectangle {
-                anchors.top: parent.top
-                width: parent.width
-                height: 1
-                color: settings.tokens.line2
-            }
-
-            // One press only asks: the footer turns into Confirm / Cancel, and the line beside
-            // them says what a reset leaves alone. The reset is wide (sixteen settings), so the
-            // question comes before the write rather than after it.
-            Row {
-                id: defaultsRow
-                objectName: "defaultsRow"
-                x: 20
-                y: 15
-                spacing: 8
-
-                Chip {
-                    id: defaultsButton
-                    objectName: "defaultsButton"
-                    visible: !settings.confirmingDefaults
-                    label: qsTranslate("SettingsPopup", "Defaults")
-                    onPicked: {
-                        // A stale "restored" line under a new question reads as a result of the
-                        // press that only asked, so it goes with the old pill.
-                        settings.saveStatus = "";
-                        settings.confirmingDefaults = true;
-                        Qt.callLater(() => confirmDefaultsButton.forceActiveFocus());
-                    }
-                }
-
-                Chip {
-                    id: confirmDefaultsButton
-                    objectName: "confirmDefaultsButton"
-                    visible: settings.confirmingDefaults
-                    label: qsTranslate("SettingsPopup", "Confirm")
-                    selected: true
-                    onPicked: settings.restoreDefaults()
-                }
-
-                Chip {
-                    id: cancelDefaultsButton
-                    objectName: "cancelDefaultsButton"
-                    visible: settings.confirmingDefaults
-                    label: qsTranslate("SettingsPopup", "Cancel")
-                    onPicked: {
-                        settings.confirmingDefaults = false;
-                        cancelDefaultsButton.focus = false;
-                    }
-                }
-            }
-
-            Text {
-                id: defaultsStatus
-                objectName: "defaultsStatus"
-                anchors.left: defaultsRow.right
-                anchors.leftMargin: 8
-                anchors.right: parent.right
-                anchors.rightMargin: 20
-                anchors.verticalCenter: parent.verticalCenter
-                height: 40
-                verticalAlignment: Text.AlignVCenter
-                text: settings.confirmingDefaults
-                      ? qsTranslate("SettingsPopup", "API key, launch at login and daily budget stay as they are.")
-                      : settings.saveStatus
-                // Status, not decoration: the second step of the text ramp, so a confirmation
-                // reads beside the value rows it confirms.
-                color: settings.tokens.muted
-                font.pixelSize: 11
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.WordWrap
-                maximumLineCount: 3
-            }
+            panel: settings
         }
+    }
+
+    /// The one confirmation the panel's pages raise (UI-SPEC.md 4.4): clear, remove, delete.
+    ConfirmDialog {
+        id: confirmDialog
+        surfaceName: "confirm"
+        transientParent: settings
+        maxCardWidth: settings.cardWidth
+        cancelLabel: qsTranslate("SettingsPopup", "Cancel")
+        onConfirmed: () => {
+            const action = settings.pendingConfirmAction;
+            settings.pendingConfirmAction = null;
+            if (action)
+                action();
+        }
+        onDismissed: settings.pendingConfirmAction = null
     }
 
     /// The settings preview (UI-SPEC.md 4.4): the card a hovered setting's title raises beside the panel.
@@ -692,8 +650,18 @@ Window {
             onPreviewRequested: (key) => settings.previewKey = key
         }
     }
-    Component { id: aboutComponent; SettingsAboutPage {} }
-    Component { id: speechComponent; SettingsSpeechPage {} }
+    Component {
+        id: aboutComponent
+        SettingsAboutPage {
+            onConfirmRequested: (heading, message, label, action) => settings.askConfirm(heading, message, label, action)
+        }
+    }
+    Component {
+        id: speechComponent
+        SettingsSpeechPage {
+            onConfirmRequested: (heading, message, label, action) => settings.askConfirm(heading, message, label, action)
+        }
+    }
     Component {
         id: learningComponent
         SettingsLearningPage {
@@ -730,13 +698,19 @@ Window {
             onChildRequested: (value) => settings.openRoute(value)
         }
     }
-    Component { id: ocrPathsComponent; SettingsOcrPathsPage {} }
+    Component {
+        id: ocrPathsComponent
+        SettingsOcrPathsPage {
+            onConfirmRequested: (heading, message, label, action) => settings.askConfirm(heading, message, label, action)
+        }
+    }
     Component {
         id: onlineOcrComponent
         SettingsOnlineOcrPage {
             draftOwner: settings
             onCredentialEdited: (slot, value) => settings.setOcrDraft(slot, value)
             onCredentialCommitted: settings.commitOcrApiDraft()
+            onConfirmRequested: (heading, message, label, action) => settings.askConfirm(heading, message, label, action)
         }
     }
     Component {
@@ -753,7 +727,12 @@ Window {
     }
     Component { id: extensionsComponent; SettingsExtensionsPage {} }
     Component { id: clipboardComponent; SettingsClipboardPage {} }
-    Component { id: syncComponent; SettingsSyncPage {} }
+    Component {
+        id: syncComponent
+        SettingsSyncPage {
+            onConfirmRequested: (heading, message, label, action) => settings.askConfirm(heading, message, label, action)
+        }
+    }
     Component {
         id: connectionComponent
         SettingsConnectionPage {

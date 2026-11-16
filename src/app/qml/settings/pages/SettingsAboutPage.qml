@@ -16,6 +16,9 @@ Item {
     readonly property var tokens: Window.window.tokens
     // qmllint enable missing-property
 
+    /// Asking the panel before an irreversible action; the panel owns the question window.
+    signal confirmRequested(string heading, string message, string confirmLabel, var action)
+
     /**
      * What the update line says, for one state.
      *
@@ -249,7 +252,11 @@ Item {
                 Chip {
                     objectName: "clearPictureCacheButton"
                     label: qsTranslate("SettingsPopup", "Clear")
-                    onPicked: Controller.pictureDuty.clearCache()
+                    onPicked: page.confirmRequested(
+                        qsTranslate("SettingsPopup", "Clear picture cache"),
+                        qsTranslate("SettingsPopup", "The pictures are downloaded again the next time you open a word."),
+                        qsTranslate("SettingsPopup", "Clear"),
+                        () => Controller.pictureDuty.clearCache())
                 }
             }
         }
@@ -296,7 +303,11 @@ Item {
                 Chip {
                     objectName: "clearAudioCacheButton"
                     label: qsTranslate("SettingsPopup", "Clear")
-                    onPicked: Controller.speechDuty.clearCache()
+                    onPicked: page.confirmRequested(
+                        qsTranslate("SettingsPopup", "Clear audio cache"),
+                        qsTranslate("SettingsPopup", "The recordings are downloaded again the next time you play a word."),
+                        qsTranslate("SettingsPopup", "Clear"),
+                        () => Controller.speechDuty.clearCache())
                 }
             }
         }
@@ -343,7 +354,11 @@ Item {
                 Chip {
                     objectName: "clearEventDataButton"
                     label: qsTranslate("SettingsPopup", "Clear")
-                    onPicked: Controller.telemetryDuty.clear()
+                    onPicked: page.confirmRequested(
+                        qsTranslate("SettingsPopup", "Clear behavior data"),
+                        qsTranslate("SettingsPopup", "The local months are removed, and their encrypted cloud copies are deleted at the next sync."),
+                        qsTranslate("SettingsPopup", "Clear"),
+                        () => Controller.telemetryDuty.clear())
                 }
             }
         }

@@ -7,6 +7,9 @@ Item {
     // qmllint enable missing-property
     property var settings: Controller.settings
 
+    /// Asking the panel before an irreversible action; the panel owns the question window.
+    signal confirmRequested(string heading, string message, string confirmLabel, var action)
+
     /// The local voice the setting names, as the catalogue spells its id (docs/adr/0135).
     readonly property string localVoiceId: settings.speechLocalEngine === "ljspeech" ? "ljspeech" : "kokoro"
     /// That voice on this machine: `installed`, `downloading`, and `percent` while it downloads.
@@ -196,7 +199,11 @@ Item {
                     objectName: "removeVoiceButton"
                     visible: root.localVoiceState.installed && !root.localVoiceState.downloading
                     label: qsTranslate("SettingsPopup", "Remove")
-                    onPicked: Controller.speechDuty.removeVoice(root.localVoiceId)
+                    onPicked: root.confirmRequested(
+                        qsTranslate("SettingsPopup", "Remove local voice"),
+                        qsTranslate("SettingsPopup", "The downloaded voice files are deleted from this computer. You can download them again."),
+                        qsTranslate("SettingsPopup", "Remove"),
+                        () => Controller.speechDuty.removeVoice(root.localVoiceId))
                 }
             }
             Text {

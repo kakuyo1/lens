@@ -6,7 +6,7 @@ import QtQuick
  * The words popup's list, with everything that sizes and paces it (UI-SPEC.md 4.8): the viewport
  * capped at a whole number of rows, the fold transitions a filter switch rides, the empty states,
  * the search miss's hint, and the scrollbar. Split out of WordsPopup.qml when that file reached
- * the size cap (docs/QML.md section 1), the way RemovalQuestion and WordsListRow were before it.
+ * the size cap (docs/QML.md section 1), the way ConfirmDialog and WordsListRow were before it.
  *
  * @p host is the WordsPopup window: the states the height keys on, the tokens and the row height
  * read from it, and the rows still hand their width and their removal asks to it. The view is

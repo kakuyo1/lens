@@ -401,6 +401,15 @@ Item {
             Util.reveal(button);
             wait(25);
             mouseClick(button, button.width / 2, button.height / 2);
+            const question = Util.ofType(panel, "ConfirmDialog");
+            verify(question, "the clear action did not ask");
+            compare(question.visible, true, "the question is not up");
+            compare(Controller.telemetryDuty.eventBytes === 0, false, "the question cleared first");
+            const confirm = Util.findAll(question, function (o) {
+                return o.objectName === "confirmButton";
+            })[0];
+            verify(confirm, "the question has no Confirm");
+            mouseClick(confirm, confirm.width / 2, confirm.height / 2);
             tryVerify(() => Controller.telemetryDuty.eventBytes === 0, 2000, "the clear action did not empty the event data");
             wait(20);
             compare(size.text, "0 B");

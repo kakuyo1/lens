@@ -32,7 +32,7 @@ Popup {
 
     /// Escape is Cancel, and is offered exactly while the question is up. Application-wide, not the popup's own key
     /// handling: a popup takes keys only once its window is active, which the offscreen test platform never reports
-    /// (RemovalQuestion.qml has the same reasoning).
+    /// (ConfirmDialog.qml has the same reasoning).
     Shortcut {
         sequence: "Escape"
         context: Qt.ApplicationShortcut
