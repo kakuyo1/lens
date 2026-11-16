@@ -192,15 +192,16 @@ bool TrackCore::extendForward(Band const& band, TrackFrame& frame)
             ended = true;
             break;
         }
-        auto const box = page_->box(*next);
-        if (box and not emptyOf(*box)) {
-            if (box->y > band.y + band.height - 1) break;
-            auto const read = page_->read(*next);
-            auto const word = read ? trimmedWord(read->text, read->fullBox, read->lettersEnd) : std::nullopt;
+        // read() carries the word's own box; a separate box() probe would read the same rectangles
+        // twice across the process boundary (docs/adr/0188).
+        auto const read = page_->read(*next);
+        if (read and not emptyOf(read->fullBox)) {
+            if (read->fullBox.y > band.y + band.height - 1) break;
+            auto const word = trimmedWord(read->text, read->fullBox, read->lettersEnd);
             if (word) {
                 fresh.push_back({.id     = nextId_++,
-                                 .dx     = box->x - anchorBox_.x,
-                                 .dy     = box->y - anchorBox_.y,
+                                 .dx     = read->fullBox.x - anchorBox_.x,
+                                 .dy     = read->fullBox.y - anchorBox_.y,
                                  .width  = word->box.width,
                                  .height = word->box.height});
                 rememberWord(fresh.back().id, word->text, words);
@@ -234,15 +235,14 @@ bool TrackCore::extendBackward(Band const& band, TrackFrame& frame)
             ended = true;
             break;
         }
-        auto const box = page_->box(*next);
-        if (box and not emptyOf(*box)) {
-            if (box->y + box->height - 1 < band.y) break;
-            auto const read = page_->read(*next);
-            auto const word = read ? trimmedWord(read->text, read->fullBox, read->lettersEnd) : std::nullopt;
+        auto const read = page_->read(*next);
+        if (read and not emptyOf(read->fullBox)) {
+            if (read->fullBox.y + read->fullBox.height - 1 < band.y) break;
+            auto const word = trimmedWord(read->text, read->fullBox, read->lettersEnd);
             if (word) {
                 fresh.push_back({.id     = nextId_++,
-                                 .dx     = box->x - anchorBox_.x,
-                                 .dy     = box->y - anchorBox_.y,
+                                 .dx     = read->fullBox.x - anchorBox_.x,
+                                 .dy     = read->fullBox.y - anchorBox_.y,
                                  .width  = word->box.width,
                                  .height = word->box.height});
                 rememberWord(fresh.back().id, word->text, words);

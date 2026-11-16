@@ -58,4 +58,29 @@ std::string anyTextOf(quintptr window);
 /// @note Blocks for the query; call it off the main thread.
 void warmTreeOf(quintptr window);
 
+/// @brief One operation's COM cost over the drained window: calls, total and worst milliseconds.
+struct ReadTiming {
+    int    calls   = 0;
+    double totalMs = 0.0;
+    double maxMs   = 0.0;
+};
+
+/// @brief A window of the reader's COM cost by operation, for the shell's once-a-second log
+///        (docs/adr/0188). wordBox/read/step/wordAt are the per-word reads; present/text/search are
+///        the periodic whole-tree reads whose spikes the breakdown names.
+struct ReaderTiming {
+    ReadTiming present;
+    ReadTiming text;
+    ReadTiming pageBox;
+    ReadTiming wordAt;
+    ReadTiming wordBox;
+    ReadTiming read;
+    ReadTiming step;
+    ReadTiming search;
+};
+
+/// @brief Drain the calling thread's accumulated read timing and reset it. The track shell calls
+///        this once a second on the worker that steps the reader; a thread that read nothing answers zeros.
+ReaderTiming drainReadTiming();
+
 }

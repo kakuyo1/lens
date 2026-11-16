@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <string>
@@ -87,28 +88,34 @@ public:
     bool              blankMiddle = false; ///< wordAt answers a word whose own box reads empty.
     /// The scroll a chunk read runs into: armed by the test, it shifts the whole grid the first time
     /// a word other than @p shiftExcludes is read, so the chunk's own stability check fails.
-    bool armed = false;
-    Band shiftBy{};
-    int  shiftExcludes = -1;
-    int  boxReads      = 0; ///< Every box read, anchor and walked words alike.
+    bool        armed = false;
+    Band        shiftBy{};
+    int         shiftExcludes = -1;
+    int         boxReads      = 0; ///< Every box read, anchor and walked words alike.
+    int         readCalls     = 0; ///< Every word read: the walk reads boxes through read() (docs/adr/0188).
+    mutable int ops           = 0; ///< Every seam call: the deterministic proxy for the COM round-trips a real reader pays.
 
     bool present() const override
     {
+        ++ops;
         return inTree;
     }
 
     Band box() const override
     {
+        ++ops;
         return pageBox;
     }
 
     std::string text() const override
     {
+        ++ops;
         return textContent;
     }
 
     std::shared_ptr<lens::capture::Word> wordAt(int const x, int const y) override
     {
+        ++ops;
         if (blankMiddle) return std::make_shared<FakeWord>(static_cast<int>(cells.size())); // reads no box
         for (std::size_t i = 0; i < cells.size(); ++i)
             if (holdsPoint(cells[i].box, x, y)) return std::make_shared<FakeWord>(static_cast<int>(i));
@@ -117,9 +124,19 @@ public:
 
     std::optional<Band> box(lens::capture::Word const& word) override
     {
+        ++ops;
         int const index = static_cast<FakeWord const&>(word).index();
         if (index >= static_cast<int>(cells.size())) return std::nullopt;
         ++boxReads;
+        return cells[index].box;
+    }
+
+    std::optional<WordRead> read(lens::capture::Word const& word) override
+    {
+        ++ops;
+        ++readCalls;
+        int const index = static_cast<FakeWord const&>(word).index();
+        if (index >= static_cast<int>(cells.size())) return std::nullopt;
         if (armed and index != shiftExcludes) {
             // The scroll lands mid-chunk: the words read after it sit at the new scroll position.
             armed = false;
@@ -128,19 +145,13 @@ public:
                 c.box.y += shiftBy.y;
             }
         }
-        return cells[index].box;
-    }
-
-    std::optional<WordRead> read(lens::capture::Word const& word) override
-    {
-        int const index = static_cast<FakeWord const&>(word).index();
-        if (index >= static_cast<int>(cells.size())) return std::nullopt;
         Cell const& c = cells[index];
         return WordRead{.text = c.text, .fullBox = c.box, .lettersEnd = c.junkBox};
     }
 
     std::shared_ptr<lens::capture::Word> step(lens::capture::Word const& word, int const delta) override
     {
+        ++ops;
         int const index = static_cast<FakeWord const&>(word).index() + delta;
         if (index < 0 or index >= static_cast<int>(cells.size())) return nullptr;
         return std::make_shared<FakeWord>(index);
@@ -332,7 +343,7 @@ TEST(TrackCore, AChunkReadDuringAScrollIsDroppedWhole)
 
     // Arm the scroll: the next chunk reads across it, and the anchor's own stability check catches
     // the mixed scroll positions.
-    int const readsBefore      = reader.page->boxReads;
+    int const readsBefore      = reader.page->readCalls;
     reader.page->shiftBy       = Band{.x = 0, .y = 40, .width = 0, .height = 0};
     reader.page->shiftExcludes = 2; // the anchor's own word: its box moves with the grid, not by the arm
     reader.page->armed         = true;
@@ -340,7 +351,7 @@ TEST(TrackCore, AChunkReadDuringAScrollIsDroppedWhole)
     auto const chunk = step(core, t);
     // Words were read -- the chunk was in flight -- and the chunk is dropped whole: nothing is sent
     // on a step where the anchor moved during the read.
-    EXPECT_GT(reader.page->boxReads - readsBefore, 1);
+    EXPECT_GT(reader.page->readCalls - readsBefore, 1);
     EXPECT_FALSE(chunk.frame);
     EXPECT_FALSE(chunk.report and not chunk.report->note.empty());
 
@@ -531,6 +542,35 @@ TEST(TrackCore, ANonEnglishPageIsHeldWholeUntilItReadsEnglishAgain)
         resumed        = static_cast<bool>(out.frame) and not out.frame->visible.empty();
     }
     EXPECT_TRUE(resumed);
+}
+
+TEST(TrackCore, AcquisitionCostInSeamCalls)
+{
+    // The deterministic latency arm: every seam call is one COM round-trip a real reader pays, so
+    // the call count to the first drawn frame and to the last read word measures the acquisition
+    // cost without a browser (docs/adr/0188).
+    FakePageReader reader = articleReader();
+    TrackCore      core{reader};
+    auto           t            = kStart;
+    int            opsFirstDraw = -1;
+    int            opsLastAdded = 0;
+    int            wordsAdded   = 0;
+    for (int i = 0; i < 120; ++i) {
+        auto const out = step(core, t);
+        if (out.frame) {
+            if (opsFirstDraw < 0 and not out.frame->visible.empty()) opsFirstDraw = reader.page->ops;
+            if (not out.frame->added.empty()) {
+                opsLastAdded = reader.page->ops;
+                wordsAdded += static_cast<int>(out.frame->added.size());
+            }
+        }
+    }
+    std::cout << "[acq-cost] words=" << wordsAdded << " ops_first_draw=" << opsFirstDraw
+              << " ops_last_added=" << opsLastAdded << "\n";
+    EXPECT_GT(opsFirstDraw, 0);
+    EXPECT_GT(wordsAdded, 0);
+    // A word costs step + read; the redundant box probe pushed it past three calls a word.
+    EXPECT_LT(opsLastAdded, wordsAdded * 3);
 }
 
 }

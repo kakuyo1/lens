@@ -190,13 +190,61 @@ void PageTrack::run(std::stop_token const& stop)
     if (not reader) reader = std::make_unique<page_reader_uia::UiaPageReader>(window_);
     capture::TrackCore core{*reader};
     auto               next = std::chrono::steady_clock::now();
+    // The read's wall-clock cost, logged once a second: a step that spikes names the name read or
+    // the page search, and the first line's latency is measured from each page the track takes up
+    // (docs/adr/0188). The track owns no clock of its own; the shell that steps it measures.
+    auto   timingAt      = next;
+    auto   trackEpoch    = next;
+    bool   firstLineSeen = false;
+    int    stepCount     = 0;
+    double stepTotalMs   = 0.0;
+    double stepMaxMs     = 0.0;
     while (not stop.stop_requested()) {
         capture::Band band;
         {
             std::lock_guard const lock{guard_};
             band = bandOf(band_);
         }
-        auto const out = core.step(band, std::chrono::steady_clock::now());
+        auto const   stepStart = std::chrono::steady_clock::now();
+        auto const   out       = core.step(band, stepStart);
+        double const stepMs    = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - stepStart).count();
+        ++stepCount;
+        stepTotalMs += stepMs;
+        stepMaxMs = (std::max)(stepMaxMs, stepMs);
+        if (stepStart - timingAt >= std::chrono::seconds{1}) {
+            LENS_INFO("scan track timing, last second: {} step(s), avg {:.1f} ms, max {:.1f} ms",
+                      stepCount,
+                      stepCount > 0 ? stepTotalMs / stepCount : 0.0,
+                      stepMaxMs);
+            // The same second broken down by COM operation: present/text/search are the periodic
+            // whole-tree reads, and their max names the spike the step line only shows (docs/adr/0188).
+            auto const rt = page_reader_uia::drainReadTiming();
+            if (rt.present.calls + rt.text.calls + rt.pageBox.calls + rt.wordAt.calls + rt.wordBox.calls + rt.read.calls + rt.step.calls + rt.search.calls > 0)
+                LENS_INFO("scan read cost, last second: present {} call(s) {:.0f} ms max {:.0f}, text {} {:.0f} max {:.0f}, search {} {:.0f} max {:.0f}, pageBox {} {:.0f}, wordAt {} {:.0f}, wordBox {} {:.0f}, read {} {:.0f}, step {} {:.0f}",
+                          rt.present.calls,
+                          rt.present.totalMs,
+                          rt.present.maxMs,
+                          rt.text.calls,
+                          rt.text.totalMs,
+                          rt.text.maxMs,
+                          rt.search.calls,
+                          rt.search.totalMs,
+                          rt.search.maxMs,
+                          rt.pageBox.calls,
+                          rt.pageBox.totalMs,
+                          rt.wordAt.calls,
+                          rt.wordAt.totalMs,
+                          rt.wordBox.calls,
+                          rt.wordBox.totalMs,
+                          rt.read.calls,
+                          rt.read.totalMs,
+                          rt.step.calls,
+                          rt.step.totalMs);
+            timingAt    = stepStart;
+            stepCount   = 0;
+            stepTotalMs = 0.0;
+            stepMaxMs   = 0.0;
+        }
         if (out.report) {
             auto const& report = *out.report;
             if (report.moves + report.refusals + report.losses + report.missedReads + report.framesSent + report.nameReads + report.pageSearches > 0)
@@ -213,7 +261,17 @@ void PageTrack::run(std::stop_token const& stop)
                           report.visibleBottom);
             if (not report.note.empty()) LENS_INFO("scan page {}", report.note);
         }
-        if (out.frame) deliver_(*out.frame);
+        if (out.frame) {
+            if (out.frame->lost) {
+                trackEpoch    = std::chrono::steady_clock::now();
+                firstLineSeen = false;
+            } else if (not firstLineSeen and not out.frame->visible.empty()) {
+                firstLineSeen = true;
+                LENS_INFO("scan first line after {:.0f} ms",
+                          std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - trackEpoch).count());
+            }
+            deliver_(*out.frame);
+        }
         next += kTrackPeriod;
         auto const now = std::chrono::steady_clock::now();
         if (next < now) next = now; // a long step does not make the steps after it burst

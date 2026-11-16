@@ -33,6 +33,8 @@ This is the beta release of Lens, the second release on the numbering that began
 - The bubble's verdict row and the words popup's rows carry **three pills** (Known / Mastered / New), the popup gains a **Mastered** segment, and the plain, JSON and card exports follow it. A verdict made anywhere moves the scan's judgement and the pencil layer's lines at once, with no full re-scan. On the pencil layer, resting the pointer on a dashed word raises a single **Mastered** button over it; one click retires the word. The popup lists a marked word even when the history never saw it -- a word the pencil button marked takes a row with no time and a zero pop count, and the exports follow the same rows.
 - The weekly report's AI observations now follow the **interface language**, not the explanation language, so they read in the same language as the panel that shows them.
 - The bubble's **waiting card** is compact. The card a click raises now reserves room for the "Explaining…" line and three breathing bars instead of the whole answer's estimated height, so a word with every block switched on no longer opens as a tall, mostly empty card; the fields that fit land without moving the card, the rest grows it as they arrive, and the whole answer still settles to its own height once it lands (docs/adr/0146).
+- Auto scan **reads each word's box once instead of twice**. The walk probed a word's box and then read the same rectangles again inside the word read, both across the process boundary; it now takes the box from the read itself. On the deterministic test arm that is about 29% fewer UI Automation round-trips to the first line and to a full page, with the same words and the same boxes. The scan also logs its real read timing now: a once-a-second step-cost line and the milliseconds to each page's first line (docs/adr/0188).
+- Auto scan **checks the page without walking the whole tree**. The periodic check that the tracked page still belongs to its window now climbs from the page up to the window root instead of enumerating every document under it -- about 45x cheaper on a heavy page (measured ~180 ms down to ~4 ms a call). That frees roughly a third of the scan thread's time for reading words, so the lines crawl in faster; a tab switch or navigation still drops the page and searches again (docs/adr/0188).
 
 ### Fixed
 
@@ -87,6 +89,8 @@ This is the beta release of Lens, the second release on the numbering that began
 - 气泡的判定行和词表弹窗的行都带**三个按钮**（已会 / 掌握 / 新词），弹窗新增**掌握**分段，纯文本、JSON 和卡片导出也随之跟进。在任何地方做出判定，都会立即移动扫描的判断和铅笔层的线，不需要完整重扫。在铅笔层上，把指针停在一个带虚线的词上会在它上方浮出一个**掌握**按钮；一次点击让该词退役。历史从未见过的词也会出现在弹窗里——铅笔按钮标记过的词占一行，没有时间、查词次数为零，导出遵循同样的行。
 - 周报的 AI 观察现在跟随**界面语言**，而不是解释语言，因此与展示它的面板使用同一种语言。
 - 气泡的**等待卡片**变紧凑了。点击抬起卡片时，只给“正在解释…”这一行和三条呼吸条留出空间，不再预留整个回答的估计高度，因此所有区块都打开的单词也不会再展开成一张又高又空的大卡片；能放下的字段原地落位，放不下的随到达而把卡片撑高，整个回答落地后仍会收回到自己的高度（docs/adr/0146）。
+- 自动扫描**每个词的框只读一次，不再读两次**。走词原先先探一次词框、读词时内部又读同一组跨进程矩形；现在直接取读词返回的框。确定性测试臂上，到首线、到读完整页的 UI Automation 往返各少约 29%，词与框都不变。扫描现在也记录真实读取耗时：每秒一条步耗时行，以及每页首线出现的毫秒数（docs/adr/0188）。
+- 自动扫描**检查页面不再整棵走树**。判断跟踪页是否仍属于其窗口的周期检查，现在从页元素向上爬到窗口根，而不是枚举其下所有文档——重页上约 45 倍便宜（实测每次 ~180 ms 降到 ~4 ms）。这腾出约三分之一的扫描线程时间用于读词，虚线爬升更快；切标签或导航仍会丢页并重新搜索（docs/adr/0188）。
 
 #### 修复
 

@@ -7,6 +7,8 @@
 #include <QRect>
 #include <QString>
 
+#include <algorithm>
+#include <chrono>
 #include <mutex>
 #include <optional>
 #include <utility>
@@ -32,6 +34,47 @@ Com<IUIAutomationElement> elementOf(IUIAutomation& automation, quintptr const wi
     if (FAILED(automation.ElementFromHandle(reinterpret_cast<HWND>(window), &raw))) return {}; // NOLINT(performance-no-int-to-ptr): the Win32 API hands this handle back as an integer; the cast is the documented round-trip
     return Com<IUIAutomationElement>{raw};
 }
+
+/// @brief The COM operations the read timing breaks down (docs/adr/0188).
+enum class Op : int { Present,
+                      Text,
+                      PageBox,
+                      WordAt,
+                      WordBox,
+                      Read,
+                      Step,
+                      Search,
+                      Count };
+
+struct OpStat {
+    int    calls   = 0;
+    double totalMs = 0.0;
+    double maxMs   = 0.0;
+};
+
+/// One thread's read cost: the track steps its reader on a single worker, so the accumulator is
+/// thread-local and lock-free, drained once a second by the shell that owns the clock.
+thread_local OpStat t_ops[static_cast<int>(Op::Count)];
+
+/// @brief Times one COM operation into the thread's accumulator on destruction.
+class ScopedOp {
+public:
+    explicit ScopedOp(Op const op)
+        : op_{op}, start_{std::chrono::steady_clock::now()}
+    {}
+    ~ScopedOp()
+    {
+        double const ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start_).count();
+        OpStat&      s  = t_ops[static_cast<int>(op_)];
+        ++s.calls;
+        s.totalMs += ms;
+        s.maxMs = (std::max)(s.maxMs, ms);
+    }
+
+private:
+    Op                                    op_;
+    std::chrono::steady_clock::time_point start_;
+};
 
 /// The page's document the search picks: the largest document of the window, with its clip.
 struct PageDocument {
@@ -255,20 +298,29 @@ private:
     std::optional<QRect> const     clip_;
 };
 
-/// @return Whether the page is still one of the window's documents; false when the tree cannot say.
+/// @return Whether the page still hangs under its window; false when the tree cannot say.
 bool UiaPage::present() const
 {
-    auto const root      = elementOf(*automation_, window_);
-    auto const documents = root ? documentsOf(*automation_, *root) : Com<IUIAutomationElementArray>{};
-    if (not documents) return false;
-    int count = 0;
-    documents->get_Length(&count);
-    for (int i = 0; i < count; ++i) {
-        IUIAutomationElement* raw = nullptr;
-        if (FAILED(documents->GetElement(i, &raw)) or not raw) continue;
-        Com<IUIAutomationElement> element{raw};
-        BOOL                      same = FALSE;
-        if (SUCCEEDED(automation_->CompareElements(element.get(), element_.get(), &same)) and same) return true;
+    ScopedOp const op{Op::Present};
+    // Climb from the page to its window root rather than enumerate every document under it: a
+    // document the browser rebuilt or dropped (a navigation, a discarded tab, a renderer swap) no
+    // longer reaches its window, and the climb costs the tree's depth, not its node count. A
+    // background tab's sliver still reaches the root -- fillsTheBand rejects that, not this
+    // (docs/adr/0163). The descendant FindAll this replaces cost ~180 ms a call on a heavy tree,
+    // twice a second; the climb is a handful of parent reads (docs/adr/0188).
+    auto const root = elementOf(*automation_, window_);
+    if (not root) return false;
+    IUIAutomationTreeWalker* walkerRaw = nullptr;
+    if (FAILED(automation_->get_ControlViewWalker(&walkerRaw)) or not walkerRaw) return false;
+    Com<IUIAutomationTreeWalker> walker{walkerRaw};
+    element_->AddRef();
+    Com<IUIAutomationElement> current{element_.get()};
+    for (int level = 0; level < kMaxLevels; ++level) {
+        BOOL same = FALSE;
+        if (SUCCEEDED(automation_->CompareElements(current.get(), root.get(), &same)) and same) return true;
+        IUIAutomationElement* parentRaw = nullptr;
+        if (FAILED(walker->GetParentElement(current.get(), &parentRaw)) or not parentRaw) return false;
+        current.reset(parentRaw);
     }
     return false;
 }
@@ -276,7 +328,8 @@ bool UiaPage::present() const
 /// @return The page's box as it stands now, in physical screen pixels; empty when the element cannot say.
 capture::Band UiaPage::box() const
 {
-    RECT rect{};
+    ScopedOp const op{Op::PageBox};
+    RECT           rect{};
     if (FAILED(element_->get_CurrentBoundingRectangle(&rect))) return {};
     QRect const box{rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top};
     return bandOf(clip_ ? box.intersected(*clip_) : box);
@@ -284,12 +337,14 @@ capture::Band UiaPage::box() const
 
 std::string UiaPage::text() const
 {
+    ScopedOp const op{Op::Text};
     return textOfPattern(*pattern_).toStdString();
 }
 
 /// @return The word under the point, where a read starts; null when the page cannot answer there.
 std::shared_ptr<capture::Word> UiaPage::wordAt(int const x, int const y)
 {
+    ScopedOp const          op{Op::WordAt};
     POINT const             at{x, y};
     IUIAutomationTextRange* raw = nullptr;
     if (FAILED(pattern_->RangeFromPoint(at, &raw)) or not raw) return nullptr;
@@ -301,7 +356,8 @@ std::shared_ptr<capture::Word> UiaPage::wordAt(int const x, int const y)
 /// @return The word's first box; nothing when it has none.
 std::optional<capture::Band> UiaPage::box(capture::Word const& word)
 {
-    auto const boxes = boxesOf(static_cast<UiaWord const&>(word).range());
+    ScopedOp const op{Op::WordBox};
+    auto const     boxes = boxesOf(static_cast<UiaWord const&>(word).range());
     if (boxes.empty()) return std::nullopt;
     return bandOf(boxes.front());
 }
@@ -312,6 +368,7 @@ std::optional<capture::Band> UiaPage::box(capture::Word const& word)
 ///        character, whose box says where the letters end.
 std::optional<capture::WordRead> UiaPage::read(capture::Word const& word)
 {
+    ScopedOp const          op{Op::Read};
     IUIAutomationTextRange& range = static_cast<UiaWord const&>(word).range();
     QString const           text  = wordTextOf(range);
     std::string const       utf8  = text.toStdString();
@@ -344,7 +401,8 @@ std::optional<capture::WordRead> UiaPage::read(capture::Word const& word)
 /// @return One word along the reading order; null at either end of the document, or when the walk fails.
 std::shared_ptr<capture::Word> UiaPage::step(capture::Word const& word, int const delta)
 {
-    auto next = cloneOf(static_cast<UiaWord const&>(word).range());
+    ScopedOp const op{Op::Step};
+    auto           next = cloneOf(static_cast<UiaWord const&>(word).range());
     if (not next) return nullptr;
     int moved = 0;
     if (FAILED(next->Move(TextUnit_Word, delta, &moved)) or moved == 0) return nullptr;
@@ -385,6 +443,7 @@ std::shared_ptr<capture::Page> UiaPageReader::acquire(capture::Band const& band)
         std::lock_guard const lock{cache.guard};
         if (cache.window == window_ and cache.page) return cache.page;
     }
+    ScopedOp const op{Op::Search}; // a cache hit returned above; the rest is the whole-tree search
     if (not automation_) {
         IUIAutomation* raw = nullptr;
         if (FAILED(CoCreateInstance(CLSID_CUIAutomation, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&raw))) or not raw) return nullptr;
@@ -439,6 +498,24 @@ void warmTreeOf(quintptr const window)
     IUIAutomationElementArray*  arrayRaw = nullptr;
     root->FindAll(TreeScope_Descendants, any.get(), &arrayRaw);
     Com<IUIAutomationElementArray> array{arrayRaw}; // the query is the point; its result is dropped at once
+}
+
+ReaderTiming drainReadTiming()
+{
+    auto const take = [](Op const op) -> ReadTiming {
+        OpStat&          s = t_ops[static_cast<int>(op)];
+        ReadTiming const r{.calls = s.calls, .totalMs = s.totalMs, .maxMs = s.maxMs};
+        s = OpStat{};
+        return r;
+    };
+    return {.present = take(Op::Present),
+            .text    = take(Op::Text),
+            .pageBox = take(Op::PageBox),
+            .wordAt  = take(Op::WordAt),
+            .wordBox = take(Op::WordBox),
+            .read    = take(Op::Read),
+            .step    = take(Op::Step),
+            .search  = take(Op::Search)};
 }
 
 }
