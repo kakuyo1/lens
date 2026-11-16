@@ -65,8 +65,9 @@ struct CrashNoticeDutyTest : ::testing::Test {
         std::filesystem::create_directories(dumpDir());
         for (int i = 0; i < count; ++i) {
             const std::string stem = "lens-1.0.0-20261116-0900" + std::to_string(10 + i);
-            std::ofstream{dumpDir() / (stem + ".dmp"), std::ios::binary};
-            std::ofstream{dumpDir() / (stem + ".crash.txt"), std::ios::binary};
+            // Empty files: the retention rule counts dumps and their summaries, not their contents.
+            std::ofstream dump(dumpDir() / (stem + ".dmp"), std::ios::binary);
+            std::ofstream summary(dumpDir() / (stem + ".crash.txt"), std::ios::binary);
         }
     }
 
