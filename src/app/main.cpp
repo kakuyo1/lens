@@ -269,6 +269,7 @@ int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw
         lens::core::loadIrregulars(dataDir / "irregulars.tsv");
         lens::core::loadWordbooks(dataDir / "wordbooks");
         lens::core::loadInformalSpellings(dataDir / "informal-spellings.txt");
+        lens::core::loadScanWords(dataDir / "scan-words.txt");
         const std::filesystem::path protocolDir = dataDir / "llm";
         lens::llm::loadLlmProtocol(lens::llm::Channel::Word, protocolDir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Entity, protocolDir);

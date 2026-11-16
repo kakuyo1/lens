@@ -9,7 +9,7 @@
 | 目录 | 用途 |
 | --- | --- |
 | `build/` | Debug、RelWithDebInfo 构建和机器路径读取、查看 |
-| `data/` | 词形数据生成与样例集独立校验 |
+| `data/` | 词表与词形数据生成、样例集独立校验 |
 | `pet/` | 桌宠美术流水线的配方与渲染（方法见 `docs/pet-art-pipeline.md`，运行入口见其 README） |
 | `profiling/` | QML profiler、QML 结构指标和 trace 解析 |
 | `qa/` | 起应用、gtest 单条/整套、QTest 单条/整套/并行分片、桌面驱动、截图、QML 快照和鼠标停顿探针；长时间浸泡、循环负载与 UMDH 堆快照 diff；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |

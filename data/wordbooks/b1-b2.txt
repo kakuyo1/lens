@@ -259,8 +259,6 @@ anticipate
 anticipation
 antipollution
 antique
-antistatic
-antivirus
 antonym
 anxiety
 anxious
@@ -2470,7 +2468,6 @@ girlfriend
 give
 giveaway
 given
-glacis
 glad
 glance
 glare
@@ -3672,7 +3669,6 @@ myth
 nail
 naked
 name
-nano
 nap
 napkin
 narcissistic
@@ -4328,8 +4324,6 @@ preference
 prefix
 pregnant
 prehistoric
-prehuman
-preindustrial
 prejudge
 prejudice
 preliminary
@@ -4611,7 +4605,6 @@ recognition
 recollect
 recollection
 recommend
-recommendable
 recommendation
 reconsider
 record
@@ -6325,7 +6318,6 @@ weird
 welcome
 welfare
 well
-were
 west
 western
 westward

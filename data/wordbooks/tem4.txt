@@ -131,7 +131,6 @@ advantage
 advantageous
 adventure
 adventurism
-adventurist
 adventurous
 adverb
 adverbial
@@ -193,7 +192,6 @@ airbase
 aircraft
 airfield
 airforce
-airhostess
 airline
 airliner
 airmail
@@ -621,7 +619,6 @@ bark
 barley
 barn
 barometer
-barometre
 baron
 barracks
 barrel
@@ -1523,7 +1520,6 @@ congregation
 congress
 congressman
 congruence
-congruency
 congruent
 conical
 conifer
@@ -1686,7 +1682,6 @@ count
 countable
 counter
 counterattack
-counterdrug
 counterpart
 countess
 countless
@@ -2275,7 +2270,6 @@ domino
 don
 donate
 donation
-donator
 done
 donkey
 donor
@@ -2529,7 +2523,6 @@ emphatic
 empire
 empirical
 employ
-employe
 employee
 employer
 employment
@@ -2657,7 +2650,6 @@ esteem
 estimate
 estimation
 estuary
-et
 etc
 eternal
 ether
@@ -3763,7 +3755,6 @@ horseback
 horsehair
 horseman
 horsepower
-horseracing
 horsewhip
 hose
 hospitable
@@ -5933,7 +5924,6 @@ radicalism
 radio
 radioactive
 radioactivity
-radiochemical
 radium
 radius
 rag
@@ -6405,7 +6395,6 @@ salesclerk
 salesgirl
 saleslady
 salesman
-salesmanager
 saliva
 salmon
 salon
@@ -6695,7 +6684,6 @@ shirt
 shit
 shiver
 shock
-shockproof
 shoe
 shoemaker
 shoot
@@ -6784,7 +6772,6 @@ sinful
 sing
 singer
 single
-singlehood
 singular
 sinister
 sink
@@ -6984,7 +6971,6 @@ souvenir
 sovereign
 sovereignty
 sow
-soyabean
 soybean
 spa
 space
@@ -7075,7 +7061,6 @@ spray
 spread
 spring
 springboard
-springlock
 sprinkle
 sprout
 spruce
@@ -7288,7 +7273,6 @@ subtract
 subtraction
 suburb
 suburban
-suburbanisation
 subway
 succeed
 success
@@ -7331,7 +7315,6 @@ summon
 summons
 sumo
 sun
-sunbath
 sunbathe
 sunburn
 sundial
@@ -7516,7 +7499,6 @@ tedious
 teem
 teenager
 teens
-telecommunicationns
 telegram
 telegraph
 telephone
@@ -8276,7 +8258,6 @@ welcome
 weld
 welfare
 well
-were
 west
 western
 westward

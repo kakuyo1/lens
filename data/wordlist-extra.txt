@@ -1,0 +1,17 @@
+# Words both sources miss: spoken forms and modern jargon. Unranked, never drawn by the scan,
+# kept so a selection is still explained as a word rather than an entity. One lowercase word
+# per line, `#` starts a comment. See docs/adr/0186.
+gonna
+wanna
+gotta
+selfie
+refactor
+refactoring
+codebase
+plugin
+inbox
+backtrace
+webinar
+chatbot
+timeout
+login

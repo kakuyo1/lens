@@ -1,0 +1,26 @@
+# 0186 词表换成英语词形表，扫描另用可标池
+
+- **状态**：accepted（2026-11-16）
+- **背景**：现行 `data/wordlist.txt` 是拼写覆盖表的扩展：前 88,918 条是旧语料频段，后 79,287 条按字母序追加，168,205 条里混着词典垃圾、专名、外来词和缩写。扫描的规则是 “词表里有、且不在档位掌握带内” 就画线，于是十六万多条都可被标。本机日志的真实候选里有 `las`/`foto`/`una`/`otro`（西语页）、`wen`/`cha`/`ren`（拼音）、`zelda`/`minecraft`/`claude`（小写专名）、`voc`/`gif`/`org`（缩写）、`forg`/`whe`/`kee`（垃圾）。要换的不是一张 “更大的表”，而是一张能回答 “是不是英语词、常不常见” 的表，并把 “覆盖” 和 “可标” 拆开。
+- **决定**：
+  - **覆盖表** = Open English WordNet 2022 的单小写词（78,613）∪ ECDICT 有 Collins/牛津/考试标签/语料词频的小写词条（49,139），再加这些词的 ECDICT `exchange` 词形；共 152,058（48,335 个有词频的基础词、40,148 个无词频基础词、63,575 个词形）。只收 `^[a-z]+$`，不收入专名、缩写式专名、多词条与非 ASCII。
+  - **频率** = `min(frq, bnc)` 取正值较小者；基础词按频率排序在前，无频率基础词按字母序随后，词形统一排尾。行号仍是应用的 rank，`kFloorRank = 3000` 按新序重定（前 3000 行，默认档掌握带 7,315）。
+  - **可标池** = 新的 `data/scan-words.txt`：有词频且有英文释义或 Collins/牛津/考试标签的基础词及其词形，42,870 + 37,864 = 80,734。自动扫描只从池中取词；显式选区与释义链的规则不变。
+  - 档位词书用 `scripts/data/build-wordbooks.py` 按新表重跑，档位组合不变；实测八本书 56,531 词保留 56,434，掉 70 条异体/派生词。
+  - 手工补充表 `data/wordlist-extra.txt` 收两源都缺的口语形与专业词（`gonna`、`wanna`、`refactor`、`codebase`、`timeout`、`login` 等 14 条），无词频、不画线，只保证选区按单词解释。
+  - 选区的通道判定保持 “孤立 token 在词表 → Word，不在 → Entity”；小写缩写进了覆盖表，页面上的全大写同形 token 走 Word。不采用 “全大写 ≥3 字母一律 Entity” 的形状规则，它会把 `RUNNING` 这类大写键入的词送进实体通道。
+  - `scripts/data/gen_irregulars.py` 的 curated 补 `does → do`：新词频序会让后缀规则把 `does` 归到 `doe`，而 WordNet 的例外表没有这条。
+  - 非英语页面的划线不在本 ADR 内，由紧随其后的语言门决定。
+- **后果**：
+  - 旧表 57,472 条（34.2%）掉出覆盖，样本是 `aaaa`/`aaahhh` 一类词典垃圾；覆盖仍有 15.2 万。
+  - 本机日志 215 个真实候选：111 个仍被标，104 个不再标（46 无可标、49 不在覆盖、9 已掌握）；进阶英语保留 48/54。仍有法语 12、拼音 9、缩写 15、专名 4 被标——这些在任何英语词典里都是合法条目，换表清不掉，交给语言门与专名策略。
+  - eval corpus 40 条期望调整，其中 28 条通道变化：19 条 Word→Entity（10 个缩写、4 个品牌、2 个非 ASCII、3 个生僻/拟声词），9 条 Entity→Word（HTTP/CLI/AWS/TCP/TLS/EXE/HTTPS/www/breakpoint 的小写形式进了覆盖表）。其余 12 条是 lemma 与候选表的更新。语料已逐条更新，`scripts/data/check-eval-corpus.py` 通过。
+  - 测试里按旧表排名写死的行为已更新（`miss` 274 → 904、`better` → `good`、词书样例 `chamber`/`abortion` 换成 `auto`/`territorial`）；`kFloorRank` 保持 3000，默认档掌握带 7,315。
+  - 许可：OEWN 2022 为 CC BY 4.0 + WordNet License，ECDICT MIT；`data/wordlist-source.md` 与 `data/wordbooks/NOTICE.md` 已补署名。
+  - 已知缺口：`vlog`/`cosplay` 已由 OEWN 2022 收录，`refactor`/`codebase`/`plugin`/`inbox` 等由补充表兜住；`café`/`über` 等非 ASCII 选区仍是边界，归 Entity。
+- **被排除的做法**：
+  - 继续用 ESDB：尾部是字母序，没有频率；含垃圾、专名、外来词。
+  - ECDICT 单表：921,574 个小写条目里只有 49,139 有标注；中文释义混着缩写与姓氏（`forg`、`whe`、`zelda`、`claude`），不能当真词判据。
+  - wordfreq：英语频段混入专名与多语料（`les` 4.10、`las` 4.28），单独分不清英语词。
+  - 手工修剪现表：修不掉 “没有真实频率序” 这个根。
+  - 只加扫描上限不动词表：尾部是字母序，rank 在那里没有频率含义。

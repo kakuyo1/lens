@@ -106,7 +106,6 @@ achieve
 achievement
 acid
 acknowledge
-acknowledgemennt
 acoustics
 acquaint
 acquaintance
@@ -196,7 +195,6 @@ advantageous
 advent
 adventure
 adventurism
-adventurist
 adventurous
 adverb
 adverbial
@@ -288,7 +286,6 @@ airborne
 aircraft
 airfield
 airforce
-airhostess
 airily
 airlift
 airline
@@ -903,7 +900,6 @@ bark
 barley
 barn
 barometer
-barometre
 baron
 baroque
 barracks
@@ -1169,7 +1165,6 @@ bomb
 bombard
 bomber
 bombshell
-bona
 bond
 bondage
 bone
@@ -2114,7 +2109,6 @@ congregation
 congress
 congressman
 congruence
-congruency
 congruent
 conical
 conifer
@@ -2192,7 +2186,6 @@ contact
 contagious
 contain
 container
-containerization
 contaminate
 contemplate
 contemporary
@@ -2331,7 +2324,6 @@ counter
 counteract
 counterattack
 counterbalance
-counterdrug
 counterfeit
 counterpart
 countess
@@ -3216,7 +3208,6 @@ domino
 don
 donate
 donation
-donator
 done
 donkey
 donor
@@ -3344,7 +3335,6 @@ dull
 duly
 dumb
 dumbfound
-dumfound
 dummy
 dump
 dumpling
@@ -3590,7 +3580,6 @@ empire
 empirical
 empiricism
 employ
-employe
 employee
 employer
 employment
@@ -3795,7 +3784,6 @@ estimate
 estimation
 estrange
 estuary
-et
 etc
 etceteras
 etch
@@ -3992,7 +3980,6 @@ extinction
 extinguish
 extinguisher
 extol
-extoll
 extort
 extortionate
 extra
@@ -4446,7 +4433,6 @@ foist
 fold
 folder
 foliage
-folivore
 folk
 folklore
 follow
@@ -4660,7 +4646,6 @@ from
 front
 frontage
 frontal
-frontbench
 frontier
 frost
 frostbite
@@ -5100,8 +5085,6 @@ hale
 half
 halfway
 hall
-halleluia
-halleluja
 hallmark
 hallo
 hallowed
@@ -5136,7 +5119,6 @@ handkerchief
 handle
 handlebar
 handout
-handpicked
 handshake
 handsome
 handsomely
@@ -5396,7 +5378,6 @@ hieroglyphics
 high
 highbrow
 highchair
-highhanded
 highland
 highlight
 highly
@@ -5544,7 +5525,6 @@ horsehair
 horseman
 horseplay
 horsepower
-horseracing
 horseshoe
 horsewhip
 horsey
@@ -6386,7 +6366,6 @@ jam
 janitor
 jar
 jargon
-jasmin
 jasmine
 javelin
 jaw
@@ -7192,7 +7171,6 @@ migration
 mild
 mile
 mileage
-mileometre
 milestone
 militant
 militarism
@@ -7206,7 +7184,6 @@ mill
 millennium
 millet
 milligram
-milligramme
 millimeter
 millimetre
 million
@@ -8863,7 +8840,6 @@ radicalism
 radio
 radioactive
 radioactivity
-radiochemical
 radium
 radius
 raffle
@@ -9577,7 +9553,6 @@ salesclerk
 salesgirl
 saleslady
 salesman
-salesmanager
 salient
 saline
 saliva
@@ -9993,7 +9968,6 @@ shit
 shiver
 shoal
 shock
-shockproof
 shoddy
 shoe
 shoemaker
@@ -10006,7 +9980,6 @@ shopping
 shore
 short
 shortage
-shortchange
 shortcoming
 shortcut
 shorten
@@ -10118,7 +10091,6 @@ sing
 singe
 singer
 single
-singlehood
 singular
 sinister
 sink
@@ -10207,7 +10179,6 @@ slight
 slightly
 slim
 slime
-slimnastics
 slimy
 sling
 slink
@@ -10385,7 +10356,6 @@ souvenir
 sovereign
 sovereignty
 sow
-soyabean
 soybean
 spa
 space
@@ -10498,7 +10468,6 @@ spray
 spread
 spring
 springboard
-springlock
 sprinkle
 sprint
 sprout
@@ -10787,7 +10756,6 @@ subtract
 subtraction
 suburb
 suburban
-suburbanisation
 suburbanite
 subversion
 subversive
@@ -10849,7 +10817,6 @@ summons
 sumo
 sumptuous
 sun
-sunbath
 sunbathe
 sunburn
 sundial
@@ -12199,7 +12166,6 @@ welcome
 weld
 welfare
 well
-were
 west
 western
 westward

@@ -39,6 +39,7 @@ inline void requireFilterTablesLoaded()
         lens::core::loadWordlist(sourceDir() / "data" / "wordlist.txt");
         lens::core::loadIrregulars(sourceDir() / "data" / "irregulars.tsv");
         lens::core::loadInformalSpellings(sourceDir() / "data" / "informal-spellings.txt");
+        lens::core::loadScanWords(sourceDir() / "data" / "scan-words.txt");
         return true;
     }();
     (void)loaded;

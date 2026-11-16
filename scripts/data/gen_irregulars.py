@@ -35,6 +35,9 @@ EXC_FILES = ("verb.exc", "noun.exc", "adj.exc", "adv.exc")
 CURATED = {
     "women": "woman",
     "people": "person",
+    # WordNet treats the verb's forms as regular, and its two-letter base sits under the suffix
+    # rules' floor; without this the "does" -> "doe" plural rule would win the tie-break.
+    "does": "do",
 }
 
 OUTPUT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),

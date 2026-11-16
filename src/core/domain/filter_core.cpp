@@ -70,6 +70,10 @@ std::unordered_map<std::string, std::uint8_t> g_books;
 /// Informal spellings the scan drops, from data/informal-spellings.txt. Empty until loadInformalSpellings() runs.
 std::unordered_set<std::string> g_informal;
 
+/// The words the automatic scan may draw, from data/scan-words.txt. Empty until loadScanWords() runs.
+std::unordered_set<std::string> g_scanPool;
+bool                            g_scanPoolLoaded = false;
+
 /// @return Whether @p utf8 holds a Han character anywhere, which is the whole of "this selection
 /// is Chinese".
 ///
@@ -504,6 +508,48 @@ void loadInformalSpellings(const std::filesystem::path& path)
         g_informal.insert(util::asciiLower(line));
     }
     LENS_INFO("informal spellings loaded: {} form(s) from '{}'", g_informal.size(), path.string());
+}
+
+void loadScanWords(const std::filesystem::path& path)
+{
+    const auto startedAt = std::chrono::steady_clock::now();
+    LENS_TRACE("loadScanWords: reading '{}'", path.string());
+
+    std::ifstream in(path);
+    if (!in) {
+        LENS_CRITICAL("loadScanWords: cannot open '{}'", path.string());
+        throw std::runtime_error("Cannot open the scan pool: " + path.string());
+    }
+
+    std::unordered_set<std::string> pool;
+    std::string                     line;
+    while (std::getline(in, line)) {
+        while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+            line.pop_back();
+        if (line.empty() || line.front() == '#') continue;
+        pool.insert(util::asciiLower(line));
+    }
+    if (pool.empty()) {
+        LENS_CRITICAL("loadScanWords: '{}' holds no words", path.string());
+        throw std::runtime_error("The scan pool is empty: " + path.string());
+    }
+    g_scanPool       = std::move(pool);
+    g_scanPoolLoaded = true;
+
+    const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                               std::chrono::steady_clock::now() - startedAt)
+                               .count();
+    LENS_INFO("scan pool loaded: {} word(s) from '{}' in {} ms", g_scanPool.size(), path.string(), elapsedMs);
+}
+
+bool isMarkable(std::string_view surface)
+{
+    if (!g_scanPoolLoaded)
+        throw std::logic_error("lens::core::isMarkable: loadScanWords() must run first");
+
+    for (const auto& form : formsOf(util::asciiLower(surface)))
+        if (g_scanPool.count(form) != 0) return true;
+    return false;
 }
 
 std::string lemmatize(std::string_view token)

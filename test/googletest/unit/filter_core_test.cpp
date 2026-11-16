@@ -367,9 +367,9 @@ TEST_F(CoreTest, DefinitionLinksOfferWordsAboveTheBandAndUnlistedOnes)
     EXPECT_EQ(unlisted.front().start, 4u);
     EXPECT_EQ(unlisted.front().end, 18u);
 
-    // The cut-off is inclusive: a word ranked exactly at it is inside the band. "miss" is its own lemma (rank 274).
-    EXPECT_TRUE(lens::core::definitionLinks("miss", {}, Difficulty::byRank(274)).empty());
-    EXPECT_EQ(lens::core::definitionLinks("miss", {}, Difficulty::byRank(273)).size(), 1u);
+    // The cut-off is inclusive: a word ranked exactly at it is inside the band. "miss" is its own lemma (rank 904).
+    EXPECT_TRUE(lens::core::definitionLinks("miss", {}, Difficulty::byRank(904)).empty());
+    EXPECT_EQ(lens::core::definitionLinks("miss", {}, Difficulty::byRank(903)).size(), 1u);
 }
 
 TEST_F(CoreTest, DifficultyForLevelClampsToTheTable)
@@ -410,13 +410,13 @@ TEST_F(WordbookTest, EachLevelMastersItsOwnBooksTheBaseAndTheFloor)
     expectMasteredAtLevels({
         {"time", {0, 1, 2, 3, 4, 5, 6, 7}},
         {"garden", {0, 1, 2, 3, 4, 5, 6, 7}},
-        {"vivid", {1}},            // c1-c2
-        {"chamber", {2, 3, 6, 7}}, // cet4, which CET-6, IELTS and TOEFL include
-        {"meticulous", {3}},       // cet6
-        {"ambiguous", {4, 5}},     // tem4, which TEM-8 includes
-        {"tenacious", {5}},        // tem8
-        {"eloquent", {6}},         // ielts
-        {"pragmatic", {7}},        // toefl
+        {"vivid", {1}},         // c1-c2
+        {"auto", {2, 3, 6, 7}}, // cet4, which CET-6, IELTS and TOEFL include
+        {"meticulous", {3}},    // cet6
+        {"ambiguous", {4, 5}},  // tem4, which TEM-8 includes
+        {"tenacious", {5}},     // tem8
+        {"eloquent", {6}},      // ielts
+        {"pragmatic", {7}},     // toefl
     });
 }
 
@@ -431,7 +431,7 @@ TEST_F(WordbookTest, AMissingWordbookLeavesOnlyTheFloor)
 {
     // A directory with no books is the worst case of missing files: each one warns, nothing is listed, and startup goes on.
     lens::core::loadWordbooks(lens::test::sourceDir() / "test" / "fixtures" / "no-wordbooks");
-    EXPECT_FALSE(masteredAt("chamber", 2));
+    EXPECT_FALSE(masteredAt("auto", 2));
     EXPECT_FALSE(masteredAt("vivid", 1));
     EXPECT_TRUE(masteredAt("time", 2)) << "the frequency floor does not depend on any book";
 }
@@ -498,7 +498,7 @@ TEST_F(CoreTest, RealWordbooksMasterEachLevelsOwnBooks)
         {"ambient", {3}},                     // cet6
         {"acknowledgement", {4, 5}},          // tem4, which TEM-8 includes
         {"abominable", {5}},                  // tem8
-        {"abortion", {6}},                    // ielts
+        {"territorial", {6}},                 // ielts
         {"abandonment", {7}},                 // toefl
     });
 }
@@ -575,8 +575,8 @@ TEST_F(CoreTest, BaseFormOfAnswersTheMorphologicalBase)
     EXPECT_EQ(lens::core::baseFormOf("making"), "make");
     EXPECT_EQ(lens::core::baseFormOf("used"), "use");
     EXPECT_EQ(lens::core::baseFormOf("nicer"), "nice");
-    // The irregular table answers, ties and all.
-    EXPECT_EQ(lens::core::baseFormOf("better"), "well");
+    // The irregular table answers, ties and all: "good" outranks "well" in the new list.
+    EXPECT_EQ(lens::core::baseFormOf("better"), "good");
     // Words no rule reaches past, and the own-base traps, answer themselves.
     EXPECT_EQ(lens::core::baseFormOf("crumple"), "crumple");
     EXPECT_EQ(lens::core::baseFormOf("seed"), "seed");

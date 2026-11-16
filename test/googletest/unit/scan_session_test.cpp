@@ -43,6 +43,7 @@ void loadWordlistOnce()
         auto const data = std::filesystem::path{LENS_SOURCE_DIR} / "data";
         lens::core::loadWordlist(data / "wordlist.txt");
         lens::core::loadIrregulars(data / "irregulars.tsv");
+        lens::core::loadScanWords(data / "scan-words.txt");
         return true;
     }();
     (void)loaded;
@@ -332,6 +333,25 @@ TEST(ScanSession, FramesAreJudgedAndPlacedOnEveryFrame)
     ASSERT_TRUE(second.placed);
     ASSERT_EQ(second.placed.value().words.size(), 1);
     EXPECT_EQ(second.placed.value().words[0].lemma, QStringLiteral("ubiquitous"));
+}
+
+TEST(ScanSession, TheScanDrawsOnlyPoolWords)
+{
+    Harness h;
+    h.session.tick(h.chrome());
+    ASSERT_TRUE(h.deliver);
+
+    // "nasa" is in the coverage list but not in the scan pool: an acronym the sources retain is
+    // not a word to teach, so only the pool's word draws a line (docs/adr/0186).
+    lens::capture::TrackFrame frame;
+    frame.added.push_back({1, "ubiquitous"});
+    frame.added.push_back({2, "nasa"});
+    frame.visible.push_back({1, 10, 20, 30, 12});
+    frame.visible.push_back({2, 50, 20, 30, 12});
+    auto const step = h.session.onFrame(h.session.generation(), frame);
+    ASSERT_TRUE(step.placed);
+    ASSERT_EQ(step.placed.value().words.size(), 1);
+    EXPECT_EQ(step.placed.value().words.front().lemma, QStringLiteral("ubiquitous"));
 }
 
 TEST(ScanSession, AStaleFrameIsNothing)

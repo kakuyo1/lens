@@ -8,10 +8,10 @@
 | `cet6.txt` | 六级，累积，含四级词 | ECDICT 1.0.28 的 `cet6` 标签 | MIT | 5352 |
 | `toefl.txt` | 托福 | ECDICT 1.0.28 的 `toefl` 标签 | MIT | 6921 |
 | `ielts.txt` | 雅思 | ECDICT 1.0.28 的 `ielts` 标签 | MIT；标签来源未核实，见下 | 4943 |
-| `b1-b2.txt` | CEFR A1–B2，累积 | CEFR-J Vocabulary Profile 1.5 | 研究与商用免费，须注明出处 | 6478 |
-| `c1-c2.txt` | CEFR A1–C2，累积 | CEFR-J 1.5 加 Octanove Vocabulary Profile C1/C2 1.0 | Octanove 部分 CC BY-SA 4.0 | 8185 |
-| `tem4.txt` | 专业四级（TEM-4） | 读者自备 PDF 整理，文字层由 `pdftotext` 提取 | 8440 |
-| `tem8.txt` | 专业八级（TEM-8），累积，含四级词 | 读者自备 PDF 整理，同上 | 12410 |
+| `b1-b2.txt` | CEFR A1–B2，累积 | CEFR-J Vocabulary Profile 1.5 | 研究与商用免费，须注明出处 | 6470 |
+| `c1-c2.txt` | CEFR A1–C2，累积 | CEFR-J 1.5 加 Octanove Vocabulary Profile C1/C2 1.0 | Octanove 部分 CC BY-SA 4.0 | 8149 |
+| `tem4.txt` | 专业四级（TEM-4） | 读者自备 PDF 整理，文字层由 `pdftotext` 提取 | 8421 |
+| `tem8.txt` | 专业八级（TEM-8），累积，含四级词 | 读者自备 PDF 整理，同上 | 12376 |
 
 ## 分发要求
 

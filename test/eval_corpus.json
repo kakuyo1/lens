@@ -528,10 +528,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "API",
-    "expect": ["api"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -546,16 +546,16 @@
     "expectKind": "Entity"
   },
   {
-    "note": "lone name: a word-list-missing token selected alone",
+    "note": "lone token: the new coverage holds the lower-case form, so the word channel",
     "text": "HTTPS",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["https"],
+    "expectKind": "Word"
   },
   {
-    "note": "lone name: a word-list-missing token selected alone",
+    "note": "lone token: the new coverage holds the lower-case form, so the word channel",
     "text": "HTTP",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["http"],
+    "expectKind": "Word"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -594,10 +594,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "USB",
-    "expect": ["usb"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -618,10 +618,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone name: a word-list-missing token selected alone",
+    "note": "lone token: the new coverage holds the lower-case form, so the word channel",
     "text": "CLI",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["cli"],
+    "expectKind": "Word"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -636,10 +636,10 @@
     "expectKind": "Entity"
   },
   {
-    "note": "lone name: a word-list-missing token selected alone",
+    "note": "lone token: the new coverage holds the lower-case form, so the word channel",
     "text": "AWS",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["aws"],
+    "expectKind": "Word"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -672,16 +672,16 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "SLA",
-    "expect": ["sla"],
-    "expectKind": "Word"
-  },
-  {
-    "note": "lone name: a word-list-missing token selected alone",
-    "text": "TCP",
     "expect": [],
     "expectKind": "Entity"
+  },
+  {
+    "note": "lone token: the new coverage holds the lower-case form, so the word channel",
+    "text": "TCP",
+    "expect": ["tcp"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -720,10 +720,10 @@
     "expectKind": "Entity"
   },
   {
-    "note": "lone name: a word-list-missing token selected alone",
+    "note": "lone token: the new coverage holds the lower-case form, so the word channel",
     "text": "TLS",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["tls"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -756,10 +756,10 @@
     "expectKind": "Entity"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "PDF",
-    "expect": ["pdf"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -768,16 +768,16 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "JPEG",
-    "expect": ["jpeg"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "GIF",
-    "expect": ["gif"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -798,10 +798,10 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "WAV",
-    "expect": ["wav"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -810,10 +810,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone name: a word-list-missing token selected alone",
+    "note": "lone token: the new coverage holds the lower-case form, so the word channel",
     "text": "EXE",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["exe"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -822,10 +822,10 @@
     "expectKind": "Entity"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "TTY",
-    "expect": ["tty"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -834,10 +834,10 @@
     "expectKind": "Entity"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "TODO",
-    "expect": ["todo"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -912,10 +912,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "ADMIN",
-    "expect": ["admin"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -1068,16 +1068,16 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "brr",
-    "expect": ["brr"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "grr",
-    "expect": ["grr"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -1092,10 +1092,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone name: a word-list-missing token selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "crwth",
-    "expect": ["crwth"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -1104,10 +1104,10 @@
     "expectKind": "Entity"
   },
   {
-    "note": "lone name: a word-list-missing token selected alone",
+    "note": "lone token: the new coverage holds the lower-case form, so the word channel",
     "text": "www",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["www"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -1140,16 +1140,16 @@
     "expectKind": "Translation"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "caf\u00e9",
-    "expect": ["caf"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "\u00fcber",
-    "expect": ["ber"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "a URL: dropped whole",
@@ -1902,10 +1902,10 @@
     "expectKind": "Entity"
   },
   {
-    "note": "lone name: a word-list-missing token selected alone",
+    "note": "lone token: the new coverage holds the lower-case form, so the word channel",
     "text": "breakpoint",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["breakpoint"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -1950,10 +1950,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "ebay",
-    "expect": ["ebay"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -1974,10 +1974,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "linkedin",
-    "expect": ["linkedin"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -1992,10 +1992,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "paypal",
-    "expect": ["paypal"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -2010,10 +2010,10 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone word: a dictionary word selected alone",
+    "note": "lone token: the new coverage does not hold it, so the entity channel",
     "text": "youtube",
-    "expect": ["youtube"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -2447,7 +2447,7 @@
     "text": "allowed",
     "expect": ["allowed"],
     "expectKind": "Word",
-    "expectLemmas": ["allowed"]
+    "expectLemmas": ["allow"]
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -2482,7 +2482,7 @@
     "text": "does",
     "expect": ["does"],
     "expectKind": "Word",
-    "expectLemmas": ["does"]
+    "expectLemmas": ["do"]
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -2594,7 +2594,7 @@
     "text": "years",
     "expect": ["years"],
     "expectKind": "Word",
-    "expectLemmas": ["years"]
+    "expectLemmas": ["year"]
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -2615,7 +2615,7 @@
     "text": "rules",
     "expect": ["rules"],
     "expectKind": "Word",
-    "expectLemmas": ["rules"]
+    "expectLemmas": ["rule"]
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -2664,14 +2664,14 @@
     "text": "quickly",
     "expect": ["quickly"],
     "expectKind": "Word",
-    "expectLemmas": ["quick"]
+    "expectLemmas": ["quickly"]
   },
   {
     "note": "lone word: a dictionary word selected alone",
     "text": "slowly",
     "expect": ["slowly"],
     "expectKind": "Word",
-    "expectLemmas": ["slow"]
+    "expectLemmas": ["slowly"]
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -3147,14 +3147,14 @@
     "text": "better",
     "expect": ["better"],
     "expectKind": "Word",
-    "expectLemmas": ["well"]
+    "expectLemmas": ["good"]
   },
   {
     "note": "lone word: a dictionary word selected alone",
     "text": "best",
     "expect": ["best"],
     "expectKind": "Word",
-    "expectLemmas": ["well"]
+    "expectLemmas": ["good"]
   },
   {
     "note": "lone word: a dictionary word selected alone",
@@ -3196,11 +3196,11 @@
   },
   {
     "note": "the lemma appears once, the surface kept is the first",
-    "text": "quickly quick",
-    "expect": ["quickly"],
+    "text": "chairs chair",
+    "expect": ["chairs"],
     "expectKind": "Sentence",
     "minFreqRank": 4500,
-    "expectLemmas": ["quick"]
+    "expectLemmas": ["chair"]
   },
   {
     "note": "the lemma appears once, the surface kept is the first",
@@ -4231,22 +4231,22 @@
     "minFreqRank": 3000
   },
   {
-    "note": "mixed prose: breakpoint (not in the static word list); stdin (not in the static word list); the rest are candidates",
+    "note": "mixed prose: stdin (not in the static word list); the rest are candidates",
     "text": "Set the breakpoint and inspect stdin.",
-    "expect": ["set", "the", "and", "inspect"],
+    "expect": ["set", "the", "breakpoint", "and", "inspect"],
     "expectKind": "Sentence"
   },
   {
-    "note": "mixed prose: breakpoint (not in the static word list); stdin (not in the static word list); and every candidate is known already",
+    "note": "mixed prose: stdin (not in the static word list); and every candidate is known already",
     "text": "Set the breakpoint and inspect stdin.",
-    "expect": ["set", "the", "and", "inspect"],
+    "expect": ["set", "the", "breakpoint", "and", "inspect"],
     "expectKind": "Sentence",
     "known": ["and", "inspect", "set", "the"]
   },
   {
-    "note": "mixed prose: breakpoint (not in the static word list); stdin (not in the static word list); and the cut-off annotates rather than drops",
+    "note": "mixed prose: stdin (not in the static word list); and the cut-off annotates rather than drops",
     "text": "Set the breakpoint and inspect stdin.",
-    "expect": ["set", "the", "and", "inspect"],
+    "expect": ["set", "the", "breakpoint", "and", "inspect"],
     "expectKind": "Sentence",
     "minFreqRank": 3000
   },

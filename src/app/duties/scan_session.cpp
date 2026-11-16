@@ -215,9 +215,13 @@ std::vector<std::pair<std::string, core::CandidateState>> ScanSession::judgeSurf
     auto const mastered = store_.mastered();
     auto const band     = core::difficultyForLevel(store_.level());
 
+    // The scan draws only the pool's words: a name, an abbreviation or a dictionary oddity the
+    // corpus happened to contain is not a word to teach, though a selection still explains it
+    // (docs/adr/0186). Known and New both draw, restyled; Mastered draws nothing.
     std::vector<std::pair<std::string, core::CandidateState>> judged;
     for (auto const& candidate : core::filterWords(surface, known, mastered, band, minimumWordLength_, false))
-        if (candidate.state != core::CandidateState::Mastered) judged.emplace_back(candidate.lemma, candidate.state);
+        if (candidate.state != core::CandidateState::Mastered and core::isMarkable(candidate.surface))
+            judged.emplace_back(candidate.lemma, candidate.state);
     return judged;
 }
 

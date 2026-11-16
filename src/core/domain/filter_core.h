@@ -79,6 +79,30 @@ std::vector<std::string> parseWordlistFile(const std::filesystem::path& path);
 void loadInformalSpellings(const std::filesystem::path& path);
 
 /**
+ * @brief Load the pool the automatic scan may draw from into process-wide read-only state.
+ *
+ * @param path Text file, one lower-case word per line; a line starting with `#` is a comment.
+ *             `data/scan-words.txt` is the shipped pool, built by `scripts/data/build-wordlist.py`
+ *             from the words the corpus ranks and the dictionary annotates (docs/adr/0186).
+ * @throws std::runtime_error If the file cannot be opened or contains no entries.
+ *
+ * @note The pool decides what the scan draws, not what can be explained: a selection outside it
+ *       still takes the word channel. It must be loaded before the scan session judges a surface.
+ */
+void loadScanWords(const std::filesystem::path& path);
+
+/**
+ * @brief Whether any form of @p surface is in the scan pool.
+ *
+ * @param surface Word as written, lower-cased.
+ * @return Whether any form of @p surface is in the pool. The pool holds corpus-ranked words with a
+ *         dictionary annotation, plus their inflections, so a name or abbreviation the corpus merely
+ *         happened to contain never draws a line (docs/adr/0186).
+ * @throws std::logic_error If loadScanWords() has not run yet.
+ */
+bool isMarkable(std::string_view surface);
+
+/**
  * @brief Reduce a token to its dictionary form, so "running" and "ran" both become "run".
  *
  * Irregular forms are decided by the loaded table. Everything else is reduced by suffix

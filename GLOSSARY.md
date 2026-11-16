@@ -16,6 +16,7 @@
 - **选区类型（Selection kind）**：按选区形状分为 word / entity / sentence；**含汉字的选区直接是 translation**，不看形状。判定规则见 `PRODUCT.md`。
 - **译文（Translation）**：含汉字选区所走的通道与气泡，恒译成英文，只画一行。界线见 `API.md` §1 与 `docs/adr/0044`。
 - **静态词表（Static wordlist）**：本地英文覆盖白名单，是 “是否真词” 的唯一权威判定，不含释义。收录范围与来源见 `data/wordlist-source.md`。
+- **可标池（Scan pool）**：自动扫描允许画线的词集合，来自静态词表里有语料词频、且有英文释义或考试/柯林斯/牛津标注的词及其词形；池外的词仍按单词解释，只是不自动画线。见 `docs/adr/0186`。
 - **垃圾内容（Garbage）**：数字串、乱码、URL、文件名、含非字母字符的粘连串等不符合英文单词形态的内容。
 - **词根还原（Lemmatization）**：后缀还原加不规则表；判定库、缓存键、档位词书与词表查询都按 lemma 进行。
 - **自检样例集（Eval corpus）**：`test/eval_corpus.json`，每段带期望通道与候选；`lens_gtest_unit` 比对实际结果。
