@@ -573,4 +573,41 @@ TEST(TrackCore, AcquisitionCostInSeamCalls)
     EXPECT_LT(opsLastAdded, wordsAdded * 3);
 }
 
+TEST(TrackCore, AMissedReadIsCountedAsScrolledOutWhenTheBoxLeavesTheBand)
+{
+    FakePageReader reader = articleReader();
+    TrackCore      core{reader};
+    auto           t = kStart;
+    settleToFirstDraw(core, reader, t);
+    // The anchor's box stays non-empty but its centre leaves the band: a scroll-out miss, not an
+    // empty one (docs/adr/0189).
+    reader.page->cells[2].box = Band{.x = 940, .y = 5000, .width = 60, .height = 40};
+    std::optional<lens::capture::TrackReport> rep;
+    for (int i = 0; i < 70; ++i) {
+        auto const out = step(core, t);
+        if (out.report) rep = out.report;
+    }
+    ASSERT_TRUE(rep);
+    EXPECT_GT(rep->missedOut, 0);
+    EXPECT_EQ(rep->missedEmpty, 0);
+}
+
+TEST(TrackCore, AMissedReadIsCountedAsEmptyWhenTheBoxReadsZero)
+{
+    FakePageReader reader = articleReader();
+    TrackCore      core{reader};
+    auto           t = kStart;
+    settleToFirstDraw(core, reader, t);
+    // The anchor's box reads zero-size: a retired or virtualized range, an empty miss (docs/adr/0189).
+    reader.page->cells[2].box = Band{.x = 940, .y = 580, .width = 0, .height = 0};
+    std::optional<lens::capture::TrackReport> rep;
+    for (int i = 0; i < 70; ++i) {
+        auto const out = step(core, t);
+        if (out.report) rep = out.report;
+    }
+    ASSERT_TRUE(rep);
+    EXPECT_GT(rep->missedEmpty, 0);
+    EXPECT_EQ(rep->missedOut, 0);
+}
+
 }

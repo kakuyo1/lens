@@ -248,10 +248,13 @@ void PageTrack::run(std::stop_token const& stop)
         if (out.report) {
             auto const& report = *out.report;
             if (report.moves + report.refusals + report.losses + report.missedReads + report.framesSent + report.nameReads + report.pageSearches > 0)
-                LENS_INFO("scan track, last second: {} anchor move(s), {} refused, {} missed read(s), {} lost, {} span(s) held, {} frame(s) sent, {} name read(s), {} page search(es), visible y {}..{}",
+                LENS_INFO("scan track, last second: {} anchor move(s), {} refused ({} moved), {} missed ({} empty/{} out), {} lost, {} span(s) held, {} frame(s) sent, {} name read(s), {} page search(es), visible y {}..{}",
                           report.moves,
                           report.refusals,
+                          report.refusalsMoved,
                           report.missedReads,
+                          report.missedEmpty,
+                          report.missedOut,
                           report.losses,
                           report.spanCount,
                           report.framesSent,

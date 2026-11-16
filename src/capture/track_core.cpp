@@ -65,16 +65,19 @@ TrackOutput TrackCore::step(Band band, std::chrono::steady_clock::time_point con
         summary              = moves_ + refusals_ + losses_ + missed_ + framesSent_ + reads_ + searches_ > 0;
         report.moves         = moves_;
         report.refusals      = refusals_;
+        report.refusalsMoved = refusalsMoved_;
         report.losses        = losses_;
         report.missedReads   = missed_;
+        report.missedEmpty   = missedEmpty_;
+        report.missedOut     = missedOut_;
         report.framesSent    = framesSent_;
         report.nameReads     = reads_;
         report.pageSearches  = searches_;
         report.spanCount     = static_cast<int>(spans_.size());
         report.visibleTop    = visible.y;
         report.visibleBottom = visible.y + visible.height - 1;
-        moves_ = refusals_ = losses_ = missed_ = framesSent_ = reads_ = searches_ = 0;
-        reportedAt_                                                               = now;
+        moves_ = refusals_ = refusalsMoved_ = losses_ = missed_ = missedEmpty_ = missedOut_ = framesSent_ = reads_ = searches_ = 0;
+        reportedAt_                                                                                                            = now;
     }
 
     auto frame = not anchor_ ? acquire(band, now) : trackStep(band, visible, now);
@@ -94,6 +97,13 @@ std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& vis
     auto const box = page_->box(*anchor_);
     if (not box or emptyOf(*box) or not holdsCenter(visible, *box)) {
         // A read that races a scroll comes back empty for a step or two: the lines hide until the page reads again.
+        // Split the miss for diagnosis: an absent/zero box vs a centre outside the band (docs/adr/0189).
+        // Both give up at kMissedSteps -- a sustained empty is the anchor scrolled off and retired,
+        // not a transient to ride out, so waiting longer only draws stale lines (docs/adr/0189).
+        if (not box or emptyOf(*box))
+            ++missedEmpty_;
+        else
+            ++missedOut_;
         ++missed_;
         stillSteps_ = 0;
         if (++missedSteps_ < kMissedSteps) {
@@ -163,10 +173,17 @@ bool TrackCore::moveAnchorIfNearEdge(Band const& band)
         return false;
     }
     auto const box = page_->box(*middle);
-    // The old anchor must not have moved while the new one was found: both boxes are taken at one scroll position.
-    auto const anchorBox = page_->box(*anchor_);
-    if (not box or emptyOf(*box) or not anchorBox or *anchorBox != anchorBox_) {
+    if (not box or emptyOf(*box)) {
         ++refusals_;
+        return false;
+    }
+    // The old anchor must not have moved while the new one was found: both boxes are taken at one
+    // scroll position. A scroll in flight moves it -- exactly when re-anchoring is most needed --
+    // so this refusal is counted apart to name the churn (docs/adr/0189).
+    auto const anchorBox = page_->box(*anchor_);
+    if (not anchorBox or *anchorBox != anchorBox_) {
+        ++refusals_;
+        ++refusalsMoved_;
         return false;
     }
     rebaseSpans(spans_, box->x - anchorBox_.x, box->y - anchorBox_.y);

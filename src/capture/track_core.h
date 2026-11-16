@@ -60,8 +60,11 @@ struct TrackFrame {
 struct TrackReport {
     int         moves         = 0; ///< Anchor moves.
     int         refusals      = 0; ///< Anchor moves the page refused.
+    int         refusalsMoved = 0; ///< Re-anchor refusals because the old anchor moved mid-attempt: a scroll in flight (docs/adr/0189).
     int         losses        = 0;
     int         missedReads   = 0; ///< Anchor reads that came back empty or outside the band.
+    int         missedEmpty   = 0; ///< Missed reads whose box was absent or zero-size: a retired or virtualized range (docs/adr/0189).
+    int         missedOut     = 0; ///< Missed reads whose box centre left the band: the anchor scrolled out (docs/adr/0189).
     int         framesSent    = 0;
     int         nameReads     = 0;
     int         pageSearches  = 0;
@@ -131,12 +134,15 @@ private:
     int                                   nextId_     = 0;
     // Diagnostic counters for the track, one summary line a second: a track that has stopped drawing
     // its lines shows which of its reads stopped, instead of going silent.
-    int                                   moves_    = 0;
-    int                                   refusals_ = 0;
-    int                                   losses_   = 0;
-    int                                   missed_   = 0;
-    int                                   reads_    = 0; ///< Name reads the page answered in the last second.
-    int                                   searches_ = 0; ///< Page searches walked over the window's tree.
+    int                                   moves_         = 0;
+    int                                   refusals_      = 0;
+    int                                   refusalsMoved_ = 0; ///< Re-anchor refusals from a scroll in flight (docs/adr/0189).
+    int                                   losses_        = 0;
+    int                                   missed_        = 0;
+    int                                   missedEmpty_   = 0; ///< Missed reads with an absent or zero box (docs/adr/0189).
+    int                                   missedOut_     = 0; ///< Missed reads scrolled out of the band (docs/adr/0189).
+    int                                   reads_         = 0; ///< Name reads the page answered in the last second.
+    int                                   searches_      = 0; ///< Page searches walked over the window's tree.
     std::chrono::steady_clock::time_point reportedAt_{};
     int                                   missedSteps_  = 0;  ///< Steps in a row the anchor has read empty or outside the band.
     int                                   framesSent_   = 0;  ///< Frames returned in the last second.
