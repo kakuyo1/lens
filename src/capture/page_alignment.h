@@ -1,5 +1,6 @@
 /** @file page_alignment.h
- * @brief Places OCR words on the page text the reader's accessibility tree exposes.
+ * @brief Page-text analysis: word splitting, the name set, the page's language, and the anchoring
+ *        of OCR words on the text the reader's accessibility tree exposes.
  */
 #pragma once
 
@@ -28,6 +29,18 @@ std::vector<bool> nameFlags(std::string_view text);
 /// @brief The names of page text: the words nameFlags() marks, each once, spelled as pageWords() gives them.
 /// @return The set; a word is a name when its normalizedWord() is in it.
 std::unordered_set<std::string> nameSet(std::string_view text);
+
+/// @brief Whether a page's text reads as English, as another language, or as too little to say.
+enum class PageLanguage { Unknown,
+                          English,
+                          Foreign };
+
+/// @brief Judge a page's language from the share of English function words among its letter tokens.
+/// @return Foreign when a CJK majority carries the page, or when enough letter tokens are present
+///         but too few of them are English function words; Unknown when the text is malformed or
+///         holds too few letter tokens to judge. The scan treats Unknown as English (fail open), so
+///         a short page or a transient empty read is never held back (docs/adr/0187).
+PageLanguage pageLanguageOf(std::string_view text);
 
 /// @brief One OCR word placed on the page text.
 struct WordAnchor {

@@ -497,6 +497,80 @@ TEST(PageAlignment, NewlineSeparatedItemsAreNotNamesForTheirCapitals)
     EXPECT_EQ(names, (std::vector<bool>{false, false, false, false, false, false, false, false}));
 }
 
+TEST(PageAlignment, EnglishProseReadsAsEnglish)
+{
+    auto const lang = lens::capture::pageLanguageOf(
+        "The quick brown fox jumps over the lazy dog. She said that she would come to the store "
+        "before the rain started, but he did not believe her because the sky was clear and there "
+        "was no cloud in sight. They have been walking through the forest for hours, and each of "
+        "them was tired. What should we do now? He asked whether they could find the path again.");
+    EXPECT_EQ(lang, lens::capture::PageLanguage::English);
+}
+
+TEST(PageAlignment, AnEnglishPageOfCodeAndListsReadsAsEnglish)
+{
+    // A technical page is still English: its prose carries the function words even where the code
+    // does not, so the gate must not hold it (docs/adr/0187).
+    auto const lang = lens::capture::pageLanguageOf(
+        "function parseConfig(input) { const result = {}; for (const line of input.split('\\n')) { "
+        "if (!line || line.startsWith('#')) continue; const [key, value] = line.split('='); "
+        "result[key.trim()] = value.trim(); } return result; } The parser reads each line and splits "
+        "it on the first equals sign. It ignores empty lines and comments that begin with a hash. "
+        "You can call it with any string that holds the configuration you wrote.");
+    EXPECT_EQ(lang, lens::capture::PageLanguage::English);
+}
+
+TEST(PageAlignment, AFrenchPageReadsAsForeign)
+{
+    auto const lang = lens::capture::pageLanguageOf(
+        "Le petit prince est venu sur la terre il y a longtemps. Il a dit que les hommes sont "
+        "etranges et qu'ils ne comprennent jamais rien par eux-memes. La rose qu'il aimait etait "
+        "unique au monde, mais il a trouve un jardin plein de roses qui lui ressemblaient. Il s'est "
+        "assis dans l'herbe et il a pleure parce qu'il pensait que sa fleur n'etait pas speciale.");
+    EXPECT_EQ(lang, lens::capture::PageLanguage::Foreign);
+}
+
+TEST(PageAlignment, ASpanishPageReadsAsForeign)
+{
+    auto const lang = lens::capture::pageLanguageOf(
+        "El pequeno principe llego a la tierra hace mucho tiempo. El dijo que los hombres son "
+        "extranos y que nunca entienden nada por si mismos. La rosa que el amaba era unica en el "
+        "mundo, pero encontro un jardin lleno de rosas que se parecian a ella. Se sento en la hierba "
+        "y lloro porque pensaba que su flor no era especial.");
+    EXPECT_EQ(lang, lens::capture::PageLanguage::Foreign);
+}
+
+TEST(PageAlignment, APinyinPageReadsAsForeign)
+{
+    auto const lang = lens::capture::pageLanguageOf(
+        "xiao wang zi lai dao di qiu shang yi jing hen jiu le ta shuo ren lei hen qi guai er qie "
+        "cong lai bu dong de ren he shi qing ta ai de na duo mei gui hua shi shi jie shang wei yi "
+        "de dan shi ta fa xian le yi ge hua yuan li mian dou shi he ta xiang si de mei gui ta zuo "
+        "zai cao di shang ku le yin wei ta jue de ta de hua bing bu te bie");
+    EXPECT_EQ(lang, lens::capture::PageLanguage::Foreign);
+}
+
+TEST(PageAlignment, ACjkMajorityPageReadsAsForeignWhateverItsAsciiWordsSay)
+{
+    auto const lang = lens::capture::pageLanguageOf(
+        "小王子来到地球上已经很久了。他说人类很奇怪，而且从来不懂得任何事情。"
+        "他爱的那朵玫瑰花是世界上唯一的，但是他发现了一个花园，里面都是和她相似的玫瑰。");
+    EXPECT_EQ(lang, lens::capture::PageLanguage::Foreign);
+}
+
+TEST(PageAlignment, APageTooShortToJudgeIsUnknownAndFailsOpen)
+{
+    EXPECT_EQ(lens::capture::pageLanguageOf("Richard met Jeff. The cat sat on the mat."),
+              lens::capture::PageLanguage::Unknown);
+    EXPECT_EQ(lens::capture::pageLanguageOf(""), lens::capture::PageLanguage::Unknown);
+}
+
+TEST(PageAlignment, MalformedBytesAreUnknownAndFailOpen)
+{
+    EXPECT_EQ(lens::capture::pageLanguageOf(std::string_view("\x80", 1)),
+              lens::capture::PageLanguage::Unknown);
+}
+
 TEST(PageAlignment, AWordInAUniqueRunAnchorsToItsPlaceOnThePage)
 {
     lens::capture::PageIndex page{lens::capture::pageWords("a b c d e f g")};

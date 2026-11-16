@@ -487,4 +487,50 @@ TEST(TrackCore, EmptyAnchorsAndMissedReadsSelfHeal)
     EXPECT_EQ(reader.drops, 1); // a lost read keeps the page: only the anchor is given up
 }
 
+TEST(TrackCore, ANonEnglishPageIsHeldWholeUntilItReadsEnglishAgain)
+{
+    FakePageReader reader = articleReader();
+    // The word grid is the article, but the document text reads French: the gate holds the whole
+    // page, so no word is added and no line is drawn (docs/adr/0187).
+    std::string const french =
+        "Le petit prince est venu sur la terre il y a longtemps. Il a dit que les hommes sont "
+        "etranges et qu'ils ne comprennent jamais rien par eux-memes. La rose qu'il aimait etait "
+        "unique au monde, mais il a trouve un jardin plein de roses qui lui ressemblaient.";
+    reader.page->textContent = french;
+    reader.anyTexts          = {french};
+    TrackCore core{reader};
+    auto      t = kStart;
+
+    bool        drew  = false;
+    bool        added = false;
+    std::string note;
+    for (int i = 0; i < 60; ++i) {
+        auto const out = step(core, t);
+        if (out.frame) {
+            drew  = drew or not out.frame->visible.empty();
+            added = added or not out.frame->added.empty();
+        }
+        if (out.report and not out.report->note.empty()) note = out.report->note;
+    }
+    EXPECT_FALSE(drew);
+    EXPECT_FALSE(added);
+    EXPECT_NE(note.find("non-English"), std::string::npos);
+    ASSERT_TRUE(reader.page); // the page is kept, not lost: the name refresh still runs on it
+
+    // The document turns English (a navigation or an SPA rewrite): the next name refresh says so,
+    // the walks resume and the lines come back without a re-acquire.
+    std::string const english =
+        "The quick brown fox jumps over the lazy dog. She said that she would come to the store "
+        "before the rain started, but he did not believe her because the sky was clear and there "
+        "was no cloud in sight. They have been walking through the forest for hours.";
+    reader.page->textContent = english;
+    reader.anyTexts          = {english};
+    bool resumed             = false;
+    for (int i = 0; i < 400 and not resumed; ++i) { // past the 5 s name refresh
+        auto const out = step(core, t);
+        resumed        = static_cast<bool>(out.frame) and not out.frame->visible.empty();
+    }
+    EXPECT_TRUE(resumed);
+}
+
 }

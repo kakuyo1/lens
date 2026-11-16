@@ -125,6 +125,7 @@ private:
     std::unordered_set<std::string>       names_;
     std::unordered_set<std::string>       wordsSeen_; ///< The words a line already stands for, once each.
     bool                                  namesLoaded_ = false;
+    bool                                  foreign_     = false; ///< The page reads as a non-English language: its words are neither read nor drawn while it does (docs/adr/0187).
     std::chrono::steady_clock::time_point namesAt_{};
     int                                   stillSteps_ = 0;
     int                                   nextId_     = 0;

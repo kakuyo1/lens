@@ -1224,7 +1224,11 @@ void AppController::refreshCaptureGates()
 {
     const bool budgetPaused = !cost_.canScan();
     capture_.setBudgetPaused(budgetPaused);
-    capture_.setScanPaused(budgetPaused || !explanation_.busyLabel().isEmpty());
+    // An explanation in flight does not pause the scan: the scan reads the page through UIA on its
+    // own thread and shares nothing with the explanation channel, so pausing it here took every
+    // line down each time a word was looked up -- the bubble's own arrival cleared the page it was
+    // explaining (docs/adr/0187). Only the budget holds the scan now.
+    capture_.setScanPaused(budgetPaused);
 }
 
 }

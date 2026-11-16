@@ -139,11 +139,14 @@ std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& vis
     // Words are read while the page moves too: a chunk is kept only when the anchor did not move during it.
     // The names are re-read only once the page holds still, since that read is a few hundred ms of COM.
     if (stillSteps_ >= kStillSteps) refreshNamesIfDue(now);
-    bool const extended = extendForward(visible, frame) or extendBackward(visible, frame);
+    // A non-English page is held whole: no chunk is walked and no line is drawn, but the anchor and
+    // the name refresh keep running, so a page that turns English again resumes (docs/adr/0187).
+    bool const draws    = settled and not foreign_;
+    bool const extended = not foreign_ and (extendForward(visible, frame) or extendBackward(visible, frame));
     // Words are drawn only once the anchor holds still: a placement made while the page moves sits off its words.
-    if (not extended and settled == lines_) return std::nullopt;
-    lines_ = settled;
-    if (settled) frame.visible = placeSpans(spans_, anchorBox_.x, anchorBox_.y, visible);
+    if (not extended and draws == lines_) return std::nullopt;
+    lines_ = draws;
+    if (draws) frame.visible = placeSpans(spans_, anchorBox_.x, anchorBox_.y, visible);
     ++framesSent_;
     return frame;
 }
@@ -268,10 +271,17 @@ void TrackCore::refreshNamesIfDue(std::chrono::steady_clock::time_point const no
     if (text.empty()) return;
     names_       = nameSet(text);
     namesLoaded_ = true;
+    // The same text the names come from says whether the page is English at all: a French, Spanish
+    // or pinyin page is held whole, its words neither read nor drawn, until a later read says
+    // English again (docs/adr/0187). A transient empty read above keeps the last verdict.
+    bool const wasForeign = foreign_;
+    foreign_              = pageLanguageOf(text) == PageLanguage::Foreign;
+    if (foreign_ and not wasForeign) note_ = "held: the page reads non-English";
 }
 
 void TrackCore::rememberWord(int const id, std::string const& text, std::vector<ReadWord>& added)
 {
+    if (foreign_) return; // a non-English page teaches no words (docs/adr/0187)
     // Names are not words to learn: the page writes them capitalized throughout. And a word the
     // track has already sent keeps the one line it won -- the reader asked for the first
     // occurrence, not for every one the page holds (docs/adr/0161 keeps the name rule).

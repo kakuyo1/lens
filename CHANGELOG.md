@@ -18,6 +18,8 @@ This is the beta release of Lens, the second release on the numbering that began
 
 - Auto scan reads **Notepad++ documents** as well as Chrome pages. The reader is picked by the window: a Scintilla editor is read through its own messages (`SCI_GETTEXTRANGEFULL` for the text, `SCI_POSITIONFROMPOINT` and `SCI_POINTX/YFROMPOSITION` for each word's box), every other window goes through UI Automation. The word units are split locally from the document's UTF-8 bytes, and an edit that changes the text drops the page and re-scans. `SCI_GETTEXTRANGE` (2162) is not used: Scintilla 5 removed it for documents over 2 GiB and sending it stops the editor.
 
+- Auto scan **holds a non-English page whole**. The page text the names are read from now also judges the page's language: a CJK majority, or too few English function words among enough letter tokens, holds every line back until the page reads English again; a page too short to judge is left as it was. English prose and English technical pages both keep their lines (docs/adr/0187).
+
 ### Changed
 
 - The settings document no longer holds the sync credentials in the clear. The GitHub token and its refresh token, and the WebDAV app password, are sealed to the reader's Windows account with DPAPI before they are written and open again on read. A document an older build wrote answers as before until the next write seals it, and the first launch under the new build seals the bare values once; a seal another account wrote reads as signed out (docs/adr/0177).
@@ -49,6 +51,7 @@ This is the beta release of Lens, the second release on the numbering that began
 - The **DeepSeek flash alias is priced**. A reader who types `deepseek-v4-flash` -- the endpoint's alias for the flash model, and the name the field keeps -- saw every call cost 0, so the daily budget never moved; the price list now quotes the alias at the flash model's own rate.
 - The **update check no longer calls a reachable release page unreachable**. The repository's only release is tagged `v1.0.0-alpha`, which the check refuses by design because it acts on plain three-number versions, and that refusal reached the settings page as "Cannot connect"; a pre-release tag now answers as up to date on a manual check and stays quiet on the automatic one.
 - The pet's review sign's **Forgot/Remembered card follows the theme now**. It read the light table under both glass themes -- its tokens never turned the glass on -- so a frosted or liquid desktop held a daylight card. It reads the glass table and draws the glass like the bubble and the panels do, and the board itself stays pet art (UI-SPEC.md 4.13).
+- Looking up a word **no longer takes the scan's lines down**. The scan paused whenever an explanation was in flight, so the bubble's own arrival -- and every Alt signpost prefetch -- cleared the whole page it was explaining, and the lines only came back on the next read. The scan reads the page through UIA on its own thread and shares nothing with the explanation channel, so only the daily budget holds it now (docs/adr/0187).
 
 ### Removed
 
@@ -70,6 +73,7 @@ This is the beta release of Lens, the second release on the numbering that began
 - 词表导出的保存对话框提供两种学习卡格式：**带释义的 CSV 文件**和**带释义的 Anki TSV 文件**。每行是词表中的一个词，带缓存的 IPA、词性、英文与中文释义和例句。从未取过释义的词也保留一行，这些列为空，导出不会发起请求。CSV 带表头和 UTF-8 字节序标记，表格软件能正确读出中文；Anki 文件以 `#separator:tab` 开头、没有表头，供 Anki 的文本导入使用。
 - 自动扫描从“采集与弹窗”中移出，成为目录里单独的一行：一个总开关、一段短说明和一个“支持的软件”分组。Chrome 和 Notepad++ 各有一个开关（`autoScanChrome`、`autoScanNotepad`，均默认开启）；PDF 阅读器和视频字幕是标着“待上线”的置灰行。只有总开关与前台软件的开关同时打开时，扫描才会运行。
 - 自动扫描也能读 **Notepad++ 文档**，不只 Chrome 页面。读法由窗口决定：Scintilla 编辑器通过它自己的消息读取（文本用 `SCI_GETTEXTRANGEFULL`，每个词的框用 `SCI_POSITIONFROMPOINT` 与 `SCI_POINTX/YFROMPOSITION`），其他窗口走 UI Automation。词的切分在本地按文档的 UTF-8 字节完成，改动文本的编辑会丢弃该页并重新扫描。不使用 `SCI_GETTEXTRANGE`（2162）：Scintilla 5 已为超过 2 GiB 的文档移除了它，发送它会令编辑器停止响应。
+- 自动扫描**对非英语页整页不画线**。读名字集的那份页面文本现在也判页面语言：CJK 字符占多数、或字母词足够多但英语功能词占比不足时，整页虚线收起，直到页面重新读作英语；短到判不了的页面保持原样。英语散文和英语技术页都保留虚线（docs/adr/0187）。
 
 #### 变更
 
@@ -101,6 +105,7 @@ This is the beta release of Lens, the second release on the numbering that began
 - **DeepSeek flash 别名有价格了。** 输入 `deepseek-v4-flash` 的读者——这是端点给 flash 模型的别名，也是字段保留的名字——过去每次调用都计 0 费，每日预算从不动；价格表现在按 flash 模型自身的费率报这个别名。
 - **更新检查不再把可访问的发布页说成无法连接。** 仓库唯一的发布标签是 `v1.0.0-alpha`，检查按设计拒绝它，因为它只处理纯三段数字版本，而这个拒绝曾以“无法连接”到达设置页；现在手动检查遇到预发布标签会回答已是最新，自动检查则保持沉默。
 - 宠物复习牌的**忘了/记得卡片现在跟随主题**。它在两种玻璃主题下都读浅色表——它的 token 从未打开玻璃——于是雾面或流光桌面上立着一张日光卡片。它现在读玻璃表并像气泡和面板那样绘制玻璃，牌子本身仍是宠物美术（UI-SPEC.md 4.13）。
+- 查一个词**不再把扫描的虚线收走**。过去只要有解释在途，扫描就暂停，于是气泡自己的出现——以及每次 Alt 路标预取——把正在解释的整页线都清掉，要等下一次读取才回来。扫描走 UIA、在自己的线程上读页，与解释通道没有共享资源，现在只有每日预算能暂停它（docs/adr/0187）。
 
 #### 移除
 
