@@ -165,7 +165,7 @@ QtVoiceOutput::SystemVoice const& QtVoiceOutput::systemVoiceFor(QString const& a
     return systemVoices_.emplace(accent, answer).first->second;
 }
 
-bool QtVoiceOutput::say(QString const& word, QString const& accent)
+bool QtVoiceOutput::say(QString const& word, QString const& accent) // NOLINT(bugprone-easily-swappable-parameters): say takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto* const engine = systemVoiceFor(accent).engine;
     if (engine == nullptr)
@@ -207,7 +207,7 @@ bool QtVoiceOutput::play(QByteArray const& bytes)
     return true;
 }
 
-void QtVoiceOutput::speakLocal(QString const& word, QString const& accent, QString const& voiceId, LocalSink sink)
+void QtVoiceOutput::speakLocal(QString const& word, QString const& accent, QString const& voiceId, LocalSink sink) // NOLINT(bugprone-easily-swappable-parameters): speakLocal takes its 3 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     const auto model = speech::voiceFrom(voiceId);
     // The engine is kept while the reader stays on one voice and one accent: loading it is the slow part.
