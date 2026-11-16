@@ -155,6 +155,10 @@ Consulta [SECURITY.md](SECURITY.md) para conocer todos los límites.
 
 **¿Hay versión para macOS o Linux?** Por ahora, solo Windows.
 
+## Hoja de ruta
+
+- ☐ **Compatibilidad con Linux**
+
 ## Contribuir y licencia
 
 Lens es código abierto bajo la [licencia MIT](LICENSE). Las issues y los pull requests son bienvenidos. Si Lens te ayuda a leer más inglés, una estrella ayuda a que otro lector lo encuentre.
