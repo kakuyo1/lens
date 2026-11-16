@@ -106,6 +106,9 @@ private:
     std::optional<TrackFrame> acquire(Band const& band, std::chrono::steady_clock::time_point now);
     std::optional<TrackFrame> trackStep(Band const& band, Band const& visible, std::chrono::steady_clock::time_point now);
     std::optional<TrackFrame> lose();
+    /// @brief Forget the cached page and the language verdict read from it: the next page taken up
+    ///        may be another document, so it must read its own names and language before drawing.
+    void dropPage();
     /// @return Whether the anchor moved to a word nearer the middle of @p band.
     bool moveAnchorIfNearEdge(Band const& band);
     /// @return Whether words past the last one read forward were added.

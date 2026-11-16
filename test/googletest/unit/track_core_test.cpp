@@ -544,6 +544,48 @@ TEST(TrackCore, ANonEnglishPageIsHeldWholeUntilItReadsEnglishAgain)
     EXPECT_TRUE(resumed);
 }
 
+TEST(TrackCore, AFreshPageAfterADropReadsItsOwnLanguageBeforeDrawing)
+{
+    FakePageReader reader = articleReader();
+    TrackCore      core{reader};
+    auto           t = kStart;
+    settleToFirstDraw(core, reader, t);
+
+    // A tab switch drops the page; the page the next search finds reads French. The language verdict
+    // belongs to the page, not the track: the fresh page must read its own names and language before
+    // its words are drawn, not inherit the English verdict of the page that was dropped (docs/adr/0190).
+    reader.page->inTree = false;
+    bool lost           = false;
+    for (int i = 0; i < 64 and not lost; ++i) {
+        auto const out = step(core, t);
+        lost           = static_cast<bool>(out.frame) and out.frame->lost;
+    }
+    ASSERT_TRUE(lost);
+
+    std::string const french =
+        "Le petit prince est venu sur la terre il y a longtemps. Il a dit que les hommes sont "
+        "etranges et qu'ils ne comprennent jamais rien par eux-memes. La rose qu'il aimait etait "
+        "unique au monde, mais il a trouve un jardin plein de roses qui lui ressemblaient.";
+    reader.page->textContent = french;
+    reader.anyTexts          = {french};
+    reader.page->inTree      = true;
+
+    bool        drew  = false;
+    bool        added = false;
+    std::string note;
+    for (int i = 0; i < 80; ++i) {
+        auto const out = step(core, t);
+        if (out.frame) {
+            drew  = drew or not out.frame->visible.empty();
+            added = added or not out.frame->added.empty();
+        }
+        if (out.report and not out.report->note.empty()) note = out.report->note;
+    }
+    EXPECT_FALSE(drew);
+    EXPECT_FALSE(added);
+    EXPECT_NE(note.find("non-English"), std::string::npos);
+}
+
 TEST(TrackCore, AcquisitionCostInSeamCalls)
 {
     // The deterministic latency arm: every seam call is one COM round-trip a real reader pays, so

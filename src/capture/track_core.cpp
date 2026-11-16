@@ -127,9 +127,7 @@ std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& vis
     if (settled and now - pageCheckAt_ >= kPageCheckPeriod) {
         pageCheckAt_ = now;
         if (not page_->present()) {
-            reader_.drop();
-            page_.reset();
-            cacheWarm_ = false;
+            dropPage();
             return lose();
         }
         // A page kept from an old search can also be a background tab's sliver: its own reads keep
@@ -138,9 +136,7 @@ std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& vis
         if (not fillsTheBand(visible, band)) {
             note_ = "dropped: it answers " + std::to_string(visible.width) + "x" + std::to_string(visible.height) +
                     " in a " + std::to_string(band.width) + "x" + std::to_string(band.height) + " band";
-            reader_.drop();
-            page_.reset();
-            cacheWarm_ = false;
+            dropPage();
             return lose();
         }
     }
@@ -332,16 +328,12 @@ std::optional<TrackFrame> TrackCore::acquire(Band const& band, std::chrono::stea
     if (not fillsTheBand(visible, band)) {
         note_ = "refused: it answers " + std::to_string(visible.width) + "x" + std::to_string(visible.height) +
                 " in a " + std::to_string(band.width) + "x" + std::to_string(band.height) + " band";
-        reader_.drop();
-        page_.reset();
-        cacheWarm_ = false;
+        dropPage();
         return std::nullopt;
     }
     auto anchor = page_->wordAt(centerOf(visible.x, visible.width), centerOf(visible.y, visible.height));
     if (not anchor) {
-        reader_.drop();
-        page_.reset();
-        cacheWarm_ = false;
+        dropPage();
         return std::nullopt;
     }
     auto const box = page_->box(*anchor);
@@ -349,9 +341,7 @@ std::optional<TrackFrame> TrackCore::acquire(Band const& band, std::chrono::stea
         // A point over the page's blank ground reads no word; a few in a row mean the cached page is
         // not the one on screen, so it is dropped for a fresh search too.
         if (++emptyAnchors_ < kEmptyAnchors) return std::nullopt;
-        reader_.drop();
-        page_.reset();
-        cacheWarm_ = false;
+        dropPage();
         return std::nullopt;
     }
     emptyAnchors_ = 0;
@@ -376,6 +366,19 @@ std::optional<TrackFrame> TrackCore::acquire(Band const& band, std::chrono::stea
     if (word) rememberWord(spans_.front().id, word->text, frame.added);
     lines_ = false;
     return frame;
+}
+
+void TrackCore::dropPage()
+{
+    reader_.drop();
+    page_.reset();
+    cacheWarm_ = false;
+    // The verdict was read from the page now gone: a fresh page reads its own names and language
+    // before it draws, the way a cold start does, rather than inheriting this one (docs/adr/0190).
+    names_       = {};
+    namesLoaded_ = false;
+    foreign_     = false;
+    namesAt_     = {};
 }
 
 std::optional<TrackFrame> TrackCore::lose()
