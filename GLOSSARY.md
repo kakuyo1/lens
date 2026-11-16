@@ -38,6 +38,7 @@
 - **设置分区（Settings section）**：`settings.json` 里的一块 JSON 对象，是读写这份文档的单位；每个键只有一个写者，读时两种编码都认、写时保留已有编码。见 `docs/adr/0024`。
 - **崩溃转储（Crash dump）**：崩溃时进程内写下的 minidump 与同名摘要，落在日志目录的 `dumps\`；`last-crash.txt` 标记由下一次启动读走并带出通知，本地留存、不上传、最多 5 份。见 `SECURITY.md` 与 `docs/adr/0174`。_避免_：崩溃报告（指 issue 预填）、转储日志。
 - **崩溃报告器（Crash reporter）**：`lens_reporter.exe`，崩溃时由崩溃路径拉起的纯 Win32 小进程，当场弹出原生对话框：说明发生了什么、语言随界面语言，提供打开转储文件夹与预填 issue 两枚按钮；它只读 marker 与 `uiLanguage`，不上传。见 `docs/adr/0175`。_避免_：崩溃弹窗（指 WER 的系统对话框）、上报器（reporter 不上传）。
+- **崩溃通知（Crash notice）**：崩溃后下一次启动把 `last-crash.txt` 标记变成的那张通知卡，两枚胶囊分别是打开转储文件夹与报告问题；展示后删除标记，一次崩溃只通知一次。见 `docs/adr/0174`、`docs/adr/0184`。_Avoid_：崩溃弹窗、报错框
 
 ## 解释
 

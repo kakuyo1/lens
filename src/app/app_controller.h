@@ -38,6 +38,7 @@
 #include "app/duties/model_catalog_duty.h"
 #include "app/platform/mouse_selection_hook.h"
 #include "app/platform/alt_key_hook.h"
+#include "app/duties/crash_notice_duty.h"
 #include "app/duties/pencil_duty.h"
 #include "app/duties/picture_duty.h"
 #include "app/platform/tray.h"
@@ -51,7 +52,6 @@
 #include "app/words_model.h"
 #include "pictures/picture_sources/commons_source.h"
 #include "speech/online_sources.h"
-#include "util/crash.h"
 
 class QQmlEngine;
 class QJSEngine;
@@ -203,7 +203,8 @@ public:
     ///        only because the reader attaches it.
     Q_INVOKABLE void reportCrashIssue();
     /// @brief The launch after a crash: prune the dumps, turn the marker the crash handler left
-    ///        into a notice, and remove the marker so one crash is announced once.
+    ///        into a notice, and remove the marker so one crash is announced once. Forwarded to
+    ///        CrashNoticeDuty, which owns the sequence (docs/adr/0184).
     /// @param logDir Directory the log lives in; the dumps sit under it. main() reaches it after
     ///               the translators are up, so the notice reads in the UI language. A no-op when
     ///               the marker is absent.
@@ -384,9 +385,12 @@ private:
     /// getter QML calls once per binding read (docs/adr/0173).
     std::optional<QVariantMap> settingsProjection_;
     /// Writes the document once a gesture's stops stop arriving (docs/adr/0173).
-    QTimer                 gestureSettle_;
-    ModelCatalogDuty       catalog_;
-    ExplanationDuty        explanation_;
+    QTimer           gestureSettle_;
+    ModelCatalogDuty catalog_;
+    ExplanationDuty  explanation_;
+    /// The crash notice: the marker's one trip through a launch and the two actions on the card
+    /// (docs/adr/0184). The facade keeps the QML spellings above and forwards.
+    CrashNoticeDuty        crashNotice_;
     PencilDuty             pencil_;
     update::UpdateClient   updateClient_;
     update::DownloadClient updateDownloader_;
@@ -436,11 +440,6 @@ private:
     pet::PetController* pet_{nullptr};
     /// The engine-owned preview provider, bound after the QML engine exists; not owned here.
     ConsentPreview* consentPreview_{nullptr};
-    /// Where the crash dumps live, recorded when the startup report ran; the two actions of the
-    /// crash notice act on it. Empty until a launch with a crash marker has happened.
-    std::filesystem::path crashDumpDir_;
-    /// The summary the crash marker carried, quoted by the issue prefill.
-    util::CrashSummary crashSummary_;
 };
 
 }

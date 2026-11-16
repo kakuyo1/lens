@@ -12,7 +12,6 @@
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
-#include <QDesktopServices>
 #include <QFile>
 #include <QFontDatabase>
 #include <QJsonDocument>
@@ -27,8 +26,6 @@
 #include <QJSEngine>
 
 #include <algorithm>
-#include <fstream>
-#include <sstream>
 #include <utility>
 
 #include "app/platform/autostart.h"
@@ -40,7 +37,6 @@
 #include "reveal_settings.h"
 #include "settings_access.h"
 #include "settings_defaults.h"
-#include "util/crash.h"
 #include "util/text.h"
 #include "update/update_client.h"
 #include "util/log.h"
@@ -108,7 +104,7 @@ AppController::AppController(core::KnownStore&            store,
                              QObject*                     parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), glassParameters_(this), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), pencil_(capture_, explanation_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), telemetry_(storage_.knownStore().path().parent_path() / "events", sync_.deviceId(), [this] { const auto* const row = core::settings::find("recordForegroundApp"); return row != nullptr && settings::read(storage_.section(), *row).toBool(); }, {}, {}, {}, this), telemetrySync_(telemetry_, sync_, {}, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, speechOutput, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), glassParameters_(this), catalog_(storage_, llm, this), explanation_(storage_, llm, cost_, this), crashNotice_(explanation_), pencil_(capture_, explanation_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), onboarding_(storage_, this), sync_(storage_, dataDir, nullptr, this), telemetry_(storage_.knownStore().path().parent_path() / "events", sync_.deviceId(), [this] { const auto* const row = core::settings::find("recordForegroundApp"); return row != nullptr && settings::read(storage_.section(), *row).toBool(); }, {}, {}, {}, this), telemetrySync_(telemetry_, sync_, {}, this), reviewDuty_(storage_, [this] { return pet_ != nullptr and pet_->enabled(); }, [this] { return pet_ != nullptr and pet_->availableForReview(); }, this), readingProfile_(storage_, llm, cost_, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey), picturesSource_(nullptr, this), picturesCache_(pictures::PictureCache::defaultRoot()), pictureDuty_(picturesSource_, picturesCache_, this), speechSources_(nullptr, this), speechCache_(speech::AudioCache::defaultRoot()), speechDuty_(speechSources_, speechCache_, speechOutput, storage_, this), previewSample_(loadPreviewSample(dataDir / "preview.json"))
 {
     budgetPaused_ = cost_.budgetStatus().exhausted;
     // Marks written before the keys were base forms join their lemma once (docs/adr/0162); the
@@ -620,49 +616,17 @@ void AppController::reportCaptureRefusal(CaptureRefusal const refusal)
 
 void AppController::reportStartupCrash(std::filesystem::path const& logDir)
 {
-    crashDumpDir_                      = lens::util::crashDumpDir(logDir);
-    const std::filesystem::path marker = crashDumpDir_ / lens::util::kCrashMarkerName;
-    std::error_code             ec;
-    if (!std::filesystem::exists(marker, ec)) return;
-
-    // The marker carries the newest crash's summary verbatim; it is read before the notice's
-    // actions can need it and before it is removed. The read handle closes before that removal:
-    // an open file cannot be removed on Windows, and the marker would survive its own notice.
-    std::string markerText;
-    {
-        std::ifstream      markerFile(marker);
-        std::ostringstream text;
-        text << markerFile.rdbuf();
-        markerText = text.str();
-    }
-    crashSummary_ = lens::util::parseCrashSummary(markerText);
-    lens::util::pruneCrashDumps(crashDumpDir_);
-
-    // The crash path could not log -- its writer runs on a heap that may be the problem -- so
-    // this line is the one record that the chain from crash to artifacts completed.
-    LENS_INFO("the previous run crashed ({}); the notice offers the dump folder and an issue prefill",
-              crashSummary_.code.empty() ? "unknown" : crashSummary_.code);
-    explanation_.showNotice(tr("The previous run crashed"),
-                            tr("A crash dump was saved in the log's dumps folder. Nothing in it leaves this machine; attach it when you report the crash."),
-                            QString::fromLatin1(kNoticeCrash),
-                            tr("Open dump folder"),
-                            {},
-                            tr("Report issue"));
-    std::filesystem::remove(marker, ec);
+    crashNotice_.reportStartupCrash(logDir);
 }
 
 void AppController::openCrashDumpFolder()
 {
-    // The folder, not a picked file: the reader attaches what they choose.
-    QDesktopServices::openUrl(QUrl::fromLocalFile(widen(crashDumpDir_)));
+    crashNotice_.openDumpFolder();
 }
 
 void AppController::reportCrashIssue()
 {
-    // The URL is the pure builder's (docs/adr/0175), shared with the reporter process so the
-    // template cannot drift between them; the dump leaves the machine only because the reader
-    // attaches it by hand (SECURITY.md: nothing Lens holds is uploaded on its own).
-    QDesktopServices::openUrl(QUrl(QString::fromStdString(lens::util::crashIssueUrl(crashSummary_))));
+    crashNotice_.reportIssue();
 }
 
 QString AppController::reviewQuestion() const

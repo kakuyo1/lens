@@ -90,6 +90,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/upload_transaction_test.cpp
   unit/log_test.cpp
   unit/crash_test.cpp
+  unit/crash_notice_duty_test.cpp
   unit/util_test.cpp
   unit/consent_preview_test.cpp
   unit/capture_test.cpp

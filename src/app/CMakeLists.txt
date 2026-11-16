@@ -48,6 +48,8 @@ add_library(lens_app STATIC
   duties/card_session.cpp
   duties/cost_duty.h
   duties/cost_duty.cpp
+  duties/crash_notice_duty.h
+  duties/crash_notice_duty.cpp
   duties/reading_profile_duty.h
   duties/reading_profile_duty.cpp
   duties/explanation_duty.h
