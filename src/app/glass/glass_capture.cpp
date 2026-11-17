@@ -56,6 +56,18 @@ using winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice;
 /// The same cooldown a failed duplication session keeps: a refusal that can pass is retried after this.
 constexpr ULONGLONG kRetryMs = 5000;
 
+/// One MTA per pool thread, kept until the thread exits. read() lands on whichever pool thread takes the request
+/// and the session outlives any single call, so a call-scoped apartment would tear down under the live session;
+/// initializing per ensure() instead would climb the thread's COM count on every retry without a matching undo.
+/// A thread Qt already holds in another apartment fails the init (RPC_E_CHANGED_MODE) and is left alone.
+struct PoolApartment {
+    bool owned = SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+    ~PoolApartment()
+    {
+        if (owned) CoUninitialize();
+    }
+};
+
 /// @brief The GPU DWM scans @p monitor out with, from the display path's target.
 ///
 /// On a hybrid machine the screen may be driven by the integrated GPU while DXGI lists its output on the discrete one,
@@ -155,6 +167,9 @@ struct GlassCapture::Impl {
 
 bool GlassCapture::Impl::ensure()
 {
+    // Before every early return: a thread that finds the session already open still makes the WinRT calls in read().
+    thread_local PoolApartment const apartment;
+
     if (closed) return false;
     if (session != nullptr) return true;
     if (permanent) return false;
@@ -162,10 +177,6 @@ bool GlassCapture::Impl::ensure()
     if (monitor == nullptr) return false;
 
     release();
-
-    // The worker thread has no apartment of its own, and every WinRT call below needs one. An already initialized
-    // thread (S_FALSE) and one Qt left in single-threaded mode are both fine here.
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
     try {
         if (not GraphicsCaptureSession::IsSupported()) {
