@@ -213,6 +213,33 @@ TEST_F(CoreTest, KeepsAFormThatWordNetAlsoListsAsItsOwnLemma)
     EXPECT_EQ(lens::core::lemmatize("testes"), "testis");
 }
 
+TEST_F(CoreTest, TheScanPoolDropsNamesButASelectionStillExplainsThem)
+{
+    // docs/adr/0192: a lower-case name or abbreviation the dictionary annotates leaves the scan
+    // pool, so the automatic scan draws no line under it, but the coverage list keeps it and a
+    // hand selection still takes the word channel.
+    EXPECT_FALSE(lens::core::isMarkable("joyce"));
+    EXPECT_FALSE(lens::core::isMarkable("cli"));
+    EXPECT_FALSE(lens::core::isMarkable("dev"));
+
+    const auto selection = lens::core::classifySelection("joyce", {}, {}, Difficulty::byRank(0));
+    EXPECT_EQ(selection.kind, lens::core::SelectionKind::Word);
+    ASSERT_EQ(selection.candidates.size(), 1u);
+    EXPECT_EQ(selection.candidates.front().surface, "joyce");
+
+    // A word with a general English sense stays drawable, even one the cleaning weighed and kept.
+    EXPECT_TRUE(lens::core::isMarkable("cacophony"));
+    EXPECT_TRUE(lens::core::isMarkable("matt"));
+    EXPECT_TRUE(lens::core::isMarkable("fil"));
+
+    // The whole-pool sweep drops biography names the same way, and keeps name-derived common
+    // nouns that denote a class (a viking, a pharaoh) rather than a specific entity.
+    EXPECT_FALSE(lens::core::isMarkable("aaron"));
+    EXPECT_FALSE(lens::core::isMarkable("virgil"));
+    EXPECT_TRUE(lens::core::isMarkable("viking"));
+    EXPECT_TRUE(lens::core::isMarkable("pharaoh"));
+}
+
 TEST_F(CoreTest, RoutesASentenceToTheSentenceChannelButStillFiltersItsWords)
 {
     constexpr const char* text = "The ubiquitous nature of modern software makes resilience essential.";

@@ -27,9 +27,17 @@ their base's rank masters them through the application's form lookup. The tail h
 meaning.
 
 `scan-words.txt` is the pool the automatic scan draws from (docs/adr/0186): the 42,870 ranked
-base words with an English definition or a Collins/Oxford/exam mark, plus their 37,864 forms.
-A word outside the pool is still explained when the reader selects it; it is simply not drawn on
-the page by the scan.
+base words with an English definition or a Collins/Oxford/exam mark, plus their 37,864 forms,
+before the exclude list below. A word outside the pool is still explained when the reader selects
+it; it is simply not drawn on the page by the scan.
+
+`scan-exclude.txt` is the hand-kept list of words the scan must not draw (docs/adr/0192):
+lower-case proper nouns, abbreviations and foreign fragments the dictionary still annotates, so
+they pass the pool rule but are not vocabulary worth teaching. The build drops each excluded base
+and its exchange forms from the pool; a form a kept base shares stays. The coverage list keeps
+them all, so a selection is still explained as a word. The list holds 1,094 words (27 from a
+log-evidenced pass, 1,067 from a whole-pool sense-level sweep judged by OEWN synset casing and
+gloss plus ECDICT translation senses); the pool ships at 78,669 words after the exclusion.
 
 `wordlist-extra.txt` is the hand-kept supplement for words both sources miss (spoken forms and
 modern jargon). It is unranked, never drawn by the scan, and exists only so a selection is
@@ -43,7 +51,8 @@ py -3 -I scripts/data/build-wordlist.py ^
     --ecdict <stardict.csv|stardict.db> ^
     --output data/wordlist.txt ^
     --scan-pool data/scan-words.txt ^
-    --extra data/wordlist-extra.txt
+    --extra data/wordlist-extra.txt ^
+    --exclude data/scan-exclude.txt
 ```
 
 The inputs are not in the repository. The 2026-11-16 build used the `stardict.csv` extracted from

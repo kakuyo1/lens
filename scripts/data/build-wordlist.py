@@ -22,7 +22,11 @@ The output is one lowercase ASCII word per line:
   through the application's form lookup, so the form tail carrying no frequency meaning is fine.
 
 `--extra` names a hand-kept supplement (spoken forms and modern jargon the sources miss) and
-is appended unranked. The script is deterministic: same inputs, same bytes.
+is appended unranked. `--exclude` names a hand-kept list of words the scan must not draw
+(lowercase proper nouns, abbreviations and foreign fragments the dictionary still annotates);
+an excluded base and its exchange forms leave the scan pool, but the coverage list keeps them
+so a selection is still explained as a word. A form an excluded base shares with a kept base
+stays in the pool. The script is deterministic: same inputs, same bytes.
 """
 import argparse
 import csv
@@ -88,8 +92,9 @@ def exchange_forms(exchange) -> list[str]:
     return forms
 
 
-def build(wordnet: set[str], rows, extra: list[str]):
+def build(wordnet: set[str], rows, extra: list[str], exclude: set[str] | None = None):
     """@return (wordlist, scan_pool, stats) as ordered lists of words plus a counter dict."""
+    exclude = exclude or set()
     records: dict[str, dict] = {}
     for word, bnc, frq, collins, oxford, tag, definition, exchange in rows:
         if not LETTERS.fullmatch(str(word or "")):
@@ -172,6 +177,20 @@ def build(wordnet: set[str], rows, extra: list[str]):
             for form in record["forms"]:
                 add_form(form, record["rank"], markable(record))
 
+    # Exclusion is a post-filter so the unexcluded build stays byte-identical. An excluded
+    # base leaves the pool; its exchange forms leave too, unless a kept markable base shares
+    # them. A form named in the exclude file directly leaves regardless.
+    excluded_forms: set[str] = set()
+    kept_forms: set[str] = set()
+    for word, record in records.items():
+        if not markable(record):
+            continue
+        target = excluded_forms if word in exclude else kept_forms
+        target.update(record["forms"])
+    pool = {word: rank for word, rank in pool.items() if word not in exclude}
+    pool_forms = {form: rank for form, rank in pool_forms.items()
+                  if form not in exclude and (form not in excluded_forms or form in kept_forms)}
+
     base_order = lambda item: (item[1] == 0, item[1], item[0])
     wordlist = [word for word, _ in sorted(coverage.items(), key=base_order)]
     wordlist += sorted(forms)
@@ -181,6 +200,7 @@ def build(wordnet: set[str], rows, extra: list[str]):
     stats["unranked_bases"] = len(coverage) - stats["ranked_bases"]
     stats["pool_bases"] = len(pool)
     stats["pool_forms"] = len(pool_forms)
+    stats["excluded"] = len(exclude)
     return wordlist, scan_pool, stats
 
 
@@ -198,23 +218,26 @@ def main(argv: list[str]) -> None:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--scan-pool", required=True, type=Path)
     parser.add_argument("--extra", type=Path)
+    parser.add_argument("--exclude", type=Path)
     args = parser.parse_args(argv)
 
-    extra: list[str] = []
-    if args.extra and args.extra.exists():
-        with io.open(args.extra, encoding="utf-8") as handle:
-            extra = [line.strip().lower() for line in handle
-                     if line.strip() and not line.startswith("#")]
-    elif args.extra:
-        sys.exit(f"missing extra list: {args.extra}")
+    def read_words(path: Path, label: str) -> list[str]:
+        if not path.exists():
+            sys.exit(f"missing {label} list: {path}")
+        with io.open(path, encoding="utf-8") as handle:
+            return [line.strip().lower() for line in handle
+                    if line.strip() and not line.startswith("#")]
 
-    wordlist, scan_pool, stats = build(wordnet_words(args.wordnet), ecdict_rows(args.ecdict), extra)
+    extra = read_words(args.extra, "extra") if args.extra else []
+    exclude = set(read_words(args.exclude, "exclude")) if args.exclude else set()
+
+    wordlist, scan_pool, stats = build(wordnet_words(args.wordnet), ecdict_rows(args.ecdict), extra, exclude)
     write(args.output, wordlist)
     write(args.scan_pool, scan_pool)
     print(f"coverage: {stats['ranked_bases']} ranked base words, {stats['unranked_bases']} unranked; "
           f"scan pool: {stats['pool_bases']} bases + {stats['pool_forms']} forms; sources: "
           f"WordNet-only {stats['wordnet']}, ECDICT {stats['ecdict']}, "
-          f"exchange forms {stats['forms']}, extra {stats['extra']}")
+          f"exchange forms {stats['forms']}, extra {stats['extra']}, excluded {stats['excluded']}")
 
 
 if __name__ == "__main__":

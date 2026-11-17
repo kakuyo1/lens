@@ -1,0 +1,24 @@
+# 0192 扫描池排除表：专名、缩写与外来碎片不画线
+
+- **状态**：accepted（2026-11-17）
+- **背景**：0186 把可标池收到有词频且有英文释义或 Collins/牛津/考试标签的词，0187/0190 的语言门把非英语页整页 held。剩下的噪声是英语页上的词级问题：小写专名、缩写与外来碎片，ECDICT 既有词频又有释义，池判据剔不掉。0190 后果已点名 `taiwan`/`matt`/`dev`/`ret`/`undefined`，指明这是数据问题、要另起一刀。本机四份滚动日志共 1,449 次画线、602 个唯一候选，461 个仍在池里。
+- **决定**：
+  - 新增手工 `data/scan-exclude.txt`，`scripts/data/build-wordlist.py` 加 `--exclude`，作为**后置过滤**只动可标池：排除基础词连同它的 exchange 词形出池；一个词形若同时被某个保留基础词教到则仍留池；覆盖表与 extra 表不动。后置过滤保证不带 `--exclude` 的构建逐字不变。
+  - 判据：专名主导（特定人、地、朝代、机构、星或星座，无一般类义）、缩写与缩略（无独立一般义）、外来碎片（无自然化英语义）排除；有一般英语义就保留，即便它同时也是人名、科技词或罕见词。
+  - 阶段 1（日志证据驱动）排除 27 词：专名 16（`joyce` `jensen` `heisenberg` `owen` `clark` `catherine` `tate` `jong` `wei` `gao` `taiwan` `mira` `wang` `kee` `gemini` `libra`），缩写 6（`cli` `feb` `sys` `ses` `lib` `dev`），外来 4（`que` `las` `chanson` `livre`），叹词碎片 1（`hoo`）。
+  - 阶段 2（全池系统清扫）再排除 1,067 个基础词，排除表共 1,094 词。只扫池基础词（42,845），词形随基础词出池。判别信号：OEWN 里每个 synset 都大写拼写且 gloss 指特定实体（传记/地名/组织/星座）→ 专名；不在 OEWN 且 ECDICT 译文义项全为人名/缩写/外来 → 候选；再逐词义项级手审。**有任何 OEWN 小写 synset（一般义）硬保留**；名源普通名词（`viking` 海盗、`pharaoh`/`shah` 头衔、`cinderella` 灰姑娘、`romeo` 情人、`samson` 大力士、`boswell` 作传者、`cajun`/`chicano` 族裔、`druid` 祭师、`ladyship` 夫人、`who` 代词）有一般类义，保留。
+  - 边界保留：`fil`（伊拉克钱币，真实名词）、`quod`（监狱俚语）、`boeuf`（OEWN 有食物义项，虽是法语拼写）、`ret`（沤麻动词）、`matt`（暗淡的）、`milo`（蜀黍）、`comparator`/`reverb`/`tromp`/`moonrise`（真实词）。0190 把 `matt`/`ret`/`undefined` 一并当噪声不够严：OEWN 与 ECDICT 都给它们一般义项，按判据保留。
+  - 判别证据是 OEWN 义项加 ECDICT 释义。OEWN 的 `noun.person`/`noun.group`/`noun.location` 是语义类别，含 `beginner`/`dweller`/`sherpa` 这类普通名词，不能当专名判据；须读 gloss 是否指特定实体。OEWN 数据文件里词的大小写是可靠信号：专名在每个 synset 都大写（`Joyce`/`Gemini`），普通名词小写（`beginner`/`drake` 的公鸭义）；民族名（`Sherpa`/`Inuit`）虽大写却作普通名词用，保留。
+- **后果**：
+  - 池 80,734 → 78,669（共 −2,065）：阶段 1 −47（27 基础 + 20 词形），阶段 2 −2,018（1,067 基础 + 951 词形）；覆盖表 152,058 字节始终不变。
+  - 阶段 1 日志回放：在池唯一候选 461 → 434，少画 54/1,449 次（3.7%）。阶段 2 清扫的 1,067 词在真实日志里出现 0 次——是预防性长尾清洗（清掉未来会在人名/地名/缩写页画线的池噪声），不反映在当前日志。eval 语料 3,005 条 0 问题，选区通道与释义链不动。
+  - 确定性：无 `--exclude` 重建逐字复现现船 `wordlist.txt` 与 `scan-words.txt`（输入为文档所记同一份 `stardict.csv`，232,668,349 字节）；带 `--exclude` 两次重建字节一致。
+  - 窄测试 `CoreTest.TheScanPoolDropsNamesButASelectionStillExplainsThem` 钉住契约：排除词（`joyce`/`cli`/`dev`/`aaron`/`virgil`）`isMarkable` 为假但 `classifySelection` 仍 Word，保留词（`cacophony`/`matt`/`fil`/`viking`/`pharaoh`）`isMarkable` 为真。
+  - 阶段 2 手审纠偏：自动排除集里 21 个误报（`jarred`/`nicknamed`/`frescoed`/`holstered`/`pears`/`rivers`/`weeks`/`welling` 等真实屈折形，译文混入同形专名义；`alma`/`polly`/`desiderata`/`milieux`/`kroner`/`extraordinaire`/`saut`/`ye` 有一般义）剔回保留；ambiguous 堆里 58 个名源普通名词保留。
+  - 残留：全池清扫已做。余下是保守保留的名源普通名词与边界词（`fil`/`quod`/`boeuf`/`ret` 等），以及不在 OEWN、译文无词性标记的偶发姓氏（`bates`/`cheng`，量极小）。语言门仍 held 非英语页，不重议。
+- **被排除的做法**：
+  - 自动规则过滤（按 ECDICT 标签/译文模式或 OEWN lexname）：误报高，会误删 `beginner`/`dweller`/`sherpa` 与 `abbreviation` 一类真词。
+  - 只凭 ECDICT 译文判一般义：译文混入同形专名义（`jarred` 译文含姓氏 Jared）、或一般义无词性标记（`alma` 的舞女义），启发式会漏判；故 flagA 只信 OEWN 义项，译文仅作 flagB 佐证，且逐词手审纠偏。
+  - 手过滤现池文件：词形归属须由 exchange 决定，朴素后缀启发式误报（`fil` → `filed`/`filling` 其实是 `file`/`fill` 的词形），不可靠；故走 build 后置过滤。
+  - 动覆盖表：选区仍须把这些词按单词解释，覆盖不动（0186 的两表分工）。
+  - 把 `matt`/`ret`/`undefined` 当噪声剔掉：它们有真实一般义，按判据保留。

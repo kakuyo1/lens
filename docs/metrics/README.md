@@ -28,6 +28,7 @@
 | [`test-coverage-baseline-2026-10-03.md`](code-quality/test-coverage-baseline-2026-10-03.md) | 哪些 C++ 行与 QML 求值位置被测试跑过 |
 | [`source-code-review-hotspots-2026-10-03.md`](code-quality/source-code-review-hotspots-2026-10-03.md) | 哪些源码文件与函数应优先审阅 |
 | [`selection-classification-accuracy-2026-10-04.md`](code-quality/selection-classification-accuracy-2026-10-04.md) | 单层选区类型判定错在哪里，是否需要多层级策略 |
+| [`scan-pool-cleaning-2026-11-17.md`](code-quality/scan-pool-cleaning-2026-11-17.md) | 扫描池两阶段清掉哪些专名/缩写/外来碎片（日志证据 + 全池义项级清扫），真实画线少多少，覆盖与选区是否受影响（ADR 0192） |
 
 ## coverage
 
