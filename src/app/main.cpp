@@ -9,8 +9,12 @@
 #include <QApplication>
 #include <QFont>
 #include <QFontDatabase>
+#include <QChildEvent>
 #include <QCoreApplication>
+#include <QMutex>
+#include <QPointer>
 #include <QQmlApplicationEngine>
+#include <QQuickGraphicsDevice>
 #include <QQuickWindow>
 #include <QTimer>
 #include <QVariant>
@@ -18,10 +22,20 @@
 #include <QUrl>
 #include <QVector>
 
+#include <atomic>
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
 #include <system_error>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+
+#include <d3d11.h>
+#include <wrl/client.h>
+#endif
 
 #include "app/pet/pet_controller.h"
 #include "core/document/pet_store.h"
@@ -175,6 +189,144 @@ QString settingsValue(KnownStore& store, const char* key)
 /// costs more than the memory it saves, so a window that is back within this window is left alone.
 constexpr int kReleaseDelayMs = 500;
 
+#ifdef _WIN32
+using Microsoft::WRL::ComPtr;
+
+/// One D3D11 device for every Quick window, and the lock that makes sharing its immediate context
+/// safe. D3D11 serializes individual calls, not frame sequences, so two render threads' interleaved
+/// frames would draw into each other's render targets; the threaded render loop guarantees
+/// beforeFrameBegin and afterFrameEnd come in pairs, so the bracket always opens.
+class SharedGraphics {
+public:
+    /// @brief Create the device, BGRA-capable as the scene graph needs.
+    /// @return False when no usable device exists; the surfaces then keep Qt's per-window devices.
+    bool create()
+    {
+        const D3D_FEATURE_LEVEL levels[] = {D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0};
+        auto*                   raw      = static_cast<ID3D11Device*>(nullptr);
+        auto                    level    = D3D_FEATURE_LEVEL{};
+        auto const              hr       = D3D11CreateDevice(nullptr,
+                                          D3D_DRIVER_TYPE_HARDWARE,
+                                          nullptr,
+                                          D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+                                          levels,
+                                          2,
+                                          D3D11_SDK_VERSION,
+                                          &raw,
+                                          &level,
+                                          nullptr);
+        if (FAILED(hr) or raw == nullptr) {
+            LENS_WARN("shared D3D11 device unavailable (0x{:08X}); surfaces keep their own devices",
+                      static_cast<unsigned long>(hr));
+            return false;
+        }
+        device_.Attach(raw);
+        device_->GetImmediateContext(context_.GetAddressOf());
+        LENS_INFO("shared D3D11 device up, feature level 0x{:X}", static_cast<unsigned>(level));
+        return context_ != nullptr;
+    }
+
+    /// @brief Adopt the device on one window and bracket its frames. Before scene graph init.
+    void adopt(QQuickWindow* window)
+    {
+        window->setGraphicsDevice(QQuickGraphicsDevice::fromDeviceAndContext(device_.Get(), context_.Get()));
+        QObject::connect(window, &QQuickWindow::beforeFrameBegin, window, [this] { frameMutex_.lock(); }, Qt::DirectConnection);
+        QObject::connect(window, &QQuickWindow::afterFrameEnd, window, [this] { frameMutex_.unlock(); }, Qt::DirectConnection);
+        QObject::connect(window, &QQuickWindow::sceneGraphInvalidated, window, [this] { noteInvalidation(); }, Qt::DirectConnection);
+        windows_.append(window);
+        LENS_DEBUG("surface tuned: {}", window->objectName().toStdString());
+    }
+
+private:
+    /// A render thread reports an invalidation; a removed device means every window must adopt a
+    /// new one, because the loop's own retry would re-adopt the lost device forever. The rebuild
+    /// runs on the GUI thread: setGraphicsDevice is a GUI-thread call, and a visible window's
+    /// render thread only parks while the window is hidden, hence the hide/show blink on recovery.
+    void noteInvalidation()
+    {
+        if (device_ == nullptr or device_->GetDeviceRemovedReason() == S_OK)
+            return;
+        if (recovering_.exchange(1) == 0)
+            QMetaObject::invokeMethod(qApp, [this] { recover(); }, Qt::QueuedConnection);
+    }
+
+    void recover()
+    {
+        auto const reason = static_cast<unsigned long>(device_->GetDeviceRemovedReason());
+        if (not create()) {
+            recovering_.store(0);
+            return;
+        }
+        LENS_WARN("shared D3D11 device was removed (0x{:08X}); rebuilt and re-adopted on {} window(s)",
+                  reason,
+                  windows_.count());
+        for (const QPointer<QQuickWindow>& window : windows_) {
+            if (window == nullptr)
+                continue;
+            bool const wasVisible = window->isVisible();
+            if (wasVisible)
+                window->hide();
+            window->setGraphicsDevice(QQuickGraphicsDevice::fromDeviceAndContext(device_.Get(), context_.Get()));
+            if (wasVisible)
+                window->show();
+        }
+        recovering_.store(0);
+    }
+
+    ComPtr<ID3D11Device>          device_;
+    ComPtr<ID3D11DeviceContext>   context_;
+    QMutex                        frameMutex_;
+    std::atomic<int>              recovering_{0};
+    QList<QPointer<QQuickWindow>> windows_;
+};
+#else
+/// Off Windows the surfaces keep Qt's own devices; the pointer is never dereferenced.
+class SharedGraphics;
+#endif
+
+/// @brief Wire one surface: the shared device and the frame lock when there is one, then the
+///        release policy. Must run before the window's scene graph initializes.
+void tuneSurface(QQuickWindow* window, [[maybe_unused]] SharedGraphics* shared)
+{
+#ifdef _WIN32
+    if (shared != nullptr)
+        shared->adopt(window);
+#endif
+    window->setPersistentGraphics(false);
+    window->setPersistentSceneGraph(false);
+    QObject::connect(window, &QWindow::visibleChanged, window, [window] {
+        if (window->isVisible())
+            return;
+        QTimer::singleShot(kReleaseDelayMs, window, [window] {
+            if (not window->isVisible())
+                window->releaseResources();
+        });
+    });
+}
+
+/// @brief Reaches windows QML creates after startup: the tune must cover every surface, not only
+///        the ones that existed when the QML loaded. QML Window items are QQuickWindow subclasses
+///        parented into the QML object tree, and Controls popups open windows of their own at run
+///        time, so ChildAdded on any object is the one hook that sees them all.
+class LateWindowTuner : public QObject {
+public:
+    LateWindowTuner(QObject* parent, SharedGraphics* shared)
+        : QObject(parent), shared_(shared)
+    {}
+
+    bool eventFilter(QObject* watched, QEvent* event) override
+    {
+        if (event->type() == QEvent::ChildAdded) {
+            if (auto* window = qobject_cast<QQuickWindow*>(static_cast<QChildEvent*>(event)->child()))
+                tuneSurface(window, shared_);
+        }
+        return QObject::eventFilter(watched, event);
+    }
+
+private:
+    SharedGraphics* shared_;
+};
+
 /**
  * @brief Hand a hidden surface's graphics resources back to the driver.
  *
@@ -189,26 +341,18 @@ constexpr int kReleaseDelayMs = 500;
  * after the QML is loaded and before the event loop. Every surface but the root window is hidden
  * at that point; the root is never shown and the pet is up from the start, and neither of those
  * should be released anyway.
+ *
+ * @param shared The device every window adopts, or null to keep Qt's per-window devices.
  */
-void releaseHiddenSurfaces(QObject* root)
+void releaseHiddenSurfaces(QObject* root, SharedGraphics* shared = nullptr)
 {
-    const auto tune = [](QQuickWindow* window) {
-        window->setPersistentGraphics(false);
-        window->setPersistentSceneGraph(false);
-        QObject::connect(window, &QWindow::visibleChanged, window, [window] {
-            if (window->isVisible())
-                return;
-            QTimer::singleShot(kReleaseDelayMs, window, [window] {
-                if (not window->isVisible())
-                    window->releaseResources();
-            });
-        });
-    };
-
     if (auto* self = qobject_cast<QQuickWindow*>(root))
-        tune(self);
+        tuneSurface(self, shared);
     for (auto* window : root->findChildren<QQuickWindow*>())
-        tune(window);
+        tuneSurface(window, shared);
+    // Installed after the first pass so no window is tuned twice: a second frame-lock connection
+    // would lock the same mutex twice on one render thread.
+    qApp->installEventFilter(new LateWindowTuner(root, shared));
 }
 
 }
@@ -394,6 +538,10 @@ int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw
     // graph's default surface format, otherwise their transparent pixels composite as black on Windows.
     QQuickWindow::setDefaultAlphaBuffer(true);
 
+#ifdef _WIN32
+    // Declared before the engine so the shared device outlives every window that adopts it.
+    SharedGraphics sharedGraphics;
+#endif
     QQmlApplicationEngine engine;
     // The engine owns the provider; the controller only holds a non-owning pointer to fill it
     // from the capture duty's frozen crop. The image never reaches a file or a QML property.
@@ -426,8 +574,14 @@ int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw
     // Surfaces are windows that are hidden and re-shown, not windows that are created and
     // destroyed, so nothing else ever asks the scene graph to let go. LENS_KEEP_GRAPHICS=1 keeps
     // Qt's defaults, for measuring against them in one binary.
-    if (qEnvironmentVariableIsEmpty("LENS_KEEP_GRAPHICS"))
+    if (qEnvironmentVariableIsEmpty("LENS_KEEP_GRAPHICS")) {
+#ifdef _WIN32
+        bool const sharedUp = sharedGraphics.create();
+        releaseHiddenSurfaces(engine.rootObjects().constFirst(), sharedUp ? &sharedGraphics : nullptr);
+#else
         releaseHiddenSurfaces(engine.rootObjects().constFirst());
+#endif
+    }
 
     // Installed here, and not one line earlier. A WH_MOUSE_LL hook is called on the thread that
     // installed it, so from install() until that thread is back in a message loop the mouse

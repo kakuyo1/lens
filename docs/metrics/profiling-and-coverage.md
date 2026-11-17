@@ -152,7 +152,13 @@ Application Verifier，三者都要管理员权限并重启目标进程。
 对照组 12 轮就到 643 线程、首轮一次 460 MB 与 557 线程，说明释放路径没有回归；
 但句柄在两种配置下都按每轮 25 到 33 个稳定爬升，而设置连打那组完全不涨，
 所以这笔爬升与图形资源是否释放、与设置投影缓存都无关，候选缩到每次窗口显示时
-新建、隐藏后不归还的那类句柄上。分配点仍未定位。
+新建、隐藏后不归还的那类句柄上。类型归因与创建栈在同目录
+`handle-types-2026-11-10.md`：线性上涨的是 Section、Mutant、Thread 三类，
+约三分之二出自 AMD 驱动 `AmdD3D11CreateDeviceAndSwapChainExt` 每次建 D3D 设备
+拉起的 Event，设备销毁后不关，是驱动缺陷而非应用句柄泄漏；处置已裁决为共享一个
+D3D11 设备加帧锁（ADR 0191），句柄斜率归零。应用侧只有
+`glass_capture.cpp` 的 COM 公寓无配对一处，2026-11-17 已改为每线程一次的
+`PoolApartment` 守卫，线程退出时归还。
 
 数字写进 `docs/metrics/resource-footprint/` 或 `runtime-performance/` 下按日期命名的报告，
 索引加进 `docs/metrics/README.md`；原始 CSV、JSONL、trace 与堆快照留在 `test/records/`
