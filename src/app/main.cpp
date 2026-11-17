@@ -247,7 +247,7 @@ private:
         if (device_ == nullptr or device_->GetDeviceRemovedReason() == S_OK)
             return;
         if (recovering_.exchange(1) == 0)
-            QMetaObject::invokeMethod(qApp, [this] { recover(); }, Qt::QueuedConnection);
+            QMetaObject::invokeMethod(qApp, [this] { recover(); }, Qt::QueuedConnection); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
     }
 
     void recover()
