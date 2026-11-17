@@ -26,6 +26,10 @@
 
 检查更新只走 GitHub Releases，地址在 `data/update.json`，国内需代理。实测国内可达的镜像（版本接口与发布页两处），定下后只改 `data/update.json`，并在 `SECURITY.md` 写明出站地址。
 
+## 退出时的日志转发
+
+- **开 verbose 日志退出会崩**：`LdrShutdownProcess` 阶段 Qt6Quickd 的静态析构仍发 Qt 日志，`forwardToSpdlog`（`src/util/qt_log.cpp:26`）里的 spdlog 静态对象已先析构，use-after-free（0xC0000005，转储在 `logs/dumps/lens-1.0.0-20261117-194812*`）。`LENS_KEEP_GRAPHICS=1` 加 `QT_LOGGING_RULES=qt.scenegraph.*=true` 立即 quit 可复现，与共享设备无关。修法方向：转发前探测 logger 是否已析构，或把 spdlog 换成漏式单例。
+
 # TODO by user
 
 ## 自定义安装页面
