@@ -232,7 +232,7 @@ public:
         window->setGraphicsDevice(QQuickGraphicsDevice::fromDeviceAndContext(device_.Get(), context_.Get()));
         QObject::connect(window, &QQuickWindow::beforeFrameBegin, window, [this] { frameMutex_.lock(); }, Qt::DirectConnection);
         QObject::connect(window, &QQuickWindow::afterFrameEnd, window, [this] { frameMutex_.unlock(); }, Qt::DirectConnection);
-        QObject::connect(window, &QQuickWindow::sceneGraphInvalidated, window, [this] { noteInvalidation(); }, Qt::DirectConnection);
+        QObject::connect(window, &QQuickWindow::sceneGraphInvalidated, window, [this] { noteInvalidation(); }, Qt::DirectConnection); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): the queued recovery lambda below becomes a QMetaCallEvent the event loop owns; the analyzer reads the allocation as a leak
         windows_.append(window);
         LENS_DEBUG("surface tuned: {}", window->objectName().toStdString());
     }
@@ -247,7 +247,7 @@ private:
         if (device_ == nullptr or device_->GetDeviceRemovedReason() == S_OK)
             return;
         if (recovering_.exchange(1) == 0)
-            QMetaObject::invokeMethod(qApp, [this] { recover(); }, Qt::QueuedConnection); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
+            QMetaObject::invokeMethod(qApp, [this] { recover(); }, Qt::QueuedConnection);
     }
 
     void recover()
