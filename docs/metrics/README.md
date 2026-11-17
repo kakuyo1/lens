@@ -62,6 +62,7 @@
 | [`idle-sample-2026-11-10.md`](resource-footprint/idle-sample-2026-11-10.md) | 当前 release 实例的一分钟只读采样：`-Cpu` 列的验证，以及长稳复测的起点水位 |
 | [`soak-cycles-2026-11-10.md`](resource-footprint/soak-cycles-2026-11-10.md) | 四组循环负载：释放路径有没有回归、9.9 节的慢速爬升还在不在、释放的毫秒代价 |
 | [`handle-types-2026-11-10.md`](resource-footprint/handle-types-2026-11-10.md) | 那笔爬升是哪类句柄：Section、Mutant、Thread 各约每轮十个，Event 与 Timer 是锯齿不是泄漏 |
+| [`soak-shared-device-2026-11-17.md`](resource-footprint/soak-shared-device-2026-11-17.md) | 共享设备后开合 soak：句柄斜率归零、百轮外推成立、被拒是负载抖动不是锁死 |
 
 ## cost
 
