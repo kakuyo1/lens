@@ -8,6 +8,7 @@
 
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QJsonDocument>
 #include <QTimeZone>
 
 #include <exception>
@@ -172,6 +173,13 @@ nlohmann::json TelemetryDuty::report() const
 qint64 TelemetryDuty::eventBytes() const
 {
     return static_cast<qint64>(log_.totalBytes());
+}
+
+QVariantMap TelemetryDuty::career()
+{
+    flush();
+    const nlohmann::json json = core::telemetry::careerJson(core::telemetry::buildCareerFromLog(log_));
+    return QJsonDocument::fromJson(QByteArray::fromStdString(json.dump())).toVariant().toMap();
 }
 
 void TelemetryDuty::clear()

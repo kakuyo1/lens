@@ -173,6 +173,18 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .link-row:hover{color:var(--ink)}
 .link-row .chevm{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--faint);font-size:11px}
 .link-row svg{width:15px;height:15px;flex:none;color:var(--muted)}
+/* 生涯统计子页（UI-SPEC.md 4.4）：游戏生涯统计式的 KV 表，零值也列；等宽字只给数值。 */
+.evhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.evtotal{font-size:12px;color:var(--muted)}
+.evhint{font-size:11px;color:var(--faint);margin-top:6px;line-height:1.5}
+.cargroup{margin-top:12px}
+.cargroup-t{font-size:12px;color:var(--muted);margin-bottom:4px}
+.carrow{display:flex;align-items:center;justify-content:space-between;gap:10px;height:30px;border-top:1px solid var(--line2)}
+.carrow:first-child{border-top:0}
+.carlabel{font-size:13px;color:var(--text)}
+.carvalue{font-family:"Cascadia Code",Consolas,monospace;font-size:13px;font-weight:700;color:var(--text)}
+.evfoot{display:flex;align-items:flex-start;gap:10px;margin-top:14px}
+.evnote{flex:1;font-size:11px;color:var(--faint);line-height:1.5}
 .upd{display:flex;align-items:center;gap:12px;min-height:56px}
 .upd-main{flex:1;min-width:0}
 .upd-now{font-size:13px}
@@ -267,6 +279,7 @@ const L = {
                about: ["About", "Version, updates, repository"] },
         about: { repo: "GitHub repository", now: "Current version %1", check: "Check for updates",
                  states: { checking: "Checking...", latest: "Up to date (version %1)" },
+                 career: "Career statistics",
                  copyright: "Copyright (c) 2026 kakuyo1 · MIT License", built: "Built %1" } },
   zh: { title: "设置", defaults: "恢复默认", save: "保存",
         cat: { general: ["通用", "主题、动画效果、开机自启"],
@@ -278,6 +291,7 @@ const L = {
                about: ["关于", "版本、检查更新、仓库"] },
         about: { repo: "GitHub 仓库", now: "当前版本 %1", check: "检查更新",
                  states: { checking: "检查中…", latest: "已是最新（当前版本 %1）" },
+                 career: "生涯统计",
                  copyright: "Copyright (c) 2026 kakuyo1 · MIT 许可证", built: "构建于 %1" } },
   ja: { title: "設定", defaults: "初期設定", save: "保存",
         cat: { general: ["一般", "テーマ、アニメーション、スタートアップ"],
@@ -289,6 +303,7 @@ const L = {
                about: ["情報", "バージョン、更新、リポジトリ"] },
         about: { repo: "GitHub リポジトリ", now: "現在のバージョン %1", check: "更新を確認",
                  states: { checking: "確認中…", latest: "最新です（バージョン %1）" },
+                 career: "生涯統計",
                  copyright: "Copyright (c) 2026 kakuyo1 · MIT ライセンス", built: "ビルド日 %1" } },
   es: { title: "Ajustes", defaults: "Por defecto", save: "Guardar",
         cat: { general: ["General", "Tema, animaciones e inicio con el sistema"],
@@ -300,6 +315,7 @@ const L = {
                about: ["Acerca de", "Versión, actualizaciones, repositorio"] },
         about: { repo: "Repositorio de GitHub", now: "Versión actual %1", check: "Buscar actualizaciones",
                  states: { checking: "Comprobando…", latest: "Al día (versión %1)" },
+                 career: "Estadísticas de uso",
                  copyright: "Copyright (c) 2026 kakuyo1 · Licencia MIT", built: "Compilado el %1" } }
 };
 const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
@@ -309,7 +325,7 @@ document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[la
 for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
 
 const categories = Object.entries(t.cat).map(([id, [name, summary]]) => ({ id, name, summary }));
-const titles = { font: "字体", clipboard: "弹窗与剪贴板", connection: "API 配置" };
+const titles = { font: "字体", clipboard: "弹窗与剪贴板", connection: "API 配置", career: "生涯统计" };
 const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, animations: true, selection: true,
   font: "Noto Sans SC",
   policy: "topmost", bubbleSeconds: "5", placement: "above", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
@@ -413,7 +429,76 @@ function aboutPage() {
   return `<div class="about-pane"><button type="button" class="link-row" data-act="github" style="border-top:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/></svg><span>${a.repo}</span><span class="chevm">github.com/kakuyo1/lens</span></button>`
        + `<div class="swgroup" style="margin-top:14px"><div class="upd"><div class="upd-main"><div class="upd-now">${a.now.replace("%1", APP_VERSION)}</div><div class="upd-state" role="status">${shown}</div></div>`
        + `<button type="button" class="btn ink" data-act="check"${updState === "checking" ? " disabled" : ""}>${a.check}</button></div></div>`
+       + link("career", a.career, "3.4 MB")
        + `<div class="about-foot"><div class="about-name">Lens</div><div>${a.copyright}</div><div>${a.built.replace("%1", "2026-10-12")}</div></div></div>`;
+}
+
+/// 行为记录子页的样例事件：字段与 core/telemetry/event.h 的登记表一致，两个月份供月份下拉对视。
+/// 真机上这份列表来自 %APPDATA%\Lens\events\ 的月文件；原型里写死几条，只为看形态。
+const EVENT_SAMPLES = [
+  { ts: "2026-11-18 09:12:44", ev: "lookup.pop", data: { src: "scan", lemma: "serendipity", verdict: "new", lang: "zh", app: "chrome.exe" } },
+  { ts: "2026-11-18 09:12:51", ev: "llm.call", data: { kind: "explain", model: "deepseek-flash", promptTokens: 412, completionTokens: 268, latencyMs: 1840, ok: true } },
+  { ts: "2026-11-18 09:14:02", ev: "verdict.set", data: { lemma: "serendipity", to: "known", via: "bubble" } },
+  { ts: "2026-11-18 10:02:17", ev: "scan.session", data: { app: "notepad++.exe", words: 14, durationMs: 183000 } },
+  { ts: "2026-11-18 10:05:33", ev: "review.shown", data: { lemma: "ephemeral", level: 2 } },
+  { ts: "2026-11-18 10:05:41", ev: "review.answered", data: { lemma: "ephemeral", level: 2, result: "known" } },
+  { ts: "2026-11-18 11:20:05", ev: "ocr.capture", data: { mode: "local", ok: true } },
+  { ts: "2026-11-17 16:02:39", ev: "ocr.capture", data: { mode: "online", ok: false } },
+  { ts: "2026-11-18 08:59:03", ev: "app.start", data: { version: "1.3.2", installed: true } },
+  { ts: "2026-10-31 21:40:12", ev: "lookup.peek", data: { lemma: "ubiquitous", app: "chrome.exe" } },
+  { ts: "2026-10-31 21:41:05", ev: "llm.call", data: { kind: "peek", model: "deepseek-flash", promptTokens: 180, completionTokens: 96, latencyMs: 950, ok: true } },
+  { ts: "2026-10-30 19:22:48", ev: "app.exit", data: { uptimeMs: 5412000 } }
+];
+let eventsCleared = false;
+/// 与 core/telemetry/career 同口径的一次 pass：样例事件聚成计数表，零值也列。
+const CAREER_KEYS = ["firstTs", "events", "starts", "uptimeMs", "pops", "pop.selection", "pop.hover", "pop.scan", "pop.words",
+  "pop.new", "pop.known", "peeks", "verdict.known", "verdict.mastered", "verdict.new", "scan.sessions", "scan.words",
+  "scan.durationMs", "ocr.captures", "ocr.ok", "review.shown", "review.answered", "review.known", "review.new",
+  "review.dismissed", "llm.calls", "llm.ok", "llm.failed", "llm.promptTokens", "llm.completionTokens", "llm.explain",
+  "llm.peek", "llm.sense", "llm.breakdown", "llm.correction", "llm.portrait", "llm.story", "llm.example"];
+function careerOf(samples) {
+  const c = {};
+  for (const k of CAREER_KEYS) c[k] = 0;
+  const bump = (k, by = 1) => { if (k in c) c[k] += by; };
+  for (const e of samples) {
+    bump("events");
+    if (!c.firstTs || e.ts < c.firstTs) c.firstTs = e.ts;
+    const d = e.data;
+    if (e.ev === "app.start") bump("starts");
+    else if (e.ev === "app.exit") bump("uptimeMs", d.uptimeMs || 0);
+    else if (e.ev === "scan.session") { bump("scan.sessions"); bump("scan.words", d.words || 0); bump("scan.durationMs", d.durationMs || 0); }
+    else if (e.ev === "lookup.pop") { bump("pops"); bump("pop." + d.src); bump("pop." + d.verdict); }
+    else if (e.ev === "lookup.peek") bump("peeks");
+    else if (e.ev === "verdict.set") bump("verdict." + d.to);
+    else if (e.ev === "review.shown") bump("review.shown");
+    else if (e.ev === "review.answered") { bump("review.answered"); bump("review." + d.result); }
+    else if (e.ev === "ocr.capture") { bump("ocr.captures"); if (d.ok) bump("ocr.ok"); }
+    else if (e.ev === "llm.call") { bump("llm.calls"); bump(d.ok ? "llm.ok" : "llm.failed"); bump("llm.promptTokens", d.promptTokens || 0); bump("llm.completionTokens", d.completionTokens || 0); bump("llm." + d.kind); }
+  }
+  return c;
+}
+const CAR_GROUPS = [
+  ["常规", [["starts", "启动次数"], ["uptimeMs", "累计使用时长", true], ["events", "记录事件总数"]]],
+  ["查词", [["pops", "查词总数"], ["pop.selection", "选区取词"], ["pop.hover", "悬浮取词"], ["pop.scan", "扫描取词"], ["pop.words", "词表查词"], ["pop.new", "弹出新词"], ["pop.known", "弹出已会词"], ["peeks", "母语一瞥"]]],
+  ["判定", [["verdict.known", "标记已会"], ["verdict.mastered", "标记掌握"], ["verdict.new", "改回新词"]]],
+  ["扫描与 OCR", [["scan.sessions", "自动扫描会话"], ["scan.words", "扫描词数"], ["scan.durationMs", "扫描时长", true], ["ocr.captures", "OCR 识别次数"], ["ocr.ok", "OCR 成功次数"]]],
+  ["复习", [["review.shown", "复习提问"], ["review.answered", "复习作答"], ["review.known", "答记得"], ["review.new", "答忘记"], ["review.dismissed", "跳过复习"]]],
+  ["模型", [["llm.calls", "模型请求"], ["llm.ok", "请求成功"], ["llm.failed", "请求失败"], ["llm.promptTokens", "输入 token"], ["llm.completionTokens", "输出 token"], ["llm.explain", "解释"], ["llm.peek", "一瞥请求"], ["llm.sense", "义项请求"], ["llm.breakdown", "句子拆解"], ["llm.correction", "纠正"], ["llm.portrait", "阅读画像"], ["llm.story", "小故事"], ["llm.example", "例句"]]]
+];
+const carDuration = ms => {
+  const m = Math.round(ms / 60000);
+  return m < 60 ? m + " 分钟" : Math.floor(m / 60) + " 小时 " + (m % 60) + " 分钟";
+};
+function careerPage() {
+  const c = careerOf(eventsCleared ? [] : EVENT_SAMPLES);
+  const since = c.firstTs ? " · 自 " + c.firstTs.slice(0, 10) + " 起" : "";
+  const head = `<div class="evhead"><span class="evtotal">${c.events} 条事件${since}</span><button type="button" class="btn ghost" data-act="refresh-events">刷新</button></div>`
+    + (c.events === 0 ? `<div class="evhint">还没有行为记录。查词、扫描页面与作答复习时，事件会记在这里。</div>` : "");
+  const groups = CAR_GROUPS.map(([title, rows]) =>
+    `<div class="cargroup"><div class="cargroup-t">${title}</div>` + rows.map(([key, label, dur]) =>
+      `<div class="carrow"><span class="carlabel">${label}</span><span class="carvalue">${dur ? carDuration(c[key]) : c[key].toLocaleString("zh-CN")}</span></div>`).join("") + `</div>`).join("");
+  return head + groups
+    + `<div class="evfoot"><span class="evnote">记录只留在本机。加密副本会同步到你自己的账号。</span><button type="button" class="btn ghost" data-act="clear-events">清除</button></div>`;
 }
 
 function page(id) {
@@ -482,6 +567,7 @@ function detail() {
       '<p class="fhelp">密钥只保存在本机。</p>' +
       inp("服务地址", "url", "服务商提供的地址") +
       '<p class="fhelp">这里的地址是服务商常用的地址，可能已失效；请以服务商文档为准。</p>';
+    case "career": return careerPage();
     default: return "";
   }
 }
@@ -629,6 +715,8 @@ view.addEventListener("click", e => {
   if (b.classList.contains("dd-btn") || b.classList.contains("mf-go")) { const dd = b.closest(".dd"); const open = dd.classList.toggle("open"); b.setAttribute("aria-expanded", String(open)); return; }
   if (b.dataset.act === "check") { updState = "checking"; render(); setTimeout(() => { updState = "latest"; render(); }, 900); return; }
   if (b.dataset.act === "github") { window.open("https://github.com/kakuyo1/lens", "_blank"); return; }
+  if (b.dataset.act === "refresh-events") { eventsCleared = false; render(); return; }
+  if (b.dataset.act === "clear-events") { eventsCleared = true; render(); return; }
   if (b.dataset.category) { category = b.dataset.category; route = null; render(true); return; }
   if (b.dataset.route) { route = b.dataset.route; render(true); return; }
   if (b.dataset.key) {

@@ -18,6 +18,8 @@ Item {
 
     /// Asking the panel before an irreversible action; the panel owns the question window.
     signal confirmRequested(string heading, string message, string confirmLabel, var action)
+    /// Opening a sub-page under this category; the panel owns the route.
+    signal childRequested(string value)
 
     /**
      * What the update line says, for one state.
@@ -312,55 +314,14 @@ Item {
             }
         }
 
-        /// The behavior record's local months (docs/adr/0180). Clearing removes them here and queues
-        /// the encrypted copies the event channel uploaded for deletion at the next sync.
-        Item {
-            id: eventDataRow
+        /// The behavior record's local months (docs/adr/0180). The row opens the career statistics
+        /// page that counts them; the clear action lives there, beside the numbers it removes
+        /// (docs/adr/0194).
+        SettingsLinkRow {
             objectName: "eventDataRow"
-            width: parent.width
-            height: 44
-
-            Text {
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                text: qsTranslate("SettingsPopup", "Behavior data")
-                color: page.tokens.text
-                font.pixelSize: 13
-            }
-
-            Row {
-                anchors.right: parent.right
-                anchors.rightMargin: 9
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 8
-
-                Text {
-                    objectName: "eventDataSize"
-                    height: parent.height
-                    verticalAlignment: Text.AlignVCenter
-                    text: Format.formatBytes(Controller.telemetryDuty.eventBytes)
-                    color: page.tokens.faint
-                    font.pixelSize: 11
-                }
-
-                Text {
-                    height: parent.height
-                    verticalAlignment: Text.AlignVCenter
-                    text: "·"
-                    color: page.tokens.faint
-                    font.pixelSize: 11
-                }
-
-                Chip {
-                    objectName: "clearEventDataButton"
-                    label: qsTranslate("SettingsPopup", "Clear")
-                    onPicked: page.confirmRequested(
-                        qsTranslate("SettingsPopup", "Clear behavior data"),
-                        qsTranslate("SettingsPopup", "The local months are removed, and their encrypted cloud copies are deleted at the next sync."),
-                        qsTranslate("SettingsPopup", "Clear"),
-                        () => Controller.telemetryDuty.clear())
-                }
-            }
+            label: qsTranslate("SettingsPopup", "Career statistics")
+            note: Format.formatBytes(Controller.telemetryDuty.eventBytes)
+            onPicked: page.childRequested("career")
         }
     }
 

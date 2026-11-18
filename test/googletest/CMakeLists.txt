@@ -30,6 +30,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/filter_core_test.cpp
   unit/stats_store_test.cpp
   unit/event_log_test.cpp
+  unit/telemetry_career_test.cpp
   unit/telemetry_duty_test.cpp
   unit/telemetry_report_test.cpp
   unit/telemetry_sync_test.cpp

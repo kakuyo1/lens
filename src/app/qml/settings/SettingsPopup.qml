@@ -92,6 +92,7 @@ Window {
         if (value === "ocr-online") return qsTranslate("SettingsPopup", "Online OCR");
         if (value === "ocr-paths") return qsTranslate("SettingsPopup", "Local engine paths");
         if (value === "connection") return qsTranslate("SettingsPopup", "API configuration");
+        if (value === "career") return qsTranslate("SettingsPopup", "Career statistics");
         return categoryTitle(category);
     }
 
@@ -567,6 +568,7 @@ Window {
                                  : settings.route === "ocr-online" ? onlineOcrComponent
                                  : settings.route === "connection" ? connectionComponent
                                  : settings.route === "font" ? fontComponent
+                                 : settings.route === "career" ? careerComponent
                                  : settings.category === "" ? catalogComponent
                                   : settings.category === "general" ? generalComponent
                                   : settings.category === "learning" ? learningComponent
@@ -653,6 +655,13 @@ Window {
     Component {
         id: aboutComponent
         SettingsAboutPage {
+            onConfirmRequested: (heading, message, label, action) => settings.askConfirm(heading, message, label, action)
+            onChildRequested: (value) => settings.openRoute(value)
+        }
+    }
+    Component {
+        id: careerComponent
+        SettingsCareerPage {
             onConfirmRequested: (heading, message, label, action) => settings.askConfirm(heading, message, label, action)
         }
     }

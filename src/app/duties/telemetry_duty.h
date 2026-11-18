@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
 #include <cstddef>
@@ -14,6 +15,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "core/telemetry/career.h"
 #include "core/telemetry/event_log.h"
 #include "core/telemetry/report.h"
 #include "telemetry_sink.h"
@@ -91,6 +93,11 @@ public:
 
     /// @return The bytes the month files hold, for the About page's storage line.
     qint64 eventBytes() const;
+
+    /// @brief The lifetime counters over every month, for the career statistics page.
+    /// @note Flushes first so what the reader just did is counted. Reads on the duty's own thread,
+    ///       the thread flush() runs on.
+    Q_INVOKABLE QVariantMap career();
 
     /// @brief Queue the uploaded event files for cloud deletion and remove the local month files.
     /// @note The sequence continues, so a later event never reuses a number this device wrote before.

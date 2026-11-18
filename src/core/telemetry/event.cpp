@@ -23,6 +23,7 @@ constexpr std::string_view kVerdictChoices[]{"new", "known", "mastered"};
 constexpr std::string_view kVerdictRoutes[]{"bubble", "pencil", "words"};
 constexpr std::string_view kLlmKinds[]{"explain", "peek", "sense", "breakdown", "correction", "portrait", "story", "example"};
 constexpr std::string_view kReviewResults[]{"known", "new", "dismissed"};
+constexpr std::string_view kOcrModes[]{"local", "online"};
 
 constexpr FieldSpec kAppStartFields[]{
     {.name = "version", .kind = FieldKind::Text, .required = true, .maxLength = 32},
@@ -78,6 +79,11 @@ constexpr FieldSpec kLlmCallFields[]{
     {.name = "ok", .kind = FieldKind::Boolean, .required = true},
 };
 
+constexpr FieldSpec kOcrCaptureFields[]{
+    {.name = "mode", .kind = FieldKind::Choice, .required = true, .choices = std::span<std::string_view const>{kOcrModes}},
+    {.name = "ok", .kind = FieldKind::Boolean, .required = true},
+};
+
 constexpr EventSpec kSpecs[]{
     {.name = "app.start", .fields = std::span<FieldSpec const>{kAppStartFields}},
     {.name = "app.exit", .fields = std::span<FieldSpec const>{kAppExitFields}},
@@ -88,6 +94,7 @@ constexpr EventSpec kSpecs[]{
     {.name = "review.shown", .fields = std::span<FieldSpec const>{kReviewShownFields}},
     {.name = "review.answered", .fields = std::span<FieldSpec const>{kReviewAnsweredFields}},
     {.name = "llm.call", .fields = std::span<FieldSpec const>{kLlmCallFields}},
+    {.name = "ocr.capture", .fields = std::span<FieldSpec const>{kOcrCaptureFields}},
 };
 
 const FieldSpec* findField(const EventSpec& spec, std::string_view name)

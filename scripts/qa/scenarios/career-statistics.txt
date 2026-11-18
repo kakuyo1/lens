@@ -1,0 +1,18 @@
+# Career statistics sub-page (UI-SPEC.md 4.4, docs/adr/0194): the About row opens the page that
+# counts the local event log over its whole retention. The dev surface has no back or Escape verb,
+# so the return from a sub-page is covered by a qtest, not by this script.
+# Run against a private settings file so the reader's profile is never touched:
+#   lens.exe --dev-script=scripts/qa/scenarios/career-statistics.txt --dev-out=logs/dev-run/career.jsonl --settings-file=logs/dev-run/career-settings.json
+version
+state
+surface show settings
+wait visible:settings
+surface route settings about
+wait painted:settings
+state
+surface route settings about/career
+wait painted:settings
+state
+surface scroll settings 600
+state
+quit

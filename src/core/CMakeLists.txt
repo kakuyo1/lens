@@ -22,6 +22,7 @@ add_library(lens_core STATIC
   document/pet_store.cpp
   telemetry/event.cpp
   telemetry/event_log.cpp
+  telemetry/career.cpp
   telemetry/report.cpp
   telemetry/sync_plan.cpp
   crypto/vault.cpp

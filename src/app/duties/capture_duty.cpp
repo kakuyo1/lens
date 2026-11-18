@@ -1209,6 +1209,8 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
     auto const context = *jobContext_;
     jobContext_.reset();
     if (context.online) {
+        if (telemetry_ != nullptr && result.status != capture::OcrStatus::Cancelled)
+            telemetry_->record("ocr.capture", {{"mode", "online"}, {"ok", result.status == capture::OcrStatus::Ready}});
         routeUpload(upload_.finish(result, std::chrono::steady_clock::now()));
         return;
     }
@@ -1272,6 +1274,8 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
         const auto refusal = refusalOf(result.status).value_or(CaptureRefusal::Failed);
         if (context.context.isEmpty()) {
             LENS_INFO("OCR of the framed region produced no text (status {})", refusalKey(refusal));
+            if (telemetry_ != nullptr)
+                telemetry_->record("ocr.capture", {{"mode", "local"}, {"ok", false}});
             emit screenshotFailed(refusal);
             return;
         }
@@ -1285,6 +1289,8 @@ void CaptureDuty::onOcrFinished(std::uint64_t const requestId, capture::OcrResul
     if (context.context.isEmpty()) {
         // Only the screenshot path reaches here with no scan context: a selection brings its own
         // text rather than going through OCR at all.
+        if (telemetry_ != nullptr)
+            telemetry_->record("ocr.capture", {{"mode", "local"}, {"ok", true}});
         classifyText(result.text, context.anchor, true);
         return;
     }

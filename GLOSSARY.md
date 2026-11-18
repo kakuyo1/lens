@@ -151,6 +151,7 @@
 - **墓碑（Tombstone）**：删除标记时留下的带时间记录，合并时让旧数据无法复活已删的词。
 - **设备 ID（Device ID）**：每台设备首次启动生成的随机标识，用于统计分桶，不随同步。
 - **云端副本（Cloud copy）**：同一份加密文件，随存储方式落在读者自己的 GitHub（`lens-sync` secret gist）或 WebDAV 服务器（`Lens/lens-sync.json`）；存储方只能看到存在、大小与更新时间。见 `docs/adr/0157`。
-- **行为记录（Behavior record）**：本机按月保存的行为事件 JSONL，保留 12 个月；事件带明文 lemma 与可选的前台应用名，不记原文、释义、URL 或剪贴板。每台设备每月另存一个加密事件文件，随主同步成功后上传到同一个云端目录。见 `docs/adr/0180`。_Avoid_：遥测、第三方统计。
+- **行为记录（Behavior record）**：本机按月保存的行为事件 JSONL，保留 12 个月；事件带明文 lemma 与可选的前台应用名，不记原文、释义、URL 或剪贴板。每台设备每月另存一个加密事件文件，随主同步成功后上传到同一个云端目录。设置 › 关于 › 生涯统计子页把全部月份聚合成计数表。见 `docs/adr/0180`、`docs/adr/0194`。_Avoid_：遥测、第三方统计。
+- **生涯统计（Career statistics）**：行为记录跨全部保留月份的聚合计数表，游戏生涯统计式的 KV 行，零值也列；聚合在 `core/telemetry/career`，Qt-free。见 `docs/adr/0194`。_Avoid_：匿名统计、第三方分析。
 - **行为事件（Behavior event）**：行为记录的一行，字段由 `core/telemetry/event.h` 的登记表限定；未知事件名在写入时拒绝、读取时忽略。
 - **事件文件通道（Event file channel）**：月文件在云端的列举、写、读、删，走主同步同一个 provider 后端的文件传输接口；通道自己不判断 provider，也不碰凭据。见 `docs/adr/0180`、`docs/adr/0181`。

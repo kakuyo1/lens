@@ -765,23 +765,23 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="321"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="350"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="322"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="351"/>
         <source>Saved</source>
         <translation>已儲存</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="369"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="370"/>
         <source>Defaults restored</source>
         <translation>已還原預設</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="479"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="480"/>
         <source>Back</source>
         <translation>返回</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="535"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="536"/>
         <source>Close</source>
         <translation>關閉</translation>
     </message>
@@ -943,7 +943,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="491"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="492"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
@@ -1173,99 +1173,340 @@ One small word at a time, the reading opens.</translation>
         <translation>寵物關閉時不可用。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="31"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="33"/>
         <source>Checking...</source>
         <translation>檢查中…</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="33"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="35"/>
         <source>Up to date (version %1)</source>
         <translation>已是最新（目前版本 %1）</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="35"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="37"/>
         <source>Version %1 is available</source>
         <translation>有新版本 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="37"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="39"/>
         <source>Cannot connect</source>
         <translation>無法連線</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="71"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="97"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="73"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="99"/>
         <source>GitHub repository</source>
         <translation>GitHub 儲存庫</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="143"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="145"/>
         <source>Current version %1</source>
         <translation>目前版本 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="224"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="226"/>
         <source>Picture cache</source>
         <translation>圖片快取</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="254"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="258"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="305"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="309"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="356"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="360"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="256"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="260"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="307"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="311"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="235"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="239"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="337"/>
         <source>Clear</source>
         <translation>清除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="256"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="258"/>
         <source>Clear picture cache</source>
         <translation>清除圖片快取</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="257"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="259"/>
         <source>The pictures are downloaded again the next time you open a word.</source>
         <translation>下次開啟單字時會重新下載圖片。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="275"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="277"/>
         <source>Audio cache</source>
         <translation>音訊快取</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="307"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="309"/>
         <source>Clear audio cache</source>
         <translation>清除音訊快取</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="308"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="310"/>
         <source>The recordings are downloaded again the next time you play a word.</source>
         <translation>下次播放單字時會重新下載錄音。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="326"/>
-        <source>Behavior data</source>
-        <translation>行為資料</translation>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="322"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="95"/>
+        <source>Career statistics</source>
+        <translation>生涯統計</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="358"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="134"/>
+        <source>%1 events</source>
+        <translation>%1 筆事件</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="124"/>
+        <source>Refresh</source>
+        <translation>重新整理</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="41"/>
+        <source>%1 min</source>
+        <translation>%1 分鐘</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="42"/>
+        <source>%1 h %2 min</source>
+        <translation>%1 小時 %2 分鐘</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="55"/>
+        <source>App launches</source>
+        <translation>啟動次數</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="56"/>
+        <source>Time in use</source>
+        <translation>累計使用時長</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="57"/>
+        <source>Recorded events</source>
+        <translation>記錄事件總數</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="58"/>
+        <source>Lookups</source>
+        <translation>查詞</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="59"/>
+        <source>Words looked up</source>
+        <translation>查詞總數</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="60"/>
+        <source>Selection lookups</source>
+        <translation>選區取詞</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="61"/>
+        <source>Hover lookups</source>
+        <translation>懸浮取詞</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="62"/>
+        <source>Scan lookups</source>
+        <translation>掃描取詞</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="63"/>
+        <source>Word-list lookups</source>
+        <translation>詞表查詞</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="64"/>
+        <source>New words popped</source>
+        <translation>彈出新詞</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="65"/>
+        <source>Known words popped</source>
+        <translation>彈出已會詞</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="66"/>
+        <source>Mother-tongue peeks</source>
+        <translation>母語一瞥</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="67"/>
+        <source>Verdicts</source>
+        <translation>判定</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="68"/>
+        <source>Marked known</source>
+        <translation>標記已會</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="69"/>
+        <source>Marked mastered</source>
+        <translation>標記掌握</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="70"/>
+        <source>Reset to new</source>
+        <translation>改回新詞</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="71"/>
+        <source>Scan &amp; OCR</source>
+        <translation>掃描與 OCR</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="72"/>
+        <source>Auto scan sessions</source>
+        <translation>自動掃描會話</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="73"/>
+        <source>Words scanned</source>
+        <translation>掃描詞數</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="74"/>
+        <source>Time scanning</source>
+        <translation>掃描時長</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="75"/>
+        <source>OCR captures</source>
+        <translation>OCR 識別次數</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="76"/>
+        <source>OCR captures succeeded</source>
+        <translation>OCR 成功次數</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="77"/>
+        <source>Review</source>
+        <translation>複習</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="78"/>
+        <source>Review questions</source>
+        <translation>複習提問</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="79"/>
+        <source>Review answers</source>
+        <translation>複習作答</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="80"/>
+        <source>Answered remembered</source>
+        <translation>答記得</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="81"/>
+        <source>Answered forgotten</source>
+        <translation>答忘記</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="82"/>
+        <source>Reviews skipped</source>
+        <translation>跳過複習</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="84"/>
+        <source>Model requests</source>
+        <translation>模型請求</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="85"/>
+        <source>Requests succeeded</source>
+        <translation>請求成功</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="86"/>
+        <source>Requests failed</source>
+        <translation>請求失敗</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="87"/>
+        <source>Prompt tokens</source>
+        <translation>輸入 token</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="88"/>
+        <source>Completion tokens</source>
+        <translation>輸出 token</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="89"/>
+        <source>Explanations</source>
+        <translation>解釋</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="90"/>
+        <source>Peek requests</source>
+        <translation>一瞥請求</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="91"/>
+        <source>Sense requests</source>
+        <translation>義項請求</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="92"/>
+        <source>Sentence breakdowns</source>
+        <translation>句子拆解</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="93"/>
+        <source>Corrections</source>
+        <translation>糾正</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="94"/>
+        <source>Reading portraits</source>
+        <translation>閱讀畫像</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="95"/>
+        <source>Stories</source>
+        <translation>小故事</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="96"/>
+        <source>Example sentences</source>
+        <translation>例句</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="136"/>
+        <source>since %1</source>
+        <translation>自 %1 起</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="149"/>
+        <source>No behavior records yet. Events appear here as you look up words, scan pages and answer reviews.</source>
+        <translation>還沒有行為記錄。查詞、掃描頁面與作答複習時，事件會記在這裡。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="237"/>
         <source>Clear behavior data</source>
         <translation>清除行為資料</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="359"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="238"/>
         <source>The local months are removed, and their encrypted cloud copies are deleted at the next sync.</source>
         <translation>本機月份檔案會被刪除，已上傳的加密雲端副本會在下次同步時刪除。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="390"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="250"/>
+        <source>Records stay on this device. Encrypted copies go to your own sync account.</source>
+        <translation>記錄只留在本機。加密副本會同步到你自己的帳號。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="351"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · MIT 授權條款</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="397"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="358"/>
         <source>Built %1</source>
         <translation>建置於 %1</translation>
     </message>
@@ -1413,7 +1654,7 @@ One small word at a time, the reading opens.</translation>
         <translation>打字速度</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="198"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="200"/>
         <source>Check for updates</source>
         <translation>檢查更新</translation>
     </message>
@@ -1573,6 +1814,7 @@ One small word at a time, the reading opens.</translation>
         <translation>每日預算</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="54"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="18"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
         <source>General</source>
@@ -1635,7 +1877,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="272"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="54"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1153"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1154"/>
         <source>Desktop companion</source>
         <translation>桌面寵物</translation>
     </message>
@@ -1721,6 +1963,7 @@ One small word at a time, the reading opens.</translation>
         <translation>服務商</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="83"/>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="57"/>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="72"/>
         <source>Model</source>
@@ -2416,7 +2659,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="209"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1155"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1156"/>
         <source>Dog</source>
         <translation>小狗</translation>
     </message>
@@ -2751,7 +2994,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="102"/>
         <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="195"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="367"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="611"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="614"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -2818,7 +3061,7 @@ One small word at a time, the reading opens.</translation>
         <translation>刪除雲端資料</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1154"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1155"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>該寵物包已不存在，已切換到 %1。</translation>
     </message>

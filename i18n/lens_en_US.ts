@@ -765,23 +765,23 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="321"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="350"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="322"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="351"/>
         <source>Saved</source>
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="369"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="370"/>
         <source>Defaults restored</source>
         <translation>Defaults restored</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="479"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="480"/>
         <source>Back</source>
         <translation>Back</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="535"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="536"/>
         <source>Close</source>
         <translation>Close</translation>
     </message>
@@ -943,7 +943,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="491"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="492"/>
         <source>Settings</source>
         <translation>Settings</translation>
     </message>
@@ -1173,99 +1173,340 @@ One small word at a time, the reading opens.</translation>
         <translation>Unavailable while the pet is off.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="31"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="33"/>
         <source>Checking...</source>
         <translation>Checking...</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="33"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="35"/>
         <source>Up to date (version %1)</source>
         <translation>Up to date (version %1)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="35"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="37"/>
         <source>Version %1 is available</source>
         <translation>Version %1 is available</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="37"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="39"/>
         <source>Cannot connect</source>
         <translation>Cannot connect</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="71"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="97"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="73"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="99"/>
         <source>GitHub repository</source>
         <translation>GitHub repository</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="143"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="145"/>
         <source>Current version %1</source>
         <translation>Current version %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="224"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="226"/>
         <source>Picture cache</source>
         <translation>Picture cache</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="254"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="258"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="305"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="309"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="356"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="360"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="256"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="260"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="307"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="311"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="235"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="239"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="337"/>
         <source>Clear</source>
         <translation>Clear</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="256"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="258"/>
         <source>Clear picture cache</source>
         <translation>Clear picture cache</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="257"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="259"/>
         <source>The pictures are downloaded again the next time you open a word.</source>
         <translation>The pictures are downloaded again the next time you open a word.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="275"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="277"/>
         <source>Audio cache</source>
         <translation>Audio cache</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="307"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="309"/>
         <source>Clear audio cache</source>
         <translation>Clear audio cache</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="308"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="310"/>
         <source>The recordings are downloaded again the next time you play a word.</source>
         <translation>The recordings are downloaded again the next time you play a word.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="326"/>
-        <source>Behavior data</source>
-        <translation>Behavior data</translation>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="322"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="95"/>
+        <source>Career statistics</source>
+        <translation>Career statistics</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="358"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="134"/>
+        <source>%1 events</source>
+        <translation>%1 events</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="124"/>
+        <source>Refresh</source>
+        <translation>Refresh</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="41"/>
+        <source>%1 min</source>
+        <translation>%1 min</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="42"/>
+        <source>%1 h %2 min</source>
+        <translation>%1 h %2 min</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="55"/>
+        <source>App launches</source>
+        <translation>App launches</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="56"/>
+        <source>Time in use</source>
+        <translation>Time in use</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="57"/>
+        <source>Recorded events</source>
+        <translation>Recorded events</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="58"/>
+        <source>Lookups</source>
+        <translation>Lookups</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="59"/>
+        <source>Words looked up</source>
+        <translation>Words looked up</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="60"/>
+        <source>Selection lookups</source>
+        <translation>Selection lookups</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="61"/>
+        <source>Hover lookups</source>
+        <translation>Hover lookups</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="62"/>
+        <source>Scan lookups</source>
+        <translation>Scan lookups</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="63"/>
+        <source>Word-list lookups</source>
+        <translation>Word-list lookups</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="64"/>
+        <source>New words popped</source>
+        <translation>New words popped</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="65"/>
+        <source>Known words popped</source>
+        <translation>Known words popped</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="66"/>
+        <source>Mother-tongue peeks</source>
+        <translation>Mother-tongue peeks</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="67"/>
+        <source>Verdicts</source>
+        <translation>Verdicts</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="68"/>
+        <source>Marked known</source>
+        <translation>Marked known</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="69"/>
+        <source>Marked mastered</source>
+        <translation>Marked mastered</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="70"/>
+        <source>Reset to new</source>
+        <translation>Reset to new</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="71"/>
+        <source>Scan &amp; OCR</source>
+        <translation>Scan &amp; OCR</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="72"/>
+        <source>Auto scan sessions</source>
+        <translation>Auto scan sessions</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="73"/>
+        <source>Words scanned</source>
+        <translation>Words scanned</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="74"/>
+        <source>Time scanning</source>
+        <translation>Time scanning</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="75"/>
+        <source>OCR captures</source>
+        <translation>OCR captures</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="76"/>
+        <source>OCR captures succeeded</source>
+        <translation>OCR captures succeeded</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="77"/>
+        <source>Review</source>
+        <translation>Review</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="78"/>
+        <source>Review questions</source>
+        <translation>Review questions</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="79"/>
+        <source>Review answers</source>
+        <translation>Review answers</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="80"/>
+        <source>Answered remembered</source>
+        <translation>Answered remembered</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="81"/>
+        <source>Answered forgotten</source>
+        <translation>Answered forgotten</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="82"/>
+        <source>Reviews skipped</source>
+        <translation>Reviews skipped</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="84"/>
+        <source>Model requests</source>
+        <translation>Model requests</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="85"/>
+        <source>Requests succeeded</source>
+        <translation>Requests succeeded</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="86"/>
+        <source>Requests failed</source>
+        <translation>Requests failed</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="87"/>
+        <source>Prompt tokens</source>
+        <translation>Prompt tokens</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="88"/>
+        <source>Completion tokens</source>
+        <translation>Completion tokens</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="89"/>
+        <source>Explanations</source>
+        <translation>Explanations</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="90"/>
+        <source>Peek requests</source>
+        <translation>Peek requests</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="91"/>
+        <source>Sense requests</source>
+        <translation>Sense requests</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="92"/>
+        <source>Sentence breakdowns</source>
+        <translation>Sentence breakdowns</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="93"/>
+        <source>Corrections</source>
+        <translation>Corrections</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="94"/>
+        <source>Reading portraits</source>
+        <translation>Reading portraits</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="95"/>
+        <source>Stories</source>
+        <translation>Stories</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="96"/>
+        <source>Example sentences</source>
+        <translation>Example sentences</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="136"/>
+        <source>since %1</source>
+        <translation>since %1</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="149"/>
+        <source>No behavior records yet. Events appear here as you look up words, scan pages and answer reviews.</source>
+        <translation>No behavior records yet. Events appear here as you look up words, scan pages and answer reviews.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="237"/>
         <source>Clear behavior data</source>
         <translation>Clear behavior data</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="359"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="238"/>
         <source>The local months are removed, and their encrypted cloud copies are deleted at the next sync.</source>
         <translation>The local months are removed, and their encrypted cloud copies are deleted at the next sync.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="390"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="250"/>
+        <source>Records stay on this device. Encrypted copies go to your own sync account.</source>
+        <translation>Records stay on this device. Encrypted copies go to your own sync account.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="351"/>
         <source>Copyright (c) 2026 kakuyo1 · MIT License</source>
         <translation>Copyright (c) 2026 kakuyo1 · MIT License</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="397"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="358"/>
         <source>Built %1</source>
         <translation>Built %1</translation>
     </message>
@@ -1413,7 +1654,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Typing speed</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="198"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="200"/>
         <source>Check for updates</source>
         <translation>Check for updates</translation>
     </message>
@@ -1573,6 +1814,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Daily budget</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="54"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="18"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="76"/>
         <source>General</source>
@@ -1635,7 +1877,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="272"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="54"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1153"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1154"/>
         <source>Desktop companion</source>
         <translation>Desktop companion</translation>
     </message>
@@ -1721,6 +1963,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Provider</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="83"/>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="57"/>
         <location filename="../src/app/qml/settings/pages/SettingsModelPage.qml" line="72"/>
         <source>Model</source>
@@ -2416,7 +2659,7 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="209"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1155"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1156"/>
         <source>Dog</source>
         <translation>Dog</translation>
     </message>
@@ -2751,7 +2994,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="102"/>
         <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="195"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="367"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="611"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="614"/>
         <source>Cancel</source>
         <translation>Cancel</translation>
     </message>
@@ -2818,7 +3061,7 @@ One small word at a time, the reading opens.</translation>
         <translation>Delete cloud data</translation>
     </message>
     <message>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1154"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1155"/>
         <source>This pet package is no longer installed. Switched to %1.</source>
         <translation>This pet package is no longer installed. Switched to %1.</translation>
     </message>
