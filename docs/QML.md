@@ -294,7 +294,7 @@ PY
 
 ## 9 动效
 
-- **时长与缓动是令牌，住在 `qml/theme/Motion.qml`**：`press`、`pop`、`bubble`、`pulse` 与一条
+- **时长与缓动是令牌，住在 `qml/theme/Motion.qml`**：`press`、`pop`、`bubble`、`theme`、`pulse` 与一条
   `easing`（当前值表见 `DESIGN.md` 的 Motion）。`Tokens` 以 `readonly property Motion motion` 转发，表面写
   `Tokens.motion.<token>`，QML 里不出现毫秒字面量。它与 `Light` / `Dark` 同处一个目录，因为 `theme/`
   是**值表**所在而不是色值所在。
@@ -313,6 +313,14 @@ PY
   删除决定等控制器回调在点击当下发生，`SurfaceFade` 只决定窗口何时消失。
   - 例外是托盘菜单的语言列表：它由 `Loader` 在 “该出来” 之后才创建，那时窗口已可见，没有 0→1 的翻转
     可跟。该卡片的 `shown` 因此绑到 `Loader.status === Loader.Ready`，让创建完成本身成为那次翻转。
+- **主题切换是值表的交叉渐变**（`docs/adr/0196`）：`TokenTable` 在 `theme` 变化时留下旧表（`fadeFrom`）
+  与进度（`mix`），一条 `NumberAnimation` 把 `mix` 在 `themeFade`（默认 `Tokens.motion.theme`）里从 0
+  推到 1，`tokenColor()` 逐通道插值，所以组件仍只认令牌、不感知主题。卡片材质同步：`ShadowCard` 与
+  `BubbleCard` 的底色各有一条 `Behavior on color`，`GlassSurface` 用 `drawnMode` 把上一份材质多留一个
+  渐变的长度并淡出。皮肤预览（`ThemePreview`）把 `themeFade` 置 0——hover 无过渡。
+  **`Behavior` 不能挂在只读属性上**（QML 报 “read-only property”），每个令牌一条 `Behavior` 的写法走不通；
+  表本身用 `created` 标记区分创建时的首值与后来的切换，窗口建在哪个主题下就在哪个主题下开屏。
+  依赖条件而非令牌的角色（`body`、`radiusCard`）没有中间值，仍瞬时切换。
 - **按压反馈有复用件**：`IconButton.qml` 把图标、指针光标、`TapHandler` 与 `.97` 缩放收成一处，表面标题
   行的关闭、返回、导出等图标都用它；整行的点击目标不缩放，按压由底色 `line` 表示，写在
   `MenuRow` / `SettingsCategoryRow` / `SettingsLinkRow` / `StatRow` 与两个下拉列表的行上。
@@ -327,7 +335,7 @@ PY
 - **动效拍不到快照，也不该拿快照验收**：能断言的是两条——规格表里每个时长都取自令牌、`reduced` 为真时
   时长解析为 0（`test/qtest/components/tst_motion.qml`），以及卡片确实随窗口在 0 与 1 之间走
   （`tst_shadowcard.qml`）。观感靠一次 QML profiler 运行加人工看。写快照用例时要等 `Tokens.motion.pop`
-  走完再抓，否则拍到的是半透明的卡片。
+  走完再抓，否则拍到的是半透明的卡片；切换主题之后还要多等 `Tokens.motion.theme`，否则拍到的是渐变中的表。
 
 ## 10 桌面宠物与场景
 

@@ -127,7 +127,8 @@ Item {
             verify(Util.saveSnapshot(testCase, preview.contentItem, lensQaSnapshotDir,
                                      "vocab-preview-light"));
             Controller.setSetting("theme", "dark");
-            wait(80);
+            // The card's colours cross to the new table over the theme fade; photograph them settled.
+            wait(80 + Tokens.motion.theme);
             verify(Util.saveSnapshot(testCase, preview.contentItem, lensQaSnapshotDir,
                                      "vocab-preview-dark"));
             field.closeList();

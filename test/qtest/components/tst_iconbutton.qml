@@ -84,6 +84,8 @@ Item {
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the snapshot");
 
             Tokens.theme = "light";
+            // The palette crosses over the theme fade; photograph it settled.
+            wait(Tokens.motion.theme);
             const button = make({});
             button.x = 80;
             button.y = 60;

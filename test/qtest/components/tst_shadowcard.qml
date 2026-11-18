@@ -115,7 +115,10 @@ Item {
             compare(card.card.border.color.a, 0, "the glass card drew a white edge of its own");
 
             card.color = window.tokens.popup;
-            verify(card.card.border.color.a > 0, "a filled popup layer lost the line that sets it apart");
+            // The fill crosses to the popup layer over the theme fade, and the line returns with its
+            // alpha; on a reduced-motion machine both land on the same turn.
+            tryVerify(function () { return card.card.border.color.a > 0; },
+                      1000, "a filled popup layer lost the line that sets it apart");
         }
     }
 }

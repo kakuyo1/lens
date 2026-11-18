@@ -198,6 +198,8 @@ Item {
             try {
                 for (const mode of ["light", "dark"]) {
                     Tokens.theme = mode;
+                    // The palette crosses over the theme fade; photograph it settled.
+                    wait(Tokens.motion.theme);
                     const background = createTemporaryObject(backdrop, host.contentItem);
                     verify(background);
                     for (const entry of [{component: learning, name: "learning"}, {component: model, name: "model"}, {component: connection, name: "connection"}]) {

@@ -6,6 +6,9 @@ import QtQuick
  * Each surface window owns one instance, a SurfaceTokens that forwards the stored theme from Tokens; the glass is on
  * only in the windows that set glassEnabled. Every instance is this file, so a role means the same thing in each and
  * the only difference between them is the glass (docs/adr/0041).
+ *
+ * A change of theme is a cross-fade, not a swap: the colours keep coming from the table they were showing while they
+ * move to the new one over `themeFade` (docs/adr/0196). The value tables themselves only carry endpoints.
  */
 QtObject {
     id: tokens
@@ -31,6 +34,52 @@ QtObject {
     readonly property var builtin: builtinTheme(theme)
     /// Not readonly: each SurfaceTokens takes Tokens' instance, so a reduced-motion switch reaches every window.
     property Motion motion: Motion {}
+    /// How long a colour takes to cross to another theme's table. The skin previews turn it off, so
+    /// hovering down the theme list compares each card at once.
+    property int themeFade: motion.theme
+
+    /// The theme whose values the colours are showing. Empty until creation settles, and read then
+    /// as the light table, the default.
+    property string shownTheme: ""
+    /// The table the running fade is leaving; null when no fade is running.
+    property var fadeFrom: null
+    /// How far the colours have come from `fadeFrom` to `builtin`: 0 is the old theme, 1 the new.
+    property real mix: 1
+    /// False until creation finishes, so a table built under another theme adopts it instead of
+    /// fading from the light one.
+    property bool created: false
+
+    Component.onCompleted: tokens.created = true
+
+    onThemeChanged: {
+        if (!created) {
+            shownTheme = theme;
+            return;
+        }
+        const from = builtinTheme(shownTheme);
+        const to = builtinTheme(theme);
+        shownTheme = theme;
+        if (from === to || themeFade <= 0) {
+            fadeAnim.stop();
+            fadeFrom = null;
+            mix = 1;
+            return;
+        }
+        fadeFrom = from;
+        mix = 0;
+        fadeAnim.restart();
+    }
+
+    /// The one animation a theme change runs: `mix` from 0 to 1 over `themeFade`.
+    property NumberAnimation fadeAnim: NumberAnimation {
+        target: tokens
+        property: "mix"
+        from: 0
+        to: 1
+        duration: tokens.themeFade
+        easing.type: tokens.motion.easing
+        onFinished: tokens.fadeFrom = null
+    }
 
     readonly property color bg: tokenColor("bg", lightTheme.bg)
     readonly property color panel: tokenColor("panel", lightTheme.panel)
@@ -129,6 +178,18 @@ QtObject {
 
     function tokenColor(role, fallback) {
         const table = lightOnGlass && glassOnDark[role] !== undefined ? glassOnDark : builtin;
-        return hex(table[role], hex(fallback, "#000000"));
+        const to = hex(table[role], hex(fallback, "#000000"));
+        if (!fadeFrom || mix >= 1)
+            return to;
+        const fromTable = lightOnGlass && glassOnDark[role] !== undefined ? glassOnDark : fadeFrom;
+        return blend(hex(fromTable[role], hex(fallback, "#000000")), to, mix);
+    }
+
+    /// @return @p from moved toward @p to by @p t, channel by channel.
+    function blend(from, to, t) {
+        const a = Qt.color(from);
+        const b = Qt.color(to);
+        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t,
+                       a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t);
     }
 }

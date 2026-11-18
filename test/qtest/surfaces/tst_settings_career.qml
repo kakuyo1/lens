@@ -127,7 +127,8 @@ Item {
             // snapshot path (docs/qa.md), skipped when no snapshot dir was asked for. The whole
             // card, one viewport at a time: grabImage crops in window coordinates.
             Controller.setSetting("theme", "light");
-            wait(25);
+            // The palette crosses over the theme fade; photograph it settled.
+            wait(25 + Tokens.motion.theme);
             Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "career-stats-light");
             const body = Util.scrollerOf(page);
             body.contentY = 600;

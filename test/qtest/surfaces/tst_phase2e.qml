@@ -93,7 +93,11 @@ Item {
             verify(contrastRatio(Tokens.muted, Tokens.panel) >= 4.5);
             verify(contrastRatio(Tokens.faint, Tokens.panel) >= 4.5);
             compare(settings.glassMode, "frosted");
-            verify(Math.abs(settings.panel.a - 0.4) < 0.01);
+            // The table crosses to the frost over the theme fade (docs/adr/0196): on the turn of the
+            // write the fill still reads the old table, and the frost's alpha arrives afterwards.
+            if (!Tokens.motion.reduced)
+                verify(Math.abs(settings.panel.a - 1) < 0.01, "the fill swapped to the frost instead of crossing to it");
+            tryVerify(function () { return Math.abs(settings.panel.a - 0.4) < 0.01; });
 
             Tokens.theme = "liquid";
             compare(Tokens.radiusCard, 18);
@@ -231,8 +235,8 @@ Item {
             compare(frosted.mode, "liquid");
 
             Controller.setSetting("theme", "light");
-            wait(25);
-            compare(frosted.visible, false);
+            // The glass fades out over the theme fade, so its 25 ms turn is not the last one.
+            tryCompare(frosted, "visible", false);
         }
 
         /// Only the Smooth tier pays the denser blur taps (docs/adr/0111); the flag follows the tier live.

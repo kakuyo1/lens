@@ -47,6 +47,7 @@ Item {
             compare(still.press, 0);
             compare(still.pop, 0);
             compare(still.bubble, 0);
+            compare(still.theme, 0);
             compare(still.pulse, 0);
         }
 
@@ -56,6 +57,7 @@ Item {
             compare(moving.press, 150);
             compare(moving.pop, 180);
             compare(moving.bubble, 220);
+            compare(moving.theme, 240);
             compare(moving.pulse, 900);
         }
 
@@ -72,6 +74,7 @@ Item {
             compare(typeof Tokens.motion.press, "number");
             compare(typeof Tokens.motion.pop, "number");
             compare(typeof Tokens.motion.bubble, "number");
+            compare(typeof Tokens.motion.theme, "number");
             compare(typeof Tokens.motion.easing, "number");
         }
     }

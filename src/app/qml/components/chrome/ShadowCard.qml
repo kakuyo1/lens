@@ -24,6 +24,14 @@ Item {
     // qmllint enable missing-property
     property real radius: root.tokens.radiusCard
     property color color: root.tokens.panel
+    /// The fill crosses with the palette: under the glass themes callers set it transparent and the
+    /// glass draws the fill, so a theme change fades the one into the other rather than swapping.
+    Behavior on color {
+        ColorAnimation {
+            duration: root.tokens.themeFade
+            easing.type: root.tokens.motion.easing
+        }
+    }
 
     /// Whether the reader may drag the card to move the window it is in.
     property bool movable: false

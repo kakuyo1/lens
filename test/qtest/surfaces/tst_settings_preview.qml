@@ -535,7 +535,8 @@ Item {
             tryVerify(function () { return !preview.revealing; }, 8000);
             for (const theme of ["light", "dark"]) {
                 Controller.setSetting("theme", theme);
-                wait(20);
+                // The card's colours cross to the new table over the theme fade; photograph them settled.
+                wait(20 + Tokens.motion.theme);
                 verify(Util.saveSnapshot(testCase, preview.contentItem, lensQaSnapshotDir,
                                          "settings-preview-" + theme));
             }

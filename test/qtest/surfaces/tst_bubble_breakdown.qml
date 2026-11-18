@@ -368,7 +368,9 @@ Item {
             // The bubble reads its light text from the desktop it sits on, which is sampled after a delay; pin it here.
             bubble.tokens.glassLightText = true;
             bubble.show(breakdownPayload("ready", ["S", "V"]));
-            wait(50);
+            // The tints come from the window's table, which is still crossing to the frost over the
+            // theme fade (docs/adr/0196); the tone sample waits it out along with the desktop read.
+            wait(50 + Tokens.motion.theme);
             const block = breakdownOf(bubble);
             verify(sameColour(bubble.tokens.text, Qt.color("#e9edf3")), "the glass did not read light text");
             verify(Qt.color(block.tintOf(bubble.tokens.roleS)).hslLightness < 0.5, "the tint is light under light text");

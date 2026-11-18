@@ -200,10 +200,12 @@ Item {
             // The page has no background of its own: in the panel it sits on the card's surface, so
             // the snapshot has to stand on the same colour rather than the host window's white.
             Tokens.theme = "light";
+            wait(Tokens.motion.theme);
             host.color = host.tokens.panel;
             verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "settings-update-light"));
 
             Tokens.theme = "dark";
+            wait(Tokens.motion.theme);
             host.color = host.tokens.panel;
             verify(Util.saveSnapshot(testCase, page, lensQaSnapshotDir, "settings-update-dark"));
         }

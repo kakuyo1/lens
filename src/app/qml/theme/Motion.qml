@@ -27,6 +27,10 @@ QtObject {
     /// anything else here.
     readonly property int bubble: reduced ? 0 : 220
 
+    /// The whole palette crossing to another theme's table, and the card material with it -- a
+    /// state change, not a transition (DESIGN.md Motion).
+    readonly property int theme: reduced ? 0 : 240
+
     /// A loading skeleton breathing while it waits. A loop, not a transition: one token is
     /// half a cycle -- dim and return reads as one breath of twice this.
     readonly property int pulse: reduced ? 0 : 900

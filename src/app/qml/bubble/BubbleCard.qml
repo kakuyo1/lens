@@ -7,9 +7,9 @@ import QtQuick.Effects
  * The explanation card the bubble draws: its shape, its glass and every row of the answer
  * (UI-SPEC.md section 4.3).
  *
- * Bubble.qml owns the window -- where it lands, how it fades, when it goes -- and hands the card
- * that window to read the answer from. The two are apart so Bubble.qml stays under the
- * 32768-character QML size cap (QML.md section 1); the card is the half that keeps growing.
+ * Bubble.qml owns the window and hands the card that window to read the answer from. The two are
+ * apart so Bubble.qml stays under the 32768-character QML size cap (QML.md section 1); the card
+ * is the growing half.
  *
  * It takes the window rather than twenty separate properties, the way BubbleChainPanel.qml does:
  * the rows read the answer, the colours and the size scale off it, and the drag and hover handlers
@@ -163,7 +163,7 @@ Item {
         color: root.bubble.tokens.glassMode === "" ? root.bubble.tokens.bubbleBg : "transparent"
         border.width: 1
         border.color: root.bubble.tokens.glassMode === "" ? root.bubble.tokens.bubbleBorder : "transparent"
-
+        Behavior on color { ColorAnimation { duration: root.bubble.tokens.themeFade; easing.type: root.bubble.tokens.motion.easing } }
         GlassSurface {
             anchors.fill: parent
             sheet: root.bubble.glass

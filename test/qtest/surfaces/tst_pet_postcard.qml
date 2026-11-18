@@ -202,7 +202,9 @@ Item {
             wait(260);
             verify(Util.saveSnapshot(testCase, card.contentItem, lensQaSnapshotDir, "pet-postcard-light"));
             Tokens.theme = "dark";
-            wait(120);
+            // The card's colours cross to the new table over the theme fade, so the grab waits it out
+            // (docs/adr/0196).
+            wait(120 + Tokens.motion.theme);
             verify(Util.saveSnapshot(testCase, card.contentItem, lensQaSnapshotDir, "pet-postcard-dark"));
             Tokens.theme = previous;
             field.closeList();

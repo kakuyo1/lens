@@ -53,6 +53,9 @@ Window {
         glassEnabled: true
         glassLightText: root.glass ? root.glass.lightText : false
         motion: Tokens.motion
+        // Hover has no transition (DESIGN.md): the pointer moving down the list shows each theme at
+        // once; the fade belongs to the real switch, when the reader picks one.
+        themeFade: 0
     }
 
     GlassHost {

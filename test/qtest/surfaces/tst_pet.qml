@@ -318,6 +318,8 @@ Item {
                     Pet.picker.setPet(id);
                     for (const mode of ["light", "dark"]) {
                         Tokens.theme = mode;
+                        // Photograph the palette settled: the colours cross over the theme fade.
+                        wait(Tokens.motion.theme);
                         const panel = createTemporaryObject(panelComponent, host.contentItem);
                         waitForRendering(host.contentItem);
                         verify(panel);

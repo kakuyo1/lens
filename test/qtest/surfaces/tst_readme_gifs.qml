@@ -115,10 +115,12 @@ Item {
         readonly property string pageColor: "#e9ebef"
 
         /// Record in the light theme, as the README's stills are, and return the theme to put back.
-        /// The fixture is dark, so each clip sets light and the case restores what it found.
+        /// The fixture is dark, so each clip sets light and the case restores what it found. The
+        /// theme fade is waited out, or the clip would open on its own last frames of the crossing.
         function recordLight() {
             const was = Tokens.theme;
             Tokens.theme = "light";
+            wait(Tokens.motion.theme);
             return was;
         }
 

@@ -25,15 +25,19 @@ Item {
     // qmllint enable missing-property
     /// "frosted" or "liquid": the glass drawn. Empty draws nothing.
     property string mode: ""
+    /// The material actually on screen: `mode` as it last was when the glass went on. It outlives
+    /// `mode` by the fade's length, so a theme change takes the glass and the card fill away from
+    /// each other gradually instead of one vanishing under the other (docs/adr/0196).
+    property string drawnMode: mode
     property real radius: root.tokens.radiusCard
     /// Blur, in percent of the full scale: the theme's own setting. The six glass numbers come from the live projection
     /// and not from the settings map, so a slider's drag repaints the glass and leaves the rest of the application
     /// alone (docs/adr/0173).
-    property real blur: root.mode === "liquid" ? Controller.glassParameters.liquidBlur : Controller.glassParameters.frostedBlur
+    property real blur: root.drawnMode === "liquid" ? Controller.glassParameters.liquidBlur : Controller.glassParameters.frostedBlur
     /// Frosted only: saturation in percent, 100 being untouched.
     property real saturation: Controller.glassParameters.frostedSaturation
     /// Rim highlight, in percent of white opacity: the theme's own setting.
-    property real rim: root.mode === "liquid" ? Controller.glassParameters.liquidRim : Controller.glassParameters.frostedRim
+    property real rim: root.drawnMode === "liquid" ? Controller.glassParameters.liquidRim : Controller.glassParameters.frostedRim
     /// Liquid only: refraction in px.
     property real refraction: Controller.glassParameters.liquidRefraction
     /// Whether the blur draws with the Smooth tier's taps (docs/adr/0111): seventeen a pass at half the spacing under a
@@ -42,19 +46,36 @@ Item {
     /// Whether the card draws no backdrop: blur at 0 with nothing to bend (docs/adr/0069). The window is per-pixel
     /// transparent, so the live desktop shows through it with no desktop read; GlassHost still keeps one picture for
     /// the text tone, and nothing uploads it here.
-    readonly property bool passthrough: GlassRule.passthrough(root.mode, Controller.glassParameters.frostedBlur,
+    readonly property bool passthrough: GlassRule.passthrough(root.drawnMode, Controller.glassParameters.frostedBlur,
                                                               Controller.glassParameters.liquidBlur,
                                                               Controller.glassParameters.liquidRefraction)
     /// Whether the card draws the sheet. False with the glass off and in passthrough, so the live texture is released.
-    readonly property bool drawsBackdrop: root.mode !== "" && !root.passthrough
+    readonly property bool drawsBackdrop: root.drawnMode !== "" && !root.passthrough
     /// The rectangle the picture in force covers, in device-independent pixels. The sheet moves it on a capture.
     readonly property rect shownSheet: root.sheet.sheet
     /// The live texture, for the tests that check a publish replaces a texture rather than reloading a picture.
     readonly property alias sheetItem: sheetItem
 
-    visible: mode !== ""
+    /// The glass arrives and leaves with the palette: the sheet, fill and rim fade together while
+    /// the card fill crosses over in the same time (ShadowCard.qml).
+    opacity: mode !== "" ? 1 : 0
+    Behavior on opacity {
+        NumberAnimation {
+            duration: root.tokens.themeFade
+            easing.type: root.tokens.motion.easing
+        }
+    }
+    visible: opacity > 0
+    onModeChanged: {
+        if (mode !== "")
+            drawnMode = mode;
+    }
+    onOpacityChanged: {
+        if (opacity === 0 && mode === "")
+            drawnMode = "";
+    }
 
-    readonly property string mapUrl: root.mode === "liquid" && !root.passthrough
+    readonly property string mapUrl: root.drawnMode === "liquid" && !root.passthrough
         ? "image://glass/" + root.sheet.name + "/map?w=" + root.width + "&h=" + root.height + "&r=" + root.radius
         : ""
 
@@ -137,12 +158,12 @@ Item {
         fragmentShader: "qrc:/shaders/glass.frag.qsb"
         property variant blurred: blurredTexture
         property variant map: displacementTexture
-        property real refraction: root.mode === "liquid" ? root.refraction : 0
+        property real refraction: root.drawnMode === "liquid" ? root.refraction : 0
         property real radius: root.radius
         // Blur and saturation are uniforms, not part of the picture's URL: a slider move repaints the card and
         // reloads nothing (docs/adr/0070).
         property real blur: root.blur
-        property real saturation: root.mode === "frosted" ? root.saturation : 100
+        property real saturation: root.drawnMode === "frosted" ? root.saturation : 100
         property real dense: root.denseBlur ? 1.0 : 0.0
         property vector2d cardSize: Qt.vector2d(root.width, root.height)
         property vector2d origin: root.origin
@@ -154,7 +175,7 @@ Item {
     }
 
     Rectangle {
-        visible: root.mode === "frosted"
+        visible: root.drawnMode === "frosted"
         anchors.fill: parent
         radius: root.radius
         color: root.tokens.panel
@@ -163,7 +184,7 @@ Item {
     }
 
     Rectangle {
-        visible: root.mode === "liquid"
+        visible: root.drawnMode === "liquid"
         anchors.fill: parent
         radius: root.radius
         color: "transparent"
