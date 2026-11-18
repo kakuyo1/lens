@@ -156,6 +156,20 @@ public:
         if (index < 0 or index >= static_cast<int>(cells.size())) return nullptr;
         return std::make_shared<FakeWord>(index);
     }
+
+    std::vector<Band> occluders; ///< Controls standing over the page: a place whose centre one holds reads occluded.
+
+    bool visible(lens::capture::Word const& word, Band const& box) override
+    {
+        ++ops;
+        int const index = static_cast<FakeWord const&>(word).index();
+        if (index >= static_cast<int>(cells.size())) return true;
+        int const cx = box.x + box.width / 2;
+        int const cy = box.y + (3 * box.height) / 4; // the place the reader hit-tests: inside the letters, near the line
+        for (auto const& cover : occluders)
+            if (holdsPoint(cover, cx, cy)) return false;
+        return true;
+    }
 };
 
 /// @brief The scripted reader: it answers with the script's page and counts what the track asked of it.
@@ -611,8 +625,9 @@ TEST(TrackCore, AcquisitionCostInSeamCalls)
               << " ops_last_added=" << opsLastAdded << "\n";
     EXPECT_GT(opsFirstDraw, 0);
     EXPECT_GT(wordsAdded, 0);
-    // A word costs step + read; the redundant box probe pushed it past three calls a word.
-    EXPECT_LT(opsLastAdded, wordsAdded * 3);
+    // A word costs step + read + the sight hit-test its place pays before it draws (docs/adr/0193);
+    // the redundant box probe pushed it past four calls a word.
+    EXPECT_LT(opsLastAdded, wordsAdded * 4);
 }
 
 TEST(TrackCore, AMissedReadIsCountedAsScrolledOutWhenTheBoxLeavesTheBand)
@@ -650,6 +665,60 @@ TEST(TrackCore, AMissedReadIsCountedAsEmptyWhenTheBoxReadsZero)
     ASSERT_TRUE(rep);
     EXPECT_GT(rep->missedEmpty, 0);
     EXPECT_EQ(rep->missedOut, 0);
+}
+
+TEST(TrackCore, ACoveredPlaceDrawsNoLineAndTheVerdictFollowsTheControl)
+{
+    FakePageReader reader = articleReader();
+    TrackCore      core{reader};
+    auto           t = kStart;
+    // A dialog over the band's bottom rows: the words under it are read and judged like any other,
+    // but their places belong to the dialog, so no line of theirs stands over it (docs/adr/0193).
+    Band const dialog{.x = 0, .y = 800, .width = 1921, .height = 220};
+    reader.page->occluders.push_back(dialog);
+
+    auto const                             centreY = [](lens::capture::PlacedSpan const& span) { return span.y + span.height / 2; };
+    std::vector<lens::capture::PlacedSpan> drawn;
+    bool                                   addedUnder = false;
+    for (int i = 0; i < 60; ++i) { // from the first step: the walk's added frames carry the covered words too
+        auto const out = step(core, t);
+        if (not out.frame) continue;
+        for (auto const& span : out.frame->visible)
+            drawn.push_back(span);
+        for (auto const& word : out.frame->added)
+            if (word.text == "w20") addedUnder = true; // the row at y 860, under the dialog
+    }
+    ASSERT_FALSE(drawn.empty());
+    EXPECT_TRUE(addedUnder); // occlusion hides the line, not the word: the judgement still happens
+    for (auto const& span : drawn)
+        EXPECT_LT(centreY(span), dialog.y) << "a line stood over the dialog";
+
+    // A still page with standing verdicts sends nothing: the refresh is not due, so no frame churn.
+    for (int i = 0; i < 30; ++i)
+        EXPECT_FALSE(step(core, t).frame);
+
+    // The dialog closes over the still page: the refresh re-tests the places and the lines return.
+    reader.page->occluders.clear();
+    bool returned = false;
+    for (int i = 0; i < 120 and not returned; ++i) {
+        auto const out = step(core, t);
+        if (not out.frame) continue;
+        for (auto const& span : out.frame->visible)
+            if (centreY(span) >= dialog.y) returned = true;
+    }
+    EXPECT_TRUE(returned);
+
+    // It opens again: the same refresh takes the covered lines back down.
+    reader.page->occluders.push_back(dialog);
+    bool hidden = false;
+    for (int i = 0; i < 120 and not hidden; ++i) {
+        auto const out = step(core, t);
+        if (not out.frame or out.frame->visible.empty()) continue;
+        hidden = true;
+        for (auto const& span : out.frame->visible)
+            if (centreY(span) >= dialog.y) hidden = false;
+    }
+    EXPECT_TRUE(hidden);
 }
 
 }

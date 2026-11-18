@@ -13,6 +13,7 @@
 
 #include "capture/word_track.h"
 
+#include <chrono>
 #include <memory>
 #include <optional>
 #include <string>
@@ -55,6 +56,20 @@ public:
     virtual std::optional<Band> box(Word const& word) = 0;
     /// @return The word's text and boxes, untrimmed (see WordRead); nothing when the word reads no box.
     virtual std::optional<WordRead> read(Word const& word) = 0;
+    /// @return Whether the word is the topmost content at @p box: false when another control covers
+    ///         the word's place on screen. A reader with no hit-test mechanics answers true -- it
+    ///         sees no overlays, and a place it cannot judge keeps its line.
+    virtual bool visible(Word const&, Band const&)
+    {
+        return true;
+    }
+    /// @return What one occlusion hit-test costs this reader lately; zero when it has no mechanics.
+    ///         The track skips the sight pass on readers whose hit-test is too expensive to pay per
+    ///         place: a PDF viewer's point query costs tens of milliseconds (docs/adr/0193).
+    virtual std::chrono::microseconds sightCost() const
+    {
+        return {};
+    }
     /// @brief One word along the reading order.
     /// @param delta +1 or -1.
     /// @return The word there; nothing at either end of the document, or when the walk fails.

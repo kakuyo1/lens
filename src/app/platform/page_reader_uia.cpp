@@ -44,6 +44,7 @@ enum class Op : int { Present,
                       Read,
                       Step,
                       Search,
+                      Visible,
                       Count };
 
 struct OpStat {
@@ -271,8 +272,19 @@ public:
         return *range_;
     }
 
+    /// @return The element the range sits in, read once and kept: the sight pass compares it with every hit.
+    IUIAutomationElement* enclosing() const
+    {
+        if (not enclosing_) {
+            IUIAutomationElement* raw = nullptr;
+            if (SUCCEEDED(range_->GetEnclosingElement(&raw))) enclosing_.reset(raw);
+        }
+        return enclosing_.get();
+    }
+
 private:
-    Com<IUIAutomationTextRange> range_;
+    Com<IUIAutomationTextRange>       range_;
+    mutable Com<IUIAutomationElement> enclosing_;
 };
 
 /// @brief One page of a window, read through UI Automation's TextPattern.
@@ -288,7 +300,12 @@ public:
     std::shared_ptr<capture::Word>   wordAt(int x, int y) override;
     std::optional<capture::Band>     box(capture::Word const& word) override;
     std::optional<capture::WordRead> read(capture::Word const& word) override;
-    std::shared_ptr<capture::Word>   step(capture::Word const& word, int delta) override;
+    bool                             visible(capture::Word const& word, capture::Band const& box) override;
+    std::chrono::microseconds        sightCost() const override;
+
+private:
+    bool                           visibleProbe(capture::Word const& word, capture::Band const& box);
+    std::shared_ptr<capture::Word> step(capture::Word const& word, int delta) override;
 
 private:
     std::shared_ptr<IUIAutomation> automation_; ///< The page outlives the reader that found it, so it holds the automation instance itself.
@@ -296,6 +313,13 @@ private:
     Com<IUIAutomationElement>      element_;
     Com<IUIAutomationTextPattern>  pattern_;
     std::optional<QRect> const     clip_;
+    /// The hit-test's own running mean, never drained: the shell's per-second drain reset the shared
+    /// accumulator to zero, re-opening the cost gate every second and flapping the placed set
+    /// between filtered and whole -- the flicker the reader saw (docs/adr/0193).
+    mutable double sightMeanMs_ = 0;
+    /// The page's birth: probes inside the browser's cold-start window answer tens of milliseconds
+    /// even on a web page, so they teach the gate nothing (docs/adr/0193).
+    std::chrono::steady_clock::time_point const bornAt_ = std::chrono::steady_clock::now();
 };
 
 /// @return Whether the page still hangs under its window; false when the tree cannot say.
@@ -410,6 +434,62 @@ std::shared_ptr<capture::Word> UiaPage::step(capture::Word const& word, int cons
     return std::make_shared<UiaWord>(std::move(next));
 }
 
+/// @return Whether the word is the topmost content at @p box, timed into the page's own running mean:
+///         the cost gate reads that mean, and it must survive the shell's per-second drain.
+bool UiaPage::visible(capture::Word const& word, capture::Band const& box)
+{
+    auto const   start = std::chrono::steady_clock::now();
+    bool const   seen  = visibleProbe(word, box);
+    double const ms    = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    if (std::chrono::steady_clock::now() - bornAt_ > std::chrono::milliseconds{1500})
+        sightMeanMs_ = sightMeanMs_ == 0 ? ms : sightMeanMs_ * 0.7 + ms * 0.3;
+    return seen;
+}
+
+/// @return The page's own mean hit-test cost, learned once the cold-start window passes and latched
+///         for the page's life: a PDF viewer's twenty-millisecond point query closes the gate once,
+///         not once a second. Nothing is said while the page is still cold.
+std::chrono::microseconds UiaPage::sightCost() const
+{
+    if (std::chrono::steady_clock::now() - bornAt_ < std::chrono::milliseconds{1500}) return {};
+    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::duration<double, std::milli>{sightMeanMs_});
+}
+
+/// @return Whether the word is the topmost content at @p box: the screen's hit-test names what stands
+///         over the place, and the hit's own text scope says whether the word lies inside it.
+bool UiaPage::visibleProbe(capture::Word const& word, capture::Band const& box)
+{
+    ScopedOp const op{Op::Visible};
+    // The lower quarter of the box: inside the letters, yet near the line's own place, so a control
+    // covering the word's bottom half hides it too. The centre would miss that half-covered row.
+    POINT const           at{box.x + box.width / 2, box.y + (3 * box.height) / 4};
+    IUIAutomationElement* hitRaw = nullptr;
+    if (FAILED(automation_->ElementFromPoint(at, &hitRaw)) or not hitRaw) return true; // the screen cannot say: the line stands
+    Com<IUIAutomationElement> hit{hitRaw};
+    UiaWord const&            uiaWord = static_cast<UiaWord const&>(word);
+    // The word's own element under the point is the common visible case: two calls answer it.
+    if (auto const enclosing = uiaWord.enclosing()) {
+        BOOL same = FALSE;
+        if (SUCCEEDED(automation_->CompareElements(hit.get(), enclosing, &same)) and same) return true;
+    }
+    IUIAutomationTextRange* scopeRaw = nullptr;
+    if (FAILED(pattern_->RangeFromChild(hit.get(), &scopeRaw)) or not scopeRaw) return false; // a control with no text stands over the place
+    Com<IUIAutomationTextRange> scope{scopeRaw};
+    IUIAutomationTextRange&     range      = uiaWord.range();
+    int                         startOrder = 0;
+    int                         endOrder   = 0;
+    if (FAILED(scope->CompareEndpoints(TextPatternRangeEndpoint_Start, &range, TextPatternRangeEndpoint_Start, &startOrder)) or
+        FAILED(scope->CompareEndpoints(TextPatternRangeEndpoint_End, &range, TextPatternRangeEndpoint_End, &endOrder)))
+        return true;
+    if (startOrder > 0 or endOrder < 0) return false; // the hit answers for another control's text: the word sits under it
+    // The hit holds the word but is not its own element: a container above it. A tight one is the
+    // word's wrapper (a link, a span); a page-sized one is a control the tree pruned for having no
+    // text, standing over the place with nothing of its own to answer for it.
+    RECT hitBox{};
+    if (FAILED(hit->get_CurrentBoundingRectangle(&hitBox))) return true;
+    return hitBox.bottom - hitBox.top <= 2 * box.height and hitBox.right - hitBox.left <= 4 * box.width;
+}
+
 /// The page of the window last read, kept between reads: finding it searches the whole window tree, which costs
 /// about as much as a full walk, and a probe runs several times a second.
 struct PageCache {
@@ -515,7 +595,8 @@ ReaderTiming drainReadTiming()
             .wordBox = take(Op::WordBox),
             .read    = take(Op::Read),
             .step    = take(Op::Step),
-            .search  = take(Op::Search)};
+            .search  = take(Op::Search),
+            .visible = take(Op::Visible)};
 }
 
 }

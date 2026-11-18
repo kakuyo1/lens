@@ -44,6 +44,16 @@ bool emptyOf(Band const& box)
     return box.width <= 0 or box.height <= 0;
 }
 
+/// @brief Whether two placed sets carry the same words in the same order: the frame gate ignores the
+///        sub-pixel jitter of the anchor's re-read box, which shifts every place by a pixel or none.
+bool sameIds(std::vector<PlacedSpan> const& a, std::vector<PlacedSpan> const& b)
+{
+    if (a.size() != b.size()) return false;
+    for (std::size_t i = 0; i < a.size(); ++i)
+        if (a[i].id != b[i].id) return false;
+    return true;
+}
+
 }
 
 TrackCore::TrackCore(PageReader& reader)
@@ -62,7 +72,7 @@ TrackOutput TrackCore::step(Band band, std::chrono::steady_clock::time_point con
     bool        summary = false;
     if (reportedAt_ == std::chrono::steady_clock::time_point{}) reportedAt_ = now;
     if (now - reportedAt_ >= std::chrono::seconds{1}) {
-        summary              = moves_ + refusals_ + losses_ + missed_ + framesSent_ + reads_ + searches_ > 0;
+        summary              = moves_ + refusals_ + losses_ + missed_ + framesSent_ + reads_ + searches_ + sightChecks_ > 0;
         report.moves         = moves_;
         report.refusals      = refusals_;
         report.refusalsMoved = refusalsMoved_;
@@ -76,8 +86,9 @@ TrackOutput TrackCore::step(Band band, std::chrono::steady_clock::time_point con
         report.spanCount     = static_cast<int>(spans_.size());
         report.visibleTop    = visible.y;
         report.visibleBottom = visible.y + visible.height - 1;
-        moves_ = refusals_ = refusalsMoved_ = losses_ = missed_ = missedEmpty_ = missedOut_ = framesSent_ = reads_ = searches_ = 0;
-        reportedAt_                                                                                                            = now;
+        report.sightChecks   = sightChecks_;
+        moves_ = refusals_ = refusalsMoved_ = losses_ = missed_ = missedEmpty_ = missedOut_ = framesSent_ = reads_ = searches_ = sightChecks_ = 0;
+        reportedAt_                                                                                                                           = now;
     }
 
     auto frame = not anchor_ ? acquire(band, now) : trackStep(band, visible, now);
@@ -94,6 +105,7 @@ TrackOutput TrackCore::step(Band band, std::chrono::steady_clock::time_point con
 
 std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& visible, std::chrono::steady_clock::time_point const now)
 {
+    chunkRaced_    = false;
     auto const box = page_->box(*anchor_);
     if (not box or emptyOf(*box) or not holdsCenter(visible, *box)) {
         // A read that races a scroll comes back empty for a step or two: the lines hide until the page reads again.
@@ -109,6 +121,7 @@ std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& vis
         if (++missedSteps_ < kMissedSteps) {
             if (not lines_) return std::nullopt;
             lines_ = false;
+            lastVisible_.clear();
             return TrackFrame{};
         }
         return lose();
@@ -118,7 +131,9 @@ std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& vis
     if (*box != anchorBox_) {
         anchorBox_  = *box;
         stillSteps_ = 0;
-        moveAnchorIfNearEdge(visible);
+        // A re-anchor only re-bases the spans on a new word; a scroll moves every place on screen,
+        // so the verdicts stand for places nothing holds now and must be read again.
+        if (not moveAnchorIfNearEdge(visible)) invalidateSight();
     } else {
         ++stillSteps_;
     }
@@ -150,9 +165,15 @@ std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& vis
     bool const draws    = settled and not foreign_;
     bool const extended = not foreign_ and (extendForward(visible, frame) or extendBackward(visible, frame));
     // Words are drawn only once the anchor holds still: a placement made while the page moves sits off its words.
-    if (not extended and draws == lines_) return std::nullopt;
-    lines_ = draws;
-    if (draws) frame.visible = placeSpans(spans_, anchorBox_.x, anchorBox_.y, visible);
+    // A place another control covers draws no line: the sight pass hit-tests it and leaves it out (docs/adr/0193).
+    if (draws) {
+        frame.visible = placeSpans(spans_, anchorBox_.x, anchorBox_.y, visible);
+        applySight(frame.visible, now, not chunkRaced_);
+    }
+    bool const changed = draws != lines_ or not sameIds(frame.visible, lastVisible_);
+    lines_             = draws;
+    lastVisible_       = frame.visible;
+    if (not extended and not changed) return std::nullopt;
     ++framesSent_;
     return frame;
 }
@@ -218,13 +239,17 @@ bool TrackCore::extendForward(Band const& band, TrackFrame& frame)
                                  .width  = word->box.width,
                                  .height = word->box.height});
                 rememberWord(fresh.back().id, word->text, words);
+                sight_[fresh.back().id] = {.word = next};
             }
         }
         cursor = std::move(next);
     }
     // The anchor must not have moved during the read: these words would then sit at two scroll positions.
     auto const anchorBox = page_->box(*anchor_);
-    if (not anchorBox or *anchorBox != anchorBox_) return false;
+    if (not anchorBox or *anchorBox != anchorBox_) {
+        chunkRaced_ = true;
+        return false;
+    }
     spans_.insert(spans_.end(), fresh.begin(), fresh.end());
     forward_ = std::move(cursor);
     if (ended) forwardDone_ = true;
@@ -259,13 +284,17 @@ bool TrackCore::extendBackward(Band const& band, TrackFrame& frame)
                                  .width  = word->box.width,
                                  .height = word->box.height});
                 rememberWord(fresh.back().id, word->text, words);
+                sight_[fresh.back().id] = {.word = next};
             }
         }
         cursor = std::move(next);
     }
     // The anchor must not have moved during the read: these words would then sit at two scroll positions.
     auto const anchorBox = page_->box(*anchor_);
-    if (not anchorBox or *anchorBox != anchorBox_) return false;
+    if (not anchorBox or *anchorBox != anchorBox_) {
+        chunkRaced_ = true;
+        return false;
+    }
     spans_.insert(spans_.begin(), fresh.rbegin(), fresh.rend());
     backward_ = std::move(cursor);
     if (ended) backwardDone_ = true;
@@ -302,6 +331,51 @@ void TrackCore::rememberWord(int const id, std::string const& text, std::vector<
     if (key.empty() or names_.contains(key)) return;
     if (not wordsSeen_.insert(key).second) return;
     added.push_back({.id = id, .text = text});
+}
+
+void TrackCore::applySight(std::vector<PlacedSpan>& placed, std::chrono::steady_clock::time_point const now, bool const mayCheck)
+{
+    // A reader whose point query costs tens of milliseconds (a PDF viewer) cannot pay it per place:
+    // its places draw as they read, the way they did before the sight pass (docs/adr/0193).
+    double const costMs = (std::max)(0.5, static_cast<double>(page_->sightCost().count()) / 1000.0);
+    if (std::chrono::microseconds{static_cast<long long>(costMs * 1000)} > kSightCostCeiling) return;
+    if (sightCreditAt_ != std::chrono::steady_clock::time_point{}) {
+        auto const elapsed = std::chrono::duration<double, std::milli>(now - sightCreditAt_).count();
+        sightCreditMs_ += (std::min)(elapsed, 100.0) * kSightSharePercent / 100.0;
+    }
+    sightCreditAt_                 = now;
+    int                     budget = kSightChecksPerStep;
+    std::vector<PlacedSpan> kept;
+    kept.reserve(placed.size());
+    for (auto const& span : placed) {
+        SpanSight& sight = sight_[span.id];
+        bool const stale = not sight.checked or now - sight.checkedAt >= kSightRefresh;
+        if (mayCheck and stale) {
+            // The first sweep keeps the reveal's pace; the refresh spends accrued credit, one hit at
+            // its own cost, so a slow reader refreshes slower rather than starving the anchor read.
+            bool const pay = sight.checked ? sightCreditMs_ >= costMs : budget > 0;
+            if (pay) {
+                if (sight.checked)
+                    sightCreditMs_ -= costMs;
+                else
+                    --budget;
+                sight.checked   = true;
+                sight.checkedAt = now;
+                sight.occluded  = not page_->visible(*sight.word, {.x = span.x, .y = span.y, .width = span.width, .height = span.height});
+                ++sightChecks_;
+            }
+        }
+        // A place not tested yet draws nothing: its line waits for the step that tests it, so no
+        // line ever stands over a control the track has not looked at.
+        if (sight.checked and not sight.occluded) kept.push_back(span);
+    }
+    placed.swap(kept);
+}
+
+void TrackCore::invalidateSight()
+{
+    for (auto& entry : sight_)
+        entry.second.checked = false;
 }
 
 std::optional<TrackFrame> TrackCore::acquire(Band const& band, std::chrono::steady_clock::time_point const now)
@@ -361,6 +435,7 @@ std::optional<TrackFrame> TrackCore::acquire(Band const& band, std::chrono::stea
                    .dy     = 0,
                    .width  = word ? word->box.width : box->width,
                    .height = word ? word->box.height : box->height});
+    sight_[spans_.front().id] = {.word = anchor_};
 
     TrackFrame frame;
     if (word) rememberWord(spans_.front().id, word->text, frame.added);
@@ -395,6 +470,10 @@ std::optional<TrackFrame> TrackCore::lose()
     lines_        = false;
     // The words it sent belonged to the reading it lost; a new reading starts its first occurrences over.
     wordsSeen_.clear();
+    sight_.clear();
+    lastVisible_.clear();
+    sightCreditMs_ = 0;
+    sightCreditAt_ = {};
     TrackFrame frame;
     frame.lost = true;
     return frame;

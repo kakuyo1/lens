@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scan occlusion fixture</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #fdfdf8; }
+  body { font: 28px/2.1 Georgia, serif; color: #1a1a1a; }
+  .column { padding: 24px 48px 320px; max-width: 640px; }
+  .column div { white-space: nowrap; }
+  .hint { font-size: 15px; line-height: 1.5; color: #666; font-family: sans-serif;
+          border-bottom: 1px solid #ddd; padding-bottom: 12px; margin-bottom: 16px; }
+  /* The occluder: an opaque consent-style dialog pinned over the bottom of the page. */
+  #dialog { position: fixed; left: 0; right: 0; bottom: 0; height: 210px; z-index: 1000;
+            background: #23283d; color: #f2f4ff; box-shadow: 0 -6px 24px rgba(0,0,0,.35);
+            padding: 22px 48px; box-sizing: border-box; font-family: sans-serif; }
+  #dialog h2 { margin: 0 0 8px; font-size: 19px; }
+  #dialog p { margin: 0 0 14px; font-size: 14px; line-height: 1.55; max-width: 720px; }
+  #dialog button { font: 600 14px sans-serif; padding: 9px 22px; border-radius: 6px;
+                   border: 1px solid #8fa0ff; background: #4353c9; color: #fff; cursor: pointer; }
+  #dialog button.ghost { background: transparent; color: #cdd5ff; margin-left: 10px; }
+  /* A second occluder with no text of its own: a solid floating panel mid-page. */
+  #panel { position: fixed; left: 300px; top: 300px; width: 260px; height: 150px; z-index: 999;
+           background: #c94343; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,.3); }
+  #show { position: fixed; right: 24px; bottom: 24px; z-index: 1001; display: none;
+          font: 600 14px sans-serif; padding: 10px 18px; border-radius: 999px;
+          border: none; background: #4353c9; color: #fff; cursor: pointer;
+          box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+</style>
+</head>
+<body>
+<div class="column">
+  <div class="hint">Lens scan occlusion fixture. The dark dialog below covers the last words of the
+  column; the red panel covers words on the right. Dashed lines must not stand over either occluder.
+  Use the dialog's buttons to close and reopen it while the page holds still.</div>
+  <div>the water and the light</div>
+  <div>a house with green music</div>
+  <div>the happy bread of cloud</div>
+  <div>river and stone in apple</div>
+  <div>the table with chair window</div>
+  <div>a garden of flower orange</div>
+  <div>the purple and yellow animal</div>
+  <div>banana with cherry lemon melon</div>
+  <div>the peach of grape mango</div>
+  <div>olive and tomato in potato</div>
+  <div>the carrot with onion pepper</div>
+  <div>a lettuce of cabbage spinach</div>
+  <div>the broccoli and mushroom pumpkin</div>
+  <div>cucumber with avocado coconut</div>
+  <div>the almond of walnut cashew</div>
+  <div>peanut and butter in honey</div>
+  <div>the sugar with salt coffee</div>
+  <div>a tea of juice milk cream</div>
+  <div>the breakfast and lunch dinner</div>
+  <div>supper with snack kitchen</div>
+  <div>the bedroom of bathroom hallway</div>
+  <div>ceiling and floor in wall</div>
+  <div>the door with roof stairs</div>
+  <div>a mirror of candle lantern</div>
+  <div>the torch and flame blanket</div>
+  <div>pillow with curtain carpet</div>
+  <div>the shelf of basket bottle</div>
+  <div>bucket and barrel in crate</div>
+  <div>the hammer with nail screw</div>
+  <div>a wrench of plier ladder</div>
+  <div>the shovel and rake axe</div>
+  <div>saw with forest meadow valley</div>
+  <div>the mountain of hill island</div>
+  <div>beach and coast in shore</div>
+  <div>the pistachio and the hazelnut</div>
+  <div>a broccoli of cucumber spinach</div>
+  <div>the mushroom is with pumpkin</div>
+  <div>spinach and avocado in coconut</div>
+  <div>the walnut with cashew peanut</div>
+  <div>a butter of honey sugar salt</div>
+</div>
+<div id="panel" title="solid occluder, no text"></div>
+<div id="dialog">
+  <h2>We value your privacy</h2>
+  <p>We use cookies to enhance your browsing experience, serve personalized content, and analyze
+  our traffic. By clicking accept, you consent to our use of cookies. Read the policy to learn
+  more about how we handle your data and your choices.</p>
+  <button id="accept">Accept all</button>
+  <button id="reject" class="ghost">Reject</button>
+</div>
+<button id="show">Show dialog again</button>
+<script>
+  const dialog = document.getElementById('dialog');
+  const show = document.getElementById('show');
+  function hide() { dialog.style.display = 'none'; show.style.display = 'block'; }
+  function open() { dialog.style.display = 'block'; show.style.display = 'none'; }
+  document.getElementById('accept').addEventListener('click', hide);
+  document.getElementById('reject').addEventListener('click', hide);
+  show.addEventListener('click', open);
+</script>
+</body>
+</html>

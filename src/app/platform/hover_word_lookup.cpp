@@ -219,8 +219,8 @@ void PageTrack::run(std::stop_token const& stop)
             // The same second broken down by COM operation: present/text/search are the periodic
             // whole-tree reads, and their max names the spike the step line only shows (docs/adr/0188).
             auto const rt = page_reader_uia::drainReadTiming();
-            if (rt.present.calls + rt.text.calls + rt.pageBox.calls + rt.wordAt.calls + rt.wordBox.calls + rt.read.calls + rt.step.calls + rt.search.calls > 0)
-                LENS_INFO("scan read cost, last second: present {} call(s) {:.0f} ms max {:.0f}, text {} {:.0f} max {:.0f}, search {} {:.0f} max {:.0f}, pageBox {} {:.0f}, wordAt {} {:.0f}, wordBox {} {:.0f}, read {} {:.0f}, step {} {:.0f}",
+            if (rt.present.calls + rt.text.calls + rt.pageBox.calls + rt.wordAt.calls + rt.wordBox.calls + rt.read.calls + rt.step.calls + rt.search.calls + rt.visible.calls > 0)
+                LENS_INFO("scan read cost, last second: present {} call(s) {:.0f} ms max {:.0f}, text {} {:.0f} max {:.0f}, search {} {:.0f} max {:.0f}, pageBox {} {:.0f}, wordAt {} {:.0f}, wordBox {} {:.0f}, read {} {:.0f}, step {} {:.0f}, visible {} {:.0f} max {:.0f}",
                           rt.present.calls,
                           rt.present.totalMs,
                           rt.present.maxMs,
@@ -239,7 +239,10 @@ void PageTrack::run(std::stop_token const& stop)
                           rt.read.calls,
                           rt.read.totalMs,
                           rt.step.calls,
-                          rt.step.totalMs);
+                          rt.step.totalMs,
+                          rt.visible.calls,
+                          rt.visible.totalMs,
+                          rt.visible.maxMs);
             timingAt    = stepStart;
             stepCount   = 0;
             stepTotalMs = 0.0;
@@ -247,8 +250,8 @@ void PageTrack::run(std::stop_token const& stop)
         }
         if (out.report) {
             auto const& report = *out.report;
-            if (report.moves + report.refusals + report.losses + report.missedReads + report.framesSent + report.nameReads + report.pageSearches > 0)
-                LENS_INFO("scan track, last second: {} anchor move(s), {} refused ({} moved), {} missed ({} empty/{} out), {} lost, {} span(s) held, {} frame(s) sent, {} name read(s), {} page search(es), visible y {}..{}",
+            if (report.moves + report.refusals + report.losses + report.missedReads + report.framesSent + report.nameReads + report.pageSearches + report.sightChecks > 0)
+                LENS_INFO("scan track, last second: {} anchor move(s), {} refused ({} moved), {} missed ({} empty/{} out), {} lost, {} span(s) held, {} frame(s) sent, {} name read(s), {} page search(es), {} sight check(s), visible y {}..{}",
                           report.moves,
                           report.refusals,
                           report.refusalsMoved,
@@ -260,6 +263,7 @@ void PageTrack::run(std::stop_token const& stop)
                           report.framesSent,
                           report.nameReads,
                           report.pageSearches,
+                          report.sightChecks,
                           report.visibleTop,
                           report.visibleBottom);
             if (not report.note.empty()) LENS_INFO("scan page {}", report.note);

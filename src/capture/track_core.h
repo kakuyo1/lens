@@ -15,6 +15,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -41,6 +42,16 @@ constexpr std::chrono::seconds kNameRetry{1};
 constexpr std::chrono::milliseconds kPageCheckPeriod{500};
 /// The wait between fresh page searches while the window answers with none; a search walks the window's whole tree.
 constexpr std::chrono::milliseconds kPageSearchPeriod{250};
+/// Places one step hit-tests before drawing them; the rest keep their last verdict and wait for the next step.
+constexpr int kSightChecksPerStep = 8;
+/// The share of the track's time the refresh may spend: credit accrues at this rate and one hit-test
+/// spends its own cost, so a slow reader refreshes slower instead of starving the anchor read.
+constexpr int kSightSharePercent = 30;
+/// A reader whose point query costs more than this cannot pay it per place at all: its places draw
+/// as they read, the way they did before the sight pass (a PDF viewer, docs/adr/0193).
+constexpr std::chrono::milliseconds kSightCostCeiling{12};
+/// How long a visibility verdict stands before the place is hit-tested again: a dialog opens and closes over a still page.
+constexpr std::chrono::milliseconds kSightRefresh{750};
 
 /// @brief A word the track read off the page, first occurrence only.
 struct ReadWord {
@@ -71,7 +82,8 @@ struct TrackReport {
     int         spanCount     = 0;
     int         visibleTop    = 0;
     int         visibleBottom = 0;
-    std::string note; ///< A page refusal, e.g. "refused: it answers 77x854 in a 1921x854 band"; empty otherwise.
+    int         sightChecks   = 0; ///< Places hit-tested for occlusion in the last second.
+    std::string note;              ///< A page refusal, e.g. "refused: it answers 77x854 in a 1921x854 band"; empty otherwise.
 };
 
 /// @brief One step's output.
@@ -118,6 +130,21 @@ private:
     void refreshNamesIfDue(std::chrono::steady_clock::time_point now);
     /// @brief Send a word the track has not sent before: names and repeats draw no line of their own.
     void rememberWord(int id, std::string const& text, std::vector<ReadWord>& added);
+    /// @brief Hit-test the places a frame would draw, within one step's check budget, and keep only
+    ///        the words whose place reads visible. A place not tested yet draws nothing this step.
+    /// @param mayCheck False when a read raced a scroll this step: no new place is tested then, so
+    ///        no line is revealed at a place the scroll already moved; standing verdicts still filter.
+    void applySight(std::vector<PlacedSpan>& placed, std::chrono::steady_clock::time_point now, bool mayCheck);
+    /// @brief Forget every verdict's freshness: the page moved, so the places they stand for are gone.
+    void invalidateSight();
+
+    /// @brief One span's occlusion verdict: the handle to hit-test with, and what the last test said.
+    struct SpanSight {
+        std::shared_ptr<Word>                 word;
+        bool                                  occluded = false;
+        bool                                  checked  = false;
+        std::chrono::steady_clock::time_point checkedAt{};
+    };
 
     PageReader&                           reader_;
     std::shared_ptr<Page>                 page_;
@@ -129,7 +156,13 @@ private:
     bool                                  forwardDone_  = false;
     bool                                  backwardDone_ = false;
     std::unordered_set<std::string>       names_;
-    std::unordered_set<std::string>       wordsSeen_; ///< The words a line already stands for, once each.
+    std::unordered_set<std::string>       wordsSeen_;   ///< The words a line already stands for, once each.
+    std::unordered_map<int, SpanSight>    sight_;       ///< By span id; an entry is born with its span and dies with the track.
+    std::vector<PlacedSpan>               lastVisible_; ///< The placed set last sent; the frame gate compares against it.
+    int                                   sightChecks_   = 0;
+    bool                                  chunkRaced_    = false; ///< A chunk read ran into a scroll this step: its places are stale.
+    double                                sightCreditMs_ = 0;     ///< Refresh budget accrued at kSightSharePercent of the step time.
+    std::chrono::steady_clock::time_point sightCreditAt_{};
     bool                                  namesLoaded_ = false;
     bool                                  foreign_     = false; ///< The page reads as a non-English language: its words are neither read nor drawn while it does (docs/adr/0187).
     std::chrono::steady_clock::time_point namesAt_{};

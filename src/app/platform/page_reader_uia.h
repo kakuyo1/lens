@@ -77,6 +77,7 @@ struct ReaderTiming {
     ReadTiming read;
     ReadTiming step;
     ReadTiming search;
+    ReadTiming visible;
 };
 
 /// @brief Drain the calling thread's accumulated read timing and reset it. The track shell calls
