@@ -1,17 +1,20 @@
 /**
  * @file tst_pet_controller.cpp
- * @brief The pet controller without a window: events move the state, the one clock moves the frame, and the
+ * @brief The pet controller: events move the state, the one clock moves the frame, and the
  *        worn accessories and the size are stored (PHASE3 3.5, 3.7).
  *
- * Guiless and window-free: no window is created and nothing is drawn, so the run touches nothing on the desktop.
- * Its settings document lives in a scratch directory.
+ * Window-free apart from the presentation watchdog case, which drives one offscreen window; nothing
+ * reaches the desktop. Its settings document lives in a scratch directory.
  */
 
 #include <filesystem>
 #include <fstream>
 #include <optional>
 
+#include <QPainter>
 #include <QPointF>
+#include <QQuickPaintedItem>
+#include <QQuickWindow>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
@@ -28,6 +31,16 @@ using lens::app::pet::PetController;
 using lens::core::pet::PetStore;
 using lens::core::KnownStore;
 using lens::core::pet::PetEvent;
+
+/// Content for the one windowed case: a plain painted box, so a published frame has something to dirty.
+class PaintBox : public QQuickPaintedItem {
+public:
+    using QQuickPaintedItem::QQuickPaintedItem;
+    void paint(QPainter* painter) override
+    {
+        painter->fillRect(boundingRect(), Qt::red);
+    }
+};
 
 /// The controller and the store it reads, built the way main() builds them. The reader's pets folder sits beside the
 /// settings document, as in main(); a test that wants installed packages creates it there.
@@ -161,6 +174,7 @@ private slots:
     void aGonePackageFallsBackToTheShippedDefault();
     void anUnconfirmedChoiceStartsOnTheDefault();
     void refreshRereadsAnEditedPackage();
+    void aStalledPresentationReExposesTheWindow();
 };
 
 void TstPetController::reviewAvailabilityFollowsThePet()
@@ -869,5 +883,42 @@ void TstPetController::refreshRereadsAnEditedPackage()
     QCOMPARE(nameOf(QStringLiteral("lounge")), QStringLiteral("Lounge Cat"));
 }
 
-QTEST_GUILESS_MAIN(TstPetController)
+void TstPetController::aStalledPresentationReExposesTheWindow()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedRoot()};
+    rig.controller.setEnabled(true);
+    rig.controller.setRunning(true);
+
+    QQuickWindow window;
+    window.resize(120, 120);
+    auto* box = new PaintBox(window.contentItem());
+    box->setSize(QSizeF(120, 120));
+    // Stands in for the QML binding: every published frame dirties the content.
+    auto binding = connect(&rig.controller, &PetController::frameChanged, box, [box] { box->update(); });
+    rig.controller.attachWindow(&window);
+    window.show();
+
+    QSignalSpy swapped(&window, &QQuickWindow::frameSwapped);
+    QVERIFY(swapped.wait(2000));
+    QSignalSpy visible(&window, &QWindow::visibleChanged);
+
+    // The scene stops dirtying while the clock keeps publishing, as when the update chain detaches:
+    // the window stays visible and exposed but presents nothing more.
+    disconnect(binding);
+    QTest::qWait(200);
+    const int presented = swapped.count();
+    QTest::qWait(600);
+    QCOMPARE(swapped.count(), presented);
+
+    // The stall window plus a health turn; the recovery is a hide/show blink, then frames again.
+    QTRY_VERIFY_WITH_TIMEOUT(visible.count() >= 2, 9000);
+    QVERIFY(window.isVisible());
+    QVERIFY(window.isExposed());
+    binding = connect(&rig.controller, &PetController::frameChanged, box, [box] { box->update(); });
+    QTRY_VERIFY_WITH_TIMEOUT(swapped.count() > presented, 3000);
+}
+
+QTEST_MAIN(TstPetController)
 #include "tst_pet_controller.moc"

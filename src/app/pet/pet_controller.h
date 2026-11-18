@@ -22,6 +22,7 @@
  * offers and publishes what the stage answers.
  */
 
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
@@ -482,8 +483,9 @@ private:
     bool hideAfterDrag_{false};
 
     QTimer clock_;
-    /// Watches a frame clock that is running but no longer producing a visible frame, and a clock
-    /// that was stopped while the pet is still on screen. Recovery is logged; it is a last resort.
+    /// Watches a frame clock that is running but no longer producing a visible frame, a clock
+    /// that was stopped while the pet is still on screen, and a window that stops presenting while
+    /// the clock publishes. Recovery is logged; it is a last resort.
     QTimer   health_;
     QWindow* window_ = nullptr;
     /// The clock runs while either of these is set.
@@ -497,6 +499,8 @@ private:
     std::chrono::milliseconds actionElapsed_{0};
     /// When a frame was last published, for the health watchdog.
     std::chrono::steady_clock::time_point lastFramePulse_{std::chrono::steady_clock::now()};
+    /// When the window last presented a frame; the render thread writes it, the watchdog reads it.
+    std::atomic<std::chrono::steady_clock::time_point> lastFrameSwapped_{std::chrono::steady_clock::now()};
     /// Blink timing: the wait to the next blink, and the time into the one running.
     std::chrono::milliseconds blinkWait_{0};
     std::chrono::milliseconds blinkElapsed_{0};

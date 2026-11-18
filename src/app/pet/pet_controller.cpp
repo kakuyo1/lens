@@ -18,6 +18,7 @@
 #include <QDesktopServices>
 #include <QGuiApplication>
 #include <QQmlEngine>
+#include <QQuickWindow>
 #include <QScreen>
 #include <QTime>
 #include <QTimer>
@@ -1265,6 +1266,11 @@ void PetController::attachWindow(QObject* object)
     window_ = qobject_cast<QWindow*>(object);
     if (not window_) return;
     connect(window_, &QObject::destroyed, this, [this] { window_ = nullptr; });
+    if (auto* quick = qobject_cast<QQuickWindow*>(window_))
+        connect(quick, &QQuickWindow::frameSwapped, this, [this] { lastFrameSwapped_.store(std::chrono::steady_clock::now(), std::memory_order_relaxed); }, Qt::DirectConnection);
+    connect(window_, &QWindow::visibleChanged, this, [this](bool on) {
+        if (on) lastFrameSwapped_.store(std::chrono::steady_clock::now(), std::memory_order_relaxed);
+    });
     onShown(window_, [this](QWindow const& window) {
         if (not excludeFromCapture(window)) LENS_WARN("the desktop pet can appear in screen captures: Windows refused the exclusion"); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         ::lens::app::setPassthrough(window, enabled() and store_.passthrough());
@@ -2298,6 +2304,19 @@ void PetController::checkHealth()
         LENS_WARN("pet frame clock stopped while the pet was on screen; restarting it");
         clock_.start();
         lastFramePulse_ = now;
+        return;
+    }
+    const auto swapped      = lastFrameSwapped_.load(std::memory_order_relaxed);
+    const auto sinceSwapped = now - swapped;
+    if (window_ and window_->visibility() == QWindow::Windowed and now - lastFramePulse_ < kStallAfter and
+        sinceSwapped > kStallAfter) {
+        // The clock publishes but the window presents nothing: the render loop parked on a window that
+        // stayed visible, as after a DWM or GPU event. A hide/show blink forces the expose again.
+        const auto quietMs = std::chrono::duration_cast<std::chrono::milliseconds>(sinceSwapped).count();
+        LENS_WARN("pet window presented no frame for {} ms while the clock publishes; re-exposing", quietMs);
+        window_->hide();
+        window_->show();
+        lastFrameSwapped_.store(now, std::memory_order_relaxed);
         return;
     }
     if (now - lastFramePulse_ < kStallAfter)
