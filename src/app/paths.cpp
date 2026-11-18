@@ -5,6 +5,7 @@
 
 #include "paths.h"
 
+#include <QCoreApplication>
 #include <QStandardPaths>
 
 #include <windows.h>
@@ -21,6 +22,10 @@ constexpr wchar_t kProfileLeaf[] = L"Lens";
 
 /// The leaf beside the executable that marks an installed build; the install tree carries data/.
 constexpr wchar_t kDataLeaf[] = L"data";
+
+/// The data directory configure baked in: where a build tree reads from. A shipped build has
+/// data/ beside the executable instead, and that one wins. See dataDirectory().
+constexpr const char* kBuildDataDir = LENS_DATA_DIR;
 
 /// @brief The reader's profile directory, `%APPDATA%\Lens`, without a QCoreApplication to ask.
 ///
@@ -83,6 +88,13 @@ std::filesystem::path logDirectory(bool installedBuild)
     if (profile.empty())
         return std::filesystem::path{lens::log::kLogDirName}; // No profile to hold it: log::init() warns if the working directory cannot be written either.
     return profile / lens::log::kLogDirName;
+}
+
+std::filesystem::path dataDirectory()
+{
+    if (installedBuild())
+        return toPath(QCoreApplication::applicationDirPath()) / "data";
+    return toPath(QString::fromUtf8(kBuildDataDir));
 }
 
 }

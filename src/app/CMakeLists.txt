@@ -24,6 +24,8 @@ add_library(lens_app STATIC
   consent_preview.cpp
   paths.h
   paths.cpp
+  translation.h
+  translation.cpp
   settings_access.h
   settings_access.cpp
   settings_defaults.h
@@ -122,6 +124,8 @@ add_library(lens_app STATIC
   platform/alt_key_hook.cpp
   platform/running_instance.h
   platform/running_instance.cpp
+  platform/surface_graphics.h
+  platform/surface_graphics.cpp
   platform/selection_text_grabber.cpp
   platform/system_motion.cpp
   platform/taskbar.cpp
@@ -242,6 +246,10 @@ target_link_libraries(lens_app PRIVATE user32 gdi32 shell32 dxgi d3d11 windowsap
 # their user agents.
 target_compile_definitions(lens_app PRIVATE LENS_VERSION="${PROJECT_VERSION}")
 
+# The build-tree data path paths.cpp's dataDirectory() falls back to when there is no data/ beside
+# the executable; an installed build carries one there instead (installer/lens.iss).
+target_compile_definitions(lens_app PRIVATE LENS_DATA_DIR="${CMAKE_SOURCE_DIR}/data")
+
 # The C++/WinRT projection headers ship beside the SDK's ABI headers, not on the include path vcvars sets. The
 # documented build path runs vcvars first (scripts/build/build.bat), which names the SDK version; an IDE configure
 # without that environment takes the newest SDK under the standard Windows Kits root instead.
@@ -291,6 +299,11 @@ lens_copy_sherpa_runtime(lens)
 target_sources(lens PRIVATE platform/qt_voice_output.cpp platform/qt_voice_output.h)
 target_link_libraries(lens PRIVATE Qt6::Multimedia Qt6::TextToSpeech)
 
+# The startup steps main() names (app/startup.h): the composition root's phases, on the executable
+# beside main.cpp for the same reason -- no test target links them, and they read the executable's
+# LENS_SETTINGS_PATH / LENS_DEV_SURFACE / LENS_FORCE_ONBOARDING defines.
+target_sources(lens PRIVATE startup.cpp startup.h)
+
 # The developer command surface (docs/adr/0068), only when the build asks for it. It sits in the executable because
 # main.cpp is its one caller and it reaches the windows through the Main window that caller hands it.
 if(LENS_ENABLE_DEV_SURFACE)
@@ -322,17 +335,12 @@ target_link_libraries(lens
   PRIVATE lens_app lens_core Qt6::Quick Qt6::Svg
 )
 
-# The two paths a build tree has and an installed copy does not. Neither is the only answer
-# any more: main.cpp prefers data/ beside the executable, which is where installer/lens.iss
-# puts it, and keeps the settings document in %APPDATA% -- these are the fallbacks that keep a
-# build tree working, where nothing writes either one next to build-ninja/src/app/lens.exe.
-#
-# LENS_DATA_DIR is where the word list and the protocol files are read from when there is no
-# data/ beside the executable. LENS_SETTINGS_PATH is the document a first run after the
-# packaging change carries into the profile once, so an API key already configured keeps
-# working; nothing writes it afterwards.
+# The settings document a build tree carries into the profile once. The word list's build-tree path
+# (LENS_DATA_DIR) is defined on lens_app for paths.cpp; main.cpp prefers data/ beside the executable,
+# which is where installer/lens.iss puts it. LENS_SETTINGS_PATH is the document a first run after the
+# packaging change carries into the profile once, so an API key already configured keeps working;
+# nothing writes it afterwards. startup.cpp reads it.
 target_compile_definitions(lens PRIVATE
-  LENS_DATA_DIR="${CMAKE_SOURCE_DIR}/data"
   LENS_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/settings.local.json"
 )
 

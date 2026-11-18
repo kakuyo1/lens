@@ -80,4 +80,16 @@ bool installedBuild();
  */
 std::filesystem::path logDirectory(bool installedBuild);
 
+/**
+ * @brief Where the word list and the protocol files are read from.
+ *
+ * The installer puts them beside the executable -- `<install>\data` -- which keeps the package
+ * relocatable and compiles nothing about the machine into it. A build tree has no `data/` next
+ * to `build-ninja/src/app/lens.exe` (nothing writes one), so it reads the path configure baked in.
+ *
+ * @return `<applicationDirPath>/data` when installedBuild() holds -- the one marker of an
+ *         installed build, which logDirectory() reads too -- else the baked-in path.
+ */
+std::filesystem::path dataDirectory();
+
 }
