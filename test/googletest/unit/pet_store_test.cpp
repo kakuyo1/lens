@@ -82,12 +82,13 @@ TEST(PetStore, AnOldScaleIsConvertedOnLoadAndTheOldKeyIsTakenAway)
     store.section("PET").set<int>("scale", 3);
 
     auto pet = PetStore{store};
-    // The scale belonged to the pet the document names, so the percentage lands in that pet's entry.
-    EXPECT_EQ(pet.size("dog", 0), 67);
+    // The scale belonged to the pet on screen -- the one the document names, or the shipped default
+    // when it names none -- so the percentage lands in that pet's entry.
+    EXPECT_EQ(pet.size("mochi", 0), 67);
 
     // The conversion ran once: the document now holds the percentage and no longer the ambiguous old key.
     auto const& held = store.document().at("PET");
-    EXPECT_TRUE(held.at("pets").at("dog").contains("size"));
+    EXPECT_TRUE(held.at("pets").at("mochi").contains("size"));
     EXPECT_FALSE(held.contains("scale"));
     EXPECT_FALSE(held.contains("size"));
 

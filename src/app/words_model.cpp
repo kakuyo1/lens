@@ -24,7 +24,7 @@ bool hasGuiApplication()
 
 /// @return The width MixedText draws @p text at @p pixelSize: CJK runs (U+3400..U+9FFF) keep the UI
 ///         face, every other run takes the numeric face, laid end to end (MixedText.qml splitRuns).
-qreal mixedWidth(QString const& text, int pixelSize, QFont const& uiFont, QFont const& monoFont)
+qreal mixedWidth(QString const& text, int pixelSize, QFont const& uiFont, QFont const& monoFont) // NOLINT(bugprone-easily-swappable-parameters): mixedWidth takes its 2 const QFont & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     QFont ui   = uiFont;
     QFont mono = monoFont;

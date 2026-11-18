@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QJsonArray>
 #include <QString>
 
 #include "llm/llm_protocol.h"

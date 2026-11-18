@@ -182,7 +182,7 @@ Item {
             tryCompare(testCase, "titleRequests", 1);
         }
         /// The card is sized to its widest row: a card narrower than the row it draws would cut the
-        /// word in it.
+        /// word in it. The model measures that width in C++, so the demand is read back from the row.
         ///
         /// The floor is 320 px of whatever face the machine resolves, so whether the longest word in
         /// the fixture outgrows it is the machine's business rather than the view's -- this case used
@@ -199,11 +199,14 @@ Item {
 
             const row = rowFor(popup, widest);
             verify(row, "the row for " + widest + " is not on screen");
-            verify(popup.cardWidth >= Math.ceil(row.naturalWidth) || popup.cardWidth === popup.maxCardWidth,
-                   "the card is narrower than the row it draws");
 
             const word = Util.findAll(row, function (o) { return o.text === widest; })[0];
             verify(word, "the row does not draw the word");
+            const side = pillFor(row, "Known").parent.parent;
+            // The row's demand: card padding, unelided word, gap, right cluster -- the model's sum.
+            const naturalWidth = 48 + word.implicitWidth + 9 + side.width;
+            verify(popup.cardWidth >= Math.ceil(naturalWidth) || popup.cardWidth === popup.maxCardWidth,
+                   "the card is narrower than the row it draws");
             compare(word.implicitWidth <= word.width, true,
                     "the word column is narrower than the word it draws");
             compare(word.elide, Text.ElideRight);

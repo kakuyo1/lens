@@ -135,7 +135,7 @@ Item {
 
             Pet.host.setMotionReduced(false);
             Pet.picker.setPet("cat");
-            tryCompare(Pet, "pet", "cat");
+            tryCompare(Pet.picker, "pet", "cat");
             Pet.setScene("bath");
             tryCompare(Pet.pose, "scene", "bath");
             Pet.setPreviewing(true);
@@ -148,7 +148,7 @@ Item {
 
             // The scene belongs to the machine; the switch back to the dog ends it and restores the fixture.
             Pet.picker.setPet("dog");
-            tryCompare(Pet, "pet", "dog");
+            tryCompare(Pet.picker, "pet", "dog");
             Pet.setPreviewing(false);
         }
 
@@ -193,7 +193,7 @@ Item {
             Pet.host.setMotionReduced(false);
             if (Pet.picker.pet !== "dog") {
                 Pet.picker.setPet("dog");
-                tryCompare(Pet, "pet", "dog");
+                tryCompare(Pet.picker, "pet", "dog");
             }
             Pet.setScene("swing");
             tryCompare(Pet.pose, "scene", "swing");
