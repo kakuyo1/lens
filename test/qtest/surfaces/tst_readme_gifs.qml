@@ -37,19 +37,19 @@ Item {
         YearWordsPopup {}
     }
 
-    // The window that owns the colour table the extensions page reads through Window.window (docs/adr/0041),
+    // The window that owns the colour table the pets page reads through Window.window (docs/adr/0041),
     // so the switches and the slider in the still are drawn rather than failing on a null window.
     TokenHost { id: host }
 
     Component {
-        id: extensionsCardComponent
+        id: petsCardComponent
 
         Rectangle {
             width: 440
             height: page.implicitHeight
             color: Tokens.panel
 
-            SettingsExtensionsPage {
+            SettingsPetsPage {
                 id: page
                 width: 440
             }
@@ -284,7 +284,7 @@ Item {
             Tokens.theme = was;
         }
 
-        /// Still: the extensions page as the app draws it with the desktop pet on, so the pet type, the
+        /// Still: the pets page as the app draws it with the desktop pet on, so the pet type, the
         /// preview stage and the actions are all in the frame. The pet type list is a window of its own
         /// and a grab of the page does not take it in, so the list stays shut. Written once per language.
         function test_petSettingsStill() {
@@ -296,7 +296,7 @@ Item {
             // The window is what a grab is cut to, so it is taller than the whole page it holds.
             host.width = 440;
             host.height = 1200;
-            const card = createTemporaryObject(extensionsCardComponent, host.contentItem);
+            const card = createTemporaryObject(petsCardComponent, host.contentItem);
             verify(card);
             waitForRendering(card);
 

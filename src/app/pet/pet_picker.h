@@ -46,7 +46,7 @@ public:
     Q_INVOKABLE void setPet(QString const& id);
     /// @brief Records the reader's confirmation of an installed package, and switches to it.
     Q_INVOKABLE void confirmPet(QString const& id);
-    /// @brief Rescans both folders, as the extensions section does each time it opens.
+    /// @brief Rescans both folders, as the pets section does each time it opens.
     Q_INVOKABLE void refresh();
     /// @brief Opens the reader's pets folder in the file manager.
     Q_INVOKABLE void openPacksFolder();

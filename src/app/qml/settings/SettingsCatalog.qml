@@ -50,9 +50,9 @@ Item {
             onPicked: root.categoryRequested("model")
         }
         SettingsCategoryRow {
-            title: qsTranslate("SettingsPopup", "Extensions")
+            title: qsTranslate("SettingsPopup", "Pets")
             summary: qsTranslate("SettingsPopup", "Desktop companion")
-            onPicked: root.categoryRequested("extensions")
+            onPicked: root.categoryRequested("pets")
         }
         SettingsCategoryRow {
             title: qsTranslate("SettingsPopup", "Account & sync")

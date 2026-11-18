@@ -21,7 +21,7 @@
 | `breakdown-color.html` | 句子拆解的颜色对照：四个角色色（DESIGN.md 3.1e，ADR 0128），三种画法；选定 G 色底，E、F 留作对照。`?lang=` 切语言，`?theme=dark` 暗色 |
 | `selection-bar-variants.html` | 选区动作条的三种备选形态（页边签 / 手牌签 / 吊牌签），落成 QML 的设计对照；默认仍是 `selection-bar.html` 的经典长条，见 `docs/adr/0056` |
 | `dog-candidates.html` | 狗的形象重做候选：同一副垂耳骨架的四个角色（奶糖 / 礼服 / 小猎 / 雪原），黑灰白为主体、玫红与冰蓝点缀；奶糖已选定并落成 `data/pet/dog`，其余三只留作对照。可切“只看轮廓”、深色底、动起来与 88×88 实际大小，URL `?pick=classic` 预选 |
-| `pet.html` | 桌面宠物子页面（扩展 → 桌面宠物，随包宠物的类型下拉、动作与配饰，以及宠物包的导入入口、被拒列表与确认弹窗） |
+| `pet.html` | 桌面宠物子页面（宠物 → 桌面宠物，随包宠物的类型下拉、动作与配饰，以及宠物包的导入入口、被拒列表与确认弹窗） |
 | `pet-hover.html` | 桌面宠物悬浮感知的对照稿（行为规格见 `UI-SPEC.md` 4.14）；`?zones` 显示两只感知环 |
 | `pet-review.html` | 桌面宠物的提问牌与作答气泡 |
 | `pet-signs.html` | 七只随包宠物各自的复习牌（选定候选，各带一个牌内动效）与外部包的默认木牌；牌宽随输入的单词重画，逐帧检查脚线不动（ADR 0125、0126） |
@@ -73,7 +73,7 @@
 - 静态页面拍不出毛玻璃与阴影的真实观感，QML 侧用 `MultiEffect`，见 `docs/QML.md`。
 - `settings.html` 用分类目录：首页只列分类，进入后是分类设置，再进入是词书、API 等子页面。新增设置放进对应分类，不要加长首页，也不要新增一级分类；“关于” 是目录末尾的唯一例外，取舍见 `docs/adr/0032`。
 - 面板固定 380 × 480，超出的内容在 `.set-body` 内滚动。内容变多先考虑合并成分组或下沉为子页面。
-- 扩展分类里的桌面宠物已随 1.2.0 上线，`pet.html` 是它的设计对照。`pet.html` 内嵌的 PNG 来自 `data/pet/`，改了数据要跑 `npm run embed` 重新生成；`pet-hover.html` 用同一份数据，跑 `npm run embed:hover`。改了 `pet-prototype/src/pet-renderer.js` 这类共享文件，两条都要重跑。麻糬、猫头鹰、猫的美术是生成的初版，还需要人工复核。
+- 宠物分类里的桌面宠物已随 1.2.0 上线，`pet.html` 是它的设计对照。`pet.html` 内嵌的 PNG 来自 `data/pet/`，改了数据要跑 `npm run embed` 重新生成；`pet-hover.html` 用同一份数据，跑 `npm run embed:hover`。改了 `pet-prototype/src/pet-renderer.js` 这类共享文件，两条都要重跑。麻糬、猫头鹰、猫的美术是生成的初版，还需要人工复核。
 - 宠物包一节用两只写死的样例（`PACKAGES` 与 `REFUSED`）对视来源标记、被拒列表与确认弹窗：它们不是扫出来的，预览也复用随包宠物的美术。契约、上限与拒绝原因见 `skills/lens-pet-maker/references/pet-package-format.md`，决定见 `docs/adr/0043`。
 - 加新表面时，新增一个文件、在这里登记，并在 `UI-SPEC.md` §4.0 的表面表加一行。
 - 界面文字四语言各一份，在每个文件脚本开头的 `L` 表里，取值与 `i18n/lens_*.ts` 一致：改文案先改那边，再抄回来。README 的营销图由 `scripts/qa/readme-html-shots.sh` 从这些表面渲染，再由 `scripts/qa/readme-html-compose.py` 裁切、合成 GIF、学习循环拼图与主题拼图，写进 `docs/readme/`。旧的 `readme-shots.sh` 与 `readme-gifs.ps1` 生成 `docs/readme-images/`，已不供当前 README 使用。

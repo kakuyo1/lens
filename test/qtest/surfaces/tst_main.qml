@@ -458,9 +458,9 @@ Item {
         }
 
         /// The pet's own gesture, wired the way the tray menu's entry is. A right press on the pet opens the settings
-        /// panel on the page the pet's block lives on (UI-SPEC.md section 4.4's Extensions category), beside the pet rather
+        /// panel on the page the pet's block lives on (UI-SPEC.md section 4.4's Pets category), beside the pet rather
         /// than at the tray anchor the tray's own entry keeps.
-        function test_aRightClickOnThePetOpensSettingsOnExtensions() {
+        function test_aRightClickOnThePetOpensSettingsOnPets() {
             const main = make();
             const settings = panel(main, "SettingsPopup");
             const petWindow = panel(main, "PetWindow");
@@ -479,7 +479,7 @@ Item {
             mouseClick(petWindow.contentItem, petWindow.width / 2, petWindow.height / 2, Qt.RightButton);
 
             compare(settings.visible, true, "the pet's right-click did not open the settings panel");
-            compare(settings.category, "extensions", "the panel opened on a page other than the pet's own");
+            compare(settings.category, "pets", "the panel opened on a page other than the pet's own");
             verify(separate(settings, petWindow), "the panel the pet opened covers part of the pet: "
                    + settings.x + "," + settings.y + " " + settings.width + "x" + settings.height
                    + " over the pet at " + petWindow.x + "," + petWindow.y

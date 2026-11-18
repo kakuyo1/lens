@@ -89,7 +89,7 @@ Conocida, Dominado y Nueva viven en una sola lista de palabras, con un segmento 
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Las siete mascotas de píxeles de Lens"></p>
 
-Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fantasma, Medusa, Nube y Perro. Están desactivadas por defecto; activa una en Ajustes › Extensiones.
+Lens incluye siete mascotas de píxeles: Gato de orejas cortas, Búho, Mochi, Fantasma, Medusa, Nube y Perro. Están activadas por defecto; cámbialas o desactívalas en Ajustes › Mascotas.
 
 - Cada mascota tiene su propio vestuario de nueve piezas y seis escenas — cuatro propias y dos compartidas; una bufanda o unas gafas inclinan qué escena elige.
 - Deambulan, se esconden en el borde de la pantalla, notan el puntero y se pueden coger y lanzar; cuando la barra de tareas está fija, a veces saltan a ella, rebotan, caminan despacio hasta un extremo y vuelven.
@@ -99,7 +99,7 @@ Cada escena es una animación propia. La calabaza, en movimiento:
 
 <p align="center"><img src="docs/readme/pet-lantern.gif" width="420" alt="La escena de la calabaza de Fantasma, animada"></p>
 
-Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del repositorio es una skill de Claude Code que ayuda a una IA a generar un paquete de mascota. Clona el repositorio para usarla, copia la carpeta resultante en `%APPDATA%\Lens\pets\` y actívala en Ajustes › Extensiones.
+Lens también admite mascotas personalizadas: `skills/lens-pet-maker` del repositorio es una skill de Claude Code que ayuda a una IA a generar un paquete de mascota. Clona el repositorio para usarla, copia la carpeta resultante en `%APPDATA%\Lens\pets\` y actívala en Ajustes › Mascotas.
 
 ## También incluido
 

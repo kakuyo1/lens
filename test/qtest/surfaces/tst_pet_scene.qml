@@ -146,7 +146,7 @@ Item {
             waitForRendering(frame);
             verify(Util.saveSnapshot(testCase, frame, lensQaSnapshotDir, "pet-entry-bath-land"));
 
-            // The scene belongs to the machine; the switch back to the default pet ends it and restores the fixture.
+            // The scene belongs to the machine; the switch back to the dog ends it and restores the fixture.
             Pet.picker.setPet("dog");
             tryCompare(Pet, "pet", "dog");
             Pet.setPreviewing(false);

@@ -88,12 +88,12 @@ std::filesystem::path settingsIn(QTemporaryDir const& dir)
 nlohmann::json readJson(std::filesystem::path const& file);
 void           writeJson(std::filesystem::path const& file, nlohmann::json const& document);
 
-/// Two pets under `root`: the shipped dog, and a copy of it whose catalogue has no newsboy cap, so a switch has one to drop.
+/// Two pets under `root`: the shipped mochi, and a copy of it whose catalogue has no kanzashi hairpin, so a switch has one to drop.
 void makeTwoPets(std::filesystem::path const& root)
 {
-    auto const shipped = shippedRoot() / "dog";
+    auto const shipped = shippedRoot() / "mochi";
     std::filesystem::create_directories(root);
-    std::filesystem::copy(shipped, root / "dog", std::filesystem::copy_options::recursive);
+    std::filesystem::copy(shipped, root / "mochi", std::filesystem::copy_options::recursive);
     std::filesystem::copy(shipped, root / "hatless", std::filesystem::copy_options::recursive);
 
     // The copy takes the folder's name as its id, since a pet's id must be its folder's name.
@@ -107,7 +107,7 @@ void makeTwoPets(std::filesystem::path const& root)
     auto       doc  = nlohmann::json::parse(in);
     auto       kept = nlohmann::json::array();
     for (auto const& entry : doc.at("accessories")) {
-        if (entry.at("id") != "flat_cap") kept.push_back(entry);
+        if (entry.at("id") != "kanzashi") kept.push_back(entry);
     }
     doc["accessories"] = kept;
     auto out           = std::ofstream{file};
@@ -270,6 +270,7 @@ void TstPetController::wornAccessoriesFollowToggles()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
+    rig.controller.setPet(QStringLiteral("dog"));
 
     rig.controller.toggleAccessory(QStringLiteral("flat_cap"));
     QCOMPARE(rig.controller.wornAccessories().size(), 1);
@@ -290,7 +291,7 @@ void TstPetController::sizeIsStoredAndAnnounced()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    // The dog declares scale 3, which is 67% to a reader who has never moved the slider, and draws ×3.01.
+    // Mochi declares scale 3, which is 67% to a reader who has never moved the slider, and draws ×3.01.
     QCOMPARE(rig.controller.size(), 67);
     QCOMPARE(rig.controller.minSize(), 0);
     QCOMPARE(rig.controller.maxSize(), 100);
@@ -336,7 +337,7 @@ void TstPetController::previewShowsAnActionAndTheMachineKeepsItsOwn()
     rig.controller.preview(QStringLiteral("no_such_action"));
     QCOMPARE(rig.controller.action(), QStringLiteral("celebrate"));
 
-    // Ending the preview hands the dog back to the machine, which was reading the whole time.
+    // Ending the preview hands the pet back to the machine, which was reading the whole time.
     rig.controller.setPreviewing(false);
     QCOMPARE(rig.controller.action(), QStringLiteral("study"));
 }
@@ -375,6 +376,7 @@ void TstPetController::fourClicksMakeTheDogAngry()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
+    rig.controller.setPet(QStringLiteral("dog"));
 
     // The dog's behavior block sets angryClicks to four (ADR 0094): the first three clicks are the ordinary
     // poke, and the fourth inside the window is anger (ADR 0049).
@@ -394,9 +396,10 @@ void TstPetController::aPreviewedSceneExposesItsSheetsAndAlignment()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
+    rig.controller.setPet(QStringLiteral("dog"));
 
-    // The default pet is the dog: its ink centre, tail included, sits six and a half canvas units left of the
-    // catalogue's feet and a cell lower.
+    // The dog's ink centre, tail included, sits six and a half canvas units left of the catalogue's feet and a
+    // cell lower.
     QCOMPARE(rig.controller.foot(), QPointF(51.0, 84.0));
 
     rig.controller.preview(QStringLiteral("swing"));
@@ -455,6 +458,7 @@ void TstPetController::aSceneEntryHoldsTheIdlePoseAndFlipsLayers()
     QTemporaryDir second;
     QVERIFY(second.isValid());
     Rig burying{settingsIn(second), shippedRoot()};
+    burying.controller.setPet(QStringLiteral("dog"));
     burying.controller.setScene(QStringLiteral("dog_burying"));
     QVERIFY(burying.controller.sceneEntry().value("active").toBool());
     burying.controller.setPreviewing(true);
@@ -480,6 +484,7 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
+    rig.controller.setPet(QStringLiteral("dog"));
 
     QCOMPARE(rig.controller.accessories().size(), 9);
     // Fourteen roles (angry, ask and dizzy included), the three idle extras, and the two movement loops; the six
@@ -507,6 +512,7 @@ void TstPetController::restoresOnlyAccessoriesInTheirOwnSlot()
 
     // Spectacles saved in the head slot is bad data: it must not be worn there, and the face slot's pair still is.
     rig.petStore.setOutfit("dog", Outfit{std::string{"spectacles"}, std::string{"spectacles"}, std::nullopt});
+    rig.petStore.setPet("dog");
     PetController restored{shippedRoot(), settingsIn(dir).parent_path() / "installed", rig.petStore};
 
     QVERIFY(restored.wornIn().value("head").toString().isEmpty());
@@ -532,17 +538,18 @@ void TstPetController::shownFollowsTheSwitchWithoutAWindow()
     Rig rig{settingsIn(dir), shippedRoot()};
 
     // No window is attached, so there is no ceremony to run; the switch still owns what the scene shows.
-    QVERIFY(!rig.controller.shown());
-    QSignalSpy shown(&rig.controller, &PetController::shownChanged);
-
-    rig.controller.setEnabled(true);
-    QVERIFY(rig.controller.enabled());
+    // The pet ships on, so the scene starts shown.
     QVERIFY(rig.controller.shown());
-    QCOMPARE(shown.count(), 1);
+    QSignalSpy shown(&rig.controller, &PetController::shownChanged);
 
     rig.controller.setEnabled(false);
     QVERIFY(!rig.controller.enabled());
     QVERIFY(!rig.controller.shown());
+    QCOMPARE(shown.count(), 1);
+
+    rig.controller.setEnabled(true);
+    QVERIFY(rig.controller.enabled());
+    QVERIFY(rig.controller.shown());
     QCOMPARE(shown.count(), 2);
 }
 
@@ -554,10 +561,10 @@ void TstPetController::choosingAPetLoadsItAndDropsWhatItLacks()
     makeTwoPets(root);
     Rig rig{settingsIn(dir), root};
 
-    QCOMPARE(idsOf(rig.controller), (QStringList{QStringLiteral("dog"), QStringLiteral("hatless")}));
-    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
+    QCOMPARE(idsOf(rig.controller), (QStringList{QStringLiteral("hatless"), QStringLiteral("mochi")}));
+    QCOMPARE(rig.controller.pet(), QStringLiteral("mochi"));
 
-    rig.controller.toggleAccessory(QStringLiteral("flat_cap"));
+    rig.controller.toggleAccessory(QStringLiteral("kanzashi"));
     rig.controller.setPet(QStringLiteral("hatless"));
     QCOMPARE(rig.controller.pet(), QStringLiteral("hatless"));
     QVERIFY(rig.controller.available());
@@ -565,15 +572,15 @@ void TstPetController::choosingAPetLoadsItAndDropsWhatItLacks()
     QVERIFY(rig.controller.wornIn().value("head").toString().isEmpty());
     QVERIFY(!rig.petStore.outfit("hatless").head);
 
-    // The cap stayed the dog's own: choosing it again brings its outfit back (ADR 0096).
-    rig.controller.setPet(QStringLiteral("dog"));
-    QCOMPARE(rig.controller.wornIn().value("head").toString(), QStringLiteral("flat_cap"));
+    // The hairpin stayed mochi's own: choosing it again brings its outfit back (ADR 0096).
+    rig.controller.setPet(QStringLiteral("mochi"));
+    QCOMPARE(rig.controller.wornIn().value("head").toString(), QStringLiteral("kanzashi"));
 
     // A pet that cannot be loaded is refused: the reader keeps the pet they had, and the bad id is not saved.
     rig.controller.setPet(QStringLiteral("missing"));
     QVERIFY(rig.controller.available());
-    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
-    QCOMPARE(QString::fromStdString(rig.petStore.pet()), QStringLiteral("dog"));
+    QCOMPARE(rig.controller.pet(), QStringLiteral("mochi"));
+    QCOMPARE(QString::fromStdString(rig.petStore.pet()), QStringLiteral("mochi"));
 }
 
 void TstPetController::everyShippedPetLoadsWhole()
@@ -718,6 +725,7 @@ void TstPetController::wornAccessoriesFollowAPetSwitch()
     QTemporaryDir dir;
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
+    rig.controller.setPet(QStringLiteral("dog"));
 
     // Each pet wears its own memory: mochi starts bare no matter what the dog had on (ADR 0096).
     rig.controller.toggleAccessory(QStringLiteral("flat_cap"));
@@ -783,7 +791,7 @@ void TstPetController::anInstalledPackageWaitsForItsConfirmation()
     // The first pick is asked about, and the pet does not switch until the reader confirms.
     rig.controller.setPet(QStringLiteral("lounge"));
     QCOMPARE(asked.count(), 1);
-    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
+    QCOMPARE(rig.controller.pet(), QStringLiteral("mochi"));
 
     rig.controller.confirmPet(QStringLiteral("lounge"));
     QCOMPARE(rig.controller.pet(), QStringLiteral("lounge"));
@@ -819,9 +827,9 @@ void TstPetController::aGonePackageFallsBackToTheShippedDefault()
     rig.controller.refresh();
 
     // The reader's choice gives way to the shipped default, and the reader is told why.
-    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
+    QCOMPARE(rig.controller.pet(), QStringLiteral("mochi"));
     QVERIFY(rig.controller.available());
-    QCOMPARE(QString::fromStdString(rig.petStore.pet()), QStringLiteral("dog"));
+    QCOMPARE(QString::fromStdString(rig.petStore.pet()), QStringLiteral("mochi"));
     QTRY_COMPARE(notice.count(), 1);
 }
 
@@ -842,11 +850,11 @@ void TstPetController::anUnconfirmedChoiceStartsOnTheDefault()
     }
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    QCOMPARE(rig.controller.pet(), QStringLiteral("dog"));
+    QCOMPARE(rig.controller.pet(), QStringLiteral("mochi"));
     QVERIFY(rig.controller.available());
 }
 
-/// The extensions section asks for a scan each time it opens; an unchanged folder keeps the catalogue, and a moved
+/// The pets section asks for a scan each time it opens; an unchanged folder keeps the catalogue, and a moved
 /// one is read again (docs/adr/0169).
 void TstPetController::refreshRereadsAnEditedPackage()
 {

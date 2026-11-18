@@ -89,7 +89,7 @@ Known, Mastered, and New live on one word list, with a segment for each at the t
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Lens's seven pixel pets"></p>
 
-Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, Cloud, and Dog. They are off by default; turn one on in Settings › Extensions.
+Seven pixel companions ship with Lens: Stub cat, Owl, Mochi, Ghost, Jellyfish, Cloud, and Dog. They are on by default; switch or turn them off in Settings › Pets.
 
 - Each pet has its own nine-piece wardrobe and six scenes — four of its own and two shared; a scarf or a pair of frames can tilt which scene it chooses.
 - They wander, hide at the screen edge, notice the pointer, and can be picked up and thrown; when the taskbar is fixed on screen, they sometimes hop onto it, bounce, walk slowly to one end, and hop back.
@@ -99,7 +99,7 @@ Each scene is an animation of its own. The jack-o'-lantern, playing:
 
 <p align="center"><img src="docs/readme/pet-lantern.gif" width="420" alt="The ghost's jack-o'-lantern scene, animated"></p>
 
-Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Claude Code skill that helps an AI draft a pet package; clone the repo to use it, drop the finished folder into `%APPDATA%\Lens\pets\`, and turn it on under Settings › Extensions.
+Lens also supports custom pets. The repository's `skills/lens-pet-maker` is a Claude Code skill that helps an AI draft a pet package; clone the repo to use it, drop the finished folder into `%APPDATA%\Lens\pets\`, and turn it on under Settings › Pets.
 
 ## Also in the box
 

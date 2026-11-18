@@ -80,14 +80,14 @@ Item {
             return Util.scrollerOf(field);
         }
 
-        /// The panel on the extensions page with the pet type dropdown in it, the way the reader reaches it.
+        /// The panel on the pets page with the pet type dropdown in it, the way the reader reaches it.
         function openPetPanel() {
             Pet.setEnabled(true);
             const main = make();
             const panel = settingsPanel(main);
             Util.surfaceHost(main).showSettings();
             wait(25);
-            panel.openCategory("extensions");
+            panel.openCategory("pets");
             wait(25);
             return {main: main, panel: panel};
         }
@@ -96,7 +96,7 @@ Item {
             const fields = findDeep(panel, function (o) {
                 return o.toString().indexOf("DropdownField_QMLTYPE") === 0 && o.options.length > 0;
             });
-            verify(fields.length > 0, "the extensions page has no dropdown to test");
+            verify(fields.length > 0, "the pets page has no dropdown to test");
             return fields[0];
         }
 
@@ -600,14 +600,14 @@ Item {
             const question = findDeep(shown.panel, function (o) {
                 return o.toString().indexOf("PetPackageDialog_QMLTYPE") === 0;
             });
-            verify(question.length > 0, "the extensions page has no pet package question");
+            verify(question.length > 0, "the pets page has no pet package question");
             question[0].open();
             wait(20);
 
             shown.panel.navigateBack();
 
             compare(question[0].opened, false, "Escape did not answer the question");
-            compare(shown.panel.category, "extensions", "Escape answered the question and also backed out of the category");
+            compare(shown.panel.category, "pets", "Escape answered the question and also backed out of the category");
             shown.panel.navigateBack();
             compare(shown.panel.category, "", "the next Escape did not back out of the category");
         }

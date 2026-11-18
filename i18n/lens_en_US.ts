@@ -1213,8 +1213,8 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="260"/>
         <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="307"/>
         <location filename="../src/app/qml/settings/pages/SettingsAboutPage.qml" line="311"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="235"/>
-        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="239"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="236"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="240"/>
         <location filename="../src/app/qml/settings/pages/SettingsOnlineOcrPage.qml" line="337"/>
         <source>Clear</source>
         <translation>Clear</translation>
@@ -1481,22 +1481,22 @@ One small word at a time, the reading opens.</translation>
         <translation>since %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="149"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="150"/>
         <source>No behavior records yet. Events appear here as you look up words, scan pages and answer reviews.</source>
         <translation>No behavior records yet. Events appear here as you look up words, scan pages and answer reviews.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="237"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="238"/>
         <source>Clear behavior data</source>
         <translation>Clear behavior data</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="238"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="239"/>
         <source>The local months are removed, and their encrypted cloud copies are deleted at the next sync.</source>
         <translation>The local months are removed, and their encrypted cloud copies are deleted at the next sync.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="250"/>
+        <location filename="../src/app/qml/settings/pages/SettingsCareerPage.qml" line="251"/>
         <source>Records stay on this device. Encrypted copies go to your own sync account.</source>
         <translation>Records stay on this device. Encrypted copies go to your own sync account.</translation>
     </message>
@@ -1866,8 +1866,8 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="53"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="83"/>
-        <source>Extensions</source>
-        <translation>Extensions</translation>
+        <source>Pets</source>
+        <translation>Pets</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="59"/>
@@ -1875,7 +1875,7 @@ One small word at a time, the reading opens.</translation>
         <translation>GitHub sign-in, encrypted cloud copy</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="272"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="272"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="54"/>
         <location filename="../src/app/pet/pet_controller.cpp" line="1154"/>
         <source>Desktop companion</source>
@@ -2023,779 +2023,779 @@ One small word at a time, the reading opens.</translation>
         <translation>OCR runtime is unavailable</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="28"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="28"/>
         <source>Idle</source>
         <translation>Idle</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="29"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="29"/>
         <source>Reading</source>
         <translation>Reading</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="30"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="30"/>
         <source>Thinking</source>
         <translation>Thinking</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="31"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="31"/>
         <source>Celebrate</source>
         <translation>Celebrate</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="32"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="32"/>
         <source>Encourage</source>
         <translation>Encourage</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="33"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="33"/>
         <source>Sleep</source>
         <translation>Sleep</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="34"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="34"/>
         <source>Poked</source>
         <translation>Poked</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="35"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="35"/>
         <source>Picked up</source>
         <translation>Picked up</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="36"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="36"/>
         <source>Look around</source>
         <translation>Look around</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="37"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="37"/>
         <source>Yawn</source>
         <translation>Yawn</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="38"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="38"/>
         <source>Stretch</source>
         <translation>Stretch</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="39"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="39"/>
         <source>Angry</source>
         <translation>Angry</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="40"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="40"/>
         <source>Sign</source>
         <translation>Sign</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="70"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="70"/>
         <source>Dizzy</source>
         <translation>Dizzy</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="41"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="41"/>
         <source>Walk</source>
         <translation>Walk</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="42"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="42"/>
         <source>Edge peek</source>
         <translation>Edge peek</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="43"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="43"/>
         <source>Wobble</source>
         <translation>Wobble</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="44"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="44"/>
         <source>Bounce</source>
         <translation>Bounce</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="45"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="45"/>
         <source>Hiccup</source>
         <translation>Hiccup</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="46"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="46"/>
         <source>Shiver</source>
         <translation>Shiver</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="47"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="47"/>
         <source>Spin</source>
         <translation>Spin</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="48"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="48"/>
         <source>Preen</source>
         <translation>Preen</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="49"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="49"/>
         <source>Hop</source>
         <translation>Hop</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="50"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="50"/>
         <source>Flap</source>
         <translation>Flap</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="51"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="51"/>
         <source>Hoot</source>
         <translation>Hoot</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="52"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="52"/>
         <source>Nod</source>
         <translation>Nod</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="53"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="53"/>
         <source>Groom</source>
         <translation>Groom</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="54"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="54"/>
         <source>Tail flick</source>
         <translation>Tail flick</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="55"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="55"/>
         <source>Knead</source>
         <translation>Knead</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="56"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="56"/>
         <source>Pounce</source>
         <translation>Pounce</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="57"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="57"/>
         <source>Scratch</source>
         <translation>Scratch</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="58"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="58"/>
         <source>Float</source>
         <translation>Float</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="59"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="59"/>
         <source>Peek</source>
         <translation>Peek</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="60"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="60"/>
         <source>Boo</source>
         <translation>Boo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="61"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="61"/>
         <source>Bob</source>
         <translation>Bob</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="62"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="62"/>
         <source>Squish</source>
         <translation>Squish</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="63"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="63"/>
         <source>Bubble</source>
         <translation>Bubble</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="64"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="64"/>
         <source>Drift</source>
         <translation>Drift</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="65"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="65"/>
         <source>Drizzle</source>
         <translation>Drizzle</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="66"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="66"/>
         <source>Puff</source>
         <translation>Puff</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="77"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="77"/>
         <source>Swing</source>
         <translation>Swing</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="78"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="78"/>
         <source>Desk</source>
         <translation>Desk</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="79"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="79"/>
         <source>Skateboard</source>
         <translation>Skateboard</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="80"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="80"/>
         <source>Bubble bath</source>
         <translation>Bubble bath</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="81"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="81"/>
         <source>Rain</source>
         <translation>Rain</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="82"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="82"/>
         <source>Cardboard box</source>
         <translation>Cardboard box</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="83"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="83"/>
         <source>Sunny sill</source>
         <translation>Sunny sill</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="84"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="84"/>
         <source>Watering</source>
         <translation>Watering</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="85"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="85"/>
         <source>Star fishing</source>
         <translation>Star fishing</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="86"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="86"/>
         <source>Frisbee</source>
         <translation>Frisbee</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="87"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="87"/>
         <source>Burying a bone</source>
         <translation>Burying a bone</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="88"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="88"/>
         <source>Jack-o&apos;-lantern</source>
         <translation>Jack-o&apos;-lantern</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="89"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="89"/>
         <source>Mirror</source>
         <translation>Mirror</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="90"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="90"/>
         <source>Sundae</source>
         <translation>Sundae</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="91"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="91"/>
         <source>Trampoline</source>
         <translation>Trampoline</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="92"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="92"/>
         <source>Hot spring</source>
         <translation>Hot spring</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="93"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="93"/>
         <source>Roasted mochi</source>
         <translation>Roasted mochi</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="94"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="94"/>
         <source>Stargazing</source>
         <translation>Stargazing</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="95"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="95"/>
         <source>Book nook</source>
         <translation>Book nook</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="128"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="128"/>
         <source>Round glasses</source>
         <translation>Round glasses</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="141"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="141"/>
         <source>Bow tie</source>
         <translation>Bow tie</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="130"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="130"/>
         <source>Blush</source>
         <translation>Blush</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="140"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="140"/>
         <source>Scarf</source>
         <translation>Scarf</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="138"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="138"/>
         <source>Sleep mask</source>
         <translation>Sleep mask</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="150"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="150"/>
         <source>Bell collar</source>
         <translation>Bell collar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="122"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="122"/>
         <source>Bandana</source>
         <translation>Bandana</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="67"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="67"/>
         <source>Blink</source>
         <translation>Blink</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="68"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="68"/>
         <source>Wag</source>
         <translation>Wag</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="69"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="69"/>
         <source>Sniff</source>
         <translation>Sniff</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="116"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="116"/>
         <source>Newsboy cap</source>
         <translation>Newsboy cap</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="117"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="117"/>
         <source>Berry beret</source>
         <translation>Berry beret</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="118"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="118"/>
         <source>Knit beanie</source>
         <translation>Knit beanie</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="119"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="119"/>
         <source>Round frames</source>
         <translation>Round frames</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="120"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="120"/>
         <source>Round shades</source>
         <translation>Round shades</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="121"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="121"/>
         <source>Heart frames</source>
         <translation>Heart frames</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="123"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="123"/>
         <source>Knit scarf</source>
         <translation>Knit scarf</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="124"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="124"/>
         <source>Backpack</source>
         <translation>Backpack</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="125"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="125"/>
         <source>Sakura pin</source>
         <translation>Sakura pin</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="126"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="126"/>
         <source>Hachimaki</source>
         <translation>Hachimaki</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="127"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="127"/>
         <source>Chasen</source>
         <translation>Chasen</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="129"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="129"/>
         <source>Candy shades</source>
         <translation>Candy shades</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="131"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="131"/>
         <source>Nori wrap</source>
         <translation>Nori wrap</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="132"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="132"/>
         <source>Furoshiki</source>
         <translation>Furoshiki</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="133"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="133"/>
         <source>Bean pouch</source>
         <translation>Bean pouch</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="134"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="134"/>
         <source>Mortarboard</source>
         <translation>Mortarboard</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="135"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="135"/>
         <source>Nightcap</source>
         <translation>Nightcap</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="136"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="136"/>
         <source>Quill clip</source>
         <translation>Quill clip</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="137"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="137"/>
         <source>Reading frames</source>
         <translation>Reading frames</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="139"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="139"/>
         <source>Book satchel</source>
         <translation>Book satchel</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="142"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="142"/>
         <source>Paper boat</source>
         <translation>Paper boat</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="143"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="143"/>
         <source>Sardine clip</source>
         <translation>Sardine clip</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="144"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="144"/>
         <source>Flower crown</source>
         <translation>Flower crown</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="145"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="145"/>
         <source>Cat-eye frames</source>
         <translation>Cat-eye frames</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="146"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="146"/>
         <source>Cat-eye shades</source>
         <translation>Cat-eye shades</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="147"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="147"/>
         <source>Heart blush</source>
         <translation>Heart blush</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="148"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="148"/>
         <source>Fishbone collar</source>
         <translation>Fishbone collar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="149"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="149"/>
         <source>Sailor collar</source>
         <translation>Sailor collar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="151"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="151"/>
         <source>Witch hat</source>
         <translation>Witch hat</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="152"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="152"/>
         <source>Moon clip</source>
         <translation>Moon clip</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="153"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="153"/>
         <source>Halo</source>
         <translation>Halo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="154"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="154"/>
         <source>Monocle</source>
         <translation>Monocle</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="155"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="155"/>
         <source>Star frames</source>
         <translation>Star frames</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="156"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="156"/>
         <source>Mustache</source>
         <translation>Mustache</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="157"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="157"/>
         <source>Key chain</source>
         <translation>Key chain</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="158"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="158"/>
         <source>Candle</source>
         <translation>Candle</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="159"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="159"/>
         <source>Mist scarf</source>
         <translation>Mist scarf</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="160"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="160"/>
         <source>Bubble crown</source>
         <translation>Bubble crown</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="161"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="161"/>
         <source>Starfish clip</source>
         <translation>Starfish clip</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="162"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="162"/>
         <source>Sailor cap</source>
         <translation>Sailor cap</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="163"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="163"/>
         <source>Bubble frames</source>
         <translation>Bubble frames</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="164"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="164"/>
         <source>Dive mask</source>
         <translation>Dive mask</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="165"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="165"/>
         <source>Bubble cheeks</source>
         <translation>Bubble cheeks</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="166"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="166"/>
         <source>Pearl strand</source>
         <translation>Pearl strand</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="167"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="167"/>
         <source>Shell necklace</source>
         <translation>Shell necklace</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="168"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="168"/>
         <source>Fish charm</source>
         <translation>Fish charm</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="169"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="169"/>
         <source>Storm cap</source>
         <translation>Storm cap</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="170"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="170"/>
         <source>Star beanie</source>
         <translation>Star beanie</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="171"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="171"/>
         <source>Rain hat</source>
         <translation>Rain hat</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="172"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="172"/>
         <source>Raindrop frames</source>
         <translation>Raindrop frames</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="173"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="173"/>
         <source>Cloud frames</source>
         <translation>Cloud frames</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="174"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="174"/>
         <source>Snow freckles</source>
         <translation>Snow freckles</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="175"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="175"/>
         <source>Rain chain</source>
         <translation>Rain chain</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="176"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="176"/>
         <source>Bolt charm</source>
         <translation>Bolt charm</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="183"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="183"/>
         <source>Head</source>
         <translation>Head</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="184"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="184"/>
         <source>Face</source>
         <translation>Face</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="185"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="185"/>
         <source>Body</source>
         <translation>Body</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="204"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="204"/>
         <source>%1: often heads to %2</source>
         <translation>%1: often heads to %2</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="209"/>
-        <location filename="../src/app/pet/pet_controller.cpp" line="1156"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="209"/>
         <source>Dog</source>
         <translation>Dog</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="210"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="210"/>
+        <location filename="../src/app/pet/pet_controller.cpp" line="1156"/>
         <source>Mochi</source>
         <translation>Mochi</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="211"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="211"/>
         <source>Owl</source>
         <translation>Owl</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="212"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="212"/>
         <source>Stub cat</source>
         <translation>Stub cat</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="213"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="213"/>
         <source>Ghost</source>
         <translation>Ghost</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="214"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="214"/>
         <source>Jellyfish</source>
         <translation>Jellyfish</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="215"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="215"/>
         <source>Cloud</source>
         <translation>Cloud</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="223"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="223"/>
         <source>The package format is not supported.</source>
         <translation>The package format is not supported.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="224"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="224"/>
         <source>The package exceeds the size limits.</source>
         <translation>The package exceeds the size limits.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="225"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="225"/>
         <source>The package name is not valid.</source>
         <translation>The package name is not valid.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="226"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="226"/>
         <source>A required action is missing.</source>
         <translation>A required action is missing.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="227"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="227"/>
         <source>An action is not valid.</source>
         <translation>An action is not valid.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="228"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="228"/>
         <source>The anchor data is not valid.</source>
         <translation>The anchor data is not valid.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="229"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="229"/>
         <source>An accessory is not valid.</source>
         <translation>An accessory is not valid.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="230"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="230"/>
         <source>An image is not a valid PNG.</source>
         <translation>An image is not a valid PNG.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="231"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="231"/>
         <source>An image size does not match its frames.</source>
         <translation>An image size does not match its frames.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="232"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="232"/>
         <source>An expression index is out of range.</source>
         <translation>An expression index is out of range.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="233"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="233"/>
         <source>An image path points outside the package.</source>
         <translation>An image path points outside the package.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="234"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="234"/>
         <source>The package id is already in use.</source>
         <translation>The package id is already in use.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="235"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="235"/>
         <source>The package could not be read.</source>
         <translation>The package could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="281"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="281"/>
         <source>Mouse pass-through</source>
         <translation>Mouse pass-through</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="297"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="297"/>
         <source>Desktop pet size</source>
         <translation>Desktop pet size</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="341"/>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="350"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="341"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="350"/>
         <source>Pet type</source>
         <translation>Pet type</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="355"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="355"/>
         <source>External</source>
         <translation>External</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="372"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="372"/>
         <source>Pet packages</source>
         <translation>Pet packages</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="379"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="379"/>
         <source>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</source>
         <translation>Copy a pet package folder into the packages folder. Lens reads it when you open this section.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="387"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="387"/>
         <source>Open packages folder</source>
         <translation>Open packages folder</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="400"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="400"/>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>
@@ -2805,24 +2805,24 @@ One small word at a time, the reading opens.</translation>
         <translation>Selection bar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="414"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="414"/>
         <location filename="../src/app/qml/settings/previews/SelectionBarPreview.qml" line="132"/>
         <location filename="../src/app/qml/settings/previews/VocabPreview.qml" line="121"/>
         <source>Preview</source>
         <translation>Preview</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="429"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="429"/>
         <source>Actions</source>
         <translation>Actions</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="459"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="459"/>
         <source>Scenes</source>
         <translation>Scenes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="487"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="487"/>
         <source>Accessories</source>
         <translation>Accessories</translation>
     </message>
@@ -3353,72 +3353,72 @@ One small word at a time, the reading opens.</translation>
         <translation>Tesseract data folder</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="96"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="96"/>
         <source>Yarn ball</source>
         <translation>Yarn ball</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="97"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="97"/>
         <source>Goldfish bowl</source>
         <translation>Goldfish bowl</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="98"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="98"/>
         <source>Rainbow slide</source>
         <translation>Rainbow slide</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="99"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="99"/>
         <source>Dandelion</source>
         <translation>Dandelion</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="100"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="100"/>
         <source>Snowman</source>
         <translation>Snowman</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="101"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="101"/>
         <source>Dog bed</source>
         <translation>Dog bed</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="102"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="102"/>
         <source>Midnight clock</source>
         <translation>Midnight clock</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="103"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="103"/>
         <source>Ghost tea</source>
         <translation>Ghost tea</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="104"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="104"/>
         <source>Deep-sea lamp</source>
         <translation>Deep-sea lamp</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="105"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="105"/>
         <source>Shell bed</source>
         <translation>Shell bed</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="106"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="106"/>
         <source>Kotatsu</source>
         <translation>Kotatsu</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="107"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="107"/>
         <source>Mochi pounding</source>
         <translation>Mochi pounding</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="108"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="108"/>
         <source>By the fire</source>
         <translation>By the fire</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsExtensionsPage.qml" line="109"/>
+        <location filename="../src/app/qml/settings/pages/SettingsPetsPage.qml" line="109"/>
         <source>Mail owl</source>
         <translation>Mail owl</translation>
     </message>

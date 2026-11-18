@@ -135,7 +135,7 @@ void PetStore::confirm(std::string const& id)
 
 bool PetStore::enabled() const
 {
-    return store_.section("PET").value<bool>("enabled", false);
+    return store_.section("PET").value<bool>("enabled", true);
 }
 
 void PetStore::setEnabled(bool on)

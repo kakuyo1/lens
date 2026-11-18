@@ -12,7 +12,7 @@ import "../testutil.js" as Util
  * field, so its labels never join the list's -- the preview is reached through the field's own `optionPreviewWindow`
  * handle rather than by walking the window tree.
  *
- * The page is built here rather than through Main, as the pet surface cases build it: the extensions page is the
+ * The page is built here rather than through Main, as the pet surface cases build it: the pets page is the
  * only surface with a pet picker, and a whole Main would put a second copy of the settings panel in the way.
  */
 Item {
@@ -23,7 +23,7 @@ Item {
     Component {
         id: pageComponent
 
-        SettingsExtensionsPage {
+        SettingsPetsPage {
             width: 480
         }
     }
@@ -57,7 +57,7 @@ Item {
             Pet.setEnabled(false);
         }
 
-        /// @return The extensions page, with the pet section on and its picker in it.
+        /// @return The pets page, with the pet section on and its picker in it.
         function makePage() {
             const page = createTemporaryObject(pageComponent, host.contentItem);
             verify(page);
@@ -69,7 +69,7 @@ Item {
             const field = Util.findAll(page, function (o) {
                 return o.objectName === "petTypeField";
             })[0];
-            verify(field, "the extensions page has no pet type field");
+            verify(field, "the pets page has no pet type field");
             return field;
         }
 

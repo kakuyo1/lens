@@ -89,7 +89,7 @@
 
 <p align="center"><img src="docs/readme/pets.gif" width="900" alt="Lens 的七只像素宠物"></p>
 
-Lens 随包提供七只像素宠物：短耳猫、猫头鹰、麻糬、小幽灵、小水母、小云和小狗。它们默认关闭，可在设置的 “扩展” 里开启。
+Lens 随包提供七只像素宠物：短耳猫、猫头鹰、麻糬、小幽灵、小水母、小云和小狗。它们默认开启，可在设置的 “宠物” 里更换或关闭。
 
 - 每一只都有自己的九件配饰和六个场景——四个专属、两个共享；一条围巾或一副眼镜会改变它更常去哪个场景。
 - 它们会闲逛、在屏幕边缘躲起来、注意到指针，也能被拎起来抛出去；任务栏固定显示时，偶尔还会跳上去弹一下，慢吞吞走到头，再蹦回原处。
@@ -99,7 +99,7 @@ Lens 随包提供七只像素宠物：短耳猫、猫头鹰、麻糬、小幽灵
 
 <p align="center"><img src="docs/readme/pet-lantern.gif" width="420" alt="小幽灵的南瓜灯场景，正在播放"></p>
 
-Lens 也支持自定义宠物：仓库里的 `skills/lens-pet-maker` 是一个 Claude Code skill，克隆仓库后可以让 AI 辅助生成；做好的宠物包放进 `%APPDATA%\Lens\pets\`，就能在设置的 “扩展” 里启用。
+Lens 也支持自定义宠物：仓库里的 `skills/lens-pet-maker` 是一个 Claude Code skill，克隆仓库后可以让 AI 辅助生成；做好的宠物包放进 `%APPDATA%\Lens\pets\`，就能在设置的 “宠物” 里启用。
 
 ## 还有这些
 

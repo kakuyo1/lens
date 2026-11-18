@@ -54,7 +54,7 @@ Window {
         onSettingsRequested: {
             surfaceHost.showSettings(true);
             // After, not before: the panel clears its own category every time it comes up, so it opens on the list.
-            settingsPopup.openCategory("extensions");
+            settingsPopup.openCategory("pets");
         }
     }
 

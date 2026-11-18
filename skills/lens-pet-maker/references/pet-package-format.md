@@ -12,7 +12,7 @@
 | 宠物包 | `%APPDATA%\Lens\pets\<id>\` | 读者自己 |
 
 - 包目录必须是 `pets\` 的**直接子目录**，不再向下嵌套。
-- 应用在**打开设置的扩展分类时**扫描该目录，启动时也扫描一次，用于加载读者上次选的宠物。刚放进去的包在此之前不会被读到。
+- 应用在**打开设置的宠物分类时**扫描该目录，启动时也扫描一次，用于加载读者上次选的宠物。刚放进去的包在此之前不会被读到。
 - 应用对包目录**只读**：不写入、不删除、不改名、不移动。唯一的写入是读者在设置里点 “打开宠物包目录” 时，目录不存在则先创建它。卸载应用不删除 `%APPDATA%\Lens`，包因此还在。
 - 读者分享包时把整个 `<id>\` 目录打包成压缩文件即可；**解压由读者自己用系统工具完成**，应用不内置解压（见 `docs/adr/0043` 的后果一节）。
 
@@ -329,7 +329,7 @@ pets\<id>\
 python -I scripts/pet/render_pet.py <id>
 ```
 
-渲染器写出 `data/pet/<id>/`。把它整个目录复制到 `%APPDATA%\Lens\pets\` 下，再打开设置的扩展分类即可看到。`docs/pet-art-pipeline.md` 是完整流程、约束与经验。
+渲染器写出 `data/pet/<id>/`。把它整个目录复制到 `%APPDATA%\Lens\pets\` 下，再打开设置的宠物分类即可看到。`docs/pet-art-pipeline.md` 是完整流程、约束与经验。
 
 自查（应用加载时仍会再查一遍）：`roles` 覆盖 10 个必需角色且名字都在闭集内、`idlePool` 只列单次动作、`returnTo` 指向已映射角色、`duration` 为正数、`hover` 的动作存在且为单次、`hover.dwell` 不脱离 `hover.notice`、`movement.walk` / `peek` 存在且为循环、`behavior` 与 `sceneWeights` 的各字段在 §4 范围内、有 `blink` 条目且 `blink` 不在 `anchors.json` 里、锚点条目数等于帧数、sheet 尺寸等于 `frames × canvas`、每个表情索引小于格数、PNG 魔数正确、路径无 `..`。
 

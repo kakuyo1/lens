@@ -80,7 +80,7 @@ Window {
         if (value === "autoscan") return qsTranslate("SettingsPopup", "Auto scan");
         if (value === "ocr") return qsTranslate("SettingsPopup", "OCR");
         if (value === "model") return qsTranslate("SettingsPopup", "Model service");
-        if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
+        if (value === "pets") return qsTranslate("SettingsPopup", "Pets");
         if (value === "sync") return qsTranslate("SettingsPopup", "Account & sync");
         if (value === "about") return qsTranslate("SettingsPopup", "About");
         return "";
@@ -127,13 +127,13 @@ Window {
 
     /// @brief Open a category page, or a sub-page under it, by "category" or "category/page" -- the path the
     ///        dev surface's `surface route` names (docs/adr/0103). Both steps are the calls a click makes,
-    ///        so the state reached is the reader's, like the pet's right-click that lands on extensions.
+    ///        so the state reached is the reader's, like the pet's right-click that lands on pets.
     /// @return False when the panel is down or the path's category is not one the catalog offers.
     function routeTo(path) {
         if (!settings.visible)
             return false;
         const categories = ["general", "learning", "speech", "capture", "autoscan", "ocr", "model",
-                            "extensions", "sync", "about"];
+                            "pets", "sync", "about"];
         const steps = path.split("/");
         if (!categories.includes(steps[0]))
             return false;
@@ -579,7 +579,7 @@ Window {
                                   : settings.category === "model" ? modelComponent
                                   : settings.category === "sync" ? syncComponent
                                   : settings.category === "about" ? aboutComponent
-                                  : extensionsComponent
+                                  : petsComponent
             }
         }
 
@@ -734,7 +734,7 @@ Window {
             onPreviewRequested: (key, value) => settings.requestPreview(key, value)
         }
     }
-    Component { id: extensionsComponent; SettingsExtensionsPage {} }
+    Component { id: petsComponent; SettingsPetsPage {} }
     Component { id: clipboardComponent; SettingsClipboardPage {} }
     Component {
         id: syncComponent

@@ -220,7 +220,7 @@ public:
     /// @brief Records the reader's confirmation of an installed pet, and switches to it.
     void confirmPet(QString const& id);
     /// @brief Re-reads both folders when their stamp moved since the last read, which is what the settings ask each time
-    ///        the extensions section opens. An unchanged pair of folders keeps the catalogue, so opening the section
+    ///        the pets section opens. An unchanged pair of folders keeps the catalogue, so opening the section
     ///        costs one stamp over the folders instead of a whole check of every pet (docs/adr/0169). A chosen pet that
     ///        has gone or been refused gives way to the shipped default, with a notice.
     void refresh();

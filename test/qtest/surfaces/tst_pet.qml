@@ -18,7 +18,7 @@ Item {
     Component {
         id: pageComponent
 
-        SettingsExtensionsPage {
+        SettingsPetsPage {
             width: 480
         }
     }
@@ -31,7 +31,7 @@ Item {
             height: page.implicitHeight
             color: Tokens.panel
 
-            SettingsExtensionsPage {
+            SettingsPetsPage {
                 id: page
                 width: 480
             }

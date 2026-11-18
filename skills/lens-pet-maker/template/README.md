@@ -95,7 +95,7 @@ BODY_REF=<官方 PNG> BODY_ID=sample BODY_NAME=Sample BODY_BOOK=hand BODY_WALK=t
   跳过帽檐行的做法会留下眼白顶弧 + 硬边界。
 - **圆角矩形优于椭圆**：小尺寸下 PIL 椭圆是十字/菱形，圆角矩形近底部仍保持
   全宽，能罩住嘴线的最底行。
-- **加载时机**：应用只在启动时和打开设置扩展分类时扫描包目录；改完包要托盘完全
+- **加载时机**：应用只在启动时和打开设置宠物分类时扫描包目录；改完包要托盘完全
   退出再启动，重选同一只不会重读。离屏逐帧验证走
   `tst_pet_scene.qml` 的 `test_captureImageSourcePetActions`（把包拷进
   `%TEMP%/lens-qtest-no-installed-pets/`），不依赖重启。用例里写死了 `sample`

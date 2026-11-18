@@ -48,7 +48,7 @@ inline double magnificationOf(int size)
 }
 
 /// @brief The shipped pet a reader is given when the one they chose is gone or refused (docs/adr/0043).
-inline constexpr char const* kDefaultPet = "dog";
+inline constexpr char const* kDefaultPet = "mochi";
 
 /// @brief Where the window was left: the screen it sat on, by device name, and its offset from that screen's origin.
 struct SavedPosition {
@@ -72,7 +72,7 @@ public:
     /// @brief Records that the reader confirmed the package `id`.
     void confirm(std::string const& id);
 
-    /// @return Whether the reader turned the desktop pet on. Off by default.
+    /// @return Whether the reader turned the desktop pet on. On by default.
     bool enabled() const;
     void setEnabled(bool on);
 

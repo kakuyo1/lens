@@ -39,7 +39,7 @@ description: 为 Lens 桌面宠物制作第三方宠物包（%APPDATA%\Lens\pets
 4. 逐帧验收用离屏快照：把包拷进 `%TEMP%/lens-qtest-no-installed-pets/<id>/`，跑 `powershell -File scripts/qa/qml-snapshot.ps1 -Target lens_qtest_surfaces -Test "PetScene::test_captureImageSourcePetActions" -Out <快照目录>`（用例位于 `tst_pet_scene.qml`，渲染真实 PetScene；注意选择器要带 `PetScene::` 前缀）。**用例里写死了 `sample` 这个 id 和 `canvas == 88`**：验 88 画布的包时把包复制成 `%TEMP%/lens-qtest-no-installed-pets/sample/` 并把 pet.json 的 `id` 改成 `sample`，跑完删掉；**128 画布的包跑不了这条用例**（断言 88），靠 validate + `preview.py` 自己确认。
 
 ### 阶段 4 · 交付
-经用户同意后把 `pets/<id>\` 复制到 `%APPDATA%\Lens\pets\`，报告启用步骤（打开设置的扩展分类）。
+经用户同意后把 `pets/<id>\` 复制到 `%APPDATA%\Lens\pets\`，报告启用步骤（打开设置的宠物分类）。
 
 ## 提速规则
 

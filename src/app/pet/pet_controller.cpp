@@ -1153,7 +1153,7 @@ void PetController::switchToDefault(std::string const& gone)
     // Queued, so the notice is raised once the caller has connected to the signal; at start-up that is after the constructor.
     auto const title = QCoreApplication::translate("SettingsPopup", "Desktop companion");
     auto const body  = QCoreApplication::translate("SettingsPopup", "This pet package is no longer installed. Switched to %1.")
-                          .arg(QCoreApplication::translate("SettingsPopup", "Dog"));
+                          .arg(QCoreApplication::translate("SettingsPopup", "Mochi"));
     QTimer::singleShot(0, this, [this, title, body] { emit fellBack(title, body); });
 }
 

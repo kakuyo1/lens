@@ -296,7 +296,7 @@ if ($chosenClips -contains 'pets') {
     }
 }
 
-# The pet still: the extensions page with the pet type list open, one PNG per language.
+# The pet still: the pets page with the pet type list open, one PNG per language.
 if ($chosenClips -contains 'pet-still') {
     foreach ($folder in $chosenLanguages) {
         $code = $languages[$folder].code

@@ -14,7 +14,7 @@
  * @file pet_catalog.h
  * @brief Which pets the settings offer: the ones shipped with Lens, and the packages the reader installed (docs/adr/0043).
  *
- * Each entry into the extensions section compares the folders' stamp (scanStamp) and scans again only when it moved,
+ * Each entry into the pets section compares the folders' stamp (scanStamp) and scans again only when it moved,
  * so a package put there is seen without a restart while an unchanged pair of folders costs no scan at all
  * (docs/adr/0169). Every pet is checked whole by PetAssets::load, the same check the pet runs on. A package that
  * fails is listed with its reason, and is not offered.
@@ -68,7 +68,7 @@ PetCatalog scanPets(std::filesystem::path const& shippedRoot, std::filesystem::p
 using ScanStamp = std::vector<std::filesystem::file_time_type>;
 
 /**
- * @brief Takes the stamp held between entries into the extensions section.
+ * @brief Takes the stamp held between entries into the pets section.
  *
  * Adding, removing or renaming a folder stamps its parent, and editing a document in place stamps the document, so
  * anything that can change the scan's answer moves the stamp. A sprite redrawn over itself moves neither; the

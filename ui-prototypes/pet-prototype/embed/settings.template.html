@@ -239,10 +239,10 @@ html[data-theme=frosted] .dlg{background:rgba(255,255,255,.78)}
 <script>/*@PET_BUNDLE@*/</script>
 <script>
 /// Reader-facing strings, one column per language, same shape as the other prototypes. Pet names and accessory names
-/// are the application's (labels.md, SettingsExtensionsPage.qml); action names are the application's for the core
+/// are the application's (labels.md, SettingsPetsPage.qml); action names are the application's for the core
 /// eleven. An id with no entry shows as its raw id, as the application does.
 const L = {
-  zh: { title: "桌面宠物", crumb: "扩展", tog: "显示桌面宠物", help: "开启后宠物常驻桌面，可拖动。它不读取选区与释义，只接收事件类型。",
+  zh: { title: "桌面宠物", crumb: "宠物", tog: "显示桌面宠物", help: "开启后宠物常驻桌面，可拖动。它不读取选区与释义，只接收事件类型。",
         pass: "鼠标穿透", passHelp: "开启后宠物不接收鼠标，点击落到下层窗口，也不能被拖动。在这里关掉即可恢复互动。",
         pick: "宠物类型", stage: "预览", act: "动作", acc: "配饰",
         defaults: "恢复默认", save: "保存", saved: "已保存", reset: "已恢复默认",
@@ -273,7 +273,7 @@ const L = {
                    BadAssetType: "有图片不是有效的 PNG。", SheetSize: "有图片尺寸与帧数不符。", ExpressionIndex: "有表情索引越界。",
                    PathEscapes: "有图片路径越出包目录。", IdTaken: "宠物包 id 已被占用。" },
         themeDark: "静谧暗夜", themeLight: "晴朗白昼", themeFrosted: "雾面玻璃", themeLiquid: "流光玻璃" },
-  en: { title: "Desktop pet", crumb: "Extensions", tog: "Show desktop pet", help: "When on, the pet stays on the desktop and can be dragged. It never reads your selections or explanations, only event types.",
+  en: { title: "Desktop pet", crumb: "Pets", tog: "Show desktop pet", help: "When on, the pet stays on the desktop and can be dragged. It never reads your selections or explanations, only event types.",
         pass: "Mouse passthrough", passHelp: "When on, the pet ignores the mouse: clicks reach the window below and it cannot be dragged. Turn this off here to get interaction back.",
         pick: "Pet type", stage: "Preview", act: "Actions", acc: "Accessories",
         defaults: "Restore defaults", save: "Save", saved: "Saved", reset: "Defaults restored",
@@ -309,7 +309,7 @@ const L = {
                    SheetSize: "An image size does not match its frames.", ExpressionIndex: "An expression index is out of range.",
                    PathEscapes: "An image path points outside the package.", IdTaken: "The package id is already in use." },
         themeDark: "Dark", themeLight: "Light", themeFrosted: "Frosted glass", themeLiquid: "Liquid glass" },
-  ja: { title: "デスクトップペット", crumb: "拡張", tog: "デスクトップペットを表示", help: "オンにするとペットがデスクトップに常駐し、ドラッグで動かせます。選択文や解説は読まず、イベントの種類だけを受け取ります。",
+  ja: { title: "デスクトップペット", crumb: "ペット", tog: "デスクトップペットを表示", help: "オンにするとペットがデスクトップに常駐し、ドラッグで動かせます。選択文や解説は読まず、イベントの種類だけを受け取ります。",
         pass: "マウス透過", passHelp: "オンにするとペットはマウスを受け取らず、クリックは下のウィンドウに届きます。ドラッグもできません。ここでオフにすると操作を戻せます。",
         pick: "ペットの種類", stage: "プレビュー", act: "動き", acc: "アクセサリー",
         defaults: "初期値に戻す", save: "保存", saved: "保存しました", reset: "初期値に戻しました",
@@ -342,7 +342,7 @@ const L = {
                    SheetSize: "画像のサイズがフレーム数と一致しません。", ExpressionIndex: "表情のインデックスが範囲外です。",
                    PathEscapes: "画像パスがパッケージの外を指しています。", IdTaken: "パッケージ id は既に使われています。" },
         themeDark: "ダーク", themeLight: "ライト", themeFrosted: "すりガラス", themeLiquid: "リキッドガラス" },
-  es: { title: "Mascota de escritorio", crumb: "Extensiones", tog: "Mostrar mascota de escritorio", help: "Cuando está activa, la mascota se queda en el escritorio y puedes arrastrarla. Nunca lee tus selecciones ni explicaciones, solo recibe tipos de evento.",
+  es: { title: "Mascota de escritorio", crumb: "Mascotas", tog: "Mostrar mascota de escritorio", help: "Cuando está activa, la mascota se queda en el escritorio y puedes arrastrarla. Nunca lee tus selecciones ni explicaciones, solo recibe tipos de evento.",
         pass: "Paso del ratón", passHelp: "Cuando está activo, la mascota no recibe el ratón: los clics llegan a la ventana de debajo y no se puede arrastrar. Desactívalo aquí para recuperar la interacción.",
         pick: "Tipo de mascota", stage: "Vista previa", act: "Acciones", acc: "Accesorios",
         defaults: "Restablecer", save: "Guardar", saved: "Guardado", reset: "Valores restablecidos",

@@ -440,7 +440,7 @@ qt_add_qml_module(lens_app
     qml/settings/pages/SettingsOnlineOcrPage.qml
     qml/capture/UploadConsent.qml
     qml/settings/pages/SettingsModelPage.qml
-    qml/settings/pages/SettingsExtensionsPage.qml
+    qml/settings/pages/SettingsPetsPage.qml
     qml/settings/pages/SettingsClipboardPage.qml
     qml/settings/pages/SettingsConnectionPage.qml
     qml/settings/pages/SettingsSyncPage.qml
