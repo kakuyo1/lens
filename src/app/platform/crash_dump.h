@@ -21,4 +21,13 @@ namespace lens::app {
  */
 void installCrashDumpHandler(const std::filesystem::path& logDir);
 
+/**
+ * @brief Write a minidump of this live process for a hang, into @p dumpDir.
+ * @return The file written, or empty when the dump could not be made.
+ * @note The crash writer's format without its crash: no summary, no marker and no reporter, because
+ *       nothing faulted and the process goes on. The name carries "-hang" so a by-hand round tells
+ *       the two apart, and pruneCrashDumps keeps these under the same cap as the crash dumps.
+ */
+std::filesystem::path writeHangDump(const std::filesystem::path& dumpDir);
+
 }

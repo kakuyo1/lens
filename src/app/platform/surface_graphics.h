@@ -6,6 +6,8 @@
 #include <QQuickWindow>
 
 #include <atomic>
+#include <memory>
+#include <string>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -41,6 +43,11 @@ public:
     /// @brief Adopt the device on one window and bracket its frames. Before scene graph init.
     void adopt(QQuickWindow* window);
 
+    /// @brief The window whose frame holds the lock right now, for the hang watchdog's log line.
+    /// @return The window's name as adopted, or empty when no frame is inside the bracket.
+    /// @note Safe from any thread: the holder is published as an atomic pointer to the adopted name.
+    std::string frameLockHolder() const;
+
 private:
     /// A render thread reports an invalidation; a removed device means every window must adopt a
     /// new one, because the loop's own retry would re-adopt the lost device forever. The rebuild
@@ -53,8 +60,13 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Device>        device_;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> context_;
     QMutex                                      frameMutex_;
-    std::atomic<int>                            recovering_{0};
-    QList<QPointer<QQuickWindow>>               windows_;
+    /// The adopted names, owned here so the holder pointer stays valid for as long as this object --
+    /// which outlives every window that adopts it (main.cpp).
+    QList<std::shared_ptr<std::string const>> names_;
+    /// The adopted name of the window inside the frame bracket, so a wait or a stall can say whose frame it is.
+    std::atomic<std::string const*> frameHolder_{nullptr};
+    std::atomic<int>                recovering_{0};
+    QList<QPointer<QQuickWindow>>   windows_;
 };
 #else
 /// Off Windows the surfaces keep Qt's own devices; the pointer is never dereferenced.

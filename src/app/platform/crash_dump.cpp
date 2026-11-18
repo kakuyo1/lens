@@ -259,6 +259,27 @@ LONG WINAPI unhandledExceptionFilter(EXCEPTION_POINTERS* pointers)
 
 }
 
+std::filesystem::path writeHangDump(const std::filesystem::path& dumpDir)
+{
+    // The crash dump's own type and environment switch, from a process that is alive: the stacks
+    // are the whole question here, and nothing about it may touch the log or the heap.
+    const std::string           stem = lens::util::crashDumpStem(LENS_VERSION, localTimeCompact(), GetCurrentProcessId()) + "-hang";
+    const std::filesystem::path path = dumpDir / (stem + ".dmp");
+    HANDLE                      file = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (file == INVALID_HANDLE_VALUE) return {};
+    MINIDUMP_TYPE dumpType = static_cast<MINIDUMP_TYPE>(MiniDumpNormal | MiniDumpWithUnloadedModules);
+    if (GetEnvironmentVariableW(L"LENS_CRASH_FULL_DUMP", nullptr, 0) != 0)
+        dumpType = static_cast<MINIDUMP_TYPE>(dumpType | MiniDumpWithIndirectlyReferencedMemory | MiniDumpWithProcessThreadData);
+    // No exception record: no thread faulted, and a synthetic one would read as a crash site.
+    const bool written = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, dumpType, nullptr, nullptr, nullptr) != FALSE;
+    CloseHandle(file);
+    if (!written) {
+        DeleteFileW(path.c_str());
+        return {};
+    }
+    return path;
+}
+
 void installCrashDumpHandler(const std::filesystem::path& logDir)
 {
     g_dumpDir = lens::util::crashDumpDir(logDir);

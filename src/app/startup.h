@@ -104,6 +104,9 @@ bool installInputHooks(MouseSelectionHook& hook, AltKeyHook& altHook, AppControl
 /// @brief Report the last crash, then start the update, sync and onboarding duties.
 void runStartupDuties(AppController& controller, const std::filesystem::path& logDir);
 
+/// @brief Watch the GUI thread's pulse and write a dump when the interface stalls, naming the frame-lock holder.
+void watchForHangs(const std::filesystem::path& logDir, SharedGraphics* shared = nullptr);
+
 /// @brief Drive the QML profile scenario named by LENS_QML_PROFILE_SCENARIO, on a QML-debug build.
 void startProfileScenario(QQmlApplicationEngine& engine);
 

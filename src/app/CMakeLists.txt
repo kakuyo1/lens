@@ -107,6 +107,8 @@ add_library(lens_app STATIC
   platform/autostart.cpp
   platform/crash_dump.h
   platform/crash_dump.cpp
+  platform/hang_watchdog.h
+  platform/hang_watchdog.cpp
   platform/global_hotkey.h
   platform/global_hotkey.cpp
   platform/hover_word_lookup.h

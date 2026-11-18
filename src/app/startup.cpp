@@ -19,6 +19,7 @@
 
 #include "app/platform/autostart.h"
 #include "app/platform/crash_dump.h"
+#include "app/platform/hang_watchdog.h"
 #include "app/platform/running_instance.h"
 #include "app/platform/surface_graphics.h"
 #include "app/settings_access.h"
@@ -340,6 +341,19 @@ void runStartupDuties(AppController& controller, const std::filesystem::path& lo
     controller.syncDuty()->startAtLaunch();
     // The first-run wizard is a surface too, so it waits for the same moment as the update check.
     controller.onboardingDuty()->startAtLaunch(kForceOnboarding);
+}
+
+void watchForHangs(const std::filesystem::path& logDir, [[maybe_unused]] SharedGraphics* shared)
+{
+    // The shared frame lock is the glass graph's one cross-thread wait, and the frame that pays a
+    // long wait is the frame the GUI thread waits on when a hidden window comes back (docs/adr/0191):
+    // the watchdog's dump and its log line name that frame, so the next freeze reads as a stack plus
+    // a window instead of a silence.
+#ifdef _WIN32
+    startHangWatchdog(logDir, [shared] { return shared != nullptr ? shared->frameLockHolder() : std::string{}; });
+#else
+    startHangWatchdog(logDir);
+#endif
 }
 
 void startProfileScenario([[maybe_unused]] QQmlApplicationEngine& engine)

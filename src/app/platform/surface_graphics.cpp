@@ -10,11 +10,30 @@
 #include <QQuickGraphicsDevice>
 #include <QTimer>
 
+#include <chrono>
+#include <memory>
+
 #include "util/log.h"
 
 namespace lens::app {
 
 #ifdef _WIN32
+
+namespace {
+
+/// How long a frame may wait for the shared lock before the wait is logged with both names. A wait
+/// shorter than this is two panels' frames meeting; a longer one is the frame the GUI thread ends up
+/// waiting on when a hidden window comes back (docs/adr/0191).
+constexpr long long kFrameLockWarnMs = 100;
+
+/// @return The name a frame-lock line prints for @p name; an unnamed window still names its side.
+std::string_view labelOf(std::string const& name)
+{
+    return name.empty() ? std::string_view{"unnamed"} : std::string_view{name};
+}
+
+} // namespace
+
 using Microsoft::WRL::ComPtr;
 
 bool SharedGraphics::create()
@@ -46,11 +65,47 @@ bool SharedGraphics::create()
 void SharedGraphics::adopt(QQuickWindow* window)
 {
     window->setGraphicsDevice(QQuickGraphicsDevice::fromDeviceAndContext(device_.Get(), context_.Get()));
-    QObject::connect(window, &QQuickWindow::beforeFrameBegin, window, [this] { frameMutex_.lock(); }, Qt::DirectConnection);
-    QObject::connect(window, &QQuickWindow::afterFrameEnd, window, [this] { frameMutex_.unlock(); }, Qt::DirectConnection);
+    // The window's name travels with the frame-lock lambdas: the render thread logs who made it
+    // wait, and the hang watchdog reads the same name from the GUI-stuck thread when a stall writes
+    // its dump. The string is owned here so the published pointer cannot outlive it.
+    names_.append(std::make_shared<std::string const>(window->objectName().toStdString()));
+    auto const name = names_.constLast();
+    QObject::connect(
+        window,
+        &QQuickWindow::beforeFrameBegin,
+        window,
+        [this, name] {
+            auto const started = std::chrono::steady_clock::now();
+            // Read before blocking: it names the frame the wait sits behind.
+            auto const* const waiter = frameHolder_.load(std::memory_order_acquire);
+            frameMutex_.lock();
+            frameHolder_.store(name.get(), std::memory_order_release);
+            auto const waitedMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
+            if (waitedMs >= kFrameLockWarnMs)
+                LENS_WARN("the {} window waited {} ms for the frame lock, held by {}",
+                          labelOf(*name),
+                          waitedMs,
+                          waiter != nullptr ? labelOf(*waiter) : std::string_view{"no window"});
+        },
+        Qt::DirectConnection);
+    QObject::connect(
+        window,
+        &QQuickWindow::afterFrameEnd,
+        window,
+        [this] {
+            frameHolder_.store(nullptr, std::memory_order_release);
+            frameMutex_.unlock();
+        },
+        Qt::DirectConnection);
     QObject::connect(window, &QQuickWindow::sceneGraphInvalidated, window, [this] { noteInvalidation(); }, Qt::DirectConnection); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): the queued recovery lambda below becomes a QMetaCallEvent the event loop owns; the analyzer reads the allocation as a leak
     windows_.append(window);
     LENS_DEBUG("surface tuned: {}", window->objectName().toStdString());
+}
+
+std::string SharedGraphics::frameLockHolder() const
+{
+    auto const* const holder = frameHolder_.load(std::memory_order_acquire);
+    return holder != nullptr ? *holder : std::string{};
 }
 
 void SharedGraphics::noteInvalidation()

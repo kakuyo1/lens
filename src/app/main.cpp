@@ -122,6 +122,11 @@ int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw
     lens::app::runStartupDuties(controller, logDir);
     lens::app::startProfileScenario(engine);
     lens::app::startDevSurfaceIfEnabled(engine, controller, petController, app.arguments());
+#ifdef _WIN32
+    lens::app::watchForHangs(logDir, &sharedGraphics);
+#else
+    lens::app::watchForHangs(logDir);
+#endif
 
     LENS_INFO("Lens is up");
     return app.exec();
