@@ -72,11 +72,10 @@ Item {
         clip: true
         model: Controller.wordsModel
         boundsBehavior: Flickable.StopAtBounds
-        // Every row stays instantiated, not for the viewport (that is the model's
-        // count now) but for the width handshake: a row outside the cache has not
-        // measured its word yet, and the card would widen under the reader's scroll
-        // when it finally does (docs/adr/0122 carries the measurement).
-        cacheBuffer: 6000
+        // The card's width comes from the model now (WordsModel.widestRow), so the view no longer
+        // instantiates every row to measure it -- only the viewport and a scroll buffer's worth, which
+        // is what keeps a flick from revealing blank rows (docs/adr/0122, docs/QML.md section 6).
+        cacheBuffer: box.host.rowHeight * 10
         // The viewport above is a number the view itself never computes, so nothing
         // in its own layout obliges it to build the rows: a view that first shows up
         // already sized waits for its first rendered frame to fill in, and a reader

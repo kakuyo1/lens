@@ -10,6 +10,7 @@ import QtQuick
  */
 Window {
     id: petWindow
+    objectName: "pet"
     readonly property SurfaceTokens tokens: SurfaceTokens {}
 
     readonly property real cursorSlop: 4

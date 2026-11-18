@@ -97,7 +97,14 @@ constexpr int kReleaseDelayMs = 500;
 void tuneSurface(QQuickWindow* window, [[maybe_unused]] SharedGraphics* shared)
 {
 #ifdef _WIN32
-    if (shared != nullptr)
+    // The pet and the pencil layer render for as long as they are shown -- the pet always, the pencil
+    // layer through a scan. A continuous renderer on the shared frame lock can hold the mutex while it
+    // waits on the GUI thread, which is itself waiting on another window's render thread that wants the
+    // mutex: the three deadlock and the whole app freezes (auto scan with the pet on reproduced it).
+    // Continuous renderers keep their own device; the lock only serializes the panels that open and
+    // close, which rarely render at once (docs/adr/0191).
+    const QString name = window->objectName();
+    if (shared != nullptr and name != QLatin1String("pet") and name != QLatin1String("pencilLayer"))
         shared->adopt(window);
 #endif
     window->setPersistentGraphics(false);

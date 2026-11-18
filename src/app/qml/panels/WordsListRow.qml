@@ -23,14 +23,6 @@ Item {
 
     width: entry.host.cardWidth - 40
 
-    /// What this row needs to draw itself whole: the card's padding, the word at its unelided width,
-    /// the gap, and the right-hand cluster -- which keeps 8 px off the row's right edge, the room the
-    /// cross's focus ring needs inside the list's clip. The card is sized to the widest of these, so
-    /// the row hands it over rather than having its text measured from outside.
-    readonly property real naturalWidth: 48 + wordText.implicitWidth + 9 + side.width
-    onNaturalWidthChanged: entry.host.noteRowWidth(naturalWidth)
-    Component.onCompleted: entry.host.noteRowWidth(naturalWidth)
-
     // The remove transition animates this from the row's height to zero; a binding would only
     // be re-read if the row height token changed, which it does not while a row is leaving.
     height: entry.host.rowHeight

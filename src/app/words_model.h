@@ -48,6 +48,15 @@ class WordsModel : public QAbstractListModel {
     /// @brief Whether a filter switch is between its two phases. The list is the intersection of
     ///        the two sets while it holds, so an empty line must not be drawn yet.
     Q_PROPERTY(bool filterSwitching READ filterSwitching NOTIFY filterSwitchingChanged)
+    /// @brief The widest row's natural width, computed here in C++ so the card is sized without
+    ///        instantiating every delegate. Walking the rows in QML reads a QVariantMap per row and
+    ///        freezes the window (docs/QML.md section 6); QFontMetrics over the internal vector does
+    ///        not. A running maximum, so the card does not narrow under the reader as rows change.
+    Q_PROPERTY(qreal widestRow READ widestRow NOTIFY widestRowChanged)
+    /// @brief The face the word itself is drawn in (the bubble's font setting); empty means the UI face.
+    Q_PROPERTY(QString englishFont READ englishFont WRITE setEnglishFont NOTIFY englishFontChanged)
+    /// @brief The numeric face MixedText gives Latin and digits; the CJK runs keep the UI face.
+    Q_PROPERTY(QString monoFamily READ monoFamily WRITE setMonoFamily NOTIFY monoFamilyChanged)
 public:
     /// The roles WordsListRow declares. Keep the names and the enum together.
     enum Role : int {
@@ -96,6 +105,21 @@ public:
         return switching_;
     }
 
+    qreal widestRow() const
+    {
+        return widestRow_;
+    }
+    QString englishFont() const
+    {
+        return englishFont_;
+    }
+    void    setEnglishFont(QString const& value);
+    QString monoFamily() const
+    {
+        return monoFamily_;
+    }
+    void setMonoFamily(QString const& value);
+
     /// @brief Replace the rows with those @p history describes, emitting the difference.
     /// @param knownLemmas The lemmas currently marked known; the verdict each row carries is
     ///                    derived from these sets, the same way an export's scope is.
@@ -110,6 +134,9 @@ signals:
     void allCountChanged();
     void swapMsChanged();
     void filterSwitchingChanged();
+    void widestRowChanged();
+    void englishFontChanged();
+    void monoFamilyChanged();
 
 private:
     enum Filter : int { All      = 0,
@@ -124,6 +151,10 @@ private:
     void diffVisible(std::vector<WordRow> next, bool insertRows = true);
     /// @brief Land a held switch: the rows its filter wants arrive now.
     void finishSwitch();
+    /// @brief Raise widestRow_ to the widest natural width across all rows, if it grew.
+    void recomputeWidestRow();
+    /// @return One row's natural width, matching WordsListRow's layout (docs/QML.md section 6).
+    qreal rowNaturalWidth(WordRow const& row) const;
 
     std::vector<WordRow> all_;
     std::vector<WordRow> visible_;
@@ -135,6 +166,9 @@ private:
     QString              query_;
     int                  swapMs_ = 0;
     QTimer               swap_;
+    qreal                widestRow_ = 0;
+    QString              englishFont_;
+    QString              monoFamily_;
 };
 
 }

@@ -5,9 +5,55 @@
 
 #include "words_model.h"
 
+#include <QCoreApplication>
+#include <QFont>
+#include <QFontMetrics>
+#include <QGuiApplication>
 #include <QSet>
 
 namespace lens::app {
+namespace {
+
+/// @return Whether a QGuiApplication (or QApplication) is alive: the font database needs one, and
+///         instance()/qGuiApp cast QCoreApplication::instance() without checking the type.
+bool hasGuiApplication()
+{
+    auto const* app = QCoreApplication::instance();
+    return app != nullptr && app->inherits("QGuiApplication");
+}
+
+/// @return The width MixedText draws @p text at @p pixelSize: CJK runs (U+3400..U+9FFF) keep the UI
+///         face, every other run takes the numeric face, laid end to end (MixedText.qml splitRuns).
+qreal mixedWidth(QString const& text, int pixelSize, QFont const& uiFont, QFont const& monoFont)
+{
+    QFont ui   = uiFont;
+    QFont mono = monoFont;
+    ui.setPixelSize(pixelSize);
+    mono.setPixelSize(pixelSize);
+    QFontMetrics const uiFm(ui);
+    QFontMetrics const monoFm(mono);
+
+    qreal   width = 0;
+    QString run;
+    bool    runCjk = false;
+    auto    flush  = [&] {
+        if (run.isEmpty())
+            return;
+        width += (runCjk ? uiFm : monoFm).horizontalAdvance(run);
+        run.clear();
+    };
+    for (QChar const character : text) {
+        bool const cjk = character.unicode() >= 0x3400 && character.unicode() <= 0x9fff;
+        if (not run.isEmpty() and cjk != runCjk)
+            flush();
+        runCjk = cjk;
+        run += character;
+    }
+    flush();
+    return width;
+}
+
+} // namespace
 
 WordsModel::WordsModel(QObject* parent)
     : QAbstractListModel(parent)
@@ -166,8 +212,77 @@ void WordsModel::update(QDate const&                           today,
         all_ = std::move(nextAll);
     }
 
+    recomputeWidestRow();
+
     if (allCount() != oldCount)
         emit allCountChanged();
+}
+
+void WordsModel::setEnglishFont(QString const& value)
+{
+    if (value == englishFont_)
+        return;
+    englishFont_ = value;
+    emit englishFontChanged();
+    recomputeWidestRow();
+}
+
+void WordsModel::setMonoFamily(QString const& value)
+{
+    if (value == monoFamily_)
+        return;
+    monoFamily_ = value;
+    emit monoFamilyChanged();
+    recomputeWidestRow();
+}
+
+qreal WordsModel::rowNaturalWidth(WordRow const& row) const
+{
+    // Mirrors WordsListRow.qml: the word in the bubble's face at 13 px, then the right cluster --
+    // metadata and verdict pills -- whose widths the card needs to size itself without building rows.
+    // A unit test drives the model under QCoreApplication alone; the default font stands in there.
+    QFont const uiFont = hasGuiApplication() ? QGuiApplication::font() : QFont{};
+    QFont const monoFont(monoFamily_.isEmpty() ? QStringLiteral("Cascadia Code") : monoFamily_);
+    QFont       wordFont(englishFont_.isEmpty() ? uiFont.family() : englishFont_);
+    wordFont.setPixelSize(13);
+    qreal const wordWidth = QFontMetrics(wordFont).horizontalAdvance(row.word);
+
+    QString when;
+    if (row.day == QLatin1String("today"))
+        when = QCoreApplication::translate("WordsPopup", "Today %1").arg(row.time);
+    else if (row.day == QLatin1String("yesterday"))
+        when = QCoreApplication::translate("WordsPopup", "Yesterday %1").arg(row.time);
+    else if (row.day == QLatin1String("earlier"))
+        when = row.date + QLatin1Char(' ') + row.time;
+    qreal const whenWidth = mixedWidth(when, 11, uiFont, monoFont);
+    qreal const popsWidth = mixedWidth(QCoreApplication::translate("WordsListRow", "%1×").arg(row.pops), 11, uiFont, monoFont);
+    qreal const metaWidth = whenWidth + 6 + popsWidth;
+
+    QFont pillFont = uiFont;
+    pillFont.setPixelSize(11);
+    pillFont.setWeight(QFont::Bold);
+    QFontMetrics const pillFm(pillFont);
+    auto               pillWidth  = [&](QString const& label) { return pillFm.horizontalAdvance(label) + 13; };
+    qreal const        pillsWidth = pillWidth(QCoreApplication::translate("WordsListRow", "Known")) + 6 + pillWidth(QCoreApplication::translate("WordsListRow", "Mastered")) + 6 + pillWidth(QCoreApplication::translate("WordsListRow", "New"));
+
+    qreal const sideWidth = metaWidth + 8 + pillsWidth + 8 + 14;
+    return 48 + wordWidth + 9 + sideWidth;
+}
+
+void WordsModel::recomputeWidestRow()
+{
+    // The width needs the font database, which only a QGuiApplication carries; a unit test drives
+    // the model under QCoreApplication alone and never reads widestRow. instance() and qGuiApp both
+    // cast QCoreApplication::instance() without checking the type, so ask the metaobject.
+    if (not hasGuiApplication())
+        return;
+    qreal widest = widestRow_;
+    for (WordRow const& row : all_)
+        widest = qMax(widest, rowNaturalWidth(row));
+    if (widest != widestRow_) {
+        widestRow_ = widest;
+        emit widestRowChanged();
+    }
 }
 
 bool WordsModel::matches(WordRow const& row, int filter)

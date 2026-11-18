@@ -42,19 +42,14 @@ Window {
     readonly property int minCardWidth: 320
     readonly property int maxCardWidth: 560
 
-    /// As wide as its widest row, so no word is ever shown elided. Rows report their width as they
-    /// lay out rather than being walked for it -- a JS loop over the model's rows reads a
-    /// QVariantMap per row, a frozen window (docs/QML.md section 6). A running maximum, so the
-    /// card does not narrow under the reader as rows change; the cap above bounds it.
-    property real widestRow: 0
+    /// As wide as its widest row, so no word is ever shown elided. The model computes that width in
+    /// C++ (QFontMetrics over its rows): a JS walk reads a QVariantMap per row and freezes the window,
+    /// and instantiating every delegate to measure it is what made the list slow (docs/QML.md section 6,
+    /// docs/adr/0122). A running maximum, so the card does not narrow as rows change; the cap bounds it.
+    readonly property int cardWidth: Math.min(maxCardWidth, Math.max(minCardWidth, Math.ceil(Controller.wordsModel.widestRow)))
 
-    /// @brief Note one row's natural width. Called by each row as it lays out.
-    function noteRowWidth(width) {
-        if (width > widestRow)
-            widestRow = width;
-    }
-
-    readonly property int cardWidth: Math.min(maxCardWidth, Math.max(minCardWidth, Math.ceil(widestRow)))
+    Binding { target: Controller.wordsModel; property: "englishFont"; value: Controller.settings.font }
+    Binding { target: Controller.wordsModel; property: "monoFamily"; value: Tokens.monoFamily }
 
     width: cardWidth + 2 * shadowMargin
 
