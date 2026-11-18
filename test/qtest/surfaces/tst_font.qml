@@ -301,6 +301,9 @@ Item {
             mouseMove(row, row.width / 2, row.height / 2);
             tryCompare(preview, "visible", true);
             compare(preview.englishFont, first, "the preview did not take the hovered family");
+            // Drawn whole, not written out: a row re-faces the card, and the typewriter is what a
+            // title's preview shows. A replay here would hide the face the row is asking about.
+            compare(preview.revealing, false, "the row preview wrote itself out");
 
             const second = field.options[1].value;
             const next = Util.textWith(Util.textsInNestedWindow(field), [second]);

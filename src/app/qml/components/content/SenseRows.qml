@@ -24,6 +24,9 @@ Repeater {
     required property var senses
     /// Whether the lines are written out a character at a time (RevealText), or arrive whole.
     required property bool animated
+    /// Whether the lines are drawn whole rather than laid a character at a time (RevealText); the
+    /// settings' row previews take it with `animated` off.
+    property bool whole: false
     /// The pace the lines are written at, in real milliseconds (RevealText).
     property int characterMs: 35
     required property color englishColor
@@ -104,6 +107,7 @@ Repeater {
             objectName: "senseEnglish"
             visible: text !== ""
             animated: root.animated
+            whole: root.whole
             characterMs: root.characterMs
             width: parent.width
             topPadding: 6
@@ -124,6 +128,7 @@ Repeater {
             objectName: "senseTranslation"
             visible: text !== ""
             animated: root.animated
+            whole: root.whole
             characterMs: root.characterMs
             width: parent.width
             topPadding: 5

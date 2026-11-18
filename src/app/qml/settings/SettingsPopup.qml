@@ -257,6 +257,12 @@ Window {
             previewCard.visible = false;
             return;
         }
+        // The four rows a list retargets draw their demo whole: the row asks what the card looks
+        // like in that face, size or language, and a replayed typewriter re-lays the whole card per
+        // row. A preview a title raises keeps the reader's pace (UI-SPEC.md 4.4).
+        if (previewKey === "font" || previewKey === "fontSize"
+                || previewKey === "language" || previewKey === "motherTongue")
+            payload.reveal = false;
         previewCard.show(payload);
     }
 

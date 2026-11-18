@@ -192,7 +192,8 @@ Window {
     property int waitingLines: 0
 
     /// Whether the answer is written out a character at a time (RevealText). A card raised whole out
-    /// of the cache is not: the word list puts one up for every row the pointer crosses.
+    /// of the cache is not: the word list puts one up for every row the pointer crosses. Nor are the
+    /// settings' row previews, which are re-faced on every row the pointer crosses (SettingsPopup).
     property bool reveal: true
     /// Whether the fields reveal at all, which is the payload's flag and the reader's motion setting.
     readonly property bool revealAnimation: reveal && !bubble.tokens.motion.reduced
@@ -292,6 +293,10 @@ Window {
             example = "";
             senses = [];
         }
+        // Whether the card writes itself out is settled before a single field is handed its text:
+        // a card drawn whole would otherwise lay every field out a character at a time for nothing,
+        // and then lay it out again the moment `reveal` landed.
+        reveal = payload.reveal !== false;
         chainSteps.refresh(payload);
         englishSpans = payload.spans || [];
         signpost = payload.signpost || "";
@@ -318,7 +323,6 @@ Window {
         senseCycle = payload.senseCycle === true;
         senseHint = payload.senseHint || "";
         countsDown = payload.countsDown !== false;
-        reveal = payload.reveal !== false;
         verdictButtons = payload.verdictButtons !== false;
         waiting = payload.waiting === true;
         holding = payload.hold === true;

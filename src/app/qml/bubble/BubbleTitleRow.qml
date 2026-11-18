@@ -71,6 +71,9 @@ Item {
     /// card decides the scale and this block follows it, as every block on it does.
     property real scale: 1
     required property bool animated
+    /// Whether the pronunciation is drawn whole rather than written out (RevealText); the settings'
+    /// row previews take it with `animated` off.
+    property bool whole: false
     required property int characterMs
     required property var tokens
     /// The width the header controls take at the card's right edge (BubbleHeaderActions.qml). A bare
@@ -145,6 +148,7 @@ Item {
         y: root.stacked ? wordText.height : wordText.baselineOffset - baselineOffset
         visible: root.ipa !== ""
         animated: root.animated
+        whole: root.whole
         characterMs: root.characterMs
         // Measured, not wrapped, and whole from the first frame: the title gives up its room to
         // the full pronunciation, not to what has been written so far.

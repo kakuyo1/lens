@@ -60,6 +60,13 @@ Item {
                                       || etymologyText.revealing || exampleText.revealing
                                       || senseRows.revealing || chainPanel.revealing
 
+    /// Whether the fields are drawn whole rather than written out a character at a time: the
+    /// settings' row previews, once their reveal is off (SettingsPopup.updatePreview). Such a card
+    /// is re-faced on every row the pointer crosses -- a family, a size, a language -- and the
+    /// per-character layout re-measured the whole answer each time, some 60 ms for one definition
+    /// on the thread the list is drawn on.
+    readonly property bool fieldsWhole: root.bubble.preview && !root.bubble.revealAnimation
+
     /// Whether a verdict is on offer at all: the card is one the duty settled as offering one, and
     /// it has a word's status to show. The row's visibility, its opening and Bubble.qml's height
     /// hold all read this one value, so the three cannot disagree about the same card.
@@ -313,6 +320,7 @@ Item {
                 family: root.bubble.englishFont
                 scale: root.bubble.fontScale
                 animated: root.bubble.revealAnimation
+                whole: root.fieldsWhole
                 characterMs: root.bubble.revealCharacterMs
                 tokens: root.bubble.tokens
                 // The globe and the cross stand at the right edge, where a bare title would run under them.
@@ -333,6 +341,7 @@ Item {
                 // reader has read this card already, and a switched sense typed out a character
                 // at a time would stand between the click and the sense it asked for.
                 animated: root.bubble.revealAnimation && !root.bubble.senseSwappedOnce
+                whole: root.fieldsWhole
                 markColor: root.bubble.tokens.faint
                 hoverColor: root.bubble.tokens.okBg
                 onWordTapped: lemma => chainPanel.step(lemma)
@@ -352,6 +361,7 @@ Item {
                 objectName: "definitionText"
                 visible: root.bubble.atRoot && root.bubble.senses.length === 0 && root.bubble.english !== ""
                 animated: root.bubble.revealAnimation
+                whole: root.fieldsWhole
                 characterMs: root.bubble.revealCharacterMs
                 width: parent.width
                 topPadding: 6
@@ -370,6 +380,7 @@ Item {
                 id: chineseText
                 visible: root.bubble.atRoot && root.bubble.senses.length === 0 && root.bubble.chinese !== ""
                 animated: root.bubble.revealAnimation
+                whole: root.fieldsWhole
                 characterMs: root.bubble.revealCharacterMs
                 width: parent.width
                 topPadding: 5
@@ -383,6 +394,7 @@ Item {
                 id: translationText
                 visible: root.bubble.atRoot && root.bubble.senses.length === 0 && root.bubble.translation !== ""
                 animated: root.bubble.revealAnimation
+                whole: root.fieldsWhole
                 characterMs: root.bubble.revealCharacterMs
                 width: parent.width
                 topPadding: 5
@@ -463,6 +475,7 @@ Item {
                     id: etymologyText
                     objectName: "etymologyText"
                     animated: root.bubble.revealAnimation
+                    whole: root.fieldsWhole
                     characterMs: root.bubble.revealCharacterMs
                     width: parent.width
                     text: root.bubble.etymology
@@ -502,6 +515,7 @@ Item {
                     id: exampleText
                     objectName: "exampleText"
                     animated: root.bubble.revealAnimation
+                    whole: root.fieldsWhole
                     characterMs: root.bubble.revealCharacterMs
                     width: parent.width
                     text: root.bubble.example

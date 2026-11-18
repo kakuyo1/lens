@@ -28,6 +28,9 @@ Item {
     property real lineHeight: 1.0
     /// Whether the field is written out a character at a time.
     property bool animated: true
+    /// Whether the field is drawn whole instead of laid a character at a time (RevealText); the
+    /// settings' row previews take it, and such a field carries no word links.
+    property bool whole: false
     /// The pace the field is written at, in real milliseconds (RevealText).
     property int characterMs: 35
     property real topPadding: 0
@@ -57,6 +60,7 @@ Item {
         family: root.family
         lineHeight: root.lineHeight
         animated: root.animated
+        whole: root.whole
         characterMs: root.characterMs
         topPadding: root.topPadding
         bottomPadding: root.bottomPadding

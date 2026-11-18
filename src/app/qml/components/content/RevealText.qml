@@ -49,6 +49,13 @@ Item {
     /// Whether the reveal runs. A card raised whole out of the cache, and every card under reduced
     /// motion, arrives complete (UI-SPEC.md's motion table).
     property bool animated: true
+    /// Whether the field is drawn whole: one Text carrying the string, with no per-character
+    /// layout and no reveal. A field that never writes itself out takes this; the settings' row
+    /// previews re-face the whole card on every row the pointer crosses, and re-facing a field
+    /// then costs one Text layout rather than a measurement per character prefix. A whole field
+    /// carries no `positions`, so an overlay that places itself by them (ChainText's word links)
+    /// draws nothing on it.
+    property bool whole: false
 
     /// How long a character waits for the next one, in real milliseconds. The card sets it from the
     /// reader's speed setting (UI-SPEC.md 4.3); 35 is the pace the reveal shipped with.
@@ -68,7 +75,7 @@ Item {
     /// written and still sharpening. The card's countdown waits on it (Bubble.qml), and so does
     /// anything that has to read the field as the reader finally sees it. It is the reveal timer's
     /// own condition, so there is one answer to "is this field done".
-    readonly property bool revealing: animated && text.length > 0 && cursor < text.length + softSpan
+    readonly property bool revealing: animated && !whole && text.length > 0 && cursor < text.length + softSpan
 
     implicitWidth: measure.implicitWidth
     implicitHeight: measure.implicitHeight
@@ -142,8 +149,11 @@ Item {
     }
 
     /// Lay the whole text out, breaking lines between words. A width, wrap or font change goes
-    /// this way; an extending chunk goes through extend() instead.
+    /// this way; an extending chunk goes through extend() instead. A whole field skips the
+    /// layout altogether: the measure Text below draws the string itself.
     function rebuild() {
+        if (root.whole)
+            return;
         pieces.clear();
         positions = [];
         tailStart = 0;
@@ -239,6 +249,8 @@ Item {
     /// started. Only that token can have changed -- an append either grows it or follows it -- and
     /// a word grown past the line's width wraps here from its own start, as a full rebuild would.
     function extend() {
+        if (root.whole)
+            return;
         if (tailPieces > 0)
             pieces.remove(pieces.count - tailPieces, tailPieces);
         if (positions.length > tailStart)
@@ -249,6 +261,10 @@ Item {
     }
 
     onTextChanged: {
+        if (root.whole) {
+            previous = text;
+            return;
+        }
         const continued = previous.length > 0 && text.startsWith(previous);
         previous = text;
         if (continued) {
@@ -260,6 +276,22 @@ Item {
         }
         if (!animated)
             settle();
+    }
+
+    // A field that gives up its whole drawing lays itself out again from scratch: the pieces it
+    // drew while whole were none, and the ones it left behind are gone with the mode.
+    onWholeChanged: {
+        if (root.whole) {
+            pieces.clear();
+            positions = [];
+            tailStart = 0;
+            tailX = 0;
+            tailY = 0;
+            tailPieces = 0;
+            layoutRevision++;
+        } else {
+            root.rebuild();
+        }
     }
 
     onWidthChanged: rebuild()
@@ -281,16 +313,16 @@ Item {
         // ticking past the end of the text so that the last characters clear too.
         interval: 16
         repeat: true
-        running: root.animated && root.text.length > 0 && root.cursor < root.text.length + root.softSpan
+        running: root.animated && !root.whole && root.text.length > 0 && root.cursor < root.text.length + root.softSpan
         onTriggered: root.cursor = (Date.now() - root.startedMs) / root.characterMs
     }
 
     /// The whole text as the one Text the field used to be: what the field reserves its height by,
-    /// and what its own baseline is read off. Never drawn -- the characters below are what the
-    /// reader sees.
+    /// and what its own baseline is read off. Drawn only by a whole field; a revealing one lays its
+    /// characters out below instead.
     Text {
         id: measure
-        visible: false
+        visible: root.whole
         text: root.text
         textFormat: root.textFormat
         // A wrapping field is given its column's width; a single-line one is measured against
@@ -381,7 +413,7 @@ Item {
     /// whichever character is that many places from the cursor, so the items are built once and the
     /// text moves through them.
     Repeater {
-        model: root.softSpan
+        model: root.whole ? 0 : root.softSpan
 
         delegate: Item {
             id: tail
