@@ -35,6 +35,16 @@ Com<IUIAutomationElement> elementOf(IUIAutomation& automation, quintptr const wi
     return Com<IUIAutomationElement>{raw};
 }
 
+/// @return Whether @p window is SumatraPDF's, whose UIA text (3.7 and later) differs from a
+///         browser's in two places this file reads around (docs/adr/0197).
+bool sumatraWindow(quintptr const window)
+{
+    auto const hwnd = reinterpret_cast<HWND>(window); // NOLINT(performance-no-int-to-ptr): see elementOf
+    wchar_t    name[64]{};
+    if (GetClassNameW(hwnd, name, 64) > 0 and QString::fromWCharArray(name) == QLatin1String("SUMATRA_PDF_FRAME")) return true;
+    return FindWindowExW(hwnd, nullptr, L"SUMATRA_PDF_CANVAS", nullptr) != nullptr;
+}
+
 /// @brief The COM operations the read timing breaks down (docs/adr/0188).
 enum class Op : int { Present,
                       Text,
@@ -246,6 +256,15 @@ QString wordTextOf(IUIAutomationTextRange& range)
     return word;
 }
 
+/// @return Whether @p token carries a letter. A PDF can keep the closing period as a word unit of
+///         its own; such a token has none (docs/adr/0200).
+bool hasLetter(QString const& token)
+{
+    for (auto const character : token)
+        if (character.isLetter()) return true;
+    return false;
+}
+
 /// @return The whole text of @p pattern's document range; empty when it cannot be read.
 QString textOfPattern(IUIAutomationTextPattern& pattern)
 {
@@ -257,6 +276,33 @@ QString textOfPattern(IUIAutomationTextPattern& pattern)
     QString const text = QString::fromWCharArray(body, static_cast<int>(SysStringLen(body)));
     SysFreeString(body);
     return text;
+}
+
+/// @return The text of the page that holds @p at; empty when the point or the page cannot be read.
+/// @note A PDF viewer's document range is the whole file, so the names and the language gate read
+///       the page on screen instead (docs/adr/0197).
+QString textOfPageAt(IUIAutomationTextPattern& pattern, QPoint const at)
+{
+    POINT const             point{at.x(), at.y()};
+    IUIAutomationTextRange* rangeRaw = nullptr;
+    if (FAILED(pattern.RangeFromPoint(point, &rangeRaw)) or not rangeRaw) return {};
+    Com<IUIAutomationTextRange> range{rangeRaw};
+    if (FAILED(range->ExpandToEnclosingUnit(TextUnit_Page))) return {};
+    BSTR body = nullptr;
+    if (FAILED(range->GetText(-1, &body)) or not body) return {};
+    QString const text = QString::fromWCharArray(body, static_cast<int>(SysStringLen(body)));
+    SysFreeString(body);
+    return text;
+}
+
+/// @return @p box cut to the line a SumatraPDF word's dash should sit under. Its word rects span the
+///         whole line pitch, whose bottom lies well below the glyphs, so the dash would hang low;
+///         cutting a sixth of the height lifts it back under the letters (docs/adr/0197).
+QRect lineBoxOf(QRect const box, bool const sumatra)
+{
+    if (not sumatra) return box;
+    int const lift = (std::max)(2, box.height() / 6);
+    return QRect{box.x(), box.y(), box.width(), (std::max)(1, box.height() - lift)};
 }
 
 /// @brief A word of a UI Automation page: the word unit's own text range.
@@ -290,8 +336,13 @@ private:
 /// @brief One page of a window, read through UI Automation's TextPattern.
 class UiaPage final : public capture::Page {
 public:
-    UiaPage(std::shared_ptr<IUIAutomation> automation, quintptr const window, Com<IUIAutomationElement> element, Com<IUIAutomationTextPattern> pattern, std::optional<QRect> clip)
-        : automation_{std::move(automation)}, window_{window}, element_{std::move(element)}, pattern_{std::move(pattern)}, clip_{clip}
+    UiaPage(std::shared_ptr<IUIAutomation> automation,
+            quintptr const                 window,
+            Com<IUIAutomationElement>      element,
+            Com<IUIAutomationTextPattern>  pattern,
+            std::optional<QRect>           clip,
+            bool const                     sumatra)
+        : automation_{std::move(automation)}, window_{window}, element_{std::move(element)}, pattern_{std::move(pattern)}, clip_{clip}, sumatra_{sumatra}
     {}
 
     bool                             present() const override;
@@ -305,7 +356,8 @@ public:
 
 private:
     bool                           visibleProbe(capture::Word const& word, capture::Band const& box);
-    std::shared_ptr<capture::Word> step(capture::Word const& word, int delta) override;
+    std::shared_ptr<capture::Word> step(capture::Word const& word, int delta, bool* awaiting) override;
+    std::shared_ptr<capture::Word> stepByBox(capture::Word const& word, int delta, bool* awaiting);
 
 private:
     std::shared_ptr<IUIAutomation> automation_; ///< The page outlives the reader that found it, so it holds the automation instance itself.
@@ -313,6 +365,7 @@ private:
     Com<IUIAutomationElement>      element_;
     Com<IUIAutomationTextPattern>  pattern_;
     std::optional<QRect> const     clip_;
+    bool const                     sumatra_;
     /// The hit-test's own running mean, never drained: the shell's per-second drain reset the shared
     /// accumulator to zero, re-opening the cost gate every second and flapping the placed set
     /// between filtered and whole -- the flicker the reader saw (docs/adr/0193).
@@ -362,7 +415,12 @@ capture::Band UiaPage::box() const
 std::string UiaPage::text() const
 {
     ScopedOp const op{Op::Text};
-    return textOfPattern(*pattern_).toStdString();
+    if (not sumatra_) return textOfPattern(*pattern_).toStdString();
+    // A PDF viewer's document range is the whole file: the on-screen page is the one whose names and
+    // language the track can use (docs/adr/0197).
+    RECT rect{};
+    if (FAILED(element_->get_CurrentBoundingRectangle(&rect))) return {};
+    return textOfPageAt(*pattern_, QPoint{(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2}).toStdString();
 }
 
 /// @return The word under the point, where a read starts; null when the page cannot answer there.
@@ -397,7 +455,7 @@ std::optional<capture::WordRead> UiaPage::read(capture::Word const& word)
     QString const           text  = wordTextOf(range);
     std::string const       utf8  = text.toStdString();
     int const               cut   = capture::trailingPunctOf(utf8);
-    QRect const             full  = firstBoxOf(range);
+    QRect const             full  = lineBoxOf(firstBoxOf(range), sumatra_);
     if (cut == 0) return full.isEmpty() ? std::nullopt : std::optional<capture::WordRead>{{utf8, bandOf(full), std::nullopt}};
 
     // A clone of a range the page has just retired hands back an empty handle; a virtual call
@@ -423,10 +481,11 @@ std::optional<capture::WordRead> UiaPage::read(capture::Word const& word)
 }
 
 /// @return One word along the reading order; null at either end of the document, or when the walk fails.
-std::shared_ptr<capture::Word> UiaPage::step(capture::Word const& word, int const delta)
+std::shared_ptr<capture::Word> UiaPage::step(capture::Word const& word, int const delta, bool* const awaiting)
 {
     ScopedOp const op{Op::Step};
-    auto           next = cloneOf(static_cast<UiaWord const&>(word).range());
+    if (sumatra_) return stepByBox(word, delta, awaiting);
+    auto next = cloneOf(static_cast<UiaWord const&>(word).range());
     if (not next) return nullptr;
     int moved = 0;
     if (FAILED(next->Move(TextUnit_Word, delta, &moved)) or moved == 0) return nullptr;
@@ -434,10 +493,62 @@ std::shared_ptr<capture::Word> UiaPage::step(capture::Word const& word, int cons
     return std::make_shared<UiaWord>(std::move(next));
 }
 
+/// @brief One word along the reading order on a SumatraPDF page. Its provider's Move does not
+///        advance from a range that is already a word (upstream #321), so the target is read from
+///        the boxes the moved range covers -- the last is the next word's, the first is the
+///        previous word's -- and RangeFromPoint turns that box's centre into a word handle
+///        (docs/adr/0197).
+/// @note A moved range that lands on a punctuation-only token is stepped past: RangeFromPoint on
+///       the period would expand back to the word before it and hand the walk the same word
+///       forever, never reaching the next page (docs/adr/0200).
+/// @note A moved range whose word has no box yet is a page that is not laid out: the step answers
+///       null with @p awaiting set, so the walk waits for the layout instead of calling the
+///       document ended (docs/adr/0199).
+std::shared_ptr<capture::Word> UiaPage::stepByBox(capture::Word const& word, int const delta, bool* const awaiting)
+{
+    auto probe = cloneOf(static_cast<UiaWord const&>(word).range());
+    if (not probe) return nullptr;
+    constexpr int kMaxPunctuationHops = 8;
+    for (int hop = 0; hop < kMaxPunctuationHops; ++hop) {
+        int moved = 0;
+        if (FAILED(probe->Move(TextUnit_Word, delta, &moved)) or moved == 0) return nullptr;
+        auto const boxes = boxesOf(*probe);
+        if (boxes.empty()) {
+            if (awaiting) *awaiting = true;
+            return nullptr;
+        }
+        QRect const& place = delta > 0 ? boxes.back() : boxes.front();
+        if (place.isEmpty()) {
+            if (awaiting) *awaiting = true;
+            return nullptr;
+        }
+        if (not hasLetter(wordTextOf(*probe))) continue;
+        POINT const             at{place.center().x(), place.center().y()};
+        IUIAutomationTextRange* raw = nullptr;
+        if (FAILED(pattern_->RangeFromPoint(at, &raw)) or not raw) {
+            if (awaiting) *awaiting = true;
+            return nullptr;
+        }
+        Com<IUIAutomationTextRange> target{raw};
+        if (FAILED(target->ExpandToEnclosingUnit(TextUnit_Word))) {
+            if (awaiting) *awaiting = true;
+            return nullptr;
+        }
+        return std::make_shared<UiaWord>(std::move(target));
+    }
+    if (awaiting) *awaiting = true;
+    return nullptr;
+}
+
 /// @return Whether the word is the topmost content at @p box, timed into the page's own running mean:
 ///         the cost gate reads that mean, and it must survive the shell's per-second drain.
 bool UiaPage::visible(capture::Word const& word, capture::Band const& box)
 {
+    // SumatraPDF answers every hit inside the page with the page element, not with the word's own
+    // container, so the probe below would read every word as covered. Its overlays are separate
+    // native controls and it offers no cheaper signal, so its places draw as they read (the
+    // no-mechanics answer of docs/adr/0193, recorded with the reader in docs/adr/0197).
+    if (sumatra_) return true;
     auto const   start = std::chrono::steady_clock::now();
     bool const   seen  = visibleProbe(word, box);
     double const ms    = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
@@ -504,10 +615,27 @@ PageCache& pageCache()
     return cache;
 }
 
+/// @return The text the names fall back to before the first acquire: the largest document's whole
+///         range for a browser, the page on screen for a PDF viewer (docs/adr/0197).
+std::string windowText(quintptr const window, bool const sumatra)
+{
+    ComApartment apartment;
+    auto const   automation = newAutomation();
+    if (not automation) return {};
+    auto const root = elementOf(*automation, window);
+    if (not root) return {};
+    auto const page = pageOf(*automation, *root, QRect{});
+    if (not page.pattern) return {};
+    if (not sumatra) return textOfPattern(*page.pattern).toStdString();
+    RECT rect{};
+    if (FAILED(page.element->get_CurrentBoundingRectangle(&rect))) return {};
+    return textOfPageAt(*page.pattern, QPoint{(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2}).toStdString();
+}
+
 }
 
 UiaPageReader::UiaPageReader(quintptr const window)
-    : window_{window}
+    : window_{window}, sumatra_{sumatraWindow(window)}
 {}
 
 UiaPageReader::~UiaPageReader()
@@ -533,7 +661,7 @@ std::shared_ptr<capture::Page> UiaPageReader::acquire(capture::Band const& band)
     if (not root) return nullptr;
     auto page = pageOf(*automation_, *root, rectOf(band));
     if (not page.pattern) return nullptr;
-    auto                  document = std::make_shared<UiaPage>(automation_, window_, std::move(page.element), std::move(page.pattern), page.clip);
+    auto                  document = std::make_shared<UiaPage>(automation_, window_, std::move(page.element), std::move(page.pattern), page.clip, sumatra_);
     std::lock_guard const lock{cache.guard};
     cache.window = window_;
     cache.page   = document;
@@ -550,19 +678,12 @@ void UiaPageReader::drop()
 
 std::string UiaPageReader::anyText()
 {
-    return anyTextOf(window_);
+    return windowText(window_, sumatra_);
 }
 
 std::string anyTextOf(quintptr const window)
 {
-    ComApartment apartment;
-    auto const   automation = newAutomation();
-    if (not automation) return {};
-    auto const root = elementOf(*automation, window);
-    if (not root) return {};
-    auto const page = pageOf(*automation, *root, QRect{});
-    if (not page.pattern) return {};
-    return textOfPattern(*page.pattern).toStdString();
+    return windowText(window, false);
 }
 
 void warmTreeOf(quintptr const window)

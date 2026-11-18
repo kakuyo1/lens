@@ -128,12 +128,19 @@ std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& vis
     }
     missedSteps_ = 0;
 
+    bool relayout = false;
     if (*box != anchorBox_) {
-        anchorBox_  = *box;
-        stillSteps_ = 0;
+        // A word's box keeps its size while the page scrolls; a zoom (or a text reflow) resizes it,
+        // and every anchor-relative offset then names a place the new layout no longer holds
+        // (docs/adr/0198). The one-pixel slack leaves rounding alone.
+        int const dw = box->width - anchorBox_.width;
+        int const dh = box->height - anchorBox_.height;
+        relayout     = dw > 1 or dw < -1 or dh > 1 or dh < -1;
+        anchorBox_   = *box;
+        stillSteps_  = 0;
         // A re-anchor only re-bases the spans on a new word; a scroll moves every place on screen,
         // so the verdicts stand for places nothing holds now and must be read again.
-        if (not moveAnchorIfNearEdge(visible)) invalidateSight();
+        if (not relayout and not moveAnchorIfNearEdge(visible)) invalidateSight();
     } else {
         ++stillSteps_;
     }
@@ -157,6 +164,7 @@ std::optional<TrackFrame> TrackCore::trackStep(Band const& band, Band const& vis
     }
 
     TrackFrame frame;
+    if (relayout) relayoutPage();
     // Words are read while the page moves too: a chunk is kept only when the anchor did not move during it.
     // The names are re-read only once the page holds still, since that read is a few hundred ms of COM.
     if (stillSteps_ >= kStillSteps) refreshNamesIfDue(now);
@@ -221,9 +229,12 @@ bool TrackCore::extendForward(Band const& band, TrackFrame& frame)
     std::vector<ReadWord>    words;
     bool                     ended = false;
     for (int walked = 0; walked < kTrackChunkWords; ++walked) {
-        auto next = page_->step(*cursor, 1);
+        bool awaiting = false;
+        auto next     = page_->step(*cursor, 1, &awaiting);
         if (not next) {
-            ended = true;
+            // A page that has not laid the next words out yet is not the document's end: the walk
+            // stops for this step and tries again, rather than being marked finished (docs/adr/0199).
+            if (not awaiting) ended = true;
             break;
         }
         // read() carries the word's own box; a separate box() probe would read the same rectangles
@@ -268,9 +279,10 @@ bool TrackCore::extendBackward(Band const& band, TrackFrame& frame)
     std::vector<ReadWord>    words;
     bool                     ended = false;
     for (int walked = 0; walked < kTrackChunkWords; ++walked) {
-        auto next = page_->step(*cursor, -1);
+        bool awaiting = false;
+        auto next     = page_->step(*cursor, -1, &awaiting);
         if (not next) {
-            ended = true;
+            if (not awaiting) ended = true;
             break;
         }
         auto const read = page_->read(*next);
@@ -441,6 +453,33 @@ std::optional<TrackFrame> TrackCore::acquire(Band const& band, std::chrono::stea
     if (word) rememberWord(spans_.front().id, word->text, frame.added);
     lines_ = false;
     return frame;
+}
+
+void TrackCore::relayoutPage()
+{
+    // The anchor keeps its id and its handle: its candidate is already judged, and the id is the
+    // span the line will draw again once the walk re-reads around it.
+    int anchorId = spans_.empty() ? nextId_++ : spans_.front().id;
+    for (auto const& span : spans_)
+        if (span.dx == 0 and span.dy == 0) {
+            anchorId = span.id;
+            break;
+        }
+    Band spanBox = anchorBox_;
+    if (auto const read = page_->read(*anchor_))
+        if (auto const word = trimmedWord(read->text, read->fullBox, read->lettersEnd); word) spanBox = word->box;
+
+    spans_.clear();
+    sight_.clear();
+    // Every word is a first occurrence again: the spans are rebuilt with new ids, so the walk must
+    // add them again for their lines to be judged (docs/adr/0198).
+    wordsSeen_.clear();
+    forward_     = anchor_;
+    backward_    = anchor_;
+    forwardDone_ = backwardDone_ = false;
+    lastVisible_.clear();
+    spans_.push_back({.id = anchorId, .dx = 0, .dy = 0, .width = spanBox.width, .height = spanBox.height});
+    sight_[anchorId] = {.word = anchor_};
 }
 
 void TrackCore::dropPage()

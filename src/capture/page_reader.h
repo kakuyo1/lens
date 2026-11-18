@@ -72,8 +72,13 @@ public:
     }
     /// @brief One word along the reading order.
     /// @param delta +1 or -1.
-    /// @return The word there; nothing at either end of the document, or when the walk fails.
-    virtual std::shared_ptr<Word> step(Word const& word, int delta) = 0;
+    /// @param awaiting Set when the move left the laid-out text -- a PDF page below the viewport
+    ///        whose words have no boxes yet, say. The step answers nothing, but this is not the
+    ///        end: the walk stops here for the moment and asks again once the page may have been
+    ///        laid out (docs/adr/0199).
+    /// @return The word there; nothing at either end of the document, when the walk fails, or
+    ///         while it awaits layout.
+    virtual std::shared_ptr<Word> step(Word const& word, int delta, bool* awaiting = nullptr) = 0;
 };
 
 /// @brief Where a track's pages come from. The implementor caches; drop() forgets the cache.

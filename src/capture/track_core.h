@@ -121,6 +121,10 @@ private:
     /// @brief Forget the cached page and the language verdict read from it: the next page taken up
     ///        may be another document, so it must read its own names and language before drawing.
     void dropPage();
+    /// @brief The page re-laid its text out under the track (a zoom or a reflow): the anchor's box
+    ///        changed size, so every anchor-relative offset is stale. The spans go back to the
+    ///        anchor, and the walk re-reads the words at their new boxes (docs/adr/0198).
+    void relayoutPage();
     /// @return Whether the anchor moved to a word nearer the middle of @p band.
     bool moveAnchorIfNearEdge(Band const& band);
     /// @return Whether words past the last one read forward were added.

@@ -2,8 +2,8 @@ import QtQuick
 
 /**
  * Auto scan has its own category: an on/off switch for the reader, and the apps it may read
- * (UI-SPEC.md 4.4). Chrome and Notepad++ have their own switches; the two rows that are not
- * shipped yet stay on the page as dimmed switches with a "Coming soon" pill.
+ * (UI-SPEC.md 4.4). Chrome, Notepad++ and Sumatra PDF have their own switches; the one row that
+ * is not shipped yet stays on the page as a dimmed switch with a "Coming soon" pill.
  */
 Item {
     id: root
@@ -100,12 +100,11 @@ Item {
                         onToggled: (on) => Controller.captureDuty.setAutoScanNotepad(on)
                     }
                     SwitchRow {
-                        objectName: "autoScanPdf"
+                        objectName: "autoScanSumatra"
                         width: parent.width
-                        label: qsTranslate("SettingsPopup", "PDF reader")
-                        badge: qsTranslate("SettingsPopup", "Coming soon")
-                        checked: false
-                        interactive: false
+                        label: qsTranslate("SettingsPopup", "Sumatra PDF 3.7+")
+                        checked: Controller.settings.autoScanSumatra
+                        onToggled: (on) => Controller.captureDuty.setAutoScanSumatra(on)
                     }
                     SwitchRow {
                         objectName: "autoScanSubtitles"
@@ -119,7 +118,7 @@ Item {
             }
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Chrome web pages and Notepad++ documents are supported. PDF readers and video subtitles are not available yet.")
+                text: qsTranslate("SettingsPopup", "Chrome web pages, Notepad++ documents and Sumatra PDF files are supported. Video subtitles are not available yet.")
                 color: root.tokens.muted
                 font.pixelSize: 12
                 wrapMode: Text.WordWrap

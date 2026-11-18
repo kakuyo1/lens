@@ -42,93 +42,93 @@
 <context>
     <name>BubbleCard</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="90"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="97"/>
         <source>The pet may ask about it again any time now.</source>
         <translation>La mascota puede volver a preguntar por ella en cualquier momento.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="91"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="98"/>
         <source>The pet may ask about it again soon.</source>
         <translation>La mascota puede volver a preguntar por ella pronto.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="92"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="99"/>
         <source>The pet may ask about it again around this time tomorrow.</source>
         <translation>La mascota puede volver a preguntar por ella más o menos a esta hora mañana.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="93"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="100"/>
         <source>The pet may ask about it again in about %1 days.</source>
         <translation>La mascota puede volver a preguntar por ella en unos %1 días.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="94"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="101"/>
         <source>The pet may ask about it again in about %1 weeks.</source>
         <translation>La mascota puede volver a preguntar por ella en unas %1 semanas.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="95"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="102"/>
         <source>The pet may ask about it again in about %1 months.</source>
         <translation>La mascota puede volver a preguntar por ella en unos %1 meses.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="278"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="285"/>
         <source>Preview</source>
         <translation>Vista previa</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="279"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="286"/>
         <source>Spelling</source>
         <translation>Ortografía</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="280"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="287"/>
         <source>Grammar</source>
         <translation>Gramática</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="281"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="288"/>
         <source>Breakdown</source>
         <translation>Análisis</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="282"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="289"/>
         <source>Sentence</source>
         <translation>Oración</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="283"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="290"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="283"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="290"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="283"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="290"/>
         <source>Mastered</source>
         <translation>Dominado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="456"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="468"/>
         <source>Etymology</source>
         <translation>Etimología</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="495"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="508"/>
         <source>Example</source>
         <translation>Ejemplo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="559"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="602"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="573"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="616"/>
         <source>Not the Sense?</source>
         <translation>¿No es este sentido?</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="630"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="644"/>
         <source>Disappears in %1s</source>
         <translation>Desaparece en %1 s</translation>
     </message>
@@ -167,7 +167,7 @@
 <context>
     <name>BubbleTitleRow</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="224"/>
+        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="228"/>
         <source>Pronounce %1</source>
         <translation>Pronunciar %1</translation>
     </message>
@@ -744,12 +744,12 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>SenseRows</name>
     <message>
-        <location filename="../src/app/qml/components/content/SenseRows.qml" line="227"/>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="232"/>
         <source>Hide pictures</source>
         <translation>Ocultar imágenes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/SenseRows.qml" line="227"/>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="232"/>
         <source>Pictures</source>
         <translation>Imágenes</translation>
     </message>
@@ -930,6 +930,11 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
         <source>Capture &amp; popups</source>
         <translation>Captura y ventanas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
+        <source>Chrome, Notepad++, Sumatra PDF</source>
+        <translation>Chrome, Notepad++, Sumatra PDF</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
@@ -1381,7 +1386,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="86"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="94"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="123"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="126"/>
         <source>Theme</source>
         <translation>Tema</translation>
     </message>
@@ -1519,13 +1524,13 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="241"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="170"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="173"/>
         <source>Animations</source>
         <translation>Animaciones</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="254"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="201"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="204"/>
         <source>Typing speed</source>
         <translation>Velocidad de escritura</translation>
     </message>
@@ -1811,23 +1816,23 @@ One small word at a time, the reading opens.</translation>
         <translation>Sin configurar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="322"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="351"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="328"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="357"/>
         <source>Saved</source>
         <translation>Guardado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="370"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="376"/>
         <source>Defaults restored</source>
         <translation>Valores por defecto restaurados</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="480"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="486"/>
         <source>Back</source>
         <translation>Atrás</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="536"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="542"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
@@ -1988,13 +1993,13 @@ One small word at a time, the reading opens.</translation>
         <translation>La prueba envía una pequeña imagen sintética, nunca la pantalla, y el servicio puede facturarla.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="492"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="104"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="498"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="260"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="263"/>
         <location filename="../src/app/qml/settings/SettingsFooter.qml" line="40"/>
         <source>Defaults</source>
         <translation>Por defecto</translation>
@@ -2859,7 +2864,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="102"/>
         <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="195"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="367"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="614"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="620"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -3431,11 +3436,6 @@ One small word at a time, the reading opens.</translation>
         <translation>Búho cartero</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
-        <source>Chrome, Notepad++, supported apps</source>
-        <translation>Chrome, Notepad++ y apps compatibles</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="50"/>
         <source>Enable auto scan</source>
         <translation>Activar el escaneo automático</translation>
@@ -3457,24 +3457,23 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="105"/>
-        <source>PDF reader</source>
-        <translation>Lector de PDF</translation>
+        <source>Sumatra PDF 3.7+</source>
+        <translation>Sumatra PDF 3.7+</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="113"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="121"/>
+        <source>Chrome web pages, Notepad++ documents and Sumatra PDF files are supported. Video subtitles are not available yet.</source>
+        <translation>Se admiten páginas de Chrome, documentos de Notepad++ y archivos PDF de Sumatra. Los subtítulos de vídeo aún no están disponibles.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="112"/>
         <source>Video subtitles</source>
         <translation>Subtítulos de vídeo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="106"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="114"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="113"/>
         <source>Coming soon</source>
         <translation>Próximamente</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="122"/>
-        <source>Chrome web pages and Notepad++ documents are supported. PDF readers and video subtitles are not available yet.</source>
-        <translation>Se admiten páginas web de Chrome y documentos de Notepad++. Los lectores de PDF y los subtítulos de vídeo aún no están disponibles.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
@@ -3754,27 +3753,31 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>WordsListRow</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="139"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="131"/>
+        <location filename="../src/app/words_model.cpp" line="258"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="186"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="178"/>
+        <location filename="../src/app/words_model.cpp" line="266"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="233"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="225"/>
+        <location filename="../src/app/words_model.cpp" line="266"/>
         <source>Mastered</source>
         <translation>Dominado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="280"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="272"/>
+        <location filename="../src/app/words_model.cpp" line="266"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="302"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="294"/>
         <source>Remove %1</source>
         <translation>Eliminar %1</translation>
     </message>
@@ -3782,73 +3785,75 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="460"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="460"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="327"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="322"/>
         <source>Words</source>
         <translation>Palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="197"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="192"/>
+        <location filename="../src/app/words_model.cpp" line="252"/>
         <source>Today %1</source>
         <translation>Hoy %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="199"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="194"/>
+        <location filename="../src/app/words_model.cpp" line="254"/>
         <source>Yesterday %1</source>
         <translation>Ayer %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="389"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="384"/>
         <source>Year in words</source>
         <translation>Año en palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="417"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="412"/>
         <source>Back</source>
         <translation>Atrás</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="424"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="419"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="442"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="437"/>
         <source>%1 words</source>
         <translation>%1 palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="460"/>
         <source>All</source>
         <translation>Todas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="460"/>
         <source>Mastered</source>
         <translation>Dominado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListBox.qml" line="213"/>
+        <location filename="../src/app/qml/panels/WordsListBox.qml" line="212"/>
         <source>Words you look up will appear here.</source>
         <translation>Las palabras que consultes aparecerán aquí.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListBox.qml" line="225"/>
+        <location filename="../src/app/qml/panels/WordsListBox.qml" line="224"/>
         <source>No words in this filter.</source>
         <translation>No hay palabras con este filtro.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="23"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="524"/>
         <source>JSON files (*.json)</source>
         <translation>Archivos JSON (*.json)</translation>
     </message>
@@ -3863,61 +3868,61 @@ One small word at a time, the reading opens.</translation>
         <translation>TSV de Anki con explicaciones (*.tsv)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="533"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="528"/>
         <source>Words imported</source>
         <translation>Palabras importadas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="533"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="528"/>
         <source>Import failed</source>
         <translation>Error al importar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="407"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="527"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="402"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="522"/>
         <source>Import words</source>
         <translation>Importar palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="508"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="503"/>
         <source>Don&apos;t ask again</source>
         <translation>No volver a preguntar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="507"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="502"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="506"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="501"/>
         <source>Remove</source>
         <translation>Eliminar</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="17"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="400"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="395"/>
         <source>Export words</source>
         <translation>Exportar palabras</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="22"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="524"/>
         <source>Text files (*.txt)</source>
         <translation>Archivos de texto (*.txt)</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="26"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="524"/>
         <source>All files (*)</source>
         <translation>Todos los archivos (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="505"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="500"/>
         <source>Remove word</source>
         <translation>Eliminar palabra</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="139"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="134"/>
         <source>Remove %1 from your word list and history?</source>
         <translation>¿Eliminar %1 de tu lista de palabras y del historial?</translation>
     </message>

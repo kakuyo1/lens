@@ -5,10 +5,12 @@
  * @brief The scan's page reader over UI Automation: the page-tree search, its cache, and the word
  *        reads, behind the capture::PageReader seam.
  *
- * Everything mechanical about reading a Chrome page lives here -- the two-pass page selection with
- * its virtual-document rule, the frame clipping, the process-wide page cache, and the word-unit
- * reads with Chrome's refusal of endpoint retraction walked around. Which page to keep and when to
- * ask for one are TrackCore's (docs/adr/0164).
+ * Everything mechanical about reading a page through UI Automation lives here -- the two-pass page
+ * selection with its virtual-document rule, the frame clipping, the process-wide page cache, and the
+ * word-unit reads with each provider's quirks walked around. Chrome and SumatraPDF answer the same
+ * TextPattern; the reader tells them apart by window class, because Sumatra's document range spans
+ * the whole file and its word walk does not advance from an expanded range (docs/adr/0164,
+ * docs/adr/0197). Which page to keep and when to ask for one are TrackCore's (docs/adr/0164).
  *
  * @note Windows only. Lives on the track's worker thread, inside the COM apartment its owner set
  *       up; anyTextOf() and warmTreeOf() set up their own and are safe from any thread.
@@ -48,6 +50,9 @@ public:
 private:
     quintptr                       window_;
     std::shared_ptr<IUIAutomation> automation_; ///< Created on the first search; the pages it found hold it too.
+    /// Whether the window is SumatraPDF's, whose provider needs the page-scoped names and the box
+    /// walk of docs/adr/0197; Chrome and every other UIA window keep the browser rules.
+    bool sumatra_ = false;
 };
 
 /// @brief The text of the largest document of @p window, read fresh, with no page held: the names'

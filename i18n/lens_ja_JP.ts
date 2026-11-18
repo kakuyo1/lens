@@ -42,93 +42,93 @@
 <context>
     <name>BubbleCard</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="90"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="97"/>
         <source>The pet may ask about it again any time now.</source>
         <translation>ペットは今にもまたこの語を尋ねてくるかもしれません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="91"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="98"/>
         <source>The pet may ask about it again soon.</source>
         <translation>ペットはすぐにまたこの語を尋ねてくるかもしれません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="92"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="99"/>
         <source>The pet may ask about it again around this time tomorrow.</source>
         <translation>ペットは明日の今頃にまたこの語を尋ねてくるかもしれません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="93"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="100"/>
         <source>The pet may ask about it again in about %1 days.</source>
         <translation>ペットは約 %1 日後にまたこの語を尋ねてくるかもしれません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="94"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="101"/>
         <source>The pet may ask about it again in about %1 weeks.</source>
         <translation>ペットは約 %1 週間後にまたこの語を尋ねてくるかもしれません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="95"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="102"/>
         <source>The pet may ask about it again in about %1 months.</source>
         <translation>ペットは約 %1 か月後にまたこの語を尋ねてくるかもしれません。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="278"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="285"/>
         <source>Preview</source>
         <translation>プレビュー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="279"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="286"/>
         <source>Spelling</source>
         <translation>スペル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="280"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="287"/>
         <source>Grammar</source>
         <translation>文法</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="281"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="288"/>
         <source>Breakdown</source>
         <translation>分解</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="282"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="289"/>
         <source>Sentence</source>
         <translation>文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="283"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="290"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="283"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="290"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="283"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="290"/>
         <source>Mastered</source>
         <translation>習得済み</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="456"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="468"/>
         <source>Etymology</source>
         <translation>語源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="495"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="508"/>
         <source>Example</source>
         <translation>例文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="559"/>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="602"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="573"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="616"/>
         <source>Not the Sense?</source>
         <translation>この意味ではない？</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="630"/>
+        <location filename="../src/app/qml/bubble/BubbleCard.qml" line="644"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒後に消えます</translation>
     </message>
@@ -167,7 +167,7 @@
 <context>
     <name>BubbleTitleRow</name>
     <message>
-        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="224"/>
+        <location filename="../src/app/qml/bubble/BubbleTitleRow.qml" line="228"/>
         <source>Pronounce %1</source>
         <translation>%1 を発音</translation>
     </message>
@@ -744,12 +744,12 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>SenseRows</name>
     <message>
-        <location filename="../src/app/qml/components/content/SenseRows.qml" line="227"/>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="232"/>
         <source>Hide pictures</source>
         <translation>画像を隠す</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/components/content/SenseRows.qml" line="227"/>
+        <location filename="../src/app/qml/components/content/SenseRows.qml" line="232"/>
         <source>Pictures</source>
         <translation>画像</translation>
     </message>
@@ -930,6 +930,11 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="79"/>
         <source>Capture &amp; popups</source>
         <translation>取得とポップアップ</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
+        <source>Chrome, Notepad++, Sumatra PDF</source>
+        <translation>Chrome、Notepad++、Sumatra PDF</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
@@ -1381,7 +1386,7 @@ One small word at a time, the reading opens.</translation>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="86"/>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="94"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="123"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="126"/>
         <source>Theme</source>
         <translation>テーマ</translation>
     </message>
@@ -1519,13 +1524,13 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="241"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="170"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="173"/>
         <source>Animations</source>
         <translation>アニメーション</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsGeneralPage.qml" line="254"/>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="201"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="204"/>
         <source>Typing speed</source>
         <translation>入力速度</translation>
     </message>
@@ -1811,23 +1816,23 @@ One small word at a time, the reading opens.</translation>
         <translation>未設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="322"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="351"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="328"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="357"/>
         <source>Saved</source>
         <translation>保存しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="370"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="376"/>
         <source>Defaults restored</source>
         <translation>初期設定に戻しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="480"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="486"/>
         <source>Back</source>
         <translation>戻る</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="536"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="542"/>
         <source>Close</source>
         <translation>閉じる</translation>
     </message>
@@ -1988,13 +1993,13 @@ One small word at a time, the reading opens.</translation>
         <translation>テストは小さな合成画像のみを送信し、画面は送信しません。サービス側で課金される場合があります。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="101"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="492"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="104"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="498"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="260"/>
+        <location filename="../src/app/qml/settings/previews/ThemePreview.qml" line="263"/>
         <location filename="../src/app/qml/settings/SettingsFooter.qml" line="40"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
@@ -2859,7 +2864,7 @@ One small word at a time, the reading opens.</translation>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPathsPage.qml" line="102"/>
         <location filename="../src/app/qml/settings/pages/SettingsSpeechPage.qml" line="195"/>
         <location filename="../src/app/qml/settings/pages/SettingsSyncPage.qml" line="367"/>
-        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="614"/>
+        <location filename="../src/app/qml/settings/SettingsPopup.qml" line="620"/>
         <source>Cancel</source>
         <translation>キャンセル</translation>
     </message>
@@ -3431,11 +3436,6 @@ One small word at a time, the reading opens.</translation>
         <translation>手紙配達</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
-        <source>Chrome, Notepad++, supported apps</source>
-        <translation>Chrome、Notepad++ と対応アプリ</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="50"/>
         <source>Enable auto scan</source>
         <translation>自動スキャンを有効にする</translation>
@@ -3457,24 +3457,23 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="105"/>
-        <source>PDF reader</source>
-        <translation>PDF リーダー</translation>
+        <source>Sumatra PDF 3.7+</source>
+        <translation>Sumatra PDF 3.7+</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="113"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="121"/>
+        <source>Chrome web pages, Notepad++ documents and Sumatra PDF files are supported. Video subtitles are not available yet.</source>
+        <translation>Chrome のウェブページ、Notepad++ の文書、Sumatra PDF のファイルに対応しています。動画字幕はまだ利用できません。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="112"/>
         <source>Video subtitles</source>
         <translation>動画の字幕</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="106"/>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="114"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="113"/>
         <source>Coming soon</source>
         <translation>近日対応</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="122"/>
-        <source>Chrome web pages and Notepad++ documents are supported. PDF readers and video subtitles are not available yet.</source>
-        <translation>Chrome のウェブページと Notepad++ の文書に対応しています。PDF リーダーと動画の字幕はまだ対応していません。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
@@ -3754,27 +3753,31 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>WordsListRow</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="139"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="131"/>
+        <location filename="../src/app/words_model.cpp" line="258"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="186"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="178"/>
+        <location filename="../src/app/words_model.cpp" line="266"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="233"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="225"/>
+        <location filename="../src/app/words_model.cpp" line="266"/>
         <source>Mastered</source>
         <translation>習得済み</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="280"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="272"/>
+        <location filename="../src/app/words_model.cpp" line="266"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListRow.qml" line="302"/>
+        <location filename="../src/app/qml/panels/WordsListRow.qml" line="294"/>
         <source>Remove %1</source>
         <translation>削除 %1</translation>
     </message>
@@ -3782,73 +3785,75 @@ One small word at a time, the reading opens.</translation>
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="460"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="460"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="327"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="322"/>
         <source>Words</source>
         <translation>単語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="197"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="192"/>
+        <location filename="../src/app/words_model.cpp" line="252"/>
         <source>Today %1</source>
         <translation>今日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="199"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="194"/>
+        <location filename="../src/app/words_model.cpp" line="254"/>
         <source>Yesterday %1</source>
         <translation>昨日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="389"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="384"/>
         <source>Year in words</source>
         <translation>単語の年間記録</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="417"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="412"/>
         <source>Back</source>
         <translation>戻る</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="424"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="419"/>
         <source>Close</source>
         <translation>閉じる</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="442"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="437"/>
         <source>%1 words</source>
         <translation>%1 語</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="460"/>
         <source>All</source>
         <translation>すべて</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="465"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="460"/>
         <source>Mastered</source>
         <translation>習得済み</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListBox.qml" line="213"/>
+        <location filename="../src/app/qml/panels/WordsListBox.qml" line="212"/>
         <source>Words you look up will appear here.</source>
         <translation>調べた単語がここに表示されます。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsListBox.qml" line="225"/>
+        <location filename="../src/app/qml/panels/WordsListBox.qml" line="224"/>
         <source>No words in this filter.</source>
         <translation>この絞り込みに単語はありません。</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="23"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="524"/>
         <source>JSON files (*.json)</source>
         <translation>JSON ファイル (*.json)</translation>
     </message>
@@ -3863,61 +3868,61 @@ One small word at a time, the reading opens.</translation>
         <translation>解説付き Anki TSV ファイル (*.tsv)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="533"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="528"/>
         <source>Words imported</source>
         <translation>単語をインポートしました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="533"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="528"/>
         <source>Import failed</source>
         <translation>インポートに失敗しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="407"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="527"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="402"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="522"/>
         <source>Import words</source>
         <translation>単語を読み込む</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="508"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="503"/>
         <source>Don&apos;t ask again</source>
         <translation>次回から確認しない</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="507"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="502"/>
         <source>Cancel</source>
         <translation>キャンセル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="506"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="501"/>
         <source>Remove</source>
         <translation>削除</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="17"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="400"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="395"/>
         <source>Export words</source>
         <translation>単語を書き出す</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="22"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="524"/>
         <source>Text files (*.txt)</source>
         <translation>テキストファイル (*.txt)</translation>
     </message>
     <message>
         <location filename="../src/app/qml/panels/WordsExportDialog.qml" line="26"/>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="529"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="524"/>
         <source>All files (*)</source>
         <translation>すべてのファイル (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="505"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="500"/>
         <source>Remove word</source>
         <translation>単語を削除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/panels/WordsPopup.qml" line="139"/>
+        <location filename="../src/app/qml/panels/WordsPopup.qml" line="134"/>
         <source>Remove %1 from your word list and history?</source>
         <translation>%1 を単語リストと履歴から削除しますか？</translation>
     </message>

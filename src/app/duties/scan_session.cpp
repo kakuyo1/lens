@@ -77,7 +77,8 @@ ScanStep ScanSession::tick(ScanFacts const& facts)
     // the track and take the mark button down under the reader's pointer (docs/adr/0161).
     // invalidate clears scanContext_, so the next tick away is a no-op and the return re-scans.
     if (not facts.foreground or (facts.foreground->kind != ScanForeground::Kind::Chrome and
-                                 facts.foreground->kind != ScanForeground::Kind::Notepad)) {
+                                 facts.foreground->kind != ScanForeground::Kind::Notepad and
+                                 facts.foreground->kind != ScanForeground::Kind::Sumatra)) {
         // The reader's press on the mark button takes the page out of the foreground for the
         // click's length, and the button hiding on a verdict can leave the system with no
         // foreground at all -- neither is the page leaving, and a teardown here kills the click's

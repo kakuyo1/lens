@@ -225,7 +225,7 @@ public:
     std::shared_ptr<capture::Word>   wordAt(int x, int y) override;
     std::optional<capture::Band>     box(capture::Word const& word) override;
     std::optional<capture::WordRead> read(capture::Word const& word) override;
-    std::shared_ptr<capture::Word>   step(capture::Word const& word, int delta) override;
+    std::shared_ptr<capture::Word>   step(capture::Word const& word, int delta, bool* awaiting) override;
 
 private:
     /// @return A generation no earlier page used, so a handle from one can never name another's word.
@@ -342,8 +342,9 @@ std::optional<capture::WordRead> ScintillaPage::read(capture::Word const& word)
                              .lettersEnd = lettersEnd};
 }
 
-std::shared_ptr<capture::Word> ScintillaPage::step(capture::Word const& word, int const delta)
+std::shared_ptr<capture::Word> ScintillaPage::step(capture::Word const& word, int const delta, bool* const awaiting)
 {
+    (void)awaiting; // an editor's whole text is in memory: a null here is the document's end
     auto const& held = static_cast<ScintillaWord const&>(word);
     if (held.generation() != generation_) return nullptr;
     auto const next = static_cast<std::int64_t>(held.index()) + delta;

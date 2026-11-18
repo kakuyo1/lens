@@ -179,6 +179,18 @@ TEST(ScanSession, NotepadStartsATrackWithoutWarmingAnUiaTree)
     EXPECT_EQ(h.started, 1);
 }
 
+TEST(ScanSession, SumatraStartsATrackWithoutWarmingAnUiaTree)
+{
+    Harness h;
+    auto    facts                    = h.chrome();
+    facts.foreground.value().kind    = ScanForeground::Kind::Sumatra;
+    facts.foreground.value().context = QStringLiteral("sumatra-doc");
+    auto const step                  = h.session.tick(facts);
+    EXPECT_TRUE(step.cleared);
+    EXPECT_FALSE(step.warm);
+    EXPECT_EQ(h.started, 1);
+}
+
 TEST(ScanSession, LeavingNotepadTearsDownOnce)
 {
     Harness h;

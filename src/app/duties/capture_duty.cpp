@@ -43,7 +43,16 @@ bool autoScanOn(QVariantMap const& current)
 {
     return current.value(QStringLiteral("autoScan")).toBool() and
            (current.value(QStringLiteral("autoScanChrome")).toBool() or
-            current.value(QStringLiteral("autoScanNotepad")).toBool());
+            current.value(QStringLiteral("autoScanNotepad")).toBool() or
+            current.value(QStringLiteral("autoScanSumatra")).toBool());
+}
+
+/// @return Whether @p processName is SumatraPDF's: the stable name and the pre-release builds both
+///         count; only the versions that expose UI Automation can answer the read (docs/adr/0197).
+bool isSumatraPdf(QString const& processName)
+{
+    return processName.startsWith(QStringLiteral("sumatrapdf"), Qt::CaseInsensitive) and
+           processName.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive);
 }
 
 /// @return The monitor behind a QScreen, in the same terms `capture::monitorAt` speaks.
@@ -237,6 +246,7 @@ QVariantMap CaptureDuty::settings() const
             {"autoScan", readOf("autoScan")},
             {"autoScanChrome", readOf("autoScanChrome")},
             {"autoScanNotepad", readOf("autoScanNotepad")},
+            {"autoScanSumatra", readOf("autoScanSumatra")},
             {"ocrAvailable", lifecycle_.status() == capture::OcrStatus::Ready},
             {"minimumWordLength", readOf("minimumWordLength")},
             {"ocrConfigVersion", readOf("ocrConfigVersion")},
@@ -321,6 +331,10 @@ bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
     }
     if (key == "autoScanNotepad") {
         setAutoScanNotepad(value.toBool());
+        return true;
+    }
+    if (key == "autoScanSumatra") {
+        setAutoScanSumatra(value.toBool());
         return true;
     }
     if (key == "minimumWordLength") {
@@ -420,6 +434,14 @@ void CaptureDuty::setAutoScanChrome(bool const on)
 void CaptureDuty::setAutoScanNotepad(bool const on)
 {
     if (not settings::write(storage_.section(), *core::settings::find("autoScanNotepad"), on))
+        return;
+    invalidateScan();
+    emit settingsChanged();
+}
+
+void CaptureDuty::setAutoScanSumatra(bool const on)
+{
+    if (not settings::write(storage_.section(), *core::settings::find("autoScanSumatra"), on))
         return;
     invalidateScan();
     emit settingsChanged();
@@ -1096,12 +1118,15 @@ void CaptureDuty::scanTick()
         } else if (foreground->processName.compare(QStringLiteral("notepad++.exe"), Qt::CaseInsensitive) == 0 and
                    current.value(QStringLiteral("autoScanNotepad")).toBool()) {
             view.kind = ScanForeground::Kind::Notepad;
+        } else if (isSumatraPdf(foreground->processName) and current.value(QStringLiteral("autoScanSumatra")).toBool()) {
+            view.kind = ScanForeground::Kind::Sumatra;
         } else {
             view.kind = ScanForeground::Kind::Other;
         }
         view.window  = foreground->window;
         view.context = foreground->context;
-        if (view.kind == ScanForeground::Kind::Chrome or view.kind == ScanForeground::Kind::Notepad)
+        if (view.kind == ScanForeground::Kind::Chrome or view.kind == ScanForeground::Kind::Notepad or
+            view.kind == ScanForeground::Kind::Sumatra)
             view.placement = scanPlacementOf(*foreground);
     }
 

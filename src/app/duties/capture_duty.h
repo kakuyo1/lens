@@ -88,6 +88,7 @@ public:
     Q_INVOKABLE void setAutoScan(bool on);
     Q_INVOKABLE void setAutoScanChrome(bool on);
     Q_INVOKABLE void setAutoScanNotepad(bool on);
+    Q_INVOKABLE void setAutoScanSumatra(bool on);
     Q_INVOKABLE void setMinimumWordLength(int length);
     Q_INVOKABLE bool setScanWhitelist(QString const& processes);
     /// @brief Point OCR at the reader's own Tesseract and probe it again; empty means the bundled one.

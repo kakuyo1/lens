@@ -91,9 +91,10 @@ public:
     bool        armed = false;
     Band        shiftBy{};
     int         shiftExcludes = -1;
-    int         boxReads      = 0; ///< Every box read, anchor and walked words alike.
-    int         readCalls     = 0; ///< Every word read: the walk reads boxes through read() (docs/adr/0188).
-    mutable int ops           = 0; ///< Every seam call: the deterministic proxy for the COM round-trips a real reader pays.
+    bool        pendingEnd    = false; ///< A step past the last cell answers awaiting: the next page is not laid out.
+    int         boxReads      = 0;     ///< Every box read, anchor and walked words alike.
+    int         readCalls     = 0;     ///< Every word read: the walk reads boxes through read() (docs/adr/0188).
+    mutable int ops           = 0;     ///< Every seam call: the deterministic proxy for the COM round-trips a real reader pays.
 
     bool present() const override
     {
@@ -149,11 +150,17 @@ public:
         return WordRead{.text = c.text, .fullBox = c.box, .lettersEnd = c.junkBox};
     }
 
-    std::shared_ptr<lens::capture::Word> step(lens::capture::Word const& word, int const delta) override
+    std::shared_ptr<lens::capture::Word> step(lens::capture::Word const& word, int const delta, bool* const awaiting) override
     {
         ++ops;
         int const index = static_cast<FakeWord const&>(word).index() + delta;
-        if (index < 0 or index >= static_cast<int>(cells.size())) return nullptr;
+        if (index >= static_cast<int>(cells.size())) {
+            // The next page exists in the reading order but has not been laid out: its words have
+            // no boxes yet, so the walk waits instead of calling the document finished.
+            if (pendingEnd and awaiting) *awaiting = true;
+            return nullptr;
+        }
+        if (index < 0) return nullptr;
         return std::make_shared<FakeWord>(index);
     }
 
@@ -420,6 +427,73 @@ TEST(TrackCore, AScrollMovesTheAnchorToTheMiddleAndRebasesTheSpans)
         if (out.report and out.report->moves > 0) sawMoves = true;
     }
     EXPECT_TRUE(sawMoves);
+}
+
+TEST(TrackCore, AZoomReReadsTheSpansAtTheNewBoxes)
+{
+    FakePageReader reader = articleReader();
+    TrackCore      core{reader};
+    auto           t = kStart;
+    settleToFirstDraw(core, reader, t);
+
+    // The page zooms by half around its top-left word: every box moves and grows, the anchor's own
+    // box included. A scroll moves boxes without resizing them; a zoom is the layout change the
+    // anchor-relative offsets cannot ride, so the track must re-read the words around its anchor.
+    for (auto& c : reader.page->cells) {
+        c.box.x      = 700 + (c.box.x - 700) * 3 / 2;
+        c.box.y      = 480 + (c.box.y - 480) * 3 / 2;
+        c.box.width  = c.box.width * 3 / 2;
+        c.box.height = c.box.height * 3 / 2;
+        if (c.junkBox) {
+            c.junkBox->x      = 700 + (c.junkBox->x - 700) * 3 / 2;
+            c.junkBox->height = c.box.height;
+        }
+    }
+
+    std::optional<TrackOutput> drawn;
+    for (int i = 0; i < 30 and not drawn; ++i) {
+        auto const out = step(core, t);
+        if (out.frame and not out.frame->visible.empty()) drawn = out;
+    }
+    ASSERT_TRUE(drawn) << "the zoomed page never drew its lines again";
+    for (auto const& placed : drawn.value().frame->visible) {
+        bool const matches = std::any_of(reader.page->cells.begin(), reader.page->cells.end(), [&](Cell const& c) {
+            int const letters = c.junkBox ? c.junkBox->x - c.box.x : c.box.width;
+            return placed.x == c.box.x and placed.y == c.box.y and placed.width == letters and placed.height == c.box.height;
+        });
+        EXPECT_TRUE(matches) << "placed " << placed.x << "," << placed.y << " " << placed.width << "x" << placed.height
+                             << " matches no word of the zoomed page";
+    }
+}
+
+TEST(TrackCore, APageBoundaryThatAwaitsLayoutIsRetriedNotFinished)
+{
+    FakePageReader reader   = articleReader();
+    reader.page->pendingEnd = true; // the next page exists, but its words have no boxes yet
+    TrackCore core{reader};
+    auto      t = kStart;
+    settleToFirstDraw(core, reader, t);
+
+    // Scroll far enough that the last read span clears the band's bottom edge, so the forward walk
+    // reaches past it and meets the unlaid page.
+    for (auto& c : reader.page->cells)
+        c.box.y -= 120;
+    for (int i = 0; i < 20; ++i)
+        step(core, t);
+
+    // The next page lays out at last: its words now have boxes. The walk must pick them up without
+    // a zoom, a window change or a fresh page search.
+    reader.page->pendingEnd = false;
+    reader.page->cells.push_back(cell("nextpage", Band{.x = 700, .y = 900, .width = 100, .height = 40}));
+
+    bool added = false;
+    for (int i = 0; i < 20 and not added; ++i) {
+        auto const out = step(core, t);
+        if (out.frame)
+            for (auto const& word : out.frame->added)
+                if (word.text == "nextpage") added = true;
+    }
+    EXPECT_TRUE(added) << "the walk stayed finished at the page boundary";
 }
 
 TEST(TrackCore, NamesGateAcquisitionAndEveryWordIsAddedOnce)

@@ -68,10 +68,12 @@ struct ScanPlacement {
 
 /// @brief The window in front, as the scan's gate reads it.
 struct ScanForeground {
-    /// @brief Which reader the window in front needs. The scan reads Chrome pages and Notepad++
-    ///        documents; its own process is the one the mark button's hold shields (docs/adr/0161).
+    /// @brief Which reader the window in front needs. The scan reads Chrome pages, Notepad++
+    ///        documents and SumatraPDF documents; its own process is the one the mark button's
+    ///        hold shields (docs/adr/0161).
     enum class Kind : std::uint8_t { Chrome,
                                      Notepad,
+                                     Sumatra,
                                      OwnProcess,
                                      Other };
     Kind     kind   = Kind::Other;

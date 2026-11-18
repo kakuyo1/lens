@@ -112,8 +112,8 @@ Item {
         }
 
         /// Auto scan is its own category now, and the app list is switches rather than a text
-        /// field of process names. Chrome and Notepad++ are live; the two readers that are not
-        /// shipped yet stay on the page as dimmed rows that say so.
+        /// field of process names. Chrome, Notepad++ and Sumatra PDF are live; the one reader that
+        /// is not shipped yet stays on the page as a dimmed row that says so.
         function test_autoScanAppsAreSwitchesWithComingSoonRows() {
             const capture = make();
             compare(findChild(capture, "autoScan"), null, "auto scan no longer lives on the capture page");
@@ -123,21 +123,23 @@ Item {
             const master = child(page, "autoScan");
             const chrome = child(page, "autoScanChrome");
             const notepad = child(page, "autoScanNotepad");
-            const pdf = child(page, "autoScanPdf");
+            const sumatra = child(page, "autoScanSumatra");
             const subtitles = child(page, "autoScanSubtitles");
 
             compare(master.badge, "", "auto scan is no longer labelled experimental");
             compare(findChild(page, "autoScanNote"), null, "the experimental note is gone");
             compare(chrome.badge, "");
             compare(notepad.badge, "");
-            compare(pdf.badge, qsTranslate("SettingsPopup", "Coming soon"));
+            compare(sumatra.badge, "");
             compare(subtitles.badge, qsTranslate("SettingsPopup", "Coming soon"));
-            compare(pdf.interactive, false);
+            compare(sumatra.interactive, true);
             compare(subtitles.interactive, false);
             compare(chrome.checked, Controller.settings.autoScanChrome);
             compare(notepad.checked, Controller.settings.autoScanNotepad);
+            compare(sumatra.checked, Controller.settings.autoScanSumatra);
             verify(chrome.interactive, "the Chrome switch stays configurable with the master switch off");
             verify(notepad.interactive, "the Notepad++ switch stays configurable with the master switch off");
+            verify(sumatra.interactive, "the Sumatra PDF switch stays configurable with the master switch off");
         }
 
         function test_chromeSwitchWritesItsSetting() {
@@ -160,6 +162,17 @@ Item {
             Controller.captureDuty.setAutoScanNotepad(true);
             tryVerify(() => Controller.settings.autoScanNotepad === true);
             compare(notepad.checked, true);
+        }
+
+        function test_sumatraSwitchWritesItsSetting() {
+            const page = makeAutoScanPage();
+            const sumatra = child(page, "autoScanSumatra");
+            Controller.captureDuty.setAutoScanSumatra(false);
+            tryVerify(() => Controller.settings.autoScanSumatra === false);
+            compare(sumatra.checked, false);
+            Controller.captureDuty.setAutoScanSumatra(true);
+            tryVerify(() => Controller.settings.autoScanSumatra === true);
+            compare(sumatra.checked, true);
         }
 
         /// The two paths are the reader's own Tesseract: they persist through the controller and
