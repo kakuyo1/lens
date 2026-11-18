@@ -277,7 +277,7 @@ std::filesystem::path writeHangDump(const std::filesystem::path& dumpDir)
         DeleteFileW(path.c_str());
         return {};
     }
-    return path;
+    return path; // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 }
 
 void installCrashDumpHandler(const std::filesystem::path& logDir)

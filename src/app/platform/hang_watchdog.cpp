@@ -52,6 +52,7 @@ void startHangWatchdog(const std::filesystem::path& logDir, std::function<std::s
     pulse->start();
 
     const std::filesystem::path dumpDir = lens::util::crashDumpDir(logDir);
+    // NOLINTNEXTLINE(bugprone-exception-escape): the only throws here are allocation failures while reporting a stall, a failure path the program cannot recover from; std::terminate routes it into the crash artifacts
     std::thread([dumpDir, renderingNow = std::move(renderingNow)] {
         auto lastBeat = g_beats.load(std::memory_order_relaxed);
         auto since    = std::chrono::steady_clock::now();
@@ -73,14 +74,14 @@ void startHangWatchdog(const std::filesystem::path& logDir, std::function<std::s
             auto const seconds = std::chrono::duration_cast<std::chrono::seconds>(stalled).count();
             auto const holder  = describeHolder(renderingNow ? renderingNow() : std::string{});
             if (g_dumped.test_and_set()) {
-                LENS_WARN("the interface has not ticked for {} s; {}; no dump, this run already wrote one", seconds, holder);
+                LENS_WARN("the interface has not ticked for {} s; {}; no dump, this run already wrote one", seconds, holder); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
                 continue;
             }
             auto const dump = writeHangDump(dumpDir);
             if (dump.empty())
-                LENS_WARN("the interface has not ticked for {} s; {}; the hang dump could not be written", seconds, holder);
+                LENS_WARN("the interface has not ticked for {} s; {}; the hang dump could not be written", seconds, holder); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
             else
-                LENS_WARN("the interface has not ticked for {} s; {}; hang dump written to {}", seconds, holder, narrow(dump));
+                LENS_WARN("the interface has not ticked for {} s; {}; hang dump written to {}", seconds, holder, narrow(dump)); // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
         }
     }).detach();
 }

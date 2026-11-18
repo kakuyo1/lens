@@ -82,7 +82,7 @@ void SharedGraphics::adopt(QQuickWindow* window)
             frameHolder_.store(name.get(), std::memory_order_release);
             auto const waitedMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
             if (waitedMs >= kFrameLockWarnMs)
-                LENS_WARN("the {} window waited {} ms for the frame lock, held by {}",
+                LENS_WARN("the {} window waited {} ms for the frame lock, held by {}", // NOLINT(bugprone-lambda-function-name): the log macro names the enclosing function; inside this lambda that is operator(), which is the function the line belongs to
                           labelOf(*name),
                           waitedMs,
                           waiter != nullptr ? labelOf(*waiter) : std::string_view{"no window"});
