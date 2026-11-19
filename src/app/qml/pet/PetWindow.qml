@@ -56,6 +56,15 @@ Window {
         y = at.y;
     }
 
+    /// The pet is a topmost window, but another topmost window shown later (PotPlayer while a
+    /// video plays) joins the band above it; a slow re-assert keeps the companion visible.
+    Timer {
+        interval: 1000
+        repeat: true
+        running: petWindow.visible
+        onTriggered: petWindow.raise()
+    }
+
     PetScene {
         anchors.fill: parent
     }

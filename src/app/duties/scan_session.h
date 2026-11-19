@@ -69,11 +69,12 @@ struct ScanPlacement {
 /// @brief The window in front, as the scan's gate reads it.
 struct ScanForeground {
     /// @brief Which reader the window in front needs. The scan reads Chrome pages, Notepad++
-    ///        documents and SumatraPDF documents; its own process is the one the mark button's
-    ///        hold shields (docs/adr/0161).
+    ///        documents, SumatraPDF documents and PotPlayer subtitles; its own process is the one
+    ///        the mark button's hold shields (docs/adr/0161).
     enum class Kind : std::uint8_t { Chrome,
                                      Notepad,
                                      Sumatra,
+                                     PotPlayer,
                                      OwnProcess,
                                      Other };
     Kind     kind   = Kind::Other;
@@ -142,7 +143,10 @@ using Marshal = std::function<void(std::function<void()> work)>;
 ///        thread, where the owner can execute what the step asks (emit scanPlaced, scanCleared).
 using StepRoute = std::function<void(ScanStep const& step)>;
 /// @brief Builds the platform track for @p window inside @p band; the session owns what it returns.
-using TrackFactory = std::function<std::unique_ptr<ScanTrack>(quintptr window, QRect band, TrackSink deliver)>;
+///        The reader @p kind picks the right track -- a page reader for the text apps, the
+///        subtitle follower for the player.
+using TrackFactory =
+    std::function<std::unique_ptr<ScanTrack>(ScanForeground::Kind kind, quintptr window, QRect band, TrackSink deliver)>;
 
 class ScanSession {
 public:
@@ -206,7 +210,7 @@ private:
     ///        by the track's word id; the first read of a page's word is logged.
     void judgeAdded(capture::TrackFrame const& frame);
     /// @brief Start following @p window's page inside @p band; its frames come back to onFrame().
-    void startTrack(quintptr window, QRect const& band);
+    void startTrack(ScanForeground::Kind kind, quintptr window, QRect const& band);
     /// @return Every lemma of @p surface the band and the verdict store let through, judged state
     ///         attached. The one judgement entry: it reads the store and the level's band itself,
     ///         so the frame path and the verdict-change path share not only the pure filter but

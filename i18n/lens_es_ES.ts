@@ -815,7 +815,7 @@ One small word at a time, the reading opens.</translation>
         <translation>OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="28"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="27"/>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="38"/>
         <location filename="../src/app/qml/settings/SettingsPopup.qml" line="80"/>
         <source>Auto scan</source>
@@ -933,8 +933,8 @@ One small word at a time, the reading opens.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="39"/>
-        <source>Chrome, Notepad++, Sumatra PDF</source>
-        <translation>Chrome, Notepad++, Sumatra PDF</translation>
+        <source>Chrome, Notepad++, Sumatra PDF, PotPlayer</source>
+        <translation>Chrome, Notepad++, Sumatra PDF, PotPlayer</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/SettingsCatalog.qml" line="44"/>
@@ -3436,44 +3436,39 @@ One small word at a time, the reading opens.</translation>
         <translation>Búho cartero</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="50"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="49"/>
         <source>Enable auto scan</source>
         <translation>Activar el escaneo automático</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="58"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="57"/>
         <source>Marks words above your level in supported apps. It reads the text those apps expose, without OCR or an online service.</source>
         <translation>Marca las palabras por encima de tu nivel en las apps compatibles. Lee el texto que exponen esas apps, sin OCR ni servicios en línea.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="69"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="68"/>
         <source>Supported apps</source>
         <translation>Apps compatibles</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="91"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="90"/>
         <source>Chrome</source>
         <translation>Chrome</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="105"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="104"/>
         <source>Sumatra PDF 3.7+</source>
         <translation>Sumatra PDF 3.7+</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="121"/>
-        <source>Chrome web pages, Notepad++ documents and Sumatra PDF files are supported. Video subtitles are not available yet.</source>
-        <translation>Se admiten páginas de Chrome, documentos de Notepad++ y archivos PDF de Sumatra. Los subtítulos de vídeo aún no están disponibles.</translation>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="111"/>
+        <source>PotPlayer</source>
+        <translation>PotPlayer</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="112"/>
-        <source>Video subtitles</source>
-        <translation>Subtítulos de vídeo</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="113"/>
-        <source>Coming soon</source>
-        <translation>Próximamente</translation>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="119"/>
+        <source>Chrome web pages, Notepad++ documents, Sumatra PDF files and PotPlayer video subtitles are supported.</source>
+        <translation>Se admiten páginas web de Chrome, documentos de Notepad++, archivos de Sumatra PDF y subtítulos de vídeo de PotPlayer.</translation>
     </message>
     <message>
         <location filename="../src/app/qml/settings/pages/SettingsOcrPage.qml" line="203"/>
@@ -3481,7 +3476,7 @@ One small word at a time, the reading opens.</translation>
         <translation>El escaneo automático lee el texto que exponen sus apps y nunca usa este motor ni un servicio en línea.</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="98"/>
+        <location filename="../src/app/qml/settings/pages/SettingsAutoScanPage.qml" line="97"/>
         <source>Notepad++</source>
         <translation>Notepad++</translation>
     </message>

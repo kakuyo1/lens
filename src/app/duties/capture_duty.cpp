@@ -29,6 +29,7 @@
 #include "core/domain/filter_core.h"
 #include "core/domain/settings_table.h"
 #include "app/platform/mouse_selection_hook.h"
+#include "app/platform/subtitle_track.h"
 #include "app/settings_access.h"
 #include "verdict_view.h"
 #include "capture/ocr_rapidocr.h"
@@ -44,7 +45,8 @@ bool autoScanOn(QVariantMap const& current)
     return current.value(QStringLiteral("autoScan")).toBool() and
            (current.value(QStringLiteral("autoScanChrome")).toBool() or
             current.value(QStringLiteral("autoScanNotepad")).toBool() or
-            current.value(QStringLiteral("autoScanSumatra")).toBool());
+            current.value(QStringLiteral("autoScanSumatra")).toBool() or
+            current.value(QStringLiteral("autoScanPotplayer")).toBool());
 }
 
 /// @return Whether @p processName is SumatraPDF's: the stable name and the pre-release builds both
@@ -52,6 +54,13 @@ bool autoScanOn(QVariantMap const& current)
 bool isSumatraPdf(QString const& processName)
 {
     return processName.startsWith(QStringLiteral("sumatrapdf"), Qt::CaseInsensitive) and
+           processName.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive);
+}
+
+/// @return Whether @p processName is PotPlayer's: the Mini and full builds share the name.
+bool isPotPlayer(QString const& processName)
+{
+    return processName.startsWith(QStringLiteral("potplayer"), Qt::CaseInsensitive) and
            processName.endsWith(QStringLiteral(".exe"), Qt::CaseInsensitive);
 }
 
@@ -82,6 +91,22 @@ public:
 
 private:
     std::unique_ptr<PageTrack> track_;
+};
+
+/// @brief The player's track: the subtitle follower, framed the same way (docs/adr/0201).
+class SubtitleScanTrack final : public ScanTrack {
+public:
+    SubtitleScanTrack(quintptr const window, QRect band, TrackSink deliver)
+        : track_{std::make_unique<SubtitleTrack>(window, band, std::move(deliver))}
+    {}
+
+    void setBand(QRect const band) override
+    {
+        track_->setBand(band);
+    }
+
+private:
+    std::unique_ptr<SubtitleTrack> track_;
 };
 
 /// @brief The monitor placement of a Chrome window, resolved the way the scan tick always has;
@@ -166,7 +191,11 @@ CaptureDuty::CaptureDuty(StorageDuty&                        storage,
       lifecycle_{storage_, [this] { executor_->cancel(); jobContext_.reset(); }},
       session_{storage_.knownStore(),
                [this](std::function<void()> work) { QMetaObject::invokeMethod(this, std::move(work), Qt::QueuedConnection); },
-               [](quintptr window, QRect band, TrackSink deliver) { return std::make_unique<PageTrackScanTrack>(window, band, std::move(deliver)); },
+               [](ScanForeground::Kind kind, quintptr window, QRect band, TrackSink deliver) -> std::unique_ptr<ScanTrack> {
+                   if (kind == ScanForeground::Kind::PotPlayer)
+                       return std::make_unique<SubtitleScanTrack>(window, band, std::move(deliver));
+                   return std::make_unique<PageTrackScanTrack>(window, band, std::move(deliver));
+               },
                [this](ScanStep const& step) { routeScanStep(step); }},
       selection_{storage_.knownStore(), storage_, std::make_unique<SelectionTextGrabber>()}
 {
@@ -247,6 +276,7 @@ QVariantMap CaptureDuty::settings() const
             {"autoScanChrome", readOf("autoScanChrome")},
             {"autoScanNotepad", readOf("autoScanNotepad")},
             {"autoScanSumatra", readOf("autoScanSumatra")},
+            {"autoScanPotplayer", readOf("autoScanPotplayer")},
             {"ocrAvailable", lifecycle_.status() == capture::OcrStatus::Ready},
             {"minimumWordLength", readOf("minimumWordLength")},
             {"ocrConfigVersion", readOf("ocrConfigVersion")},
@@ -335,6 +365,10 @@ bool CaptureDuty::setSetting(std::string_view const key, QVariant const& value)
     }
     if (key == "autoScanSumatra") {
         setAutoScanSumatra(value.toBool());
+        return true;
+    }
+    if (key == "autoScanPotplayer") {
+        setAutoScanPotplayer(value.toBool());
         return true;
     }
     if (key == "minimumWordLength") {
@@ -442,6 +476,14 @@ void CaptureDuty::setAutoScanNotepad(bool const on)
 void CaptureDuty::setAutoScanSumatra(bool const on)
 {
     if (not settings::write(storage_.section(), *core::settings::find("autoScanSumatra"), on))
+        return;
+    invalidateScan();
+    emit settingsChanged();
+}
+
+void CaptureDuty::setAutoScanPotplayer(bool const on)
+{
+    if (not settings::write(storage_.section(), *core::settings::find("autoScanPotplayer"), on))
         return;
     invalidateScan();
     emit settingsChanged();
@@ -1120,13 +1162,15 @@ void CaptureDuty::scanTick()
             view.kind = ScanForeground::Kind::Notepad;
         } else if (isSumatraPdf(foreground->processName) and current.value(QStringLiteral("autoScanSumatra")).toBool()) {
             view.kind = ScanForeground::Kind::Sumatra;
+        } else if (isPotPlayer(foreground->processName) and current.value(QStringLiteral("autoScanPotplayer")).toBool()) {
+            view.kind = ScanForeground::Kind::PotPlayer;
         } else {
             view.kind = ScanForeground::Kind::Other;
         }
         view.window  = foreground->window;
         view.context = foreground->context;
         if (view.kind == ScanForeground::Kind::Chrome or view.kind == ScanForeground::Kind::Notepad or
-            view.kind == ScanForeground::Kind::Sumatra)
+            view.kind == ScanForeground::Kind::Sumatra or view.kind == ScanForeground::Kind::PotPlayer)
             view.placement = scanPlacementOf(*foreground);
     }
 

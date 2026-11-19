@@ -78,7 +78,8 @@ ScanStep ScanSession::tick(ScanFacts const& facts)
     // invalidate clears scanContext_, so the next tick away is a no-op and the return re-scans.
     if (not facts.foreground or (facts.foreground->kind != ScanForeground::Kind::Chrome and
                                  facts.foreground->kind != ScanForeground::Kind::Notepad and
-                                 facts.foreground->kind != ScanForeground::Kind::Sumatra)) {
+                                 facts.foreground->kind != ScanForeground::Kind::Sumatra and
+                                 facts.foreground->kind != ScanForeground::Kind::PotPlayer)) {
         // The reader's press on the mark button takes the page out of the foreground for the
         // click's length, and the button hiding on a verdict can leave the system with no
         // foreground at all -- neither is the page leaving, and a teardown here kills the click's
@@ -106,7 +107,7 @@ ScanStep ScanSession::tick(ScanFacts const& facts)
     scanScreenOrigin_     = placement.origin;
     scanScale_            = placement.scale;
     if (not track_) {
-        startTrack(facts.foreground->window, placement.band);
+        startTrack(facts.foreground->kind, facts.foreground->window, placement.band);
     } else if (placement.band != scanBand_) {
         scanBand_ = placement.band;
         track_->setBand(placement.band);
@@ -114,11 +115,11 @@ ScanStep ScanSession::tick(ScanFacts const& facts)
     return step;
 }
 
-void ScanSession::startTrack(quintptr const window, QRect const& band)
+void ScanSession::startTrack(ScanForeground::Kind const kind, quintptr const window, QRect const& band)
 {
     scanBand_             = band;
     const auto generation = generation_;
-    track_                = makeTrack_(window, band, [this, generation](capture::TrackFrame frame) {
+    track_                = makeTrack_(kind, window, band, [this, generation](capture::TrackFrame frame) {
         // The track's worker hands each frame to the owner's thread; a frame from a track that was since dropped is refused by its generation.
         // The step the frame answers routes to the owner here, on the owner's thread -- the placed
         // words and the cleared flag are the owner's to emit (docs/adr/0165).

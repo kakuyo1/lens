@@ -2,8 +2,7 @@ import QtQuick
 
 /**
  * Auto scan has its own category: an on/off switch for the reader, and the apps it may read
- * (UI-SPEC.md 4.4). Chrome, Notepad++ and Sumatra PDF have their own switches; the one row that
- * is not shipped yet stays on the page as a dimmed switch with a "Coming soon" pill.
+ * (UI-SPEC.md 4.4). Chrome, Notepad++, Sumatra PDF and PotPlayer each have their own switch.
  */
 Item {
     id: root
@@ -107,18 +106,17 @@ Item {
                         onToggled: (on) => Controller.captureDuty.setAutoScanSumatra(on)
                     }
                     SwitchRow {
-                        objectName: "autoScanSubtitles"
+                        objectName: "autoScanPotplayer"
                         width: parent.width
-                        label: qsTranslate("SettingsPopup", "Video subtitles")
-                        badge: qsTranslate("SettingsPopup", "Coming soon")
-                        checked: false
-                        interactive: false
+                        label: qsTranslate("SettingsPopup", "PotPlayer")
+                        checked: Controller.settings.autoScanPotplayer
+                        onToggled: (on) => Controller.captureDuty.setAutoScanPotplayer(on)
                     }
                 }
             }
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Chrome web pages, Notepad++ documents and Sumatra PDF files are supported. Video subtitles are not available yet.")
+                text: qsTranslate("SettingsPopup", "Chrome web pages, Notepad++ documents, Sumatra PDF files and PotPlayer video subtitles are supported.")
                 color: root.tokens.muted
                 font.pixelSize: 12
                 wrapMode: Text.WordWrap

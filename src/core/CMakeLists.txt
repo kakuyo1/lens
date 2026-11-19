@@ -20,6 +20,9 @@ add_library(lens_core STATIC
   document/story.cpp
   document/review_store.cpp
   document/pet_store.cpp
+  subtitle/subtitle_parse.cpp
+  subtitle/subtitle_mkv.cpp
+  subtitle/subtitle_source.cpp
   telemetry/event.cpp
   telemetry/event_log.cpp
   telemetry/career.cpp

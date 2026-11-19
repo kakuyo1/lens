@@ -33,6 +33,20 @@ Window {
 
     Component.onCompleted: Controller.pencil.keepOutOfCapture(layer)
 
+    /// A topmost window shown later joins the topmost band above this one: PotPlayer does exactly
+    /// that while a video plays. While there are marks to draw, the layer re-asserts its place in
+    /// the band, and the mark button right after it so the button stays above the layer.
+    Timer {
+        interval: 1000
+        repeat: true
+        running: layer.visible
+        onTriggered: {
+            layer.raise();
+            if (markButtonWindow.visible)
+                markButtonWindow.raise();
+        }
+    }
+
     Repeater {
         model: Controller.pencil.marks
 

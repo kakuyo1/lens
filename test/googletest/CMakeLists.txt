@@ -99,6 +99,10 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/scintilla_words_test.cpp
   unit/scan_session_test.cpp
   unit/scan_emission_gate_test.cpp
+  unit/subtitle_parse_test.cpp
+  unit/subtitle_mkv_test.cpp
+  unit/subtitle_source_test.cpp
+  unit/potplayer_clock_test.cpp
   unit/ocr_tsv_test.cpp
   unit/ocr_engine_test.cpp
   unit/ocr_local_test.cpp

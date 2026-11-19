@@ -117,6 +117,10 @@ add_library(lens_app STATIC
   platform/page_reader_uia.cpp
   platform/page_reader_scintilla.h
   platform/page_reader_scintilla.cpp
+  platform/potplayer_clock.h
+  platform/potplayer_clock.cpp
+  platform/subtitle_track.h
+  platform/subtitle_track.cpp
   platform/uia_text_range_read.h
   platform/local_voice.h
   platform/local_voice.cpp

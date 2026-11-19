@@ -184,12 +184,13 @@ inline constexpr Row kRows[]{
     {.key = "ocrCapture", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = false},
     {.key = "autoScan", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = false},
     // The apps auto scan may read: Chrome pages and SumatraPDF documents through UI Automation,
-    // Notepad++ documents through the editor's own messages. Video subtitles are a "Coming soon"
-    // row only. SumatraPDF needs 3.7 or newer, the first release whose reader exposes the text
-    // (docs/adr/0197).
+    // Notepad++ documents through the editor's own messages, PotPlayer video subtitles through the
+    // player's clock and the media's own subtitle track (docs/adr/0197, docs/adr/0201). SumatraPDF
+    // needs 3.7 or newer, the first release whose reader exposes the text.
     {.key = "autoScanChrome", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = true},
     {.key = "autoScanNotepad", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = true},
     {.key = "autoScanSumatra", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = true},
+    {.key = "autoScanPotplayer", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = true},
     {.key = "minimumWordLength", .kind = Kind::Integer, .signal = Signal::Capture, .fallback = 3, .low = 2, .high = 5, .synced = true},
     {.key = "scanWhitelist", .kind = Kind::Text, .signal = Signal::Capture, .fallback = "chrome.exe;msedge.exe;firefox.exe;acrord32.exe"},
     {.key = "tesseractExecutable", .kind = Kind::Text, .signal = Signal::Capture, .fallback = ""},

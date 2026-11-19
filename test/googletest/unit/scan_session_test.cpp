@@ -84,7 +84,7 @@ struct Harness {
 
     ScanSession session{store,
                         [](const std::function<void()>& work) { work(); },
-                        [this](quintptr, QRect, TrackSink sink) {
+                        [this](ScanForeground::Kind, quintptr, QRect, TrackSink sink) {
                             ++started;
                             deliver = std::move(sink);
                             return std::make_unique<FakeTrack>([this](QRect const band) { bands.push_back(band); });
@@ -185,6 +185,18 @@ TEST(ScanSession, SumatraStartsATrackWithoutWarmingAnUiaTree)
     auto    facts                    = h.chrome();
     facts.foreground.value().kind    = ScanForeground::Kind::Sumatra;
     facts.foreground.value().context = QStringLiteral("sumatra-doc");
+    auto const step                  = h.session.tick(facts);
+    EXPECT_TRUE(step.cleared);
+    EXPECT_FALSE(step.warm);
+    EXPECT_EQ(h.started, 1);
+}
+
+TEST(ScanSession, PotPlayerStartsATrackWithoutWarmingAnUiaTree)
+{
+    Harness h;
+    auto    facts                    = h.chrome();
+    facts.foreground.value().kind    = ScanForeground::Kind::PotPlayer;
+    facts.foreground.value().context = QStringLiteral("potplayer-window");
     auto const step                  = h.session.tick(facts);
     EXPECT_TRUE(step.cleared);
     EXPECT_FALSE(step.warm);
