@@ -5,6 +5,7 @@
 
 #include "core/document/stats_store.h"
 #include "core/document/known_store.h"
+#include "core/domain/filter_core.h"
 #include "util/log.h"
 #include "util/text.h"
 
@@ -255,12 +256,12 @@ std::vector<std::string> scopedLemmas(const std::vector<HistoryEntry>&       his
                                       const std::unordered_set<std::string>& masteredLemmas)
 {
     // The scope follows the verdict sets, the way the words popup's verdicts do: a lemma is
-    // mastered or known when its set holds it and new when neither does, whatever its newest
-    // entry's own stamp says. Mastered is checked first, as the stronger verdict.
+    // mastered or known when its set covers one of its forms and new when neither does, whatever
+    // its newest entry's own stamp says. Mastered is checked first, as the stronger verdict.
     const auto wanted = [scope, &knownLemmas, &masteredLemmas](const std::string& lemma) {
-        if (scope == ExportScope::Known) return knownLemmas.count(lemma) > 0;
-        if (scope == ExportScope::Mastered) return masteredLemmas.count(lemma) > 0;
-        if (scope == ExportScope::New) return knownLemmas.count(lemma) == 0 && masteredLemmas.count(lemma) == 0;
+        if (scope == ExportScope::Known) return hasFormIn(lemma, knownLemmas);
+        if (scope == ExportScope::Mastered) return hasFormIn(lemma, masteredLemmas);
+        if (scope == ExportScope::New) return not hasFormIn(lemma, knownLemmas) && not hasFormIn(lemma, masteredLemmas);
         return true;
     };
 

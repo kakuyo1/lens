@@ -660,7 +660,7 @@ void ExplanationDuty::send(llm::ExplainRequest request, ExplanationBatch const& 
         if (not isWordKind(item.kind))
             continue;
         const std::string lemma = item.lemma.toStdString();
-        const bool        known = storage_.knownStore().isKnown(lemma) || storage_.knownStore().isMasteredVerdict(lemma);
+        const bool        known = core::hasFormIn(lemma, storage_.knownStore().known()) || core::hasFormIn(lemma, storage_.knownStore().mastered());
         storage_.statsStore().recordPop(lemma, minute, known, lang);
         recordPop(lemma, source, known);
     }
@@ -849,7 +849,7 @@ void ExplanationDuty::apply(ExplanationExchange::Outcome const& outcome, bool co
     if (not outcome.popLemma.isEmpty()) {
         // The daily tally keeps two columns, so a mastered word's pop reads into the known one.
         const std::string lemma = outcome.popLemma.toStdString();
-        const bool        known = storage_.knownStore().isKnown(lemma) || storage_.knownStore().isMasteredVerdict(lemma);
+        const bool        known = core::hasFormIn(lemma, storage_.knownStore().known()) || core::hasFormIn(lemma, storage_.knownStore().mastered());
         storage_.statsStore().recordPop(lemma, nowMinute().toStdString(), known, storage_.knownStore().explanationLang());
         recordPop(lemma, outcome.source, known);
         if (save) {

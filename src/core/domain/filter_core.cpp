@@ -296,18 +296,35 @@ std::vector<std::string> suffixForms(const std::string& t, bool const relaxed)
     return cands;
 }
 
-/// @return Every word-list form @p surface may stand for: its base forms, then the surface itself.
-///         An irregular form answers with its table bases; a keepAsIs word answers with itself alone.
-///         The relaxed rules run here: the band and the verdict coverage judge a word beside its
-///         base, whatever guards the lemma keeps (docs/adr/0161).
+/// @return Every word-list form @p surface may stand for: the stems it reduces to, theirs, and the
+///         surface itself. An irregular form answers with its table bases; a keepAsIs word answers
+///         with itself alone. The reduction is transitive: a verdict key is baseFormOf() of a lemma
+///         lemmatize() already reduced, so "subscribers" must still reach the "subscribe" that
+///         marking "subscriber" stored, or the surface can never read its own mark. The relaxed
+///         rules run here: the band and the verdict coverage judge a word beside its base, whatever
+///         guards the lemma keeps (docs/adr/0161).
 std::vector<std::string> formsOf(const std::string& surface)
 {
     if (keepAsIs().count(surface) != 0) return {surface};
-    std::vector<std::string> forms;
-    if (const auto it = g_irregulars.find(surface); it != g_irregulars.end())
-        forms = it->second;
-    else
-        forms = suffixForms(surface, true);
+    std::vector<std::string>        forms;
+    std::unordered_set<std::string> seen{surface};
+    std::vector<std::string>        frontier{surface};
+    while (!frontier.empty()) {
+        std::vector<std::string> next;
+        for (const std::string& word : frontier) {
+            std::vector<std::string> stems;
+            if (const auto it = g_irregulars.find(word); it != g_irregulars.end())
+                stems = it->second;
+            else if (keepAsIs().count(word) == 0)
+                stems = suffixForms(word, true);
+            for (const std::string& stem : stems)
+                if (seen.insert(stem).second) {
+                    forms.push_back(stem);
+                    next.push_back(stem);
+                }
+        }
+        frontier = std::move(next);
+    }
     forms.push_back(surface);
     return forms;
 }
@@ -645,6 +662,15 @@ std::string baseFormOf(std::string_view token)
     return stems.empty() ? t : stems.front();
 }
 
+bool hasFormIn(std::string_view surface, const std::unordered_set<std::string>& lemmas)
+{
+    if (lemmas.empty()) return false;
+    const std::string lowered = util::asciiLower(surface);
+    for (const std::string& form : formsOf(lowered))
+        if (lemmas.count(form) != 0) return true;
+    return false;
+}
+
 bool vocabularyLoaded()
 {
     return !g_rank.empty() && g_irregularsLoaded;
@@ -849,7 +875,7 @@ std::vector<DefinitionLink> definitionLinks(
         std::string const lemma   = lemmatize(surface);
         // The reader's own retire verdict hides the dots too: a word mastered at the band or by
         // verdict is not one the chain needs to offer (docs/adr/0159).
-        if (not isMastered(surface, difficulty) and masteredLemmas.count(lemma) == 0)
+        if (not isMastered(surface, difficulty) and not isMasteredByReader(surface, masteredLemmas))
             out.push_back({.start = start, .end = at, .lemma = lemma});
     }
     return out;

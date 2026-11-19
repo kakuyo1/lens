@@ -486,6 +486,23 @@ TEST_F(WordbookTest, AReaderMasteredVerdictCoversItsInflections)
     EXPECT_TRUE(masteredAt("vividly", 0, {"vivid"}));
 }
 
+TEST_F(CoreTest, AFormReadsTheVerdictKeyTwoReductionsDown)
+{
+    // The verdict key is baseFormOf() of a lemma lemmatize() already reduced: marking the scanned
+    // "subscriber" stores "subscribe", and the scanned plural "subscribers" sits two steps from
+    // that key. The coverage must still reach it, or the line on the page can never retire
+    // (docs/adr/0161).
+    EXPECT_TRUE(lens::core::hasFormIn("subscribers", {"subscribe"}));
+    EXPECT_TRUE(lens::core::hasFormIn("subscriber", {"subscribe"}));
+    EXPECT_EQ(lens::core::stateOf("subscribers", {}, {"subscribe"}, lens::core::Difficulty::byRank(0)),
+              lens::core::CandidateState::Mastered);
+    // The chain stops at the own-base traps: keepAsIs answers for itself alone.
+    EXPECT_FALSE(lens::core::hasFormIn("offers", {"off"}));
+    EXPECT_FALSE(lens::core::hasFormIn("forests", {"for"}));
+    // A derivation the suffix rules do not model is its own word, mastered on its own.
+    EXPECT_FALSE(lens::core::hasFormIn("subscription", {"subscribe"}));
+}
+
 TEST_F(WordbookTest, TheReaderMasteredVerdictOutranksTheKnownOne)
 {
     // The store holds one verdict per word, but the filter takes the two sets apart: the retire

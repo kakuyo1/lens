@@ -13,6 +13,7 @@
 #include <unordered_set>
 
 #include "app/duties/verdict_view.h"
+#include "support.h"
 
 namespace {
 
@@ -44,6 +45,20 @@ TEST(VerdictView, TheStoreAnswersTheBadgeInOneCall)
     EXPECT_EQ(verdictToken(store, "serendipity"), QStringLiteral("mastered"));
     store.mark("serendipity", WordVerdict::None);
     EXPECT_EQ(verdictToken(store, "serendipity"), QStringLiteral("new"));
+}
+
+TEST(VerdictView, TheBadgeReadsThroughTheFormsCoverage)
+{
+    lens::test::requireFilterTablesLoaded();
+    auto store = lens::core::KnownStore::load(std::filesystem::temp_directory_path() / "lens_verdict_coverage_test.json");
+    // Marking the scanned "subscriber" stores the key "subscribe" (baseFormOf, docs/adr/0162);
+    // the badge and the popup rows must still read that mark from the forms on screen, or a word
+    // the reader retired keeps answering "new" (docs/adr/0161).
+    store.mark("subscribe", WordVerdict::Mastered);
+    EXPECT_EQ(verdictToken(store, "subscriber"), QStringLiteral("mastered"));
+    EXPECT_EQ(verdictToken(store, "subscribers"), QStringLiteral("mastered"));
+    EXPECT_EQ(verdictToken(store, "subscription"), QStringLiteral("new")); // its own word
+    EXPECT_EQ(verdictOf("subscribers", {}, {"subscribe"}), WordVerdict::Mastered);
 }
 
 TEST(VerdictView, ThePressIsParsedOnceAndANonsenseTokenIsTheClearVote)

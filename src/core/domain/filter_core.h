@@ -196,6 +196,21 @@ CandidateState stateOf(
     Difficulty const&                      difficulty);
 
 /**
+ * @brief Whether @p lemmas holds any form of @p surface, itself included.
+ *
+ * The verdict sets are keyed by base form (docs/adr/0162) while the surfaces the reader meets are
+ * inflected, so every reader-facing read of a verdict goes through this rather than `count()`: a
+ * mark made on one form answers for the whole family. The reduction is transitive, so a surface
+ * still reads a key that took two steps to make ("subscribers" reads the "subscribe" marking
+ * "subscriber" stored).
+ *
+ * @param surface The word as written, case-insensitive.
+ * @return Whether any form of @p surface is in @p lemmas. Before the tables load no form is known,
+ *         so only @p surface itself can answer.
+ */
+bool hasFormIn(std::string_view surface, const std::unordered_set<std::string>& lemmas);
+
+/**
  * @brief Filter an excerpt down to the words it is made of.
  *
  * Pure pipeline with no I/O; the known set and the frequency cut-off are injected so the

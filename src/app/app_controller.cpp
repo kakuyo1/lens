@@ -1085,7 +1085,7 @@ bool AppController::importWords(QUrl const& path)
     for (const auto& row : rows) {
         // The pop stamps the word "new" (or "known" when the lemma already carries a mark), so
         // the import needs no verdict of its own.
-        storage_.statsStore().recordPop(row.lemma, row.minute, storage_.knownStore().isKnown(row.lemma));
+        storage_.statsStore().recordPop(row.lemma, row.minute, core::hasFormIn(row.lemma, storage_.knownStore().known()));
     }
     storage_.save();
     if (not rows.empty()) {

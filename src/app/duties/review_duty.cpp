@@ -11,6 +11,7 @@
 
 #include <QDateTime>
 
+#include "core/domain/filter_core.h"
 #include "util/text.h"
 
 namespace lens::app {
@@ -129,8 +130,9 @@ std::vector<core::ReviewCandidate> ReviewDuty::askable()
             continue;
         auto const lastLookup = epochOf(entry.minute);
         // A word the reader retired from circulation is not asked about, whatever its curve says:
-        // mastered means no more practice (docs/adr/0159).
-        if (storage_.knownStore().isMasteredVerdict(entry.lemma))
+        // mastered means no more practice (docs/adr/0159). The read covers the word's forms: the
+        // history's lemma and the store's key can sit a step apart.
+        if (core::hasFormIn(entry.lemma, storage_.knownStore().mastered()))
             continue;
         // Only a word with a stored explanation in the current language is asked about: a question must not spend money.
         if (not lastLookup or cache_.look(entry.lemma, context).state == core::ExplanationCache::State::Missing)

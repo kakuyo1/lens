@@ -50,21 +50,24 @@ inline QString verdictToken(core::CandidateState const state)
 
 /// @brief The store's answer for @p lemma, as the bubble badge and the review card read it:
 ///        the reader's mastered verdict, else the known one, else new.
+/// @note The read goes through the forms coverage, not the plain key: the store keys a mark by
+///       base form, and the bubble's title may be a step below or above that key.
 inline QString verdictToken(core::KnownStore const& store, std::string const& lemma)
 {
-    return verdictToken(store.isMasteredVerdict(lemma) ? core::WordVerdict::Mastered
-                        : store.isKnown(lemma)         ? core::WordVerdict::Known
-                                                       : core::WordVerdict::None);
+    return verdictToken(core::hasFormIn(lemma, store.mastered()) ? core::WordVerdict::Mastered
+                        : core::hasFormIn(lemma, store.known())  ? core::WordVerdict::Known
+                                                                 : core::WordVerdict::None);
 }
 
 /// @brief The verdict two verdict sets give a lemma, the way the words popup and its filter read it
 ///        (docs/adr/0159): mastered first -- the stronger verdict -- known second, new otherwise.
+/// @note Like the store's answer, a set answers for every form of @p lemma.
 inline core::WordVerdict verdictOf(std::string const&                     lemma,
                                    std::unordered_set<std::string> const& knownLemmas,
                                    std::unordered_set<std::string> const& masteredLemmas)
 {
-    if (masteredLemmas.count(lemma) != 0) return core::WordVerdict::Mastered;
-    if (knownLemmas.count(lemma) != 0) return core::WordVerdict::Known;
+    if (core::hasFormIn(lemma, masteredLemmas)) return core::WordVerdict::Mastered;
+    if (core::hasFormIn(lemma, knownLemmas)) return core::WordVerdict::Known;
     return core::WordVerdict::None;
 }
 
