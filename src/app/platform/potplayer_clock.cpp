@@ -5,6 +5,7 @@
 #include "app/platform/potplayer_clock.h"
 
 #include <QString>
+#include <QStringList>
 
 #include <algorithm>
 #include <cstdint>
@@ -32,7 +33,7 @@ enum class Query : std::uintptr_t {
 constexpr UINT kQueryTimeoutMs = 40;
 /// The playlist file is a list of paths; a megabyte holds every real one, and playname sits at
 /// the top.
-constexpr std::streamsize kMaxPlaylistBytes              = 1024 * 1024;
+constexpr std::streamsize kMaxPlaylistBytes              = 1024LL * 1024;
 constexpr ULONG           kProcessCommandLineInformation = 60;
 
 std::optional<LRESULT> query(quintptr const window, Query const id)
@@ -52,7 +53,7 @@ std::optional<LRESULT> query(quintptr const window, Query const id)
 std::wstring classNameOf(quintptr const window)
 {
     wchar_t    name[64] = {};
-    auto const length   = GetClassNameW(reinterpret_cast<HWND>(window), name, 64);
+    auto const length   = GetClassNameW(reinterpret_cast<HWND>(window), name, 64); // NOLINT(performance-no-int-to-ptr): see query
     return std::wstring{name, static_cast<std::size_t>(length > 0 ? length : 0)};
 }
 
@@ -106,14 +107,13 @@ std::vector<std::wstring> splitCommandLine(std::wstring const& commandLine)
     arguments.reserve(static_cast<std::size_t>(count));
     for (int i = 0; i < count; ++i)
         arguments.emplace_back(argv[i]);
-    LocalFree(argv);
+    LocalFree(reinterpret_cast<HLOCAL>(argv));
     return arguments;
 }
 
-std::optional<std::filesystem::path> playlistMediaPath(std::wstring const& exePath, std::wstring const& fileName)
+std::optional<std::filesystem::path> playlistMediaPath(std::filesystem::path const& executable, std::wstring const& fileName)
 {
-    if (exePath.empty()) return std::nullopt;
-    auto const      executable = std::filesystem::path{exePath};
+    if (executable.empty()) return std::nullopt;
     std::error_code error;
     auto const      playlist = executable.parent_path() / L"Playlist" / (executable.stem().wstring() + L".dpl");
     auto const      size     = std::filesystem::file_size(playlist, error);
@@ -228,7 +228,7 @@ std::optional<std::filesystem::path> potplayerMediaPath(quintptr const window)
         if (auto const fromArguments = mediaArgumentFrom(splitCommandLine(commandLineOf(pid)), fileName))
             return fromArguments;
     }
-    return playlistMediaPath(processPathOf(window), fileName);
+    return playlistMediaPath(std::filesystem::path{processPathOf(window)}, fileName);
 }
 
 std::optional<std::filesystem::path> mediaArgumentFrom(std::vector<std::wstring> const& arguments,
@@ -236,7 +236,7 @@ std::optional<std::filesystem::path> mediaArgumentFrom(std::vector<std::wstring>
 {
     for (auto const& argument : arguments) {
         if (argument.find(L"://") != std::wstring::npos) continue; // a stream, not a file
-        auto const candidate = std::filesystem::path{argument};
+        auto candidate = std::filesystem::path{argument};
         if (sameFileName(candidate, fileName)) return candidate;
     }
     return std::nullopt;
@@ -263,7 +263,7 @@ std::optional<std::filesystem::path> mediaPathFromPlaylist(std::string_view cons
         if (not line.startsWith(QLatin1String("playname="))) continue;
         auto const value = line.mid(static_cast<qsizetype>(QLatin1String("playname=").size()));
         if (value.isEmpty()) continue;
-        auto const candidate = std::filesystem::path{value.toStdWString()};
+        auto candidate = std::filesystem::path{value.toStdWString()};
         if (sameFileName(candidate, fileName)) return candidate;
     }
     return std::nullopt;

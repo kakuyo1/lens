@@ -57,7 +57,7 @@ public:
         return path_;
     }
 
-    void write(std::string const& name, std::string const& bytes) const
+    void write(std::string const& name, std::string const& bytes) const // NOLINT(bugprone-easily-swappable-parameters): write takes its 2 const std::string & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
     {
         std::ofstream out{path_ / name, std::ios::binary};
         out.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));

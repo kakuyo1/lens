@@ -14,7 +14,7 @@
 namespace lens::core::subtitle {
 namespace {
 
-constexpr std::uintmax_t kMaxSubtitleBytes = 64u * 1024 * 1024;
+constexpr std::uintmax_t kMaxSubtitleBytes = 64ull * 1024 * 1024;
 
 std::string_view trim(std::string_view const text)
 {

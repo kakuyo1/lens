@@ -69,9 +69,13 @@ Item {
             width: parent.width
             spacing: 10
             // The form stays while signed in, so a wrong password is fixed in place instead of
-            // costing a log-out; it steps aside only while a round is using the credentials.
-            visible: page.sync.provider === "webdav" && (page.sync.state === "unconfigured" || page.sync.state === "signedIn")
+            // costing a log-out. A round dims it and stops taking edits rather than stepping it
+            // aside: hiding it reflows the page under the reader and throws their scroll position
+            // away for the length of the round.
+            visible: page.sync.provider === "webdav" && page.sync.state !== "codePending"
             height: visible ? implicitHeight : 0
+            enabled: page.sync.state !== "syncing"
+            opacity: enabled ? 1 : 0.45
 
             Text {
                 width: parent.width

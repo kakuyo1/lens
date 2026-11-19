@@ -142,9 +142,11 @@ std::filesystem::path chooseExternalSubtitle(std::filesystem::path const& videoP
                                             : ext == "ssa"   ? 3
                                                              : -1;
         if (extRank < 0) continue;
-        auto const name       = util::asciiLower(fileNameOf(it->path()));
-        auto const bare       = stem + "." + ext;
-        int        suffixRank = -1;
+        auto const  name = util::asciiLower(fileNameOf(it->path()));
+        std::string bare = stem;
+        bare += '.';
+        bare += ext;
+        int suffixRank = -1;
         if (name == bare) {
             suffixRank = 2;
         } else if (name.starts_with(stem + ".") and name.ends_with("." + ext)) {

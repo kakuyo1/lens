@@ -47,6 +47,35 @@ Item {
             compare(reported, true);
         }
 
+        /// The stretch that makes the travel read as weight (UI-SPEC.md 4.17): the knob pulls out
+        /// while it crosses and is back at its own width once it lands.
+        function test_theKnobStretchesThroughTheTravelAndSettles() {
+            const switcher = make({});
+            const knob = Util.findAll(switcher, function (o) {
+                return o.radius === 8 && o.width === 16;
+            })[0];
+            verify(knob, "the switch built no knob");
+            const stretch = knob.transform[0];
+            verify(stretch && stretch.xScale !== undefined, "the knob carries no stretch transform");
+            compare(stretch.xScale, 1);
+
+            mouseClick(switcher, switcher.width / 2, switcher.height / 2);
+
+            // Sampled in a tight loop: the flight is one press token long, and a single delayed
+            // check on a loaded machine can step over it and read the settled width.
+            let peak = stretch.xScale;
+            const deadline = Date.now() + 500;
+            while (Date.now() < deadline && peak <= 1.05) {
+                peak = Math.max(peak, stretch.xScale);
+                if (peak > 1.05)
+                    break;
+                wait(10);
+            }
+            verify(peak > 1.05, "the knob crossed without stretching");
+
+            tryVerify(function () { return Math.abs(stretch.xScale - 1) < 0.01; }, 500);
+        }
+
         function test_aNonInteractiveSwitchIsDimmedAndAnswersNothing() {
             const switcher = make({ interactive: false });
             let reported = false;

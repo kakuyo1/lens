@@ -357,7 +357,7 @@ std::vector<std::string_view> commaFields(std::string_view const text, std::size
     return pieces;
 }
 
-bool parseBlock(Reader& reader, std::uint64_t const blockSize, std::int64_t const clusterTs, std::int64_t const durationMs, ScanState& state)
+bool parseBlock(Reader& reader, std::uint64_t const blockSize, std::int64_t const clusterTs, std::int64_t const durationMs, ScanState& state) // NOLINT(bugprone-easily-swappable-parameters): parseBlock takes its 3 integer arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     auto const   blockStart = reader.position();
     std::uint8_t first      = 0;

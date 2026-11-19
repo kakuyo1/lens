@@ -144,6 +144,34 @@ Item {
             compare(named(page, "linkedBlock").visible, false, "the linked block is the real duty's to show");
         }
 
+        /// A round dims the WebDAV form instead of hiding it: a form that stepped aside reflows the
+        /// page and costs the reader their scroll position for the length of the round.
+        function test_webdavFormStaysInPlaceInertWhileARoundRuns() {
+            const page = make();
+            page.sync = createTemporaryObject(dutyStub, root, {
+                state: "signedIn",
+                provider: "webdav",
+                webdavServer: "https://dav.example.com/dav",
+                webdavUsername: "reader",
+                hasWebdavPassword: true
+            });
+            wait(50);
+            const form = named(page, "webdavFormBlock");
+            const heightAtRest = page.implicitHeight;
+
+            page.sync.state = "syncing";
+            wait(50);
+            compare(form.visible, true, "the form stepped aside mid-round and reflowed the page");
+            compare(form.enabled, false, "the form takes edits while a round uses the credentials");
+            compare(form.opacity, 0.45);
+            compare(page.implicitHeight, heightAtRest, "the page changed height mid-round");
+
+            page.sync.state = "signedIn";
+            wait(50);
+            compare(form.enabled, true);
+            compare(form.opacity, 1);
+        }
+
         /// Signed in on WebDAV, the form stays (a wrong password is fixed in place, not by logging
         /// out) and the probe's confirmation line shows when the verdict is in.
         function test_webdavLinkedShowsTheFormAndTheVerdict() {

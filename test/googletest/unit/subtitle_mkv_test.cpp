@@ -46,7 +46,8 @@ void putVint(std::string& out, std::uint64_t const value)
     std::string bytes(static_cast<std::size_t>(length), '\0');
     for (int k = 0; k < length; ++k)
         bytes[static_cast<std::size_t>(k)] = static_cast<char>((value >> (8 * (length - 1 - k))) & 0xFF);
-    bytes[0] = static_cast<char>(static_cast<unsigned char>(bytes[0]) | (0x80 >> (length - 1)));
+    bytes[0] = static_cast<char>(static_cast<unsigned char>(bytes[0]) |
+                                 (0x80 >> (length > 0 ? length - 1 : 0)));
     out += bytes;
 }
 
@@ -59,7 +60,7 @@ std::string element(std::uint32_t const id, std::string_view const payload)
     return out;
 }
 
-std::string uintElement(std::uint32_t const id, std::uint64_t const value)
+std::string uintElement(std::uint32_t const id, std::uint64_t const value) // NOLINT(bugprone-easily-swappable-parameters): uintElement takes its 2 integer arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
 {
     int bytes = 1;
     while (bytes < 8 and (value >> (8 * bytes)) != 0)
@@ -89,7 +90,7 @@ std::string blockPayload(std::uint64_t const trackNumber, std::string_view const
     return out;
 }
 
-std::string trackEntry(std::uint64_t const number, std::uint64_t const type, std::string_view const codec, std::string_view const language = {}, std::string_view const name = {}, bool const isDefault = false, bool const forced = false, bool const hearingImpaired = false, bool const compressed = false)
+std::string trackEntry(std::uint64_t const number, std::uint64_t const type, std::string_view const codec, std::string_view const language = {}, std::string_view const name = {}, bool const isDefault = false, bool const forced = false, bool const hearingImpaired = false, bool const compressed = false) // NOLINT(bugprone-easily-swappable-parameters): trackEntry builds one MKV element field by field in a fixed positional order; the same-typed group cannot be reordered without changing the fixture's meaning
 {
     std::string payload;
     payload += uintElement(0xD7, number);

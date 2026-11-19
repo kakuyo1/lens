@@ -702,21 +702,21 @@ TEST(ModelCatalog, AMachineThatNeverReachedTheSourceReadsTheSeedAndDropsWhatIsNo
 }
 
 /// The typing pace is a level from one to five, slowest first, and the level maps to the
-/// milliseconds the reveal is written at. The default has to stay the pace the reveal shipped with,
-/// because a reader who never opens the setting should see no change. The level's own default and
-/// range are the settings table's (settings_table_test.cpp), and this is the mapping off them.
+/// milliseconds the reveal is written at. The default level sits in the middle of the ladder, so a
+/// reader who never opens the setting gets the middle pace. The level's own default and range are
+/// the settings table's (settings_table_test.cpp), and this is the mapping off them.
 TEST(RevealSettings, TheSpeedMapsToThePaceTheRevealTakes)
 {
-    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedDefault), 35) << "the default pace moved";
+    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedDefault), 15) << "the default pace moved";
 
-    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMin), 80);
-    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMax), 15);
+    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMin), 35);
+    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMax), 5);
 
     // Out of range, either way, lands on the nearer edge rather than indexing past the table.
-    EXPECT_EQ(revealMillisPerCharacter(0), 80);
-    EXPECT_EQ(revealMillisPerCharacter(-3), 80);
-    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMax + 1), 15);
-    EXPECT_EQ(revealMillisPerCharacter(99), 15);
+    EXPECT_EQ(revealMillisPerCharacter(0), 35);
+    EXPECT_EQ(revealMillisPerCharacter(-3), 35);
+    EXPECT_EQ(revealMillisPerCharacter(kRevealSpeedMax + 1), 5);
+    EXPECT_EQ(revealMillisPerCharacter(99), 5);
 
     // Slower is a longer wait all the way up, so the slider reads as one direction and not two.
     for (int speed = kRevealSpeedMin; speed < kRevealSpeedMax; ++speed)

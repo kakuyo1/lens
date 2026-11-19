@@ -35,8 +35,11 @@ This is the beta release of Lens, the second release on the numbering that began
 - The bubble's **waiting card** is compact. The card a click raises now reserves room for the "Explaining…" line and three breathing bars instead of the whole answer's estimated height, so a word with every block switched on no longer opens as a tall, mostly empty card; the fields that fit land without moving the card, the rest grows it as they arrive, and the whole answer still settles to its own height once it lands (docs/adr/0146).
 - Auto scan **reads each word's box once instead of twice**. The walk probed a word's box and then read the same rectangles again inside the word read, both across the process boundary; it now takes the box from the read itself. On the deterministic test arm that is about 29% fewer UI Automation round-trips to the first line and to a full page, with the same words and the same boxes. The scan also logs its real read timing now: a once-a-second step-cost line and the milliseconds to each page's first line (docs/adr/0188).
 - Auto scan **checks the page without walking the whole tree**. The periodic check that the tracked page still belongs to its window now climbs from the page up to the window root instead of enumerating every document under it -- about 45x cheaper on a heavy page (measured ~180 ms down to ~4 ms a call). That frees roughly a third of the scan thread's time for reading words, so the lines crawl in faster; a tab switch or navigation still drops the page and searches again (docs/adr/0188).
+- The **typing pace moved one notch faster all the way up**: the five speeds now write one character every 35, 25, 15, 10 and 5 ms, so what used to be the third level is the new slowest, and the default third level writes at 15 ms -- a little over twice the old pace (UI-SPEC.md 4.3).
+- Switch toggles carry a little more weight now: **the knob stretches to about 1.4x through its travel and settles back as it lands**, all inside the one press duration, so a flip reads as one gesture instead of two properties moving in parallel (UI-SPEC.md 4.17).
 
 ### Fixed
+- **Pressing Test connection or Sync now on the Account & sync page no longer throws the page back to the top.** The WebDAV form used to step aside for the length of a round, collapsing the page under the reader so the scroll jumped to its start; it now stays in place, dimmed and inert, until the round ends (UI-SPEC.md 4.4).
 
 - **Deleting the cloud copy on WebDAV reaches the server.** The sync round asked whether a GitHub-style token was stored before starting the delete, so a WebDAV account with its server, username and app password filled in returned silently and the envelope stayed on the server. The adapter now asks its own backend whether it is signed in, which is the provider-agnostic answer the round was meant to use.
 - **Pressing a verdict pill no longer pulls a dragged bubble back to its anchor.** Every refresh of a standing card re-placed it from the selection -- the verdict pills, the arriving answer and the breakdown all share that path -- and the placement guards only knew about a drag still in progress, so the frame the reader had dragged the card to lasted no longer than the gesture. A drag now latches for the card's life: verdict presses and content updates keep the card where the reader put it, and a new selection still raises its card beside its own anchor.
@@ -91,8 +94,11 @@ This is the beta release of Lens, the second release on the numbering that began
 - 气泡的**等待卡片**变紧凑了。点击抬起卡片时，只给“正在解释…”这一行和三条呼吸条留出空间，不再预留整个回答的估计高度，因此所有区块都打开的单词也不会再展开成一张又高又空的大卡片；能放下的字段原地落位，放不下的随到达而把卡片撑高，整个回答落地后仍会收回到自己的高度（docs/adr/0146）。
 - 自动扫描**每个词的框只读一次，不再读两次**。走词原先先探一次词框、读词时内部又读同一组跨进程矩形；现在直接取读词返回的框。确定性测试臂上，到首线、到读完整页的 UI Automation 往返各少约 29%，词与框都不变。扫描现在也记录真实读取耗时：每秒一条步耗时行，以及每页首线出现的毫秒数（docs/adr/0188）。
 - 自动扫描**检查页面不再整棵走树**。判断跟踪页是否仍属于其窗口的周期检查，现在从页元素向上爬到窗口根，而不是枚举其下所有文档——重页上约 45 倍便宜（实测每次 ~180 ms 降到 ~4 ms）。这腾出约三分之一的扫描线程时间用于读词，虚线爬升更快；切标签或导航仍会丢页并重新搜索（docs/adr/0188）。
+- **打字速度整体加快一档**：五档现在每字 35 / 25 / 15 / 10 / 5 ms，原来的第 3 档成了新的第 1 档，默认的第 3 档因此以每字 15 ms 写出，约为过去的两倍快（UI-SPEC.md 4.3）。
+- 开关的切换更有分量：**滑块在平移途中横向拉伸到约 1.4×，落定前收平**，全部在同一个 press 时长内完成，翻转读成一次带分量的动作，而不是两条并行的属性动画（UI-SPEC.md 4.17）。
 
 #### 修复
+- **账号与同步页按 “Test connection” 或 “Sync now” 不再把整页弹回顶部。** WebDAV 表单过去会在同步进行时整块退场，页面在读者脚下塌陷、滚动位置被夹回顶部；现在它留在原位，灰化且不可编辑，直到这一轮结束（UI-SPEC.md 4.4）。
 
 - **WebDAV 上删除云端副本现在能到达服务器。** 同步回合在开始删除前先问是否保存了 GitHub 风格的 token，于是填好服务器、用户名和应用密码的 WebDAV 账户会静默返回，加密的同步副本仍留在服务器上。适配器现在直接问自己的后端是否已登录，这正是该回合本来要用的与提供方无关的答案。
 - **按下判定按钮不再把拖过的气泡拉回锚点。** 站立卡片的每次刷新都会按选区重新摆位——判定按钮、到达的回答和拆解共用这条路径——而摆位的守卫只知道仍在进行中的拖动，于是读者把卡片拖到的位置连一个手势都撑不过。拖动现在会锁定到卡片结束：判定按钮和内容更新都会让卡片留在读者放置的位置，新的选区仍会在它自己的锚点旁抬起卡片。

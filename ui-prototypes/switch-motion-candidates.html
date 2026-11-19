@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 开关切换动效候选</title>
+<style>
+/* 表面令牌照抄 DESIGN.md 3.1 / 3.1b / 3.1c / 3.1d；开关的尺寸与色位照 DESIGN.md Components 与 Switch.qml。 */
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#73737d;
+  --ink:#1a1a1f; --on:#fff; --sw-off:#d6dae1; --knob-off:#fff;
+  --r-panel:18px;
+  --f:"Noto Sans SC","Segoe UI Variable","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  /* Tokens.motion（DESIGN.md Motion）：press 150 / pop 180 / bubble 220，缓动 InOutQuad。 */
+  --t-press:150ms; --t-pop:180ms; --t-bubble:220ms;
+  --ease:cubic-bezier(.455,.03,.515,.955); --ease-out:cubic-bezier(.215,.61,.355,1);
+  /* 本页的文档外壳，不是任何 Lens 表面。 */
+  --doc-bg:#eef0f3; --doc-surface:#fff; --doc-line:#dfe3e9; --doc-muted:#5c5c66; --doc-faint:#66666f;
+}
+html[data-theme=dark]{
+  --bg:#0b0e13; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
+  --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
+  --ink:#e9e9ee; --on:#16161a; --sw-off:#2f2f37; --knob-off:var(--faint);
+  --doc-bg:#0b0e13; --doc-surface:#171c25; --doc-line:#36404e; --doc-muted:#a8b3c2; --doc-faint:#8a95a6;
+}
+html[data-theme=frosted]{--wall:url("frosted-backdrops/night-lines.png")}
+html[data-theme=liquid]{--wall:url("liquid-backdrops/cool-wall.png"); --r-panel:22px}
+html[data-theme=frosted]{
+  --panel:rgba(255,255,255,.40); --panel2:rgba(18,24,36,.065);
+  --line:rgba(18,24,36,.15); --line2:rgba(18,24,36,.10);
+  --text:#14161c; --muted:#3c4250; --faint:#535865;
+  --ink:#191b21; --on:#fff; --sw-off:rgba(18,24,36,.22); --knob-off:#fff;
+}
+html[data-theme=liquid]{
+  --panel:rgba(248,250,254,.78); --panel2:rgba(18,24,36,.075);
+  --line:rgba(18,24,36,.16); --line2:rgba(18,24,36,.11);
+  --text:#101319; --muted:#333846; --faint:#4a4f5e;
+  --ink:#12151b; --on:#fff; --sw-off:rgba(18,24,36,.24); --knob-off:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-font-smoothing:antialiased}
+html[data-theme=frosted],html[data-theme=liquid]{background-image:var(--wall);background-attachment:fixed;background-size:cover}
+body{font-family:var(--f);background:var(--doc-bg);color:var(--text);line-height:1.5}
+html[data-theme=frosted] body,html[data-theme=liquid] body{background:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+.page{max-width:1200px;margin:0 auto;padding:0 32px 56px}
+.doc-head{padding:40px 0 6px}
+.doc-head h1{font-size:22px;font-weight:700}
+.lead{margin-top:8px;max-width:860px;font-size:13px;color:var(--doc-muted)}
+.lead b{font-weight:700;color:var(--text)}
+
+.bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:20px 0 16px}
+.btn{padding:6px 14px;border-radius:999px;border:1px solid var(--doc-line);background:var(--doc-surface);font-size:12px;font-weight:700}
+.btn:hover{border-color:var(--ink)}
+.btn.ink{background:var(--ink);border-color:var(--ink);color:var(--on)}
+.btn[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--on)}
+.bar-note{margin-left:auto;font-size:12px;color:var(--doc-muted)}
+
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.cand{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);padding:16px 16px 12px}
+html[data-theme=frosted] .cand{backdrop-filter:blur(6px) saturate(120%)} /* taste-skill-ignore: DESIGN.md 3.1c 雾面玻璃 */
+html[data-theme=liquid] .cand{backdrop-filter:blur(6px) contrast(1.05)} /* taste-skill-ignore: DESIGN.md 3.1d 流光玻璃 */
+.cand-h h2{font-size:14px;font-weight:700}
+.tagline{margin-top:3px;font-size:12px;color:var(--muted)}
+.demo{display:grid;place-items:center;height:84px;margin-top:10px;background:var(--panel2);border-radius:11px}
+.zoom{transform:scale(2.2)}
+.rows{margin-top:2px}
+.swrow{display:flex;align-items:center;gap:12px;min-height:34px}
+.swrow span{flex:1;font-size:13px}
+.spec{margin-top:12px;padding-top:10px;border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:4px}
+.spec div{display:flex;gap:8px;font-size:12px;line-height:1.45}
+.spec dt{flex:none;width:30px;color:var(--faint)}
+.spec dd{color:var(--muted)}
+
+/* ——— 开关本体：34×20、16 px 圆钮（DESIGN.md Components） ——— */
+.switch{position:relative;flex:none;width:34px;height:20px;padding:0;border:0;border-radius:999px;background:var(--sw-off)}
+.switch .knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--knob-off);transform:translateX(0)}
+.switch[aria-checked=true]{background:var(--ink)}
+.switch[aria-checked=true] .knob{transform:translateX(14px);background:var(--on)}
+.switch:active{transform:scale(.97)}
+
+/* 候选 A：拉伸滑行。滑块在途中横向拉伸到 1.4×，落定前收平；变形只走 press 一个令牌。 */
+@keyframes sw-a-on{
+  0%{transform:translateX(0) scaleX(1)}
+  45%{transform:translateX(7px) scaleX(1.4)}
+  100%{transform:translateX(14px) scaleX(1)}
+}
+@keyframes sw-a-off{
+  0%{transform:translateX(14px) scaleX(1)}
+  45%{transform:translateX(7px) scaleX(1.4)}
+  100%{transform:translateX(0) scaleX(1)}
+}
+
+/* 候选 B：墨色漫过。墨色层从出发侧漫到落点侧，滑块 press 先到，墨色 bubble 后到，尾巴 70 ms。 */
+.switch .fill{position:absolute;inset:0;border-radius:999px;background:var(--ink);clip-path:inset(0 100% 0 0)}
+
+/* 候选 C：落点回声。滑块落定后，一圈墨色环从落点扩出去并淡掉（bubble）。 */
+.switch .ring{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--ink);opacity:0;transform:translateX(var(--ring-x,0px))}
+.sw-c[aria-checked=true]{--ring-x:14px}
+@keyframes ring-echo{
+  from{opacity:.45;transform:translateX(var(--ring-x,0px)) scale(.85)}
+  to{opacity:0;transform:translateX(var(--ring-x,0px)) scale(1.9)}
+}
+
+@media (prefers-reduced-motion: no-preference){
+  body:not(.reduced) .switch{transition:transform var(--t-press) var(--ease)}
+  body:not(.reduced) .sw-base,body:not(.reduced) .sw-a,body:not(.reduced) .sw-c{transition:background-color var(--t-press) ease,transform var(--t-press) var(--ease)}
+  body:not(.reduced) .sw-base .knob,body:not(.reduced) .sw-c .knob{transition:transform var(--t-press) var(--ease),background-color var(--t-press) ease}
+  body:not(.reduced) .sw-a .knob{transition:background-color var(--t-press) ease}
+  body:not(.reduced) .sw-a.t-on .knob{animation:sw-a-on var(--t-press) var(--ease) both}
+  body:not(.reduced) .sw-a.t-off .knob{animation:sw-a-off var(--t-press) var(--ease) both}
+  body:not(.reduced) .sw-b{transition:transform var(--t-press) var(--ease)}
+  body:not(.reduced) .sw-b .fill{transition:clip-path var(--t-bubble) var(--ease)}
+  body:not(.reduced) .sw-b .knob{transition:transform var(--t-press) var(--ease),background-color var(--t-press) ease}
+  body:not(.reduced) .sw-c.t-on .ring,body:not(.reduced) .sw-c.t-off .ring{animation:ring-echo var(--t-bubble) var(--ease-out) var(--t-press) forwards}
+}
+/* 减少动效：系统设置或页面开关任一命中，全部瞬时到达，与现有开关的口径一致。 */
+body.reduced .switch,body.reduced .switch *{transition:none!important;animation:none!important}
+
+/* 慢放是本页的对照工具，不是产品的一部分：所有令牌同步拉长，只看形状。 */
+body.slow{--t-press:750ms;--t-pop:900ms;--t-bubble:1100ms}
+
+.fineprint{margin-top:20px;max-width:960px;font-size:12px;line-height:1.7;color:var(--doc-muted)}
+.fineprint code{font-family:inherit;font-weight:700;color:var(--doc-muted)}
+
+body.shot .doc-head,body.shot .bar,body.shot .fineprint{display:none!important}
+body.shot .page{padding:16px 16px 0;max-width:none}
+
+@media (max-width:1100px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){
+  .page{padding:0 16px 40px}
+  .board{grid-template-columns:1fr}
+  .bar-note{margin-left:0;flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="doc-head">
+    <h1>开关切换动效候选</h1>
+    <p class="lead">全应用共用一枚开关（34×20 px、16 px 圆钮，<b>DESIGN.md</b> 的 Components），所以选一个候选就是全站生效。下面四张卡：现状保留作对照，A / B / C 只改按下那一下的动效，开关的形状、尺寸与色位都不动。三个候选都只用现有的 <b>Tokens.motion</b>（press 150 ms、bubble 220 ms，InOutQuad），不新增令牌。四套主题都能切；慢放 ×0.2 只看形状，判断快慢请回到 1×。</p>
+  </header>
+
+  <div class="bar" role="toolbar" aria-label="对照控件">
+    <button id="themeBtn" class="btn" type="button">晴朗白昼</button>
+    <button id="slowBtn" class="btn" type="button" aria-pressed="false">慢放 ×0.2</button>
+    <button id="syncBtn" class="btn ink" type="button">同步切换</button>
+    <button id="replayBtn" class="btn" type="button">重播一遍</button>
+    <span class="bar-note" id="motionNote">系统“减少动效”开启时，所有切换瞬时到达。</span>
+  </div>
+
+  <section class="board" id="board" aria-label="候选对照">
+    <article class="cand" data-cand="base">
+      <header class="cand-h">
+        <h2>现状 · 位移与淡变</h2>
+        <p class="tagline">滑块平移，轨道换色</p>
+      </header>
+      <div class="demo"><div class="zoom"><button class="switch sw-base" type="button" role="switch" aria-checked="false" aria-label="演示开关（现状）"><span class="knob"></span></button></div></div>
+      <div class="rows">
+        <div class="swrow"><span>动画效果</span><button class="switch sw-base" type="button" role="switch" aria-checked="true" aria-label="动画效果（现状）"><span class="knob"></span></button></div>
+        <div class="swrow"><span>启动时检查更新</span><button class="switch sw-base" type="button" role="switch" aria-checked="false" aria-label="启动时检查更新（现状）"><span class="knob"></span></button></div>
+      </div>
+      <dl class="spec">
+        <div><dt>滑块</dt><dd>press 150 ms 平移</dd></div>
+        <div><dt>轨道</dt><dd>press 150 ms 淡变</dd></div>
+        <div><dt>附加</dt><dd>无；不留任何新元素</dd></div>
+      </dl>
+    </article>
+
+    <article class="cand" data-cand="a">
+      <header class="cand-h">
+        <h2>A · 拉伸滑行（已选定）</h2>
+        <p class="tagline">滑块出发时拉长，落定前收平</p>
+      </header>
+      <div class="demo"><div class="zoom"><button class="switch sw-a" type="button" role="switch" aria-checked="false" aria-label="演示开关（A）"><span class="knob"></span></button></div></div>
+      <div class="rows">
+        <div class="swrow"><span>动画效果</span><button class="switch sw-a" type="button" role="switch" aria-checked="true" aria-label="动画效果（A）"><span class="knob"></span></button></div>
+        <div class="swrow"><span>启动时检查更新</span><button class="switch sw-a" type="button" role="switch" aria-checked="false" aria-label="启动时检查更新（A）"><span class="knob"></span></button></div>
+      </div>
+      <dl class="spec">
+        <div><dt>滑块</dt><dd>press 150 ms 平移，途中拉到 1.4×</dd></div>
+        <div><dt>轨道</dt><dd>press 150 ms 淡变</dd></div>
+        <div><dt>附加</dt><dd>无新元素，只多一帧形变</dd></div>
+      </dl>
+    </article>
+
+    <article class="cand" data-cand="b">
+      <header class="cand-h">
+        <h2>B · 墨色漫过</h2>
+        <p class="tagline">滑块带着墨色一起走，墨色慢半拍</p>
+      </header>
+      <div class="demo"><div class="zoom"><button class="switch sw-b" type="button" role="switch" aria-checked="false" aria-label="演示开关（B）"><span class="fill"></span><span class="knob"></span></button></div></div>
+      <div class="rows">
+        <div class="swrow"><span>动画效果</span><button class="switch sw-b" type="button" role="switch" aria-checked="true" aria-label="动画效果（B）"><span class="fill"></span><span class="knob"></span></button></div>
+        <div class="swrow"><span>启动时检查更新</span><button class="switch sw-b" type="button" role="switch" aria-checked="false" aria-label="启动时检查更新（B）"><span class="fill"></span><span class="knob"></span></button></div>
+      </div>
+      <dl class="spec">
+        <div><dt>滑块</dt><dd>press 150 ms 平移</dd></div>
+        <div><dt>轨道</dt><dd>不淡变；墨色 bubble 220 ms 从出发侧漫到落点侧</dd></div>
+        <div><dt>附加</dt><dd>墨色比滑块晚 70 ms 到位，尾巴可见</dd></div>
+      </dl>
+    </article>
+
+    <article class="cand" data-cand="c">
+      <header class="cand-h">
+        <h2>C · 落点回声</h2>
+        <p class="tagline">滑块落定，一圈墨色扩出去</p>
+      </header>
+      <div class="demo"><div class="zoom"><button class="switch sw-c" type="button" role="switch" aria-checked="false" aria-label="演示开关（C）"><span class="ring"></span><span class="knob"></span></button></div></div>
+      <div class="rows">
+        <div class="swrow"><span>动画效果</span><button class="switch sw-c" type="button" role="switch" aria-checked="true" aria-label="动画效果（C）"><span class="ring"></span><span class="knob"></span></button></div>
+        <div class="swrow"><span>启动时检查更新</span><button class="switch sw-c" type="button" role="switch" aria-checked="false" aria-label="启动时检查更新（C）"><span class="ring"></span><span class="knob"></span></button></div>
+      </div>
+      <dl class="spec">
+        <div><dt>滑块</dt><dd>press 150 ms 平移</dd></div>
+        <div><dt>轨道</dt><dd>press 150 ms 淡变</dd></div>
+        <div><dt>附加</dt><dd>落点一圈 1.5 px 墨色环，bubble 220 ms 扩散淡出</dd></div>
+      </dl>
+    </article>
+  </section>
+
+  <p class="fineprint">共同约束：四张卡用的是同一枚开关，差异只在切换这一下；键盘（Space / Enter）与读屏（role=switch）行为相同，减少动效时全部瞬时到达。A 是纯形变，B 的墨色层不出轨道；C 的回声环最多扩到约 30 px 直径，仍落在行高与标签间距之内。<code>?c=</code> 只留一张卡、<code>?theme=</code> 锁主题、<code>?motion=off</code> 看瞬时版本、<code>?shot</code> 隐去页头与对照栏。本页是候选对照，不是规格；A 已落成 <code>Switch.qml</code>，并同步进 <code>DESIGN.md</code> 与 <code>UI-SPEC.md</code> 4.17 的动效表，B / C 与现状留作对照。</p>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+const THEMES = ['light', 'dark', 'frosted', 'liquid'];
+const THEME_NAME = { light: '晴朗白昼', dark: '静谧暗夜', frosted: '雾面玻璃', liquid: '流光玻璃' };
+
+const board = $('board');
+const themeBtn = $('themeBtn'), slowBtn = $('slowBtn'), syncBtn = $('syncBtn'), replayBtn = $('replayBtn');
+const note = $('motionNote');
+
+let reduced = q.get('motion') === 'off' || matchMedia('(prefers-reduced-motion: reduce)').matches;
+let slow = false;
+
+/* 一键切到全季：一个候选的墨色与惯性同一拍，跨卡同步才比得出快慢。 */
+function flip(btn) {
+  const next = btn.getAttribute('aria-checked') !== 'true';
+  btn.classList.remove('t-on', 't-off');
+  void btn.offsetWidth;                                  // 重触发 keyframes
+  btn.classList.add(next ? 't-on' : 't-off');
+  btn.setAttribute('aria-checked', String(next));
+}
+
+board.addEventListener('click', (e) => {
+  const btn = e.target.closest('button.switch');
+  if (btn) flip(btn);
+});
+
+const bigSwitches = () => [...document.querySelectorAll('.cand .demo .switch')];
+
+syncBtn.addEventListener('click', () => bigSwitches().forEach(flip));
+
+replayBtn.addEventListener('click', () => {
+  const pace = slow ? 5 : 1;
+  bigSwitches().forEach((b) => { if (b.getAttribute('aria-checked') === 'true') flip(b); });
+  setTimeout(() => bigSwitches().forEach(flip), 480 * pace);
+});
+
+slowBtn.addEventListener('click', () => {
+  slow = !slow;
+  document.body.classList.toggle('slow', slow);
+  slowBtn.setAttribute('aria-pressed', String(slow));
+  slowBtn.textContent = slow ? '慢放 ×0.2（开）' : '慢放 ×0.2';
+});
+
+/* 主题：照抄其它候选页的循环按钮。 */
+function applyTheme(name) {
+  document.documentElement.dataset.theme = name;
+  themeBtn.textContent = THEME_NAME[name];
+}
+
+themeBtn.addEventListener('click', () => {
+  applyTheme(THEMES[(THEMES.indexOf(document.documentElement.dataset.theme) + 1) % THEMES.length]);
+});
+
+const initialTheme = THEMES.includes(q.get('theme')) ? q.get('theme') : 'light';
+applyTheme(initialTheme);
+
+const only = q.get('c');
+if (only) document.querySelectorAll('.cand').forEach((el) => { el.hidden = el.dataset.cand !== only; });
+
+if (reduced) {
+  document.body.classList.add('reduced');
+  note.textContent = '已按“减少动效”渲染：所有切换瞬时到达。';
+}
+
+if (q.has('shot')) document.body.classList.add('shot');
+</script>
+</body>
+</html>

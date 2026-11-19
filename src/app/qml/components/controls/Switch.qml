@@ -3,7 +3,8 @@ import QtQuick
 /**
  * The 34x20 pill switch from UI-SPEC.md 4.4.
  *
- * A disabled switch is dimmed and does not respond. It carries no explanation on the surface:
+ * A toggle stretches the knob through the travel and settles it back (UI-SPEC.md 4.17). A
+ * disabled switch is dimmed and does not respond. It carries no explanation on the surface:
  * the phase-1 placeholders are meant to read as unavailable, not as a promise.
  */
 Item {
@@ -60,9 +61,37 @@ Item {
             y: 2
             x: root.checked ? track.width - width - 2 : 2
             color: root.checked ? root.tokens.on : (root.tokens.dark ? root.tokens.faint : root.tokens.panel)
+            transform: Scale {
+                id: knobStretch
+                origin.x: knob.width / 2
+                origin.y: knob.height / 2
+                xScale: 1
+            }
             Behavior on x {
                 NumberAnimation {
                     duration: root.tokens.motion.press
+                    easing.type: root.tokens.motion.easing
+                    onRunningChanged: if (running) stretch.restart()
+                }
+            }
+
+            /// @brief The travel reads as weight: the knob pulls out to 1.4x toward the side it is
+            ///        heading for and settles back as it lands, all inside the press token
+            ///        (UI-SPEC.md 4.17).
+            SequentialAnimation {
+                id: stretch
+                NumberAnimation {
+                    target: knobStretch
+                    property: "xScale"
+                    to: 1.4
+                    duration: root.tokens.motion.press * 0.45
+                    easing.type: root.tokens.motion.easing
+                }
+                NumberAnimation {
+                    target: knobStretch
+                    property: "xScale"
+                    to: 1.0
+                    duration: root.tokens.motion.press * 0.55
                     easing.type: root.tokens.motion.easing
                 }
             }

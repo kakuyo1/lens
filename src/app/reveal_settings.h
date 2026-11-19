@@ -23,10 +23,10 @@ namespace lens::app {
 inline constexpr int kRevealSpeedMin = core::settings::find("revealSpeed")->low;
 /// @brief The fastest speed the setting accepts.
 inline constexpr int kRevealSpeedMax = core::settings::find("revealSpeed")->high;
-/// @brief What a reader who has not chosen a speed gets: the 35 ms pace the reveal shipped with.
+/// @brief What a reader who has not chosen a speed gets: the middle step.
 inline constexpr int kRevealSpeedDefault = core::settings::find("revealSpeed")->fallback.number;
 /// @brief Milliseconds per character at each speed 1..5, slowest first; the default sits in the middle.
-inline constexpr int kRevealMillisPerCharacter[] = {80, 55, 35, 25, 15};
+inline constexpr int kRevealMillisPerCharacter[] = {35, 25, 15, 10, 5};
 
 /**
  * @brief The pace a speed level means.
