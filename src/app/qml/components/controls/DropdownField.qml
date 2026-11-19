@@ -293,6 +293,11 @@ Item {
             root.optionPreviewWindow = root.optionPreview.createObject(null);
             if (root.optionPreviewWindow === null)
                 return;
+            // Owned by the panel like the list, and set before the first show so the platform
+            // window is created with the owner already in place: the same guarantee the list keeps.
+            // qmllint disable missing-property
+            root.optionPreviewWindow.transientParent = root.Window.window;
+            // qmllint enable missing-property
         }
         root.optionPreviewWindow.showOption(option);
         // A preview whose data could not be read says so and stays down, rather than standing
@@ -549,6 +554,12 @@ Item {
         flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
         color: "transparent"
         visible: false
+        // The window that opened the list owns it. Topmost alone does not keep the list and its
+        // previews above the panel -- the panel has been seen re-inserted over its own preview --
+        // where Windows keeps an owned window above its owner whatever else happens to the band.
+        // qmllint disable missing-property
+        transientParent: root.Window.window
+        // qmllint enable missing-property
         onVisibleChanged: {
             // The preview belongs to the open list: a window left standing over the desktop
             // would be a preview of a choice the reader can no longer see.

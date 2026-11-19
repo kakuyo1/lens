@@ -630,9 +630,11 @@ Window {
     /// The settings preview (UI-SPEC.md 4.4): the card a hovered setting's title raises beside the panel.
     /// An explanation bubble with `preview` on, and it lives here rather than in Main because the
     /// panel is the one thing it is placed against -- its own screen is the screen the card goes on.
+    /// The panel owns it: topmost too, it must not be raised over the card.
     Bubble {
         id: previewCard
         preview: true
+        transientParent: settings
         onPlacementRequested: settings.placePreviewCard()
     }
 

@@ -88,6 +88,11 @@ Item {
             tryCompare(preview, "visible", true);
             compare(preview.themeValue, "dark");
             compare(preview.optionLabel, "Dark", "the preview does not show the hovered row's label");
+            // The panel is topmost too, and activating it raises it over the band: the preview is
+            // owned by the panel, which is what keeps it above the panel. The list is bound the
+            // same way; only the preview is reachable by handle.
+            compare(preview.transientParent, settingsPanel(main),
+                    "the preview is not owned by the panel it is explained from");
 
             // The next row takes the same window over rather than a second one being built, and
             // the window is still beside the list. A solid theme on both sides: the offscreen
