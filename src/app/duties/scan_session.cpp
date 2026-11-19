@@ -8,22 +8,44 @@
 #include <QStringList>
 
 #include <algorithm>
+#include <memory>
+#include <thread>
 
 #include "util/log.h"
 
 namespace lens::app {
+namespace {
+
+/// @brief Destroy a released track away from the thread that let it go.
+///
+/// A track's worker is joined by its own destructor, and the worker can be inside a cross-process UI
+/// Automation call that neither sees the stop request nor returns promptly (a target that stopped
+/// pumping while UI Automation fell back on MSAA). On the GUI thread that join freezes the whole
+/// interface; this thread takes the wait instead and dies with the track.
+void reapTrackLater(std::unique_ptr<ScanTrack> track)
+{
+    if (track == nullptr) return;
+    std::thread([track = std::move(track)]() mutable { track.reset(); }).detach();
+}
+
+} // namespace
 
 ScanSession::ScanSession(core::KnownStore& store, Marshal marshal, TrackFactory makeTrack, StepRoute route)
     : store_(store), marshal_(std::move(marshal)), makeTrack_(std::move(makeTrack)), route_(std::move(route))
 {}
 
-ScanSession::~ScanSession() = default;
+ScanSession::~ScanSession()
+{
+    // The track's worker may be inside a UI Automation call that does not return; the join happens on
+    // a reaper thread rather than this one (reapTrackLater above).
+    reapTrackLater(std::move(track_));
+}
 
 void ScanSession::invalidate()
 {
     ++generation_;
     scanContext_.clear();
-    track_.reset();
+    reapTrackLater(std::move(track_));
     scanCandidates_.clear();
     scanJudged_.clear();
 }
@@ -42,7 +64,7 @@ void ScanSession::setMarkButtonHeld(bool const held)
 
 void ScanSession::stopTrack()
 {
-    track_.reset();
+    reapTrackLater(std::move(track_));
     scanContext_.clear();
 }
 
@@ -119,11 +141,16 @@ void ScanSession::startTrack(ScanForeground::Kind const kind, quintptr const win
 {
     scanBand_             = band;
     const auto generation = generation_;
-    track_                = makeTrack_(kind, window, band, [this, generation](capture::TrackFrame frame) {
+    // The marshaller travels by value: the track's worker outlives this object by the reaper's join
+    // (reapTrackLater), and the worker-side half of this closure must not read a destroyed session.
+    // The owner-side half still runs through the duty's own context, which drops it once the duty is
+    // gone.
+    auto const marshal = marshal_;
+    track_             = makeTrack_(kind, window, band, [this, generation, marshal](capture::TrackFrame frame) {
         // The track's worker hands each frame to the owner's thread; a frame from a track that was since dropped is refused by its generation.
         // The step the frame answers routes to the owner here, on the owner's thread -- the placed
         // words and the cleared flag are the owner's to emit (docs/adr/0165).
-        marshal_([this, generation, frame = std::move(frame)]() mutable { route_(onFrame(generation, frame)); });
+        marshal([this, generation, frame = std::move(frame)]() mutable { route_(onFrame(generation, frame)); });
     });
 }
 

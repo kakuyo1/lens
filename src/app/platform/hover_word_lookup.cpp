@@ -128,10 +128,8 @@ std::optional<HoverWord> hoverWordAt(QPoint const at, std::vector<std::string> c
 
     ComApartment apartment;
 
-    IUIAutomation* automationRaw = nullptr;
-    if (FAILED(CoCreateInstance(CLSID_CUIAutomation, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&automationRaw))) or not automationRaw)
-        return std::nullopt;
-    Com<IUIAutomation> automation{automationRaw};
+    auto automation = newAutomation();
+    if (not automation) return std::nullopt;
 
     IUIAutomationElement* hitRaw = nullptr;
     if (FAILED(automation->ElementFromPoint(pt, &hitRaw)) or not hitRaw) return std::nullopt;

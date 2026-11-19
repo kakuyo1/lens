@@ -21,13 +21,6 @@
 namespace lens::app::page_reader_uia {
 namespace {
 
-Com<IUIAutomation> newAutomation()
-{
-    IUIAutomation* raw = nullptr;
-    if (FAILED(CoCreateInstance(CLSID_CUIAutomation, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&raw))) or not raw) return {};
-    return Com<IUIAutomation>{raw};
-}
-
 Com<IUIAutomationElement> elementOf(IUIAutomation& automation, quintptr const window)
 {
     IUIAutomationElement* raw = nullptr;
@@ -653,9 +646,9 @@ std::shared_ptr<capture::Page> UiaPageReader::acquire(capture::Band const& band)
     }
     ScopedOp const op{Op::Search}; // a cache hit returned above; the rest is the whole-tree search
     if (not automation_) {
-        IUIAutomation* raw = nullptr;
-        if (FAILED(CoCreateInstance(CLSID_CUIAutomation, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&raw))) or not raw) return nullptr;
-        automation_.reset(raw, ComRelease{});
+        auto fresh = newAutomation();
+        if (not fresh) return nullptr;
+        automation_ = std::shared_ptr<IUIAutomation>{fresh.release(), ComRelease{}};
     }
     auto const root = elementOf(*automation_, window_);
     if (not root) return nullptr;

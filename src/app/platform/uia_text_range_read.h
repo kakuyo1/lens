@@ -59,6 +59,32 @@ private:
     bool owned_;
 };
 
+/// How long UI Automation waits for a provider to answer one call before failing it, in ms: the
+/// documented default, pinned here because a target that stopped pumping must fail the call rather
+/// than hold the thread that made it.
+constexpr DWORD kUiaConnectionTimeoutMs = 2000;
+/// The bound on one whole text-pattern transaction, in ms: the documented default, pinned for the
+/// same reason -- a read against a silent target ends instead of borrowing the provider's patience.
+constexpr DWORD kUiaTransactionTimeoutMs = 20000;
+
+/// @return A UI Automation client with the timeouts above in force, or null when COM refused one.
+/// @note CUIAutomation8, not CUIAutomation: only the v2-or-later object carries the timeouts, and a
+///       client whose provider stops pumping was seen holding its worker inside UI Automation's MSAA
+///       bridge, sending a window message that never came back (page_reader_uia.cpp's sight probe).
+inline Com<IUIAutomation> newAutomation()
+{
+    IUIAutomation* raw = nullptr;
+    if (FAILED(CoCreateInstance(CLSID_CUIAutomation8, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&raw))) or raw == nullptr) return {};
+    Com<IUIAutomation> automation{raw};
+    IUIAutomation2*    timed = nullptr;
+    if (SUCCEEDED(raw->QueryInterface(IID_PPV_ARGS(&timed))) and timed != nullptr) {
+        Com<IUIAutomation2> holder{timed};
+        holder->put_ConnectionTimeout(kUiaConnectionTimeoutMs);
+        holder->put_TransactionTimeout(kUiaTransactionTimeoutMs);
+    }
+    return automation;
+}
+
 /// @return Every box of @p range in the order UI Automation gives them; empty when the range has none.
 inline std::vector<QRect> boxesOf(IUIAutomationTextRange& range)
 {

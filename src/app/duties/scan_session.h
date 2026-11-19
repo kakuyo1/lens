@@ -197,8 +197,11 @@ public:
     {
         return scanPaused_;
     }
-    /// @brief Stop the track, forget the page it followed and join its worker. The duty owes the
-    ///        frames this before it dies.
+    /// @brief Stop the track and forget the page it followed. The duty owes the frames this before
+    ///        it dies.
+    /// @note The worker is joined on a reaper thread, never on the caller's: the join can wait on a
+    ///       UI Automation call that does not answer, and no caller of this may pay that wait
+    ///       (scan_session.cpp).
     void stopTrack();
     /// @brief The placement a developer surface arms: the geometry the next frames are placed in,
     ///        with no track to read one. The frames the surface injects land here (docs/adr/0165).
