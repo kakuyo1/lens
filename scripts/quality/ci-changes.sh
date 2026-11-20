@@ -19,8 +19,9 @@
 #             third_party, CMake, the configure action and the workflows
 #   app       src, data, translations, third_party, CMake, the packaging and dev-smoke scripts,
 #             the configure action and the workflows
-#   qml       src, the qtest suite, data, translations, third_party, CMake, the QML lint and
-#             parallel-runner scripts, the configure action and the workflows
+#   qml       src, the qtest suite and its snapshot goldens, the snapshot scripts, data,
+#             translations, third_party, CMake, the QML lint and parallel-runner scripts, the
+#             configure action and the workflows
 #   coverage  src, test, data, CMake, and the coverage scripts
 #   tidy      our .cpp/.h under src and test, .clang-tidy, and the tidy script
 #
@@ -65,7 +66,7 @@ if has '^src/|^data/|^i18n/|^third_party/|^scripts/release/|^scripts/qa/dev-smok
 fi
 
 qml=false
-if has '^src/|^test/qtest/|^test/CMakeLists\.txt$|^data/|^i18n/|^third_party/|^scripts/quality/qml-lint\.sh$|^scripts/quality/qmllint-capped\.ps1$|^scripts/quality/ci-changes\.sh$|^scripts/qa/qtest-parallel\.sh$|^cmake/|^CMakeLists\.txt$|^CMakePresets\.json$|^\.github/(actions|workflows)/'; then
+if has '^src/|^test/qtest/|^test/snapshots/|^test/CMakeLists\.txt$|^data/|^i18n/|^third_party/|^scripts/quality/qml-lint\.sh$|^scripts/quality/qmllint-capped\.ps1$|^scripts/quality/ci-changes\.sh$|^scripts/qa/(qtest-parallel\.sh|qml-snapshot(-compare)?\.ps1)$|^cmake/|^CMakeLists\.txt$|^CMakePresets\.json$|^\.github/(actions|workflows)/'; then
     qml=true
 fi
 

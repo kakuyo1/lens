@@ -21,12 +21,15 @@
 #                   sherpa-onnx runtime are not instrumented; the ASan runtime intercepts the
 #                   process allocator either way. Leak detection is not part of MSVC ASan on
 #                   Windows and is not gated here.
-#   qml-components  the QML module and the component suite, with the lint after the build.
+#   qml-components  the QML module and the component suite, with the lint after the build, then
+#                   the batch's snapshot render compared against its tracked goldens.
 #   qml-surfaces    the same module and the surface suite, sharded by case file. It is the gate's
 #                   longest step, which is why the component half got a runner of its own: both
 #                   jobs build the module, and that duplicate build runs beside the surface suite
 #                   rather than ahead of it. The two qml jobs share no state -- setup.cpp names its
-#                   settings copy by process id.
+#                   settings copy by process id. This job's snapshot render is a second, narrow
+#                   run of its own target; the sharded suite stays without LENS_QA_SNAPSHOT_DIR.
+#                   Goldens live under test/snapshots/golden/; docs/qa.md owns that gate.
 #   hygiene         the pre-commit hook's checks, over the files this change touches.
 #
 # A changes job in front of them reads the changed paths (scripts/quality/ci-changes.sh) and
@@ -335,6 +338,47 @@ jobs:
           QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
 
+      # The visual half, on the same target and one case named: setting LENS_QA_SNAPSHOT_DIR is
+      # what makes the snapshot cases write, and a whole-suite run would also write the GIF frame
+      # sequences and every hand-collected still, none of which this compares. The renderer and
+      # the font face are pinned -- the software backend and Microsoft YaHei, the pair the goldens
+      # were made with -- so what is compared is the code's drawing rather than whatever this
+      # runner happens to carry. docs/qa.md owns the batch, the pins and the tolerance.
+      - name: Snapshot renders
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:LENS_QA_SNAPSHOT_DIR" | Out-Null
+          ./build-ninja/test/qtest/lens_qtest_components.exe Typography::test_captureChineseAndLatinTypography
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_QUICK_BACKEND: software
+          LENS_QA_FONT_MODE: yahei
+          QT_FORCE_STDERR_LOGGING: 1
+          LENS_QA_SNAPSHOT_DIR: ${{ runner.temp }}\lens-snapshots\components
+
+      # A missing render is a failure, never a skip: the step above is the only thing that writes
+      # the directory. shell: powershell keeps the compare on Windows PowerShell 5.1, where its
+      # System.Drawing helper compiles without a package.
+      - name: Snapshot compare
+        shell: powershell
+        run: |
+          $lines = & { powershell -NoProfile -File scripts/qa/qml-snapshot-compare.ps1 -GoldenDir test/snapshots/golden/components -RenderedDir "$env:LENS_QA_SNAPSHOT_DIR" 2>&1 }
+          $code = $LASTEXITCODE
+          $lines | Set-Content -Path "$env:LENS_QA_SNAPSHOT_DIR\diff-summary.txt" -Encoding utf8
+          $lines | Write-Output
+          exit $code
+        env:
+          LENS_QA_SNAPSHOT_DIR: ${{ runner.temp }}\lens-snapshots\components
+
+      # Renders plus the one-line-per-case summary: a cross-machine mismatch is diagnosed from
+      # the picture, not from the CI log.
+      - name: Upload snapshot renders
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshots-components
+          path: ${{ runner.temp }}/lens-snapshots/components
+          if-no-files-found: ignore
+
   qml-surfaces:
     needs: changes
     if: needs.changes.outputs.qml == 'true'
@@ -359,6 +403,42 @@ jobs:
       - name: Surface tests (sharded)
         shell: bash
         run: bash scripts/qa/qtest-parallel.sh --build build-ninja --shards 2
+
+      # The visual half: the same target, the batch's three cases named, and the snapshot
+      # environment the suite above deliberately does not carry -- a sharded whole-suite run with
+      # it would write the GIF frame sequences and every hand-collected still into one directory
+      # from two processes, and nothing here compares those. One process, cases in the order the
+      # goldens were collected in; docs/qa.md owns the batch and the renderer.
+      - name: Snapshot renders
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:LENS_QA_SNAPSHOT_DIR" | Out-Null
+          ./build-ninja/test/qtest/lens_qtest_surfaces.exe "BubbleSenses::test_snapshotBothThemes" "Panels::test_captureTheRemovalQuestion" "SettingsWave3::test_captureTheCatalogAndDetailStates"
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_QUICK_BACKEND: software
+          LENS_QA_FONT_MODE: yahei
+          QT_FORCE_STDERR_LOGGING: 1
+          LENS_QA_SNAPSHOT_DIR: ${{ runner.temp }}\lens-snapshots\surfaces
+
+      # A missing render is a failure, never a skip. shell: powershell keeps the compare on
+      # Windows PowerShell 5.1, where its System.Drawing helper compiles without a package.
+      - name: Snapshot compare
+        shell: powershell
+        run: |
+          powershell -NoProfile -File scripts/qa/qml-snapshot-compare.ps1 -GoldenDir test/snapshots/golden/surfaces -RenderedDir "$env:LENS_QA_SNAPSHOT_DIR" 2>&1 | Tee-Object -FilePath "$env:LENS_QA_SNAPSHOT_DIR\diff-summary.txt"
+          exit $LASTEXITCODE
+        env:
+          LENS_QA_SNAPSHOT_DIR: ${{ runner.temp }}\lens-snapshots\surfaces
+
+      # Renders plus the one-line-per-case summary, so a cross-machine mismatch is diagnosed from
+      # the picture rather than from the CI log.
+      - name: Upload snapshot renders
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshots-surfaces
+          path: ${{ runner.temp }}/lens-snapshots/surfaces
+          if-no-files-found: ignore
 
   hygiene:
     runs-on: windows-latest

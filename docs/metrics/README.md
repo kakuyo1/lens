@@ -30,6 +30,7 @@
 | [`source-code-review-hotspots-2026-11-20.md`](code-quality/source-code-review-hotspots-2026-11-20.md) | 当前规模（498 个文件、92,182 行）下的热点清单；`lemmatize` 与 `parseExplanationContent` 拆分前后的数字；取代 2026-10-03 那份 |
 | [`selection-classification-accuracy-2026-10-04.md`](code-quality/selection-classification-accuracy-2026-10-04.md) | 单层选区类型判定错在哪里，是否需要多层级策略 |
 | [`scan-pool-cleaning-2026-11-17.md`](code-quality/scan-pool-cleaning-2026-11-17.md) | 扫描池两阶段清掉哪些专名/缩写/外来碎片（日志证据 + 全池义项级清扫），真实画线少多少，覆盖与选区是否受影响（ADR 0192） |
+| [`visual-snapshot-baseline-2026-11-20.md`](code-quality/visual-snapshot-baseline-2026-11-20.md) | 首批 4 用例 7 张视觉 golden：软件后端 + YaHei 固定、三次采集 0 像素、5% 容差门与 CI 接线；跨机器与“连续 10 次绿”待首次 CI |
 
 ## coverage
 
@@ -52,6 +53,7 @@
 | [`filtercore-throughput-2026-11-10.md`](runtime-performance/filtercore-throughput-2026-11-10.md) | 当前语料与词表规模下的 FilterCore 吞吐新基线，以及插桩开与关的两树对照 |
 | [`qml-scenario-2026-11-10.md`](runtime-performance/qml-scenario-2026-11-10.md) | 八步 QML 场景与 10-03 基线的对比：wall 稳定，工作量随表面与向导翻了约五倍；附鼠标停顿探针 |
 | [`a3-probes-2026-11-10.md`](runtime-performance/a3-probes-2026-11-10.md) | 采集上限、读屏节奏、旋转裁剪、抓屏排除与 21 张 OCR 语料的复测，对照 10-19 与 10-28 |
+| [`startup-2026-11-20.md`](runtime-performance/startup-2026-11-20.md) | 启动到 `Lens is up` 的五次实测（中位 2.769 s）与阶段拆分；向导惰性化本轮不做的证据与重开门槛 |
 
 ## resource-footprint
 
