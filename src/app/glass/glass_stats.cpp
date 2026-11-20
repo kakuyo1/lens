@@ -17,7 +17,6 @@ namespace {
 /// The fraction the worst-case number is taken at. One sample in twenty is allowed to be slower than this.
 constexpr double kPercentile = 0.95;
 
-/// @return The middle of @p sorted, the average of the two middles when there is no single one.
 double middleOf(std::vector<double> const& sorted)
 {
     auto const n = sorted.size();

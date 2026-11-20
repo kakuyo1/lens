@@ -15,7 +15,6 @@ import QtQuick.Window
 Window {
     id: report
     objectName: "report"
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("report")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -188,7 +187,6 @@ Window {
                 y: 26
                 width: report.cardWidth - 56
                 spacing: 0
-                // The report gives way to the story: it fades and slides aside, and returns the same way.
                 opacity: report.page === "story" ? 0 : 1
                 Behavior on opacity {
                     NumberAnimation {

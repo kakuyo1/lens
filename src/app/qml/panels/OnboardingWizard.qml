@@ -39,7 +39,6 @@ Window {
     /// visit keeps the drawn menu open as a still diagram (docs/adr/0185).
     property bool trayDemoPlayed: false
 
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("onboarding")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -381,8 +380,6 @@ Window {
                         options: Controller.settings.levels
                         currentValue: Controller.settings.level
                         onPicked: (value) => Controller.setSetting("level", value)
-                        // The word cloud a hovered level raises beside the list -- the same preview
-                        // the learning page's own dropdown carries; the option carries its level.
                         optionPreview: vocabPreviewComponent
                     }
                 }

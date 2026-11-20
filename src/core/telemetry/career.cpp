@@ -52,7 +52,6 @@ constexpr std::string_view kKeys[]{
     "llm.example",
 };
 
-/// @brief Add one to a counter the career carries; a value outside the table contributes nothing.
 void bump(Career& career, std::string const& key, long long by = 1)
 {
     const auto it = career.find(key);

@@ -17,8 +17,7 @@ Window {
     property point grabCursor
     property point grabAt
     property bool moved: false
-    /// The pointer positions of the drag so far, with the time each was taken, for the release velocity. Old
-    /// samples are dropped as they go out of the 120 ms window, and the whole list starts again at each pickup.
+    /// The pointer positions of the drag so far, with the time each was taken, for the release velocity.
     property var releaseSamples: []
     /// The reader's motion answer, Windows' and the application's together. The ceremony lives in C++, so the window
     /// hands it the same token every surface animates by.

@@ -14,7 +14,6 @@ pragma ComponentBehavior: Bound
 Window {
     id: notice
     objectName: "notice"
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("notice")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -69,8 +68,6 @@ Window {
             }
         }
 
-        // This window takes no focus, so the pill carries a name and a press for the screen
-        // reader but no tab stop or ring.
         Accessible.role: Accessible.Button
         Accessible.name: pillLabel.text
         Accessible.onPressAction: pillTap.tapped()

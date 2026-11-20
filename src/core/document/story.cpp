@@ -12,7 +12,6 @@ namespace lens::core {
 
 namespace {
 
-/// @return Whether @p c is whitespace, as the story's word count and cut read it.
 bool isSpace(char c)
 {
     return std::isspace(static_cast<unsigned char>(c)) != 0;

@@ -305,7 +305,6 @@ Item {
                     "the spent hint is still attached to the verdict");
         }
 
-        /// A fresh bubble starts at its full five.
         function test_aFreshBubbleShowsTheWholeCount() {
             const bubble = opened();
             compare(metaOf(bubble).text, "Disappears in 5s");

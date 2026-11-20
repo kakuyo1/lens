@@ -249,7 +249,7 @@ TEST_F(CoreTest, RoutesASentenceToTheSentenceChannelButStillFiltersItsWords)
     EXPECT_EQ(lens::core::classifySelection(text, {}, {}, Difficulty::byRank(3000)).kind, lens::core::SelectionKind::Sentence);
 
     // filterWords still produces the candidate list the corpus pins, in first-appearance order,
-    // with the in-band article marked rather than dropped (TODO.md item 0) -- which is why the
+    // with the in-band article marked rather than dropped -- which is why the
     // list opens with the article.
     const auto words = lens::core::filterWords(text, {}, {}, Difficulty::byRank(3000));
     ASSERT_FALSE(words.empty());
@@ -341,7 +341,7 @@ TEST_F(CoreTest, ClassifiesJunkAsASentence)
     EXPECT_EQ(lens::core::classifySelection("", {}, {}, Difficulty::byRank(0)).kind, lens::core::SelectionKind::Sentence);
     // A lone word the reader already knows is still a word: the mark annotates the candidate,
     // it does not take it away, because an explicit selection is a request to explain it --
-    // the reader cannot be assumed to remember a word they marked (TODO.md item 0).
+    // the reader cannot be assumed to remember a word they marked.
     const auto known = lens::core::classifySelection("ubiquitous", {"ubiquitous"}, {}, Difficulty::byRank(3000));
     EXPECT_EQ(known.kind, lens::core::SelectionKind::Word);
     ASSERT_EQ(known.candidates.size(), 1u);

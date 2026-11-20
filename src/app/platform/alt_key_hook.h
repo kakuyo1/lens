@@ -19,7 +19,7 @@ namespace lens::app {
 
 /// @brief What the hook has seen of the Alt key so far.
 struct AltHold {
-    bool held  = false; ///< The Alt key is down.
+    bool held  = false;
     bool chord = false; ///< Another key went down while it was held.
 };
 
@@ -44,7 +44,6 @@ class AltKeyHook : public QObject {
 public:
     explicit AltKeyHook(QObject* parent = nullptr);
 
-    /// @brief Uninstalls the hook if it is still installed.
     ~AltKeyHook() override;
 
     /**
@@ -59,7 +58,6 @@ public:
 signals:
     /// @brief The Alt key went down; auto-repeat does not report it again.
     void altPressed();
-    /// @brief The Alt key came up.
     void altReleased();
 
 private:

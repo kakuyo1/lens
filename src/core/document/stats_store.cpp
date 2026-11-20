@@ -71,7 +71,6 @@ nlohmann::json dailyToJson(const DailyUsage& day)
     return json;
 }
 
-/// @brief Add one day's tally into another, model by model.
 void addInto(DailyUsage& total, const DailyUsage& part)
 {
     total.pops += part.pops;
@@ -305,7 +304,6 @@ std::string cardField(const std::string& text, char delimiter)
     return quoted + '"';
 }
 
-/// @return One LF-terminated row of @p fields.
 std::string cardRow(const std::vector<std::string>& fields, char delimiter)
 {
     std::string row;

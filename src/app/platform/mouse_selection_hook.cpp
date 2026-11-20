@@ -33,7 +33,7 @@ constexpr int kDragSlopPx = 4;
 struct GestureTracker {
     int  downX         = 0;
     int  downY         = 0;
-    bool overOwnWindow = false; ///< The press landed on a surface of this process.
+    bool overOwnWindow = false;
 
     void onPress(int x, int y, bool own) // NOLINT(bugprone-easily-swappable-parameters): onPress takes its 2 int arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
     {
@@ -77,14 +77,6 @@ bool overOurWindow(POINT pt)
 GestureTracker      g_tracker;
 MouseSelectionHook* g_owner = nullptr;
 
-// The hook's own thread, and the only thing it does is wait for messages.
-//
-// Windows calls a WH_MOUSE_LL callback on the thread that installed the hook, and holds the
-// mouse until that thread answers -- up to LowLevelHooksTimeout, 300 ms by default. The main
-// thread owns the window, the word list, the store and the renderer, so it will always have
-// something that blocks for longer than a mouse may wait: measured on the real machine, at
-// startup alone, three inputs at 312 ms apiece while it compiled the QML and built the first
-// frame. Installing the hook later only moves which work is caught, so it lives here instead.
 HHOOK                   g_handle       = nullptr;
 DWORD                   g_hookThreadId = 0;
 DWORD                   g_hookError    = 0;
@@ -93,11 +85,6 @@ std::mutex              g_startMutex;
 std::condition_variable g_started;
 bool                    g_startDone = false;
 
-/// @brief Report an event to the loop that owns the surfaces, keeping the callback O(1).
-///
-/// A queued invocation rather than a direct emit or a zero-delay timer: the callback runs on the
-/// hook's thread, and the controller's connections have to be delivered on the thread that owns
-/// the surfaces. Queued delivery is what Qt documents for exactly this.
 void postToOwner(MouseSelectionHook* owner, std::function<void()> report)
 {
     QMetaObject::invokeMethod(owner, std::move(report), Qt::QueuedConnection); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer
@@ -110,12 +97,6 @@ void emitPressedLater(const POINT& pt)
     postToOwner(owner, [owner, at] { emit owner->pointerPressed(at); });
 }
 
-/**
- * The hook itself. Runs on the hook's own thread, within a budget Windows enforces silently: a
- * callback that overruns LowLevelHooksTimeout gets the hook removed with no error anywhere. So
- * this does O(1) work and nothing else -- the signal is queued rather than emitted, leaving the
- * injection and its wait to the thread that owns the surfaces.
- */
 LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
 {
     if (code == HC_ACTION && g_owner != nullptr) {                          // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): QMetaObject::invokeMethod transfers the queued lambda into a QMetaCallEvent; the analyzer cannot see that ownership transfer

@@ -93,7 +93,7 @@ private:
     std::unique_ptr<PageTrack> track_;
 };
 
-/// @brief The player's track: the subtitle follower, framed the same way (docs/adr/0201).
+/// @brief The player's track: the subtitle follower, framed the same way.
 class SubtitleScanTrack final : public ScanTrack {
 public:
     SubtitleScanTrack(quintptr const window, QRect band, TrackSink deliver)

@@ -27,7 +27,6 @@ namespace {
 /// loop, which is what makes the stamp an honest signal.
 constexpr int kPulseMs = 250;
 
-/// How long a silence means the interface stopped, and how often the watcher reads the pulse.
 constexpr std::chrono::seconds kStall{5};
 constexpr std::chrono::seconds kPoll{1};
 

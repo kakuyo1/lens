@@ -35,6 +35,12 @@
 #     and duties, platform, glass and pet do not reach into one another or the facade. It reads
 #     the whole tree when a src/ file is staged, because an include left behind sits in a file
 #     the commit may not touch. scripts/quality/layer-check.sh owns the rules.
+# 14. Prose comments. The comment audit (.claude/skills/delete-comment/ owns the process) left
+#     src/ and test/ with only the contracts AGENTS.md's Code Style keeps, and this holds that
+#     state as a ratchet: a prose comment line may be deleted, never added. /// document lines
+#     are the style rule's own business and are not counted. Like the layers check it counts
+#     the whole tree when a src/ or test/ source file is staged, because the budget is a tree
+#     property, not a per-file one. scripts/quality/comment-lint.sh owns the counting rules.
 #
 # Only what this commit touches is checked, which keeps a commit hook under a few seconds. The
 # QML check is the exception, and it is the one that only runs when a .qml file is staged.
@@ -456,6 +462,12 @@ check_layers() {
     sh scripts/quality/layer-check.sh
 }
 
+check_comment_budget() {
+    printf '%s\n' "$staged" | grep -qE '^(src|test)/.*\.(cpp|h|hpp|cc|qml)$' || return 0
+    [ -x scripts/quality/comment-lint.sh ] || { echo "pre-commit: scripts/quality/comment-lint.sh not found, skipping the comment budget"; return 0; }
+    sh scripts/quality/comment-lint.sh
+}
+
 # "fail", not "status": every check below keeps its own running answer in a shell-wide
 # "status", so a dispatcher that used the same name would have an earlier failure wiped out by
 # the next check finishing cleanly. That is not hypothetical -- with "status" here, a document
@@ -475,4 +487,5 @@ check_qml_size || fail=1
 check_api_keys || fail=1
 check_unfinished || fail=1
 check_layers || fail=1
+check_comment_budget || fail=1
 exit $fail

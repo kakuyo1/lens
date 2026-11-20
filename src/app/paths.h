@@ -17,7 +17,6 @@
 
 namespace lens::app {
 
-/// @return @p text as a std::filesystem::path, for the loaders that take one.
 inline std::filesystem::path toPath(const QString& text)
 {
     return std::filesystem::path{text.toStdWString()};

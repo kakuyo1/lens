@@ -81,8 +81,6 @@ Item {
         cueAnim.restart();
     }
 
-    // No frame around the drawing: the card itself is the desktop, so only the
-    // taskbar strip and the drawn menu stand on it.
     Item {
         anchors.fill: parent
         clip: true
@@ -289,8 +287,6 @@ Item {
             }
         }
 
-        // The taskbar strip at the panel's bottom edge: the overflow chevron,
-        // the icon that catches the cue, and a sample clock.
         Rectangle {
             anchors.left: parent.left
             anchors.right: parent.right

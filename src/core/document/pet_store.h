@@ -69,8 +69,7 @@ public:
     /// @return The ids of the reader's packages they have confirmed. A confirmed package is not asked about again, even
     ///         after it was removed and put back.
     std::vector<std::string> confirmed() const;
-    /// @brief Records that the reader confirmed the package `id`.
-    void confirm(std::string const& id);
+    void                     confirm(std::string const& id);
 
     /// @return Whether the reader turned the desktop pet on. On by default.
     bool enabled() const;

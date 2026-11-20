@@ -87,11 +87,6 @@ Window {
 
     Notice {
         id: notice
-        // The word the notice is about, and the cost of asking for it, are both the controller's.
-        // A notice's action is normally an explanation -- the first-run guidance went to the wizard
-        // (docs/adr/0148), and every other card is a failure with nothing left to press. The crash
-        // notice (docs/adr/0174) is the exception: its kind is what tells the two apart, and its
-        // two pills act on the dump artifacts, not on a word.
         onActionTriggered: {
             if (notice.noticeKind === "crash")
                 Controller.openCrashDumpFolder()
@@ -238,8 +233,6 @@ Window {
         onHeightChanged: surfaceHost.keepOnScreen(trayMenu)
     }
 
-    /// The panel routing lives in SurfaceHost.qml and the placement arithmetic in SurfaceGeometry,
-    /// keeping this file under the QML size cap.
     SurfaceHost {
         id: surfaceHost
         objectName: "surfaceHost"

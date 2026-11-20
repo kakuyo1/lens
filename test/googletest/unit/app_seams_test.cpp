@@ -69,7 +69,6 @@ using lens::core::CacheContext;
 using lens::core::DailyUsage;
 using lens::core::SelectionKind;
 
-/// @return The token a runtime status is reported by, or "<none>" when it is not a reason at all.
 std::string reasonToken(lens::capture::OcrStatus status)
 {
     const auto refusal = lens::app::refusalOf(status);
@@ -235,7 +234,6 @@ TEST(CaptureRefusal, EveryRuntimeStatusNamesItsOwnReasonAndReadyNamesNone)
     EXPECT_EQ(reasonToken(lens::capture::OcrStatus::PartialResult), "partial-result");
 }
 
-/// Each gate refuses on its own, and the reader hears the highest-ranked one when several hold.
 TEST(CaptureRefusal, TheGateNamesEachReasonAndTheHighestRankedWins)
 {
     using lens::app::gateRefusal;
@@ -255,7 +253,6 @@ TEST(CaptureRefusal, TheGateNamesEachReasonAndTheHighestRankedWins)
     EXPECT_EQ(gateRefusal({.screenshotOn = true, .runtime = OcrStatus::Untrusted}), CaptureRefusal::Untrusted);
     EXPECT_EQ(gateRefusal({.screenshotOn = true, .runtime = OcrStatus::Ready}), std::nullopt);
 
-    // Every gate shut at once, then opened one by one from the top.
     lens::app::CaptureGate gate{.budgetPaused = true, .probing = true, .busy = true, .screenshotOn = false, .runtime = OcrStatus::RuntimeMissing};
     EXPECT_EQ(gateRefusal(gate), CaptureRefusal::BudgetPaused);
     gate.budgetPaused = false;
@@ -270,7 +267,6 @@ TEST(CaptureRefusal, TheGateNamesEachReasonAndTheHighestRankedWins)
     EXPECT_EQ(gateRefusal(gate), std::nullopt);
 }
 
-/// @return The grid's entry for @p date, or an empty map when the window does not carry it.
 QVariantMap gridDay(const QVariantList& grid, const QString& date)
 {
     for (const QVariant& day : grid) {
@@ -325,7 +321,6 @@ TEST(YearGrid, SpendsTheTalliesOfTheOneDayItHasAndLeavesTheRestAtZero)
     EXPECT_EQ(gridDay(grid, QStringLiteral("2026-02-20")).value("pops").toInt(), 1);
     EXPECT_EQ(gridDay(grid, QStringLiteral("2026-02-15")).value("pops").toInt(), 0);
 
-    // A tally the window does not reach is not in it.
     EXPECT_TRUE(gridDay(grid, QStringLiteral("2026-03-02")).isEmpty());
 }
 
@@ -342,16 +337,12 @@ struct ProfileScope {
     }
 };
 
-/// @return @p path's contents, for the carry-over case below.
 std::string readFile(const std::filesystem::path& path)
 {
     std::ifstream in(path);
     return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
 }
 
-/// The boundary: the document carries the reader's API key and word marks, so it belongs to the
-/// profile -- one per account -- and never to the install tree, which every account shares and
-/// which may be read-only under Program Files.
 TEST(SettingsPath, LivesInTheProfileAndNeverInTheInstallTree)
 {
     const ProfileScope          scope;
@@ -409,8 +400,6 @@ TEST(SettingsPath, CarriesTheLegacyDocumentOverOnceAndOnlyOnce)
     std::filesystem::remove_all(profile.parent_path());
 }
 
-/// The other boundary: an installed launch starts in the install folder, so the log -- which can
-/// carry looked-up words -- belongs to the profile, never to Program Files (docs/adr/0178).
 TEST(LogDirectory, AnInstalledBuildKeepsTheLogInTheProfile)
 {
     const std::filesystem::path dir = lens::app::logDirectory(true);
@@ -425,8 +414,6 @@ TEST(LogDirectory, AnInstalledBuildKeepsTheLogInTheProfile)
         << "the log resolved under the tree it was built from: " << dir.string();
 }
 
-/// A development tree keeps the repository's logs/, relative to where the run starts, so
-/// `tail -f logs/lens.log` and the QA runners keep reading where they always have.
 TEST(LogDirectory, ADevelopmentTreeKeepsTheRepositoryLogs)
 {
     EXPECT_EQ(lens::app::logDirectory(false), std::filesystem::path{"logs"});

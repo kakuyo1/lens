@@ -53,7 +53,6 @@ using BreakdownResult = std::variant<QVector<RoleSpan>, QString>;
 // TEST_F pastes the fixture name into a class definition, so it has to be unqualified.
 using lens::test::LlmTest;
 
-/// @return The failure message when @p result is an error, or an empty string on success.
 QString errorOf(const LlmResult& result)
 {
     const auto* message = std::get_if<QString>(&result);

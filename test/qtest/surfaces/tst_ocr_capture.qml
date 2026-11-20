@@ -265,9 +265,5 @@ Item {
             tryVerify(function () { return Controller.settings.hoverHotkey === "Ctrl+Alt+J"; }, 1000);
             compare(Controller.settings.ocrHotkey, ocrBefore, "choosing the hover key moved the OCR key");
         }
-
-        /// The row's own drawing is checked against the snapshot the settings case already takes of
-        /// this page (`tst_settings_wave3.qml` → `settings-capture.png`): a second still of the same
-        /// row from a nested item renders shifted, and one picture of a surface is enough.
     }
 }

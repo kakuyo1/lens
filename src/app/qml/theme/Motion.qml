@@ -8,9 +8,9 @@ import QtQuick
  * this is the third value table in qml/theme/, built and forwarded by TokenTable.
  *
  * Reduced motion is not a CSS media query: Windows exposes no prefers-reduced-motion, and its
- * preference comes from SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION) -- src/app/system_motion.h
- * names the interface and reads it once. The application switch can reduce every duration to zero,
- * but cannot override Windows' choice to turn animations off.
+ * preference comes from SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION), read once. The
+ * application switch can reduce every duration to zero, but cannot override Windows' choice
+ * to turn animations off.
  */
 QtObject {
     /// Writable so a test can build one of these with a known answer rather than the machine value.

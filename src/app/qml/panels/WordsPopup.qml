@@ -22,7 +22,6 @@ import QtQuick.Window
 Window {
     id: words
     objectName: "words"
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("words")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -249,7 +248,6 @@ Window {
     readonly property var scopes: ["all", "known", "mastered", "new"]
     readonly property string scope: scopes[filter]
 
-    /// The reader asked for the panel this one was opened from.
     signal backRequested()
     /// The title is the entry point to the annual word record.
     signal yearRequested()
@@ -422,7 +420,6 @@ Window {
                 }
             }
 
-            // The list's own line: how many words the rows below are.
             Item {
                 width: parent.width
                 height: count.implicitHeight

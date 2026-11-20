@@ -72,7 +72,6 @@ constexpr bool isAsciiSpace(char const c) noexcept
     return c == ' ' or c == '\t' or c == '\n' or c == '\r' or c == '\v' or c == '\f';
 }
 
-/// @return @p c folded to lower case when it is an ASCII upper-case letter, else @p c unchanged.
 constexpr char asciiLower(char const c) noexcept
 {
     return isAsciiUpper(c) ? static_cast<char>(c - 'A' + 'a') : c;

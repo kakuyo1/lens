@@ -80,7 +80,6 @@ void checkWin32(BOOL ok, const char* what)
     throw std::runtime_error(std::string{"vault: DPAPI "} + what + " failed, error " + code);
 }
 
-/// @return @p count bytes from the system random source.
 Bytes randomBytes(std::size_t count)
 {
     Bytes out(count);

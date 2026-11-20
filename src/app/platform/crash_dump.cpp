@@ -37,8 +37,8 @@ namespace {
 /// Pseudo-codes the CRT funnels crash with, above any code Windows itself raises, so a summary
 /// reads without this file's table at hand.
 constexpr unsigned kCodeTerminate        = 0xE0000001; // uncaught C++ exception, via std::terminate
-constexpr unsigned kCodeInvalidParameter = 0xE0000002; // CRT invalid parameter
-constexpr unsigned kCodePureCall         = 0xE0000003; // pure virtual call
+constexpr unsigned kCodeInvalidParameter = 0xE0000002;
+constexpr unsigned kCodePureCall         = 0xE0000003;
 constexpr unsigned kCodeAbort            = 0xE0000004; // abort(), qFatal included
 
 /// Set by whichever funnel arrives first: the artifacts exist, and every later arrival dies

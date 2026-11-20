@@ -27,7 +27,6 @@ bool textFlag(const nlohmann::json& held, bool fallback)
 
 namespace {
 
-/// @return The object @p path names inside @p node, or nullptr when a segment is missing or not an object.
 nlohmann::json* walk(nlohmann::json* node, const std::vector<std::string>& path)
 {
     for (const std::string& name : path) {

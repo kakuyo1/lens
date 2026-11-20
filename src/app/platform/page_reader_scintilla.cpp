@@ -77,7 +77,6 @@ QRect rectOf(HWND const window)
     return QRect{box.left, box.top, box.right - box.left, box.bottom - box.top};
 }
 
-/// @return The screen position of the editor's client origin.
 QPoint clientOriginOf(HWND const editor)
 {
     POINT at{0, 0};

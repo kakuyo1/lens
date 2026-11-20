@@ -35,10 +35,8 @@ public:
     LocalVoice(LocalVoice const&)            = delete;
     LocalVoice& operator=(LocalVoice const&) = delete;
 
-    /// @return The voice this object speaks with.
     speech::VoiceModel model() const;
-    /// @return The accent this object speaks in.
-    QString accent() const;
+    QString            accent() const;
 
     /**
      * @brief Read one word.

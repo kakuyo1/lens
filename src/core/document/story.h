@@ -16,7 +16,6 @@ namespace lens::core {
 /// @brief The fewest words a story is written from; a week with fewer lemmas uses all of them.
 inline constexpr std::size_t kStoryMinWords = 10;
 
-/// @brief The most words a story is written from.
 inline constexpr std::size_t kStoryMaxWords = 15;
 
 /// @brief The most words of story the panel shows; a longer answer is cut to this.

@@ -26,10 +26,6 @@ QtObject {
     }
     // qmllint enable missing-property
 
-    /**
-     * Turn a position the mouse hook reported into one a window can be placed at.
-     * The hook reads native screen pixels; windows and QScreen geometry use DIPs.
-     */
     // qmllint disable missing-property
     function toDip(payload) {
         const target = host.screenForPhysical(Qt.point(payload.x, payload.y));

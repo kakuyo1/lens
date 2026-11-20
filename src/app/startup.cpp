@@ -78,11 +78,6 @@ std::filesystem::path installCrashForensics()
 
 void selectMediaBackend()
 {
-    // The Windows media backend, and only it (installer/lens.iss): the FFmpeg backend is 17.5 MB of
-    // DLLs that a word's 20 KB recording does not need, so the package does not carry it and this
-    // names the one it does. Set before the application is built, because the backend is chosen
-    // when the first player is made; a value the environment already carries is left alone, so a
-    // developer can run the other backend without rebuilding.
     if (qEnvironmentVariableIsEmpty("QT_MEDIA_BACKEND"))
         qputenv("QT_MEDIA_BACKEND", "windows");
 }
@@ -245,12 +240,6 @@ void wireTray(AppController& controller, Tray& tray)
 
 void provideQmlSingletons(AppController& controller, Tray& tray)
 {
-    // The surfaces reach both objects as QML singletons -- Controller and Tray -- declared on
-    // the classes themselves with QML_SINGLETON. Context properties would be the simpler wiring,
-    // but no linter can see a name that exists only in the engine's context: every read off
-    // controller or tray came back as unqualified access, 53 warnings across the surfaces, and
-    // a mistyped property name would read as undefined rather than fail. Registering the types
-    // gives qmllint the property names to check against.
     AppController::provide(&controller);
     Tray::provide(&tray);
 }

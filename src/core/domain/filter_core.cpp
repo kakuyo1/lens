@@ -171,7 +171,6 @@ bool inTable(const std::string& word)
     return g_rank.contains(word);
 }
 
-/// @return The word's rank, or 0 when the word is absent from the list.
 std::size_t rankOf(const std::string& word)
 {
     const auto it = g_rank.find(word);
@@ -381,7 +380,6 @@ RankedForm mostFrequent(const std::vector<std::string>& candidates)
     return best;
 }
 
-/// @return The irregular table's bases for @p form, or nullptr when the form is not irregular.
 const std::vector<std::string>* irregularBases(const std::string& form)
 {
     const auto it = g_irregulars.find(form);

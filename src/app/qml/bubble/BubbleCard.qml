@@ -228,8 +228,7 @@ Item {
             enabled: !root.bubble.preview
             onHoveredChanged: {
                 // Both readings, every flip: a real exit and something else moving `visible` look the
-                // same in the controller's log, and these two tell them apart (TODO.md, the
-                // bubble-hover jitter item).
+                // same in the controller's log, and these two tell them apart.
                 root.bubble.lastHoverCursor = Controller.cursorPos();
                 const at = card.mapToGlobal(0, 0);
                 root.bubble.lastHoverCard = Qt.rect(at.x, at.y, card.width, card.height);

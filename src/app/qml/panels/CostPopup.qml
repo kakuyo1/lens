@@ -14,7 +14,6 @@ import "../util/Format.js" as Format
 Window {
     id: cost
     objectName: "cost"
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("cost")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -33,7 +32,6 @@ Window {
     width: cardWidth + 2 * shadowMargin
     height: column.implicitHeight + 34 + 2 * shadowMargin
 
-    /// The reader asked for the panel this one was opened from.
     signal backRequested()
 
     /// Escape closes the panel, the way its cross does (the scope is the one the removal
@@ -134,10 +132,6 @@ Window {
             Rectangle { width: parent.width; height: 1; color: cost.tokens.line2 }
             Item { width: 1; height: 6 }
 
-            // The token count goes in the note slot rather than in front of the amount in `value`:
-            // the amount keeps the bold right-aligned face, the four rows keep one right edge, and
-            // the count is quiet enough there at 11px. String(), not the raw number, is the house
-            // way of spelling an integer.
             StatRow {
                 width: parent.width
                 label: qsTr("Today")
@@ -159,8 +153,6 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("Daily average")
-                // A derived average, not a bucket: cost() prices no token count for it, so the
-                // row carries the amount alone rather than a figure invented here.
                 value: Format.formatMoney(Controller.costDuty.cost.currency, Controller.costDuty.cost.dailyAverage)
             }
         }

@@ -17,7 +17,6 @@ namespace lens::core::dev {
 
 namespace {
 
-/// Split on spaces, dropping the empty runs between them.
 std::vector<std::string_view> tokensOf(std::string_view line)
 {
     std::vector<std::string_view> tokens;
@@ -84,7 +83,6 @@ Parse parseWait(std::string_view condition)
     return refuse("unknown wait condition: " + std::string{kind});
 }
 
-/// Trim the spaces off both ends of @p text.
 std::string_view trimmed(std::string_view text)
 {
     auto const first = text.find_first_not_of(' ');

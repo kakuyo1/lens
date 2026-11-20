@@ -12,8 +12,8 @@
 # each target bakes in below. They are inputs, not build products.
 #
 # main.cpp is shared: the suite's name and its case directory are compile definitions, so a
-# target is one add_executable. setup.cpp is shared too -- LENS_QTEST_SINGLETONS is what makes
-# one of the two actually build the C++ singletons, and it is the only difference between them.
+# target is one add_executable. setup.cpp is shared too -- LENS_QTEST_SINGLETONS makes it build
+# the C++ singletons, and both targets define it (the components one is a repair; see below).
 
 # The components: no C++ singleton is touched at creation, so this one runs headless with
 # nothing on PATH but Qt's own DLLs. QT_QPA_PLATFORM=offscreen is the whole headless story;

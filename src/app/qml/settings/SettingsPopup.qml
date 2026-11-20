@@ -62,7 +62,6 @@ Window {
     /// confirmation, which is a question: a press elsewhere is not an answer to it.
     readonly property bool openChildIsModal: confirmDialog.visible
 
-    /// The desktop under this window, and the colours it reads: glass on, the text tone judged over its own sheet.
     readonly property var glass: Controller.glassBackdrop.surface("settings")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -200,11 +199,6 @@ Window {
         previewCard.raise();
     }
 
-    /// @brief Raise the preview card for a key, or put it down for "".
-    ///
-    /// The card is the explanation bubble itself (Bubble.qml's `preview`), so the demo follows the
-    /// reader's settings: the definition in their explanation language, at their typing pace. A
-    /// machine whose `data/preview.json` could not be read has no payload, and no preview.
     /// @brief Scroll the body so the item holding keyboard focus is inside the viewport.
     ///
     /// A focused control below the fold is still focused, but a reader cannot see the ring or
@@ -435,7 +429,6 @@ Window {
             }
         }
 
-        // The glass is the card's own background. Its picture is held in memory only (docs/adr/0034).
         GlassSurface {
             anchors.fill: parent
             sheet: settings.glass

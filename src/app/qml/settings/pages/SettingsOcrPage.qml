@@ -4,7 +4,6 @@ import QtQuick
  * The OCR category: the screenshot switch and its trigger key, manual capture, the local engine and
  * its recognition language, a test, and the two sub-pages (UI-SPEC.md 4.4).
  *
- * The switch and the key moved here from the capture and shortcuts pages; their behaviour is unchanged.
  * The engine paths live on their own sub-page, opened by the local-engine row at the foot. Auto is the
  * default and resolves to Tesseract. An explicit choice is never rewritten, so an unavailable one says
  * why rather than quietly falling back.

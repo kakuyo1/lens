@@ -59,8 +59,6 @@ Item {
             compare(picks, 1);
         }
 
-        /// The tray menu is pointer-first by decision (ADR 0108). A row has no Tab stop and no
-        /// keyboard handler; the pointer and the screen reader's press action are its paths.
         function test_theRowStaysPointerFirst() {
             const row = make({});
             let picks = 0;

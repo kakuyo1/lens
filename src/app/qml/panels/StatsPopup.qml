@@ -12,7 +12,6 @@ import "../util/Format.js" as Format
 Window {
     id: stats
     objectName: "stats"
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("stats")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -143,8 +142,6 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("All time")
-                // The deduplicated vocabulary, the same count the words popup titles (ADR 0104):
-                // the tallies that count events say "lookups", never "words".
                 value: qsTr("%1 words").arg(Controller.wordsModel.allCount)
                 clickable: true
                 onTapped: stats.wordsRequested()

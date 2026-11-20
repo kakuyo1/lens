@@ -8,14 +8,12 @@
 namespace lens::core {
 namespace {
 
-/// @brief The `review` object, or nullptr when the document has none.
 nlohmann::json const* reviewOf(nlohmann::json const& document)
 {
     auto const review = document.find("review");
     return review != document.end() and review->is_object() ? &*review : nullptr;
 }
 
-/// @brief The `review.words` object, or nullptr when there is none.
 nlohmann::json const* wordsOf(nlohmann::json const& document)
 {
     auto const* review = reviewOf(document);
@@ -25,7 +23,6 @@ nlohmann::json const* wordsOf(nlohmann::json const& document)
     return words != review->end() and words->is_object() ? &*words : nullptr;
 }
 
-/// @brief The object under @p key, replaced by an empty one when absent or of another type.
 nlohmann::json& objectAt(nlohmann::json& parent, std::string const& key)
 {
     auto& child = parent[key];

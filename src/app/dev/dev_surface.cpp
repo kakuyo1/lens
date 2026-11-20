@@ -40,8 +40,7 @@ namespace {
 
 /// How long a `wait` may run before it answers with a timeout. Generous: a cold window's first frame takes a while.
 constexpr int kWaitTimeoutMs = 5000;
-/// How often a `wait` checks its condition.
-constexpr int kWaitPollMs = 16;
+constexpr int kWaitPollMs    = 16;
 /// How many pipe lines may wait behind an open `wait`. Past it a line is answered as refused, so a client that sends
 /// faster than the waits resolve cannot grow the queue without bound.
 constexpr qsizetype kMaxQueuedLines = 256;
@@ -91,7 +90,6 @@ struct Router {
     char const*      method;
 };
 
-/// How many rows carry a dev route, counted like the openers are.
 constexpr std::size_t routerCount()
 {
     std::size_t count = 0;

@@ -33,7 +33,6 @@ const QString kNewest = QStringLiteral("0123456789abcdef0123456789abcdef01234569
 
 const QByteArray kBytes = QByteArray(400, 'a');
 
-/// @return The path the cache stores @p key under.
 std::filesystem::path fileFor(std::filesystem::path const& root, QString const& key)
 {
     return root / (key.toStdWString() + L".mp3");
@@ -64,7 +63,6 @@ TEST(AudioCache, StoreThenLoadReturnsTheBytes)
     const auto loaded = cache.load(kOldest);
     ASSERT_TRUE(loaded.has_value());
     EXPECT_EQ(*loaded, kBytes);
-    // One mp3 file per key, named by the key, under the root the case gave.
     EXPECT_TRUE(std::filesystem::exists(fileFor(root, kOldest)));
     EXPECT_EQ(cache.bytesOnDisk(), static_cast<qint64>(kBytes.size()));
 }
@@ -91,7 +89,6 @@ TEST(AudioCache, EmptyBytesAndKeysThatAreNotKeysAreRefused)
 
 TEST(AudioCache, AnAbsentCacheAnswersNothing)
 {
-    // No store has ever happened: no directory, no entry, no crash.
     QTemporaryDir dir;
     ASSERT_TRUE(dir.isValid());
     const AudioCache cache{std::filesystem::path{dir.path().toStdWString()} / L"absent"};
@@ -116,7 +113,6 @@ TEST(AudioCache, AFileThatCannotBeReadIsRemovedRatherThanFoundAgain)
 
 TEST(AudioCache, StoreMakesTheDirectoryTreeItSitsIn)
 {
-    // Nothing exists until the first store; the first store makes every level it needs.
     QTemporaryDir dir;
     ASSERT_TRUE(dir.isValid());
     const std::filesystem::path root = std::filesystem::path{dir.path().toStdWString()} / L"deep" / L"audio";
@@ -140,7 +136,6 @@ TEST(AudioCache, PruneEvictsTheOldestWantedFirst)
     plant(root, kNewest, kBytes, std::chrono::minutes{0});
     EXPECT_EQ(cache.bytesOnDisk(), 3 * static_cast<qint64>(kBytes.size()));
 
-    // The fourth file tips it over; the two oldest go, and the newest two stay.
     EXPECT_TRUE(cache.store(QStringLiteral("0123456789abcdef0123456789abcdef01234560"), kBytes));
     EXPECT_FALSE(std::filesystem::exists(fileFor(root, kOldest)));
     EXPECT_FALSE(std::filesystem::exists(fileFor(root, kMiddle)));

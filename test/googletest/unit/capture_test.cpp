@@ -78,7 +78,6 @@ struct FakeOcr final : lens::capture::OcrEngine {
     }
 };
 
-/// @brief The in-memory HTTP transport: counts uploads and answers with a scripted response.
 struct FakeHttp final : lens::ocr::HttpTransport {
     lens::ocr::HttpResponse response;
     int                     calls = 0;
@@ -92,7 +91,6 @@ struct FakeHttp final : lens::ocr::HttpTransport {
     }
 };
 
-/// @brief The in-memory ClipboardPort: scripted sequence and text, recording restores.
 struct FakeClipboard final : lens::app::ClipboardPort {
     std::optional<ClipboardSnapshot> snapshot       = ClipboardSnapshot{};
     std::optional<QString>           text           = QStringLiteral("word");

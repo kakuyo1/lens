@@ -478,7 +478,7 @@ Window {
         // It ticks finer than the second it displays and subtracts, rather than being the whole
         // dismissal in one shot: stopping and starting a timer begins a fresh interval, so a tick
         // as long as the display would swallow up to a second of the clock on every hover, and
-        // the hover this bubble sees arrives in bursts (TODO.md, the bubble-hover jitter item).
+        // the hover this bubble sees arrives in bursts.
         interval: 100
         repeat: true
         onTriggered: {

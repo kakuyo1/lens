@@ -8,7 +8,6 @@ import QtQuick
 QtObject {
     /// SurfaceHost.qml, whose panel functions the steps call.
     required property var host
-    /// The surfaces the steps show and hide.
     required property var trayMenu
     required property var bubble
     required property var bar

@@ -102,7 +102,6 @@ ReviewState afterAnswer(ReviewState state, bool remembered, long long now);
 /// @return @p state with its asked stamp set to @p now; the level and due time stay as they were.
 ReviewState afterIgnore(ReviewState state, long long now);
 
-/// @return Whether the word has fallen due by @p now.
 bool isDue(const ReviewState& state, long long now);
 
 /**

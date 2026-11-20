@@ -27,7 +27,6 @@ using lens::speech::AudioSink;
 using lens::speech::YoudaoSource;
 using lens::test::ScriptedManager;
 
-/// @return The decoded value of one query parameter.
 QString queryValue(QUrl const& url, QString const& name)
 {
     return QUrlQuery{url}.queryItemValue(name);

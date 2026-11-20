@@ -35,7 +35,6 @@ std::optional<std::string> wornId(SettingsSection const& accessories, const char
     return id;
 }
 
-/// @brief Write one slot: the id it carries, or null for a bare one.
 void writeSlot(SettingsSection& accessories, const char* key, std::optional<std::string> const& id)
 {
     if (id)

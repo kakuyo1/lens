@@ -25,7 +25,6 @@ struct SemVer {
     constexpr bool operator==(const SemVer&) const = default;
 };
 
-/// Orders by major, then minor, then patch: 1.10.0 is newer than 1.9.0.
 constexpr std::strong_ordering operator<=>(const SemVer& left, const SemVer& right)
 {
     if (const std::strong_ordering major = left.major <=> right.major; major != 0)

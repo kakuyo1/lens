@@ -50,7 +50,6 @@ constexpr std::array<NamedRole, 14> kNamedRoles{{
     {"dizzy", Role::Dizzy, false},
 }};
 
-/// @return The role with this name in the data files, or nothing.
 std::optional<Role> roleNamed(std::string const& name)
 {
     for (auto const& entry : kNamedRoles) {
@@ -59,7 +58,6 @@ std::optional<Role> roleNamed(std::string const& name)
     return std::nullopt;
 }
 
-/// @return The slot with this name in accessories.json, or nothing.
 std::optional<Slot> slotNamed(std::string const& name)
 {
     if (name == "head") return Slot::Head;
@@ -68,7 +66,6 @@ std::optional<Slot> slotNamed(std::string const& name)
     return std::nullopt;
 }
 
-/// @return The gait with this name in animations.json's movement block, or nothing.
 std::optional<MovementStyle> movementStyleNamed(std::string const& name)
 {
     if (name == "glide") return MovementStyle::Glide;

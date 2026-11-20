@@ -38,7 +38,6 @@ public:
 
     SurfaceGeometry() = default;
 
-    /// @return The shared margin, so no surface writes the 8 again.
     qreal margin() const
     {
         return kMargin;
@@ -179,7 +178,6 @@ public:
      */
     Q_INVOKABLE QPoint nativeFromDipPoint(QPointF dip, QPointF screenOrigin, qreal ratio) const;
 
-    /// @brief A DIP length from a native length on a screen of @p ratio.
     Q_INVOKABLE qreal dipFromNativeLength(qreal native, qreal ratio) const;
 
     /// @brief A native length from a DIP length on a screen of @p ratio, rounded to a whole pixel.

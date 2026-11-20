@@ -23,8 +23,7 @@ namespace {
 /// The most a client may have waiting in the socket. Past it the socket stops reading, so a client that sends faster
 /// than the lines are answered waits instead of growing a buffer without bound.
 constexpr qint64 kReadBufferBytes = 64LL * 1024;
-/// How long quit waits for the last answer to reach the client.
-constexpr int kDrainMs = 1000;
+constexpr int    kDrainMs         = 1000;
 
 } // namespace
 

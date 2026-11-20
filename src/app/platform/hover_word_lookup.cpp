@@ -101,7 +101,6 @@ std::optional<HoverWord> wordAt(IUIAutomationTextRange& scope, POINT const at)
     return std::nullopt;
 }
 
-/// Steps of a track are this far apart.
 constexpr auto kTrackPeriod = std::chrono::milliseconds{16};
 
 }

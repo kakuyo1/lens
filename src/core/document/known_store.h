@@ -104,8 +104,7 @@ struct WordCache {
 class KnownStore { // NOLINT(bugprone-exception-escape): the throw is on a failure path the program cannot recover from; swallowing it would hide the fault
 public:
     /// @brief The difficulty a document that names none starts at (CET-4).
-    static constexpr int kDefaultLevel = 2;
-    /// @brief The explanation language a document that names none starts at.
+    static constexpr int              kDefaultLevel           = 2;
     static constexpr std::string_view kDefaultExplanationLang = "en";
 
     /**
@@ -119,7 +118,6 @@ public:
      */
     static KnownStore load(std::filesystem::path path);
 
-    /// @return Whether the reader has marked this lemma as known.
     bool isKnown(const std::string& lemma) const;
 
     /// @return Whether the reader has marked this lemma as mastered -- the stronger verdict that

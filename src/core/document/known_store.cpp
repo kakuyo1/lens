@@ -21,13 +21,11 @@ long long nowMs()
         .count();
 }
 
-/// @return A stored time, or 0 when the node is absent or not an integer.
 long long timeOf(nlohmann::json const& node)
 {
     return node.is_number_integer() ? node.get<long long>() : 0LL;
 }
 
-/// @return Every time in one "markTimes" object, keyed by lemma.
 std::unordered_map<std::string, long long> readTimes(nlohmann::json const& times)
 {
     std::unordered_map<std::string, long long> out;
@@ -153,7 +151,6 @@ bool readSenseField(CachedSense& result, nlohmann::json const& sense, word::Fiel
     return true;
 }
 
-/// @return The answer text a stored field is written from; empty for a row that is not text.
 std::string storedText(WordCache const& entry, word::Slot const slot)
 {
     switch (slot) {

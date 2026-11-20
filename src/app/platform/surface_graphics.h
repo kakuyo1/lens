@@ -89,8 +89,8 @@ class SharedGraphics;
  *
  * QQuickWindow keeps its graphics resources -- the device, the swapchain, the buffers and the
  * textures, and with them the driver's worker threads -- until the last window is deleted, and
- * setPersistentGraphics() defaults to true, so a hidden window keeps the lot. Measured with
- * .workbuddy-ai/tools/qwindow-probe on this machine: showing a second window costs about 75
+ * setPersistentGraphics() defaults to true, so a hidden window keeps the lot. Measured on this
+ * machine: showing a second window costs about 75
  * driver threads and 1,200 handles, hiding returns none of them under Qt's defaults, and
  * releaseResources() with both persistence hints off returns all of them in one call.
  *

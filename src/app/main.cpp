@@ -44,8 +44,6 @@ int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw
     const std::filesystem::path logDir = lens::app::installCrashForensics();
     lens::app::selectMediaBackend();
 
-    // Widgets, not just Gui: the tray menu is a QMenu, which the contract chose over QML's
-    // experimental platform menu types.
     QApplication app(argc, argv);
     lens::app::configureApplication(app);
     lens::app::configureUiFont();

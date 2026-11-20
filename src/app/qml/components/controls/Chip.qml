@@ -52,7 +52,7 @@ Rectangle {
         id: caption
         anchors.centerIn: parent
         text: chip.label
-        // An action name comes from the pet's data, so it reads as plain text (docs/pet-package-format.md, section 7).
+        // An action name comes from the pet's data, so it reads as plain text.
         textFormat: Text.PlainText
         color: chip.selected ? chip.tokens.on : chip.tokens.text
         Behavior on color {

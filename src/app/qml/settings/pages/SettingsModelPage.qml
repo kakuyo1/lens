@@ -64,7 +64,6 @@ Item {
             /// answer. A model the service would never list (a new one, a private deployment) has
             /// to stay reachable, and a custom endpoint names no models at all; a field that
             /// changed shape between the two read as a setting that had not taken (docs/adr/0017).
-            ///
             DropdownField {
                 id: modelField
                 objectName: "modelField"

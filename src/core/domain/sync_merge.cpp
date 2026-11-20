@@ -17,7 +17,6 @@ namespace {
 
 using json = nlohmann::json;
 
-/// @return @p node's member @p key, or a null value when @p node is not an object or lacks it.
 const json& field(const json& node, const char* key)
 {
     static const json absent;
@@ -27,7 +26,6 @@ const json& field(const json& node, const char* key)
     return found == node.end() ? absent : *found;
 }
 
-/// @return @p node as a timestamp in milliseconds, or 0 when it is absent or not an integer.
 std::int64_t stampOf(const json& node)
 {
     return node.is_number_integer() ? node.get<std::int64_t>() : 0;
@@ -50,7 +48,6 @@ using Marks      = std::map<std::string, Mark>;
 using Tombstones = std::map<std::string, std::int64_t>;
 using Settings   = std::map<std::string, Setting>;
 
-/// @return The known marks in @p document. An entry without a boolean "learned" is skipped.
 Marks readMarks(const json& document)
 {
     Marks       marks;
@@ -71,7 +68,6 @@ Marks readMarks(const json& document)
     return marks;
 }
 
-/// @return The tombstones in @p document. An entry that is not an integer is skipped.
 Tombstones readTombstones(const json& document)
 {
     Tombstones  tombstones;
@@ -84,7 +80,6 @@ Tombstones readTombstones(const json& document)
     return tombstones;
 }
 
-/// @return The settings in @p document. An entry without a "value" member is skipped.
 Settings readSettings(const json& document)
 {
     Settings    settings;

@@ -56,7 +56,6 @@ bool spinUntil(const std::function<bool()>& done, int ms = 2000)
     return done();
 }
 
-/// @return The decoded value of one query parameter.
 QString queryValue(QUrl const& url, QString const& name)
 {
     return QUrlQuery{url}.queryItemValue(name);
@@ -123,7 +122,6 @@ TEST(CommonsSource, ASearchHandsTheUsablePicturesBack)
     EXPECT_EQ(seen.pictures.at(0).license, QStringLiteral("CC BY-SA 4.0"));
     EXPECT_EQ(seen.pictures.at(0).source, QStringLiteral("Wikimedia Commons"));
     EXPECT_EQ(seen.pictures.at(0).thumbnail.host(), QStringLiteral("upload.wikimedia.org"));
-    // One GET of the API, the query the reader's word.
     ASSERT_EQ(manager.sent.size(), 1u);
     EXPECT_EQ(manager.sent[0].verb, "GET");
     EXPECT_TRUE(manager.sent[0].url.contains(QStringLiteral("gsrsearch=river")));

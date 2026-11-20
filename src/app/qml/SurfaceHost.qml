@@ -16,7 +16,6 @@ QtObject {
 
     /// Main's window, the screen a point between monitors falls back to.
     required property var screen
-    /// The surfaces the rules act on.
     required property var bar
     required property var petWindow
     required property var reviewSign

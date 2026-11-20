@@ -16,7 +16,6 @@ namespace lens::app {
 
 namespace {
 
-/// @brief The command naming the executable this process runs from.
 QString currentCommand()
 {
     const QString path = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());

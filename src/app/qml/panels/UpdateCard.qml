@@ -18,7 +18,6 @@ import "../util/Format.js" as Format
 Window {
     id: card
     objectName: "update"
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("update")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -182,9 +181,6 @@ Window {
         viewRequested();
     }
 
-    /// Escape is the cross. The card's window takes no focus, so the buttons below carry names
-    /// for the screen reader but no tab stops or rings -- there is no focus for either to mark.
-    /// The shortcut still answers, application-wide, whenever a window of this app has the keys.
     Shortcut {
         sequence: "Escape"
         context: Qt.ApplicationShortcut

@@ -33,7 +33,6 @@
 
 namespace lens::log {
 
-/// @brief Level used when neither the caller nor the environment overrides it.
 #if defined(NDEBUG)
 inline constexpr spdlog::level::level_enum kDefaultLevel = spdlog::level::info;
 #else
@@ -47,7 +46,6 @@ inline constexpr std::size_t kLogFileBytes = static_cast<long long>(10 * 1024) *
 /// three rotations leave lens.log plus lens.1.log through lens.3.log on disk.
 inline constexpr std::size_t kLogFileCount = 3;
 
-/// Name of the rotating file inside the log directory.
 inline constexpr const char* kLogFileName = "lens.log";
 
 /// Name of the directory the rotating file lives in. The crash dumps

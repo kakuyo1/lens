@@ -82,7 +82,6 @@ public:
         logger->set_level(previous_);
     }
 
-    /// @return How many lines logged so far carry @p needle.
     int count(std::string const& needle) const
     {
         int found = 0;

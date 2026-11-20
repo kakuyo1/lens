@@ -20,7 +20,6 @@ namespace lens::core::crypto {
 
 /**
  * @brief SHA-1 of @p bytes, as 40 lowercase hex digits.
- * @param bytes The text or bytes to name.
  * @return The digest in hex. A failure inside CNG answers an empty string rather than throwing:
  *         the caller is naming a cache file, and a name it cannot make is a cache miss.
  */

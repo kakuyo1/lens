@@ -64,8 +64,6 @@ Item {
             }
         }
 
-        // The hover lookup key moved here from the shortcuts page: it switches between the two ways
-        // of looking a word up, and both live on this page now.
         Column {
             width: parent.width
             spacing: 7

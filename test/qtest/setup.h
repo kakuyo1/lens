@@ -13,9 +13,7 @@ class QQmlEngine;
  * null, and AppController::create() asserts, so a Debug build dies instead of failing the
  * case.
  *
- * The body is compiled out when LENS_QTEST_SINGLETONS is undefined; that is how the
- * components target runs with no settings document and no price list behind it. See TEST.md
- * section 2.
+ * The body is compiled out when LENS_QTEST_SINGLETONS is undefined; see TEST.md section 2.
  */
 class LensTestSetup : public QObject {
     Q_OBJECT

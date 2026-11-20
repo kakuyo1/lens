@@ -10,8 +10,7 @@ import "../testutil.js" as Util
  * families that can actually reach it. Every current path is an error: network, key, and schema
  * failures. A failed selection grab is dropped silently -- a popup per miss was a nag -- and the
  * three channels always give a selection somewhere to go, so a "no available channel" info notice
- * does not exist. The daily budget event is a phase-two placeholder and has no
- * production payload or fixture here.
+ * does not exist.
  */
 Item {
     id: root

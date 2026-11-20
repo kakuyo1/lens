@@ -7,7 +7,6 @@ import QtQuick.Window
 Window {
     id: year
     objectName: "yearWords"
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("yearWords")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -375,8 +374,6 @@ Window {
                                 color: visible ? year.cellColor(year.dayLevel(day.pops)) : "transparent"
                                 Accessible.ignored: !visible
                                 Accessible.role: Accessible.Cell
-                                // The count is pop events, so the spoken unit is lookups, the same
-                                // one the summary row writes (ADR 0104).
                                 Accessible.name: visible ? qsTr("%1, %2 lookups").arg(day.date).arg(day.pops) : ""
 
                                 // One outer mark for focus, selection and hover.

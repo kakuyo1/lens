@@ -160,8 +160,6 @@ Item {
             compare(Controller.settings.revealSpeed, 3);
         }
 
-        /// Automatic scanning is a phase-1 placeholder, but the label the tray menu and tooltip
-        /// both read still has to follow it rather than disagree with itself.
         function test_theModeLabelFollowsAutoScan() {
             Controller.captureDuty.setAutoScan(false);
             compare(Controller.modeLabel, qsTr("Manual"));

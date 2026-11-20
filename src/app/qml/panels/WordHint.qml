@@ -13,7 +13,6 @@ Window {
     id: hint
     objectName: "wordHint"
 
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("notice")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -131,7 +130,6 @@ Window {
                         }
                     }
 
-                    // Same pill as the notice's action: a name and a press for the screen reader, no tab stop.
                     Accessible.role: Accessible.Button
                     Accessible.name: actionLabel.text
                     Accessible.onPressAction: explainTap.tapped()

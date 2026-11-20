@@ -20,7 +20,6 @@
 
 namespace lens::test {
 
-/// @return The repository root the tests read their data files from.
 inline std::filesystem::path sourceDir()
 {
     return std::filesystem::path(LENS_SOURCE_DIR);

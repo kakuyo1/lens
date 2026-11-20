@@ -14,7 +14,6 @@ import QtQuick.Window
 Window {
     id: profile
     objectName: "profile"
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("profile")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -59,7 +58,6 @@ Window {
     width: cardWidth + 2 * shadowMargin
     height: column.implicitHeight + 34 + 2 * shadowMargin
 
-    /// The reader asked for the panel this one was opened from.
     signal backRequested()
     /// The week's report card is wanted: the interpretation was asked for, or its answer is already there.
     signal reportRequested()
@@ -139,7 +137,6 @@ Window {
                 }
             }
 
-            // The big number and its caption share one line: the caption sits on the number's baseline.
             Item {
                 width: column.width
                 height: 40

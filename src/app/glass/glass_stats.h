@@ -10,7 +10,7 @@
  * (docs/metrics/resource-footprint/glass-memory-2026-10-18.md 9.7). The candidate cause is pacing — the probe reads
  * back to back, the application reads once every 67 ms — and only a read timed inside the application, at the pace the
  * application keeps, settles it. The frame rate and the CPU budget are both set by the answer, so this is measured
- * before either is touched (GLASS-CAPTURE-PLAN.md, stage 0).
+ * before either is touched.
  *
  * The tally is the log line: durations of the two stages that could be the wall, and the counters that show what the
  * refresh budget really delivered. It carries milliseconds and counts only. No pixels, no rectangle, no surface name

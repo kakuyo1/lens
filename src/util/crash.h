@@ -30,7 +30,7 @@ inline constexpr std::size_t kCrashDumpsKept = 5;
 
 /// @brief Everything known about one crash, shared by the summary text and the marker.
 struct CrashSummary {
-    std::string version; ///< Application version that crashed.
+    std::string version;
     std::string time;    ///< Local time of the crash, "YYYY-MM-DD HH:MM:SS".
     std::string code;    ///< Exception or funnel code, "0xC0000005" style.
     std::string address; ///< Faulting instruction; empty when unknown.
@@ -38,7 +38,6 @@ struct CrashSummary {
     std::string dump;    ///< Dump file name the summary sits beside; empty when none was written.
 };
 
-/// @brief The directory holding dumps under @p logDir.
 std::filesystem::path crashDumpDir(const std::filesystem::path& logDir);
 
 /// @brief The file-name stem one crash writes under: lens-<version>-<compact time>-<pid>.

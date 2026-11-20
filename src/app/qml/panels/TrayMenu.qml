@@ -14,7 +14,6 @@ import "../util/Format.js" as Format
 Window {
     id: menu
     objectName: "tray"
-    /// The desktop under this window, which its glass draws (docs/adr/0041).
     readonly property var glass: Controller.glassBackdrop.surface("tray")
     readonly property SurfaceTokens tokens: SurfaceTokens {
         glassEnabled: true
@@ -195,8 +194,6 @@ Window {
                     width: parent.width
                     height: 34
 
-                    // While no key is stored, or the budget is spent, this row is the way to the page that fixes it;
-                    // at rest it is a status line, not a button (UI-SPEC 4.2).
                     Accessible.role: menu.stateActionable ? Accessible.Button : Accessible.StaticText
                     Accessible.name: menu.stateLine.text
                     Accessible.onPressAction: if (menu.stateActionable) menu.openStateSettings()
@@ -226,7 +223,6 @@ Window {
                         color: menu.stateLine.mark
                     }
 
-                    // The busy tray icon's corner dot, drawn at the mark's own corner.
                     Rectangle {
                         x: mark.x + mark.width - 3
                         y: mark.y
@@ -288,8 +284,6 @@ Window {
                         else
                             listHide.restart();
                     }
-                    // A press on the row is another way to unfold the list; the menu itself stays
-                    // pointer-first, so the row and its options carry screen-reader names only.
                     onPicked: menu.listVisible ? menu.closeLanguageList() : menu.openLanguageList()
                 }
 

@@ -100,10 +100,11 @@ powershell -File scripts/qa/qtest.ps1 -Target lens_qtest_pet
 - 剩下的是 Qt 自己发的两类：offscreen 平台不能抬窗口，而表面显示时 `raise()` 是必需的；Qt 6 不再随包带字体，
   `setup.cpp` 自己按文件载入（方式见 `docs/qa.md`）。它们都走不带类别的 `qWarning()`，按类别过滤会连带盖掉其余无类别警告，所以留着，
   一次运行合计十条左右。
-- 两个 QML 目标的差别只有一处：`lens_qtest_surfaces` 编译 `setup.cpp` 时定义 `LENS_QTEST_SINGLETONS`，
-  组件目标不定义。`Controller` / `Tray` 的工厂在没人 `provide()` 时断言、Debug 下直接崩进程，而
-  引擎自己造不出来（构造函数要 store、client 与 hook），所以 setup 照 `main()` 的做法造好再交出
-  去——只是**不装鼠标钩子、不显示托盘图标**。组件用例碰不到这两样，也就不必背一份配置。
+- 两个 QML 目标都在编译 `setup.cpp` 时定义 `LENS_QTEST_SINGLETONS`（组件目标是后补的——`Motion.qml` 绑定
+  `Controller.settings.animationsEnabled`，引擎随模块一起造该单例；缘由见 test/qtest/CMakeLists.txt 的注释）。
+  `Controller` / `Tray` 的工厂在没人 `provide()` 时断言、Debug 下直接崩进程，而引擎自己造不出来（构造函数要
+  store、client 与 hook），所以 setup 照 `main()` 的做法造好再交出去——只是**不装鼠标钩子、不显示托盘图标**，
+  组件用例也碰不到这两样。
 - 表面用例跑的是签入的 `surfaces/settings.json`，不是 `settings.local.json`，两个理由：断言要在每
   台机器上看到同一组值，而设置面板的 setter 会落盘——指向仓库里那份，一条切换主题的用例就会改掉一
   个被跟踪的文件。setup 把夹具拷进临时目录再加载，进程退出时删掉。

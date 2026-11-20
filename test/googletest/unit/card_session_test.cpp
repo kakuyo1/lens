@@ -78,7 +78,6 @@ CardSession::PeekFacts spanishPeek(bool const mayAsk = true)
     return facts;
 }
 
-/// @return A card raised on @p lemma whose single-sense cycle draws @p en.
 void raiseCard(CardSession& session, QString const& lemma, CardKind const kind = CardKind::Selection, QString const& en = {})
 {
     session.raise(word(lemma), kind, lemma);

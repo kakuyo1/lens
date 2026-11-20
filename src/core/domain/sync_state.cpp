@@ -11,7 +11,6 @@
 namespace lens::core::sync {
 namespace {
 
-/// @return The snapshot's entry for @p key, or null when the snapshot has none.
 nlohmann::json previousOf(const nlohmann::json& snapshot, const std::string& key)
 {
     return snapshot.is_object() && snapshot.contains(key) ? snapshot.at(key) : nlohmann::json();

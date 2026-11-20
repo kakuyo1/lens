@@ -4,16 +4,6 @@ import Lens
 import "../"
 import "../testutil.js" as Util
 
-/**
- * Mixed Chinese and Latin text must keep the application's font fallback chain.
- *
- * Monospace is appropriate for numeric-only figures, but assigning a single monospace family
- * to a mixed run makes its Chinese glyphs bypass the QFont family list installed by main.cpp.
- *
- * The last case is also the worked example of the silent (offscreen) snapshot: it renders the
- * fixture with TestCase.grabImage and writes a PNG when LENS_QA_SNAPSHOT_DIR is set. See
- * TEST.md section 5 and scripts/qa/qml-snapshot.ps1.
- */
 Item {
     id: root
     width: 320

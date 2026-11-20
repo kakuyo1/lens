@@ -27,9 +27,9 @@ namespace lens::app {
  * needs no special case.
  */
 struct Gesture {
-    int downX = 0; ///< Where the button went down.
+    int downX = 0;
     int downY = 0;
-    int upX   = 0; ///< Where it came back up.
+    int upX   = 0;
     int upY   = 0;
 };
 
@@ -42,7 +42,6 @@ struct Gesture {
  *
  * @param gesture    Endpoints the hook accumulated.
  * @param dragSlopPx Movement below this counts as jitter rather than a drag.
- * @return True when the gesture should be treated as a selection.
  */
 bool isSelectionGesture(const Gesture& gesture, int dragSlopPx);
 
@@ -58,7 +57,6 @@ class MouseSelectionHook : public QObject {
 public:
     explicit MouseSelectionHook(QObject* parent = nullptr);
 
-    /// @brief Uninstalls the hook if it is still installed.
     ~MouseSelectionHook() override;
 
     /**

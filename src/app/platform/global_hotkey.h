@@ -31,7 +31,6 @@ public:
     /// @param id The WM_HOTKEY id this instance registers under; distinct instances need distinct ids.
     explicit GlobalHotkey(QObject* parent = nullptr, int id = kOcrId);
 
-    /// @brief Drop the registration, if one is in place.
     ~GlobalHotkey() override;
 
     /// @brief Register the stored combination.

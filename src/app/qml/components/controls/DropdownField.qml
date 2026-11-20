@@ -450,7 +450,7 @@ Item {
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             text: root.current ? root.current.label : ""
-            // Labels can come from a package, which must read as plain text (docs/pet-package-format.md, section 7).
+            // Labels can come from a package, which must read as plain text.
             textFormat: Text.PlainText
             color: root.tokens.text
             font.pixelSize: 13

@@ -97,10 +97,8 @@ private:
     bool       delivered_ = false;
 };
 
-/// The seam the network clients take, counting what they asked for.
 class ScriptedManager final : public QNetworkAccessManager {
 public:
-    /// One request, as the case reads it back.
     struct Sent {
         QByteArray verb; ///< GET, PUT, PROPFIND, ...; a custom verb rides the request's attribute.
         QString    url;
@@ -113,7 +111,6 @@ public:
     {
     }
 
-    /// @brief Give the next request its own answer, ahead of the default one.
     void queue(int status, QByteArray body = {}, QString location = {}, bool answers = true, QByteArray contentType = {}, QByteArray link = {})
     {
         queued_.push_back(Answer{status, std::move(location), answers, std::move(body), std::move(contentType), std::move(link)});
@@ -124,8 +121,7 @@ public:
     qint64 announceLength = 0;
     /// What the request asked about redirects, kept so a case can read it back: a stub manager
     /// never follows one whatever the policy says, so the count alone would prove nothing.
-    QVariant redirectPolicy;
-    /// Every request in order, with the body it carried.
+    QVariant          redirectPolicy;
     std::vector<Sent> sent;
 
 protected:
