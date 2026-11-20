@@ -167,9 +167,9 @@ public:
     }
 
     /// @brief Hand one chunk over, as a streamed answer's next read would.
-    void release(QByteArray chunk)
+    void release(QByteArray const& chunk)
     {
-        held_ += std::move(chunk);
+        held_ += chunk;
         emit readyRead();
     }
 

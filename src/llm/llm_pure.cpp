@@ -582,7 +582,7 @@ std::variant<Explanation, QString> parseResultEntry(ResultContract const& contra
         entry.en = source.value(QStringLiteral("line")).toString();
 
     if ((contract.isWord or contract.isSense) and source.contains("senses")) {
-        if (const QString problem = readResultSenses(entry, source, contract); not problem.isEmpty())
+        if (QString problem = readResultSenses(entry, source, contract); not problem.isEmpty())
             return problem;
     } else if (contract.isWord) {
         entry.senses.push_back({entry.en, entry.zh, entry.translation, QString{}, entry.imageable, entry.imageQuery});
@@ -590,7 +590,7 @@ std::variant<Explanation, QString> parseResultEntry(ResultContract const& contra
 
     if (not contract.oneLanguage and contract.language != QLatin1String("en") and contract.language != QLatin1String("zh") and entry.translation.trimmed().isEmpty())
         return QCoreApplication::translate("lens::llm", "The requested explanation language is missing.");
-    if (const QString problem = emptyFieldProblem(entry, contract); not problem.isEmpty())
+    if (QString problem = emptyFieldProblem(entry, contract); not problem.isEmpty())
         return problem;
     return entry;
 }
@@ -779,7 +779,7 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
         parsed.push_back(std::get<Explanation>(entry));
     }
 
-    const Result ordered =
+    Result ordered =
         contract.isWord ? orderWordResults(parsed, expectedInputs, multipleSenses) : orderForInputs(parsed, expectedInputs);
     if (const auto* reason = std::get_if<QString>(&ordered))
         return reject(*reason);
