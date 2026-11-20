@@ -81,11 +81,13 @@ Window {
                 }
             }
 
-            // The signpost above the word's top-right corner, while Alt is held and one is stored.
+            // The signpost at the word's top-right corner, while Alt is held and one is stored.
+            // Its lower-left corner is tucked a few pixels into the word's own corner, so the
+            // label reads as that word's rather than the next one's (UI-SPEC.md 4.20).
             Text {
                 visible: Controller.pencil.altHeld && mark.modelData.signpost !== ""
-                x: mark.width
-                y: -implicitHeight + 3
+                x: mark.width - 10
+                y: -implicitHeight + 7
                 text: mark.modelData.signpost
                 color: tokens.okText
                 font.pixelSize: 10
