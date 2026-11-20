@@ -78,6 +78,11 @@ int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw
     // in the executable: no test target links it, and the seam above it takes a silent output.
     lens::app::QtVoiceOutput speechOutput;
 
+#ifdef _WIN32
+    // Declared before the controller and the engine so the shared device outlives both: the glass idle release
+    // trims it (docs/adr/0202), and the engine is gone before it.
+    lens::app::SharedGraphics sharedGraphics;
+#endif
     AppController controller(store, llm, hook, altHook, hotkey, speechOutput, pricing, dataDir);
 
     // A refused pet data directory leaves the pet off and says why; the rest of the program is unaffected. The reader's
@@ -97,10 +102,6 @@ int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw
     // graph's default surface format, otherwise their transparent pixels composite as black on Windows.
     QQuickWindow::setDefaultAlphaBuffer(true);
 
-#ifdef _WIN32
-    // Declared before the engine so the shared device outlives every window that adopts it.
-    lens::app::SharedGraphics sharedGraphics;
-#endif
     QQmlApplicationEngine engine;
     lens::app::attachConsentPreview(engine, controller);
 
@@ -112,6 +113,9 @@ int main(int argc, char* argv[]) // NOLINT(bugprone-exception-escape): the throw
 
 #ifdef _WIN32
     lens::app::tuneSurfaceGraphics(engine, &sharedGraphics);
+    // The glass idle release is where the capture sessions stop costing memory; the shared device that drew the
+    // cards is trimmed at the same moment, wired here rather than reached for from the glass (docs/adr/0202).
+    controller.glassBackdrop()->setIdleTrim([&sharedGraphics] { sharedGraphics.trim(); });
 #else
     lens::app::tuneSurfaceGraphics(engine);
 #endif

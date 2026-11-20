@@ -13,6 +13,10 @@
 #include <chrono>
 #include <memory>
 
+#ifdef _WIN32
+#include <dxgi1_3.h>
+#endif
+
 #include "util/log.h"
 
 namespace lens::app {
@@ -106,6 +110,15 @@ std::string SharedGraphics::frameLockHolder() const
 {
     auto const* const holder = frameHolder_.load(std::memory_order_acquire);
     return holder != nullptr ? *holder : std::string{};
+}
+
+void SharedGraphics::trim()
+{
+    if (device_ == nullptr) return;
+    ComPtr<IDXGIDevice3> dxgi;
+    if (FAILED(device_.As(&dxgi)) or dxgi == nullptr) return;
+    dxgi->Trim();
+    LENS_INFO("shared device trimmed: the glass is idle, the driver may drop its cached allocations");
 }
 
 void SharedGraphics::noteInvalidation()

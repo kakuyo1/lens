@@ -56,6 +56,10 @@ constexpr int kSummaryIntervalMs = 10000;
 /// composition; on a still desktop the worker wakes four times less often than a 16 ms poll at 60 Hz and finds
 /// nothing. The chain keeps a GUI timer's jitter from coalescing frames away (docs/adr/0074).
 constexpr int kChainWaitMs = 16;
+/// How long the refresh may stay stopped before the screens' sessions are released, in ms. A card closed and reopened
+/// inside this window keeps its capture warm; after it the device, its frame pool and its buffers stop costing memory
+/// until a sheet goes live again (docs/adr/0202).
+constexpr int kIdleReleaseMs = 10000;
 
 /// What a sheet read needs, copied out of Qt's objects on the GUI thread so a refresh on the pool never touches them.
 struct Request {
@@ -419,6 +423,8 @@ GlassBackdrop::GlassBackdrop(QObject* parent)
     // next composition rather than a few milliseconds after it.
     live_.setTimerType(Qt::PreciseTimer);
     connect(&live_, &QTimer::timeout, this, &GlassBackdrop::refreshNext);
+    idle_.setSingleShot(true);
+    connect(&idle_, &QTimer::timeout, this, &GlassBackdrop::releaseIdleSessions);
     pool_.setMaxThreadCount(1);
     window_.start();
 }
@@ -454,6 +460,11 @@ void GlassBackdrop::setQuality(GlassQuality const quality)
 GlassQuality GlassBackdrop::quality() const
 {
     return quality_;
+}
+
+void GlassBackdrop::setIdleTrim(std::function<void()> trim)
+{
+    idleTrim_ = std::move(trim);
 }
 
 GlassBackdrop::Gathered GlassBackdrop::gather()
@@ -583,8 +594,12 @@ void GlassBackdrop::applyPace(RefreshPlan const& plan)
 {
     if (plan.intervalMs == 0) {
         live_.stop();
+        // Nothing reads a screen while the refresh is stopped, so the sessions may be released after the grace period.
+        if (not sessionsReleased_ and not idle_.isActive()) idle_.start(kIdleReleaseMs);
         return;
     }
+    sessionsReleased_ = false;
+    idle_.stop();
     // Automatic keeps the conservative sixty-a-second cap; Smooth is the tier that spends the extra reads to follow the
     // screen (docs/adr/0074). A screen without a live source, or a Standard tier, keeps the shared GDI budget.
     if (live_.interval() != plan.intervalMs) {
@@ -609,6 +624,28 @@ void GlassBackdrop::applyPace(RefreshPlan const& plan)
 void GlassBackdrop::updateLive()
 {
     applyPace(planRefresh(gather().facts));
+}
+
+void GlassBackdrop::releaseIdleSessions()
+{
+    // A timeout queued just before a sheet went live has nothing to release.
+    if (planRefresh(gather().facts).intervalMs != 0) return;
+    sessionsReleased_ = true;
+    if (duplications_.empty()) return;
+    // The pool has one thread, so this runs after any read already in flight and before any read queued later: a
+    // capture session is released on the thread that opened it, never from here (docs/adr/0202).
+    for (auto& session : duplications_) {
+        auto* const capture     = session.capture.get();
+        auto* const duplication = session.duplication.get();
+        pool_.start([capture, duplication] {
+            capture->release();
+            duplication->release();
+        });
+    }
+    LENS_INFO("glass: screen sessions released after {} ms with the refresh stopped, the next live sheet opens them again", kIdleReleaseMs);
+    // After the releases are queued, not instead of them: the sessions paying their own device back is the certain
+    // part, and the trim is the hint that the driver's per-process high-water may come down too (docs/adr/0202).
+    if (idleTrim_) idleTrim_();
 }
 
 GlassBackdrop::Session& GlassBackdrop::sessionFor(QScreen const& screen)

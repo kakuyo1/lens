@@ -28,6 +28,7 @@
 
 #include <d3d11.h>
 #include <dxgi1_2.h>
+#include <dxgi1_3.h>
 #include <windows.graphics.capture.interop.h>
 #include <windows.graphics.directx.direct3d11.interop.h>
 
@@ -132,7 +133,8 @@ struct GlassCapture::Impl {
     /// @brief Release the capture session, the pool and the device. Runs on the worker thread.
     void release();
     /// @brief Take the frame the pool last reported, replacing any older one. Runs on the pool's thread.
-    void onFrameArrived();
+    /// @param generation The pool epoch the handler was registered under; a frame from an older pool is dropped.
+    void onFrameArrived(quint64 generation);
 
     QString deviceName;
     QRect   desktop;
@@ -163,6 +165,9 @@ struct GlassCapture::Impl {
     std::mutex              mutex;
     std::condition_variable arrived;
     Direct3D11CaptureFrame  latest{nullptr};
+    /// The current pool's epoch, under mutex. release() bumps it, so a handler already in flight or queued from a
+    /// closed pool cannot store a frame after the session is gone and keep its device alive (docs/adr/0202).
+    quint64 frameGeneration = 0;
 };
 
 bool GlassCapture::Impl::ensure()
@@ -257,7 +262,12 @@ bool GlassCapture::Impl::ensure()
         // neither interface, and a capture there would put a yellow border around the reader's screen: refuse.
         session.as<winrt::Windows::Graphics::Capture::IGraphicsCaptureSession2>().IsCursorCaptureEnabled(false);
         session.as<winrt::Windows::Graphics::Capture::IGraphicsCaptureSession3>().IsBorderRequired(false);
-        frameToken = pool.FrameArrived([this](auto const&, auto const&) { onFrameArrived(); });
+        auto frameGenerationNow = quint64{0};
+        {
+            std::lock_guard const lock(mutex);
+            frameGenerationNow = ++frameGeneration;
+        }
+        frameToken = pool.FrameArrived([this, frameGenerationNow](auto const&, auto const&) { onFrameArrived(frameGenerationNow); });
         session.StartCapture();
 
         auto adapterDesc = DXGI_ADAPTER_DESC{};
@@ -315,14 +325,17 @@ void GlassCapture::Impl::fail(HRESULT const hr, bool const permanentFailure)
 void GlassCapture::Impl::release()
 {
     operational = false;
+    {
+        // Waits out a handler already inside onFrameArrived, and invalidates any queued from this pool: neither can
+        // store a frame after the clear below (docs/adr/0202).
+        std::lock_guard const lock(mutex);
+        ++frameGeneration;
+        latest = nullptr;
+    }
     try {
         if (pool != nullptr) pool.FrameArrived(frameToken);
     } catch (winrt::hresult_error const&) {
         // The pool is already closed; there is no handler to take off.
-    }
-    {
-        std::lock_guard const lock(mutex);
-        latest = nullptr;
     }
     try {
         if (session != nullptr) session.Close();
@@ -336,20 +349,28 @@ void GlassCapture::Impl::release()
     staging.Reset();
     stagingSize   = {};
     stagingFormat = DXGI_FORMAT_UNKNOWN;
+    // The device is going away: tell the driver the process is idle so it lets go of what it cached for the session,
+    // rather than keeping a high-water mark until process exit (docs/adr/0202).
+    if (device != nullptr) {
+        auto dxgiDevice = ComPtr<IDXGIDevice3>{};
+        if (SUCCEEDED(device.As(&dxgiDevice))) dxgiDevice->Trim();
+    }
     context.Reset();
     device.Reset();
 }
 
-void GlassCapture::Impl::onFrameArrived()
+void GlassCapture::Impl::onFrameArrived(quint64 const generation)
 {
     try {
+        // Held across the frame take: release() bumps the epoch under the same lock, so a frame from a pool that
+        // closed meanwhile cannot land after the clear and keep its device alive (docs/adr/0202). pool is read under
+        // the lock that release() also uses for the epoch.
+        std::lock_guard const lock(mutex);
+        if (generation != frameGeneration) return;
         auto frame = pool.TryGetNextFrame();
         if (frame == nullptr) return;
-        {
-            std::lock_guard const lock(mutex);
-            // The frame that was waiting goes back to the pool: only the newest picture is worth a copy.
-            latest = std::move(frame);
-        }
+        // The frame that was waiting goes back to the pool: only the newest picture is worth a copy.
+        latest = std::move(frame);
         arrived.notify_one();
     } catch (winrt::hresult_error const&) {
         // A frame that arrives while the pool is closing has nothing to hand over.
@@ -387,6 +408,13 @@ bool GlassCapture::canFollow() const
     return GetTickCount64() >= impl_->retryAt;
 #else
     return false;
+#endif
+}
+
+void GlassCapture::release()
+{
+#ifdef _WIN32
+    impl_->release();
 #endif
 }
 

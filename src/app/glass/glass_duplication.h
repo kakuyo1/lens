@@ -100,6 +100,14 @@ public:
     ///         its cooldown, and after a refusal that cannot change. Safe from another thread.
     bool canFollow() const override;
 
+    /**
+     * @brief Release the open duplication and its device, leaving the object able to open another.
+     * @note Must run on the thread that reads this source: the device and the output duplication were created there.
+     *       The next read opens a new session and drops its first frame again (docs/adr/0202). Safe to call when none
+     *       is open, and it does not turn a refusal permanent.
+     */
+    void release();
+
     /// @return The screen name, as given at construction: for the log.
     QString const& deviceName() const;
 

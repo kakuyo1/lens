@@ -74,6 +74,14 @@ public:
     bool canFollow() const override;
 
     /**
+     * @brief Release the capture session and its device, leaving the object able to open another.
+     * @note Must run on the thread that reads this source: the frame pool and its session belong to that apartment.
+     *       The next read opens a new session (docs/adr/0202). Safe to call when no session opened, and it does not
+     *       turn a refusal permanent.
+     */
+    void release();
+
+    /**
      * @brief Release the capture session and its device.
      * @note Must run on the thread that read this source, before the object is destroyed: the frame pool and its
      *       session belong to that apartment. Safe to call when no session opened.

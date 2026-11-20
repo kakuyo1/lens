@@ -33,6 +33,7 @@
 #include <QTimer>
 #include <QtQml/qqmlregistration.h>
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -233,6 +234,14 @@ public:
 
     GlassQuality quality() const;
 
+    /**
+     * @brief Set what runs at the idle release, once the capture sessions are queued for release.
+     * @param trim The step; left empty for none.
+     * @note Wired by the composition root rather than reached for here: the shared device belongs to main.cpp, and the
+     *       glass must not look up a process-wide one (`docs/adr/0202`).
+     */
+    void setIdleTrim(std::function<void()> trim);
+
 private:
     friend class GlassSheet;
 
@@ -263,6 +272,9 @@ private:
     void updateLive();
     /// @brief The session for @p screen, opened lazily and reused. GUI thread only.
     Session& sessionFor(QScreen const& screen);
+    /// @brief Release every session's capture once the refresh has stopped for the grace period (docs/adr/0202), and
+    ///        run the idle trim with it.
+    void releaseIdleSessions();
 
     /// Every sheet, in the order the surfaces are listed. The sheets are children of this object.
     std::vector<GlassSheet*> sheets_;
@@ -275,6 +287,12 @@ private:
     bool chaining_ = false;
     /// Drives the refresh while any sheet is live.
     QTimer live_;
+    /// Fires once the refresh has been off for the idle grace period, so an idle tray releases its screen sessions.
+    QTimer idle_;
+    /// Whether the sessions have been released since the refresh last ran; keeps a repeated idle plan from re-arming.
+    bool sessionsReleased_ = false;
+    /// What the idle release runs after the sessions are queued: the composition root's trim of the shared device.
+    std::function<void()> idleTrim_;
     /// Runs the desktop reads off the GUI thread. One thread: a read is a few milliseconds and two would only contend.
     QThreadPool pool_;
     /// The GDI source a screen without duplication reads through, and that a fresh sheet and a drag's retake use on

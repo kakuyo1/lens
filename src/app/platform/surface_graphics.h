@@ -43,6 +43,17 @@ public:
     /// @brief Adopt the device on one window and bracket its frames. Before scene graph init.
     void adopt(QQuickWindow* window);
 
+    /**
+     * @brief Ask the driver to drop what it can from the device's cached allocations.
+     *
+     * A hint, not a free: the driver keeps what it cannot rebuild cheaply, and the next glass card may pay to
+     * rebuild the rest. Called when the glass has gone idle, where the alternative is holding a per-process
+     * high-water for as long as the tray runs (`docs/adr/0202`: releasing the capture session left the drivers'
+     * Private Data above the idle floor).
+     * @note A no-op when no device exists. Safe from the GUI thread while other surfaces still render on it.
+     */
+    void trim();
+
     /// @brief The window whose frame holds the lock right now, for the hang watchdog's log line.
     /// @return The window's name as adopted, or empty when no frame is inside the bracket.
     /// @note Safe from any thread: the holder is published as an atomic pointer to the adopted name.

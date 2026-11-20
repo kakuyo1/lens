@@ -20,6 +20,7 @@
 #define NOMINMAX
 #include <d3d11.h>
 #include <dxgi1_2.h>
+#include <dxgi1_3.h>
 #include <windows.h>
 #include <wrl/client.h>
 #endif
@@ -277,6 +278,12 @@ void GlassDuplication::Impl::release()
     operational = false;
     // A session opened again gets its own unreliable first frame.
     firstFrame = true;
+    // The device is going away: tell the driver the process is idle so it lets go of what it cached for it, rather
+    // than keeping a high-water mark until process exit (docs/adr/0202).
+    if (device != nullptr) {
+        auto dxgiDevice = ComPtr<IDXGIDevice3>{};
+        if (SUCCEEDED(device.As(&dxgiDevice))) dxgiDevice->Trim();
+    }
     duplication.Reset();
     staging.Reset();
     stagingSize = {};
@@ -344,6 +351,13 @@ bool GlassDuplication::canFollow() const
     return GetTickCount64() >= session.retryAt.load();
 #else
     return false;
+#endif
+}
+
+void GlassDuplication::release()
+{
+#ifdef _WIN32
+    impl_->release();
 #endif
 }
 
