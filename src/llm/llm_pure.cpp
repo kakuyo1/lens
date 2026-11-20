@@ -498,6 +498,231 @@ void readSenseFields(Sense& sense, QJsonObject const& source, bool const preview
     sense.imageable = sense.imageable and not sense.imageQuery.isEmpty();
 }
 
+/// @brief The parse's answer: the explanations, or the one reason that refused the batch.
+using ExplainResult = std::variant<QVector<Explanation>, QString>;
+
+/// @brief What one answer's results are read against: the channel's field names and the reader's language.
+struct ResultContract {
+    Channel channel = Channel::Word;
+    QString language; ///< The requested explanation language.
+    bool    multipleSenses = false;
+    bool    isWord         = false;
+    bool    isSense        = false;
+    bool    isPeek         = false;
+    bool    oneLanguage    = false; ///< Translation, peek and sense answers carry no en/zh pair to check.
+    QString titleField;             ///< `word` for the word and sense channels, `title` for the rest.
+};
+
+/// @brief Read the sense fields that have arrived onto @p entry.
+/// @return The failure line when a sense is missing its translation in a language that asks for
+///         one, or an empty string when the senses read clean.
+/// @note The top-level pair mirrors the most frequent sense, so an answer read through either shape
+///       says the same thing about its picture. The sense channel's exhaustion answer arrives as an
+///       empty `senses` array, so the pair is left empty with it rather than read out of a sense
+///       that is not there.
+QString readResultSenses(Explanation& entry, QJsonObject const& source, ResultContract const& contract)
+{
+    for (const auto& value : source.value("senses").toArray()) {
+        const auto sense = value.toObject();
+        if (contract.language != QLatin1String("en") and contract.language != QLatin1String("zh") and
+            sense.value("translation").toString().trimmed().isEmpty())
+            return QCoreApplication::translate("lens::llm", "The requested explanation language is missing.");
+        Sense parsedSense;
+        readSenseFields(parsedSense, sense);
+        // The sense channel's one English word for the sense; the word channel's senses carry none
+        // and read as empty, which is what its readers draw.
+        parsedSense.hint = sense.value(QStringLiteral("hint")).toString().trimmed();
+        if (entry.senses.size() < (contract.multipleSenses ? kMaxSenses : 1))
+            entry.senses.push_back(parsedSense);
+    }
+    if (entry.senses.isEmpty())
+        return {};
+
+    entry.en          = entry.senses.front().en;
+    entry.zh          = entry.senses.front().zh;
+    entry.translation = entry.senses.front().translation;
+    entry.imageable   = entry.senses.front().imageable;
+    entry.imageQuery  = entry.senses.front().imageQuery;
+    return {};
+}
+
+/// @return The empty-field failure for @p entry, or an empty string when every field its channel
+///         requires carries a value. Presence is the schema's business; emptiness is not. Both
+///         language definitions are required by every channel but the translation and peek ones,
+///         which have no explanation language to follow and so no second line to be empty -- and
+///         but the sense one, whose exhaustion answer names the word and nothing else. A word must
+///         also name itself (its IPA stays optional: an acronym has none); the other channels carry
+///         no echoed title.
+QString emptyFieldProblem(Explanation const& entry, ResultContract const& contract)
+{
+    const bool empty = (not contract.isSense and entry.en.trimmed().isEmpty()) or
+                       (not contract.oneLanguage and entry.zh.trimmed().isEmpty()) or
+                       (contract.isWord and entry.title.trimmed().isEmpty());
+    if (not empty)
+        return {};
+    return QCoreApplication::translate("lens::llm", "A results entry has an empty field (title=%1).").arg(entry.title);
+}
+
+/// @return The entry @p item reads as, or the reason the batch is refused.
+std::variant<Explanation, QString> parseResultEntry(ResultContract const& contract, QJsonValue const& item)
+{
+    if (not item.isObject())
+        return QCoreApplication::translate("lens::llm", "One of the results entries is not an object.");
+    const auto source = item.toObject();
+
+    if (not matchesSchema(item, resultSchema(contract.channel)))
+        return QCoreApplication::translate("lens::llm", "A results entry does not match the response schema.");
+
+    Explanation entry;
+    entry.title = source.value(contract.titleField).toString();
+    readAnswerFields(entry, source);
+    // The peek's answer travels under `line`, the field its readers read: the table names the word
+    // channel's `en`, and the peek's line is the same answer in the envelope's own key.
+    if (contract.isPeek)
+        entry.en = source.value(QStringLiteral("line")).toString();
+
+    if ((contract.isWord or contract.isSense) and source.contains("senses")) {
+        if (const QString problem = readResultSenses(entry, source, contract); not problem.isEmpty())
+            return problem;
+    } else if (contract.isWord) {
+        entry.senses.push_back({entry.en, entry.zh, entry.translation, QString{}, entry.imageable, entry.imageQuery});
+    }
+
+    if (not contract.oneLanguage and contract.language != QLatin1String("en") and contract.language != QLatin1String("zh") and entry.translation.trimmed().isEmpty())
+        return QCoreApplication::translate("lens::llm", "The requested explanation language is missing.");
+    if (const QString problem = emptyFieldProblem(entry, contract); not problem.isEmpty())
+        return problem;
+    return entry;
+}
+
+/// @return The failure line for an answer that echoed a different number of results than asked for.
+QString echoedCountFailure(qsizetype const echoed, qsizetype const asked) // NOLINT(bugprone-easily-swappable-parameters): echoedCountFailure takes its 2 qsizetype arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
+{
+    return QCoreApplication::translate("lens::llm",
+                                       "The model echoed %1 result(s) for the %2 that "
+                                       "were asked for.")
+        .arg(echoed)
+        .arg(asked);
+}
+
+/// @return @p parsed ordered as @p expectedInputs asked, or the failure line when the counts disagree.
+/// @note Entity, sentence and translation carry no echoed title on the wire: the app already knows
+///       the selected text, and making a model reproduce a long, punctuation-heavy string invites
+///       drift. A model may also split a selected block (a numbered list, several sentences) into
+///       more entries than asked for; those fold into one result rather than losing the batch.
+ExplainResult orderForInputs(QVector<Explanation> const& parsed, QStringList const& expectedInputs)
+{
+    if (parsed.size() == expectedInputs.size()) {
+        QVector<Explanation> ordered;
+        for (int i = 0; i < expectedInputs.size(); ++i) {
+            Explanation entry = parsed.at(i);
+            entry.title       = expectedInputs.at(i);
+            ordered.push_back(entry);
+        }
+        return ordered;
+    }
+    if (expectedInputs.size() == 1 and not parsed.isEmpty()) {
+        Explanation folded;
+        for (const auto& part : parsed) {
+            if (!folded.en.isEmpty()) folded.en += QLatin1Char('\n');
+            folded.en += part.en;
+            if (!folded.zh.isEmpty()) folded.zh += QLatin1Char('\n');
+            folded.zh += part.zh;
+            if (not folded.translation.isEmpty()) folded.translation += QLatin1Char('\n');
+            folded.translation += part.translation;
+        }
+        folded.title = expectedInputs.front();
+        return QVector<Explanation>{folded};
+    }
+    return echoedCountFailure(parsed.size(), expectedInputs.size());
+}
+
+/// @return The word answers keyed by lower-cased title, a title the model repeated folded into the
+///         entry it named first.
+/// @note The same word twice is not a failure: a model that writes one result per sense instead of
+///       one result with a `senses` array names its word once per sense, and failing the batch over
+///       it would discard definitions that had arrived -- the trade this file refuses everywhere
+///       else. The repeat folds into the entry already held, as the other channels fold a model's
+///       several entries for one selected block.
+QHash<QString, Explanation> foldRepeatedTitles(QVector<Explanation> const& parsed, bool const multipleSenses)
+{
+    QHash<QString, Explanation> byTitle;
+    for (const auto& entry : parsed) {
+        const QString key  = entry.title.toLower();
+        auto          held = byTitle.find(key);
+        if (held == byTitle.end()) {
+            byTitle.insert(key, entry);
+            continue;
+        }
+        Explanation& kept = held.value();
+        const int    cap  = multipleSenses ? kMaxSenses : 1;
+        for (auto const& sense : entry.senses) {
+            if (kept.senses.size() >= cap)
+                break;
+            const bool known = std::any_of(kept.senses.cbegin(), kept.senses.cend(), [&sense](Sense const& existing) {
+                return existing.en == sense.en and existing.zh == sense.zh;
+            });
+            if (not known)
+                kept.senses.push_back(sense);
+        }
+        LENS_WARN("the model echoed '{}' more than once; the repeat was folded into the first entry", entry.title.toStdString());
+    }
+    return byTitle;
+}
+
+/// @return The word answers ordered as @p expectedInputs asked, or the failure line when the model
+///         never echoed a requested word. A word keeps the echo contract: the model must name the
+///         word requested, which catches an explanation attached to the wrong entry before it
+///         reaches the bubble. Matching is case-insensitive (a model may capitalize an acronym) and
+///         the requested spelling wins, so the cache key and the bubble title stay canonical.
+ExplainResult orderWordResults(QVector<Explanation> const& parsed, QStringList const& expectedInputs, bool const multipleSenses)
+{
+    const auto byTitle = foldRepeatedTitles(parsed, multipleSenses);
+    if (byTitle.size() != expectedInputs.size())
+        return echoedCountFailure(byTitle.size(), expectedInputs.size());
+
+    QVector<Explanation> ordered;
+    ordered.reserve(expectedInputs.size());
+    for (const auto& input : expectedInputs) {
+        const auto it = byTitle.constFind(input.toLower());
+        if (it == byTitle.cend())
+            return QCoreApplication::translate("lens::llm", "The model never echoed \"%1\".").arg(input);
+        Explanation entry = *it;
+        entry.title       = input;
+        ordered.push_back(entry);
+    }
+    return ordered;
+}
+
+/// @brief The envelope's refusal: a reader-facing line saying why there is no content to parse.
+struct EnvelopeRefused {
+    QString reason;
+};
+
+/// @return The content of the answer's first choice, or the refusal that says why there is none.
+/// @note The envelope is the same for every channel: one choice, finished on its own, holding the
+///       model's content.
+std::variant<QString, EnvelopeRefused> choiceContent(QByteArray const& responseBody)
+{
+    const auto envelope = QJsonDocument::fromJson(responseBody);
+    if (not envelope.isObject())
+        return EnvelopeRefused{QCoreApplication::translate("lens::llm",
+                                                           "The model answered with something that is not "
+                                                           "a JSON object.")};
+
+    const auto choices = envelope.object().value("choices").toArray();
+    if (choices.isEmpty())
+        return EnvelopeRefused{QCoreApplication::translate("lens::llm",
+                                                           "The model's answer carries no choices.")};
+
+    const auto    choice = choices.at(0).toObject();
+    const QString finish = choice.value("finish_reason").toString();
+    if (const QString reason = finishReasonError(finish); not reason.isEmpty())
+        return EnvelopeRefused{reason};
+
+    return choice.value("message").toObject().value("content").toString();
+}
+
 /// @brief Validate the `results` payload out of one answer's content.
 std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel            channel,
                                                                     QString const&     content,
@@ -533,158 +758,35 @@ std::variant<QVector<Explanation>, QString> parseExplanationContent(Channel     
     // peek's answer travels under `line` and lands in `en`, the field the peek's readers read.
     // Sense is the third: its exhaustion answer names the word and nothing else, so it too is
     // allowed to leave both definition fields empty.
-    const bool    oneLanguage = isTranslation or isPeek or isSense;
-    const QString titleField  = (isWord or isSense) ? QStringLiteral("word") : QStringLiteral("title");
+    const bool           oneLanguage = isTranslation or isPeek or isSense;
+    const QString        titleField  = (isWord or isSense) ? QStringLiteral("word") : QStringLiteral("title");
+    const ResultContract contract{
+        .channel        = channel,
+        .language       = explanationLang,
+        .multipleSenses = multipleSenses,
+        .isWord         = isWord,
+        .isSense        = isSense,
+        .isPeek         = isPeek,
+        .oneLanguage    = oneLanguage,
+        .titleField     = titleField,
+    };
 
     QVector<Explanation> parsed;
     for (const auto& item : resultsValue.toArray()) {
-        if (!item.isObject())
-            return reject(QCoreApplication::translate(
-                "lens::llm", "One of the results entries is not an object."));
-        const auto obj = item.toObject();
-
-        if (not matchesSchema(item, resultSchema(channel)))
-            return reject(QCoreApplication::translate("lens::llm", "A results entry does not match the response schema."));
-
-        Explanation e;
-        e.title = obj.value(titleField).toString();
-        readAnswerFields(e, obj);
-        // The peek's answer travels under `line`, the field its readers read: the table names the
-        // word channel's `en`, and the peek's line is the same answer in the envelope's own key.
-        if (isPeek)
-            e.en = obj.value(QStringLiteral("line")).toString();
-        if ((isWord or isSense) and obj.contains("senses")) {
-            auto const senses = obj.value("senses").toArray();
-            for (auto const& value : senses) {
-                auto const sense = value.toObject();
-                if (explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and sense.value("translation").toString().trimmed().isEmpty())
-                    return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
-                Sense parsedSense;
-                readSenseFields(parsedSense, sense);
-                // The sense channel's one English word for the sense; the word channel's senses
-                // carry none and read as empty, which is what its readers draw.
-                parsedSense.hint = sense.value(QStringLiteral("hint")).toString().trimmed();
-                if (e.senses.size() < (multipleSenses ? kMaxSenses : 1))
-                    e.senses.push_back(parsedSense);
-            }
-            // The sense channel's exhaustion answer arrives as an empty `senses` array, so the
-            // top-level pair is left empty with it rather than read out of a sense that is not there.
-            if (not e.senses.isEmpty()) {
-                e.en          = e.senses.front().en;
-                e.zh          = e.senses.front().zh;
-                e.translation = e.senses.front().translation;
-                // The top-level pair mirrors the most frequent sense, so an answer read through either shape
-                // says the same thing about its picture.
-                e.imageable  = e.senses.front().imageable;
-                e.imageQuery = e.senses.front().imageQuery;
-            }
-        } else if (isWord) {
-            e.senses.push_back({e.en, e.zh, e.translation, QString{}, e.imageable, e.imageQuery});
-        }
-        if (not oneLanguage and explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and e.translation.trimmed().isEmpty())
-            return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
-        // Presence is the schema's business; emptiness is not. Both language definitions are
-        // required by every channel but the translation and peek ones, which have no explanation
-        // language to follow and so no second line to be empty -- and but the sense one, whose
-        // exhaustion answer names the word and nothing else. A word must also name itself (its
-        // IPA stays optional: an acronym has none); the other channels carry no echoed title.
-        if ((not isSense and e.en.trimmed().isEmpty()) || (not oneLanguage and e.zh.trimmed().isEmpty()) || (isWord && e.title.trimmed().isEmpty()))
-            return reject(QCoreApplication::translate("lens::llm",
-                                                      "A results entry has an empty field "
-                                                      "(title=%1).")
-                              .arg(e.title));
-        parsed.push_back(e);
+        const auto entry = parseResultEntry(contract, item);
+        if (const auto* reason = std::get_if<QString>(&entry))
+            return reject(*reason);
+        parsed.push_back(std::get<Explanation>(entry));
     }
 
-    if (!isWord) {
-        // Entity, sentence and translation carry no echoed title on the wire: the app already knows
-        // the selected text, and making a model reproduce a long, punctuation-heavy string invites
-        // drift. A model may also split a selected block (a numbered list, several sentences) into
-        // more entries than asked for; those fold into one result rather than losing the batch.
-        QVector<Explanation> ordered;
-        if (parsed.size() == expectedInputs.size()) {
-            for (int i = 0; i < expectedInputs.size(); ++i) {
-                Explanation e = parsed.at(i);
-                e.title       = expectedInputs.at(i);
-                ordered.push_back(e);
-            }
-        } else if (expectedInputs.size() == 1 && !parsed.isEmpty()) {
-            Explanation e;
-            for (const auto& part : parsed) {
-                if (!e.en.isEmpty()) e.en += QLatin1Char('\n');
-                e.en += part.en;
-                if (!e.zh.isEmpty()) e.zh += QLatin1Char('\n');
-                e.zh += part.zh;
-                if (not e.translation.isEmpty()) e.translation += QLatin1Char('\n');
-                e.translation += part.translation;
-            }
-            e.title = expectedInputs.front();
-            ordered.push_back(e);
-        } else {
-            return reject(QCoreApplication::translate("lens::llm",
-                                                      "The model echoed %1 result(s) for the %2 that "
-                                                      "were asked for.")
-                              .arg(parsed.size())
-                              .arg(expectedInputs.size()));
-        }
-        LENS_TRACE("parseExplanations: accepted {} explanation(s) for channel '{}'", ordered.size(), channelKey(channel));
-        return ordered;
-    }
+    const Result ordered =
+        contract.isWord ? orderWordResults(parsed, expectedInputs, multipleSenses) : orderForInputs(parsed, expectedInputs);
+    if (const auto* reason = std::get_if<QString>(&ordered))
+        return reject(*reason);
 
-    // A word keeps the echo contract: the model must name the word requested, which catches an
-    // explanation attached to the wrong entry before it reaches the bubble. Matching is
-    // case-insensitive (a model may capitalize an acronym) and the requested spelling wins, so
-    // the cache key and the bubble title stay canonical.
-    //
-    // The same word twice is not a failure: a model that writes one result per sense instead of
-    // one result with a `senses` array names its word once per sense, and failing the batch over
-    // it would discard definitions that had arrived -- the trade this file refuses everywhere
-    // else. The repeat folds into the entry already held, as the other channels fold a model's
-    // several entries for one selected block. A word the model never named at all is still a
-    // failure: it leaves the reader with nothing.
-    QHash<QString, Explanation> byTitle;
-    for (const auto& e : parsed) {
-        const QString key  = e.title.toLower();
-        auto          held = byTitle.find(key);
-        if (held == byTitle.end()) {
-            byTitle.insert(key, e);
-            continue;
-        }
-        Explanation& kept = held.value();
-        const int    cap  = multipleSenses ? kMaxSenses : 1;
-        for (auto const& sense : e.senses) {
-            if (kept.senses.size() >= cap)
-                break;
-            const bool known = std::any_of(kept.senses.cbegin(), kept.senses.cend(), [&sense](Sense const& existing) {
-                return existing.en == sense.en and existing.zh == sense.zh;
-            });
-            if (not known)
-                kept.senses.push_back(sense);
-        }
-        LENS_WARN("the model echoed '{}' more than once; the repeat was folded into the first entry", e.title.toStdString());
-    }
-
-    if (byTitle.size() != expectedInputs.size())
-        return reject(QCoreApplication::translate("lens::llm",
-                                                  "The model echoed %1 result(s) for the %2 that "
-                                                  "were asked for.")
-                          .arg(byTitle.size())
-                          .arg(expectedInputs.size()));
-
-    QVector<Explanation> ordered;
-    ordered.reserve(expectedInputs.size());
-    for (const auto& input : expectedInputs) {
-        const auto it = byTitle.constFind(input.toLower());
-        if (it == byTitle.cend())
-            return reject(QCoreApplication::translate(
-                              "lens::llm", "The model never echoed \"%1\".")
-                              .arg(input));
-        Explanation e = *it;
-        e.title       = input;
-        ordered.push_back(e);
-    }
-
-    LENS_TRACE("parseExplanations: accepted {} explanation(s) for channel '{}'", ordered.size(), channelKey(channel));
+    LENS_TRACE("parseExplanations: accepted {} explanation(s) for channel '{}'",
+               std::get<QVector<Explanation>>(ordered).size(),
+               channelKey(channel));
     return ordered;
 }
 
@@ -703,24 +805,10 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel           
         return reason;
     };
 
-    const auto envelope = QJsonDocument::fromJson(responseBody);
-    if (!envelope.isObject())
-        return reject(QCoreApplication::translate("lens::llm",
-                                                  "The model answered with something that is not "
-                                                  "a JSON object."));
-
-    const auto choices = envelope.object().value("choices").toArray();
-    if (choices.isEmpty())
-        return reject(QCoreApplication::translate("lens::llm",
-                                                  "The model's answer carries no choices."));
-
-    const auto    choice = choices.at(0).toObject();
-    const QString finish = choice.value("finish_reason").toString();
-    if (const QString reason = finishReasonError(finish); not reason.isEmpty())
-        return reject(reason);
-
-    const QString content = choice.value("message").toObject().value("content").toString();
-    return parseExplanationContent(channel, content, expectedInputs, explanationLang, multipleSenses);
+    const auto content = choiceContent(responseBody);
+    if (const auto* refused = std::get_if<EnvelopeRefused>(&content))
+        return reject(refused->reason);
+    return parseExplanationContent(channel, std::get<QString>(content), expectedInputs, explanationLang, multipleSenses);
 }
 
 QStringList breakdownWords(QString const& sentence)

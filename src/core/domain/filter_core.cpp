@@ -360,6 +360,44 @@ bool isMastered(const std::string& surface, Difficulty const& difficulty)
     return false;
 }
 
+/// A candidate the frequency comparison chose, and the rank it won with.
+struct RankedForm {
+    const std::string* form = nullptr; ///< The chosen candidate, owned by the vector it came from.
+    std::size_t        rank = 0;       ///< Its rank in the word list; max while no candidate is ranked.
+};
+
+/// @return The candidate the word list ranks most frequent, the earliest kept on a tie.
+/// @note A candidate the list does not hold never wins. The suffix reductions only offer table
+///       entries, and the irregular table's extra bases are morphology, not frequency: a form with
+///       several bases (better -> good / well) settles on whichever the list ranks, and on the
+///       first listed only when it ranks none.
+RankedForm mostFrequent(const std::vector<std::string>& candidates)
+{
+    RankedForm best{&candidates.front(), std::numeric_limits<std::size_t>::max()};
+    for (const std::string& candidate : candidates) {
+        const std::size_t rank = rankOf(candidate);
+        if (rank != 0 && rank < best.rank) best = {&candidate, rank};
+    }
+    return best;
+}
+
+/// @return The irregular table's bases for @p form, or nullptr when the form is not irregular.
+const std::vector<std::string>* irregularBases(const std::string& form)
+{
+    const auto it = g_irregulars.find(form);
+    return it == g_irregulars.end() ? nullptr : &it->second;
+}
+
+/// @return Every form the strict reduction offers for @p t -- the suffix stems and, when the list
+///         holds it, the surface itself -- as the frequency comparison's candidates. An empty vector
+///         means the list holds no form of the word at all.
+std::vector<std::string> lemmaCandidates(const std::string& t)
+{
+    std::vector<std::string> cands = suffixForms(t, false);
+    if (inTable(t)) cands.push_back(t);
+    return cands;
+}
+
 } // namespace
 
 bool isTitleCaseToken(std::string_view token)
@@ -585,19 +623,10 @@ std::string lemmatize(std::string_view token)
     // below: children outranks child in the word list, so comparing would pick children
     // right back. A form with several bases (better -> good / well) has none that can be
     // told apart locally, so those are settled by the same frequency tie-break.
-    if (const auto it = g_irregulars.find(t); it != g_irregulars.end()) {
-        const std::vector<std::string>& bases    = it->second;
-        const std::string*              best     = &bases.front();
-        std::size_t                     bestRank = std::numeric_limits<std::size_t>::max();
-        for (const auto& base : bases) {
-            const std::size_t rank = rankOf(base);
-            if (rank != 0 && rank < bestRank) {
-                bestRank = rank;
-                best     = &base;
-            }
-        }
-        if (*best != t) LENS_TRACE("lemmatize: '{}' -> '{}' (irregular)", t, *best);
-        return *best;
+    if (const std::vector<std::string>* bases = irregularBases(t)) {
+        const RankedForm best = mostFrequent(*bases);
+        if (*best.form != t) LENS_TRACE("lemmatize: '{}' -> '{}' (irregular)", t, *best.form);
+        return *best.form;
     }
 
     // The base form and every stem the suffix rules produce become candidates; the winner
@@ -607,23 +636,12 @@ std::string lemmatize(std::string_view token)
     // "stem" is not the base form (water / under / other) fall back to themselves. The
     // strict guards run here: a word the reader selected alone is explained as the form
     // they picked, and the corpus pins that (docs/adr/0161).
-    std::vector<std::string> cands = suffixForms(t, false);
-    if (inTable(t)) cands.push_back(t);
-
+    const std::vector<std::string> cands = lemmaCandidates(t);
     if (cands.empty()) return t; // not in the list; the caller's whitelist stage drops it // NOLINT(performance-no-automatic-move): the const local documents that the value is not modified; the copy on return is off the hot path
 
-    const std::string* best     = &cands.front();
-    std::size_t        bestRank = rankOf(*best);
-    for (const auto& c : cands) {
-        const std::size_t r = rankOf(c);
-        if (r < bestRank) {
-            bestRank = r;
-            best     = &c;
-        }
-    }
-
-    if (*best != t) LENS_TRACE("lemmatize: '{}' -> '{}' (rank {})", t, *best, bestRank);
-    return *best;
+    const RankedForm best = mostFrequent(cands);
+    if (*best.form != t) LENS_TRACE("lemmatize: '{}' -> '{}' (rank {})", t, *best.form, best.rank);
+    return *best.form;
 }
 
 std::string baseFormOf(std::string_view token)
@@ -639,18 +657,9 @@ std::string baseFormOf(std::string_view token)
     // The irregular table is morphology, not fashion: better is good's form whatever the list
     // ranks. Several bases (good / well) settle by the same tie-break as lemmatize(), for one
     // canonical key.
-    if (const auto it = g_irregulars.find(t); it != g_irregulars.end()) {
-        const std::vector<std::string>& bases    = it->second;
-        const std::string*              best     = &bases.front();
-        std::size_t                     bestRank = std::numeric_limits<std::size_t>::max();
-        for (const auto& base : bases) {
-            const std::size_t rank = rankOf(base);
-            if (rank != 0 && rank < bestRank) {
-                bestRank = rank;
-                best     = &base;
-            }
-        }
-        return *best;
+    if (const std::vector<std::string>* bases = irregularBases(t)) {
+        const RankedForm best = mostFrequent(*bases);
+        return *best.form;
     }
 
     // The suffix rules list their stems most-likely-first, so the first one is the base the
