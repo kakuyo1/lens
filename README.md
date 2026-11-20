@@ -154,10 +154,6 @@ Lens 没有自己的账号，也没有自己的服务器。
 
 **有 macOS 或 Linux 版吗**？目前只有 Windows。
 
-## 路线图
-
-- ☐ **Linux 平台支持**
-
 ## 参与和许可
 
 Lens 以 [MIT 许可证](LICENSE)开源。欢迎提 issue 和 PR。如果 Lens 帮你多读了一点英文，点一个 star 会让更多读者找到它。
