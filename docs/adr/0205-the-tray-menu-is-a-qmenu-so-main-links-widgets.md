@@ -1,4 +1,4 @@
-# 0204 托盘菜单是 QMenu，main 因此链接 Widgets
+# 0205 托盘菜单是 QMenu，main 因此链接 Widgets
 
 - **状态**：accepted
 - **背景**：应用界面全部是 QML，唯一常驻可见物是托盘图标及其菜单。Qt 6 给 QML 用的平台菜单类型（`Qt.labs.platform` 一系）仍标着 experimental，托盘是产品永远在线的入口，不能踩实验品。

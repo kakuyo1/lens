@@ -1,4 +1,4 @@
-# 0205 只随包发 Windows 媒体后端
+# 0206 只随包发 Windows 媒体后端
 
 - **状态**：accepted
 - **背景**：Qt Multimedia 要选后端。FFmpeg 后端需要随包带约 17.5 MB 的 DLL，而应用对媒体的全部需求只是播放一个单词约 20 KB 的发音录音。
