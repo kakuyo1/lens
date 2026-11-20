@@ -369,6 +369,25 @@ TEST(GithubFlow, ACodeRequestThatNeverAnsweredIsAProxyFailure)
     EXPECT_EQ(seen.why, AuthFailure::Proxy);
 }
 
+TEST(GithubFlow, ACodeRequestThatAnsweredWithoutAStatusIsGenericNotProxy)
+{
+    // The proxy kind is a connection that got no byte at all. An answer that carries a body but
+    // never a status -- a gateway closing between its headers and the code -- is still the server
+    // speaking, so it reads as the generic failure rather than as a blocked route.
+    QtApplication   qt;
+    ScriptedManager manager{302, {}, false, QByteArray("gateway")};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    dropTheConnection(manager);
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Generic);
+}
+
 TEST(GithubFlow, AnUnusableCodeAnswerEndsTheSignIn)
 {
     QtApplication   qt;
@@ -507,6 +526,27 @@ TEST(GithubFlow, AnAnswerThePollDoesNotRecogniseFails)
 
     ASSERT_EQ(seen.failed, 1);
     EXPECT_EQ(seen.why, AuthFailure::Generic);
+}
+
+TEST(GithubFlow, APollThatNamesARefreshTokenErrorEndsTheSignIn)
+{
+    // bad_refresh_token is the refresh endpoint's own answer and never a poll's. Reaching the poll
+    // with one means the answer cannot be acted on there -- nothing in this flow can spend a
+    // refresh token -- so it ends the sign-in the ordinary way instead of pretending to renew.
+    QtApplication   qt;
+    ScriptedManager manager{500};
+    manager.queue(200, kCodeBody);
+    manager.queue(200, QByteArrayLiteral(R"({"error":"bad_refresh_token"})"));
+    GithubAuth auth{&manager};
+    Reports    seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.failed > 0; }, 8000));
+
+    ASSERT_EQ(seen.failed, 1);
+    EXPECT_EQ(seen.why, AuthFailure::Generic);
+    EXPECT_EQ(seen.granted, 0);
 }
 
 TEST(GithubFlow, APollThatNeverAnsweredIsAProxyFailure)
@@ -663,4 +703,54 @@ TEST(GithubRefresh, AnAnswerTheRefreshDoesNotRecogniseFails)
     ASSERT_EQ(seen.refreshFailed, 1);
     EXPECT_EQ(seen.why, AuthFailure::Generic);
     EXPECT_EQ(seen.refreshed, 0);
+}
+
+TEST(GithubRefresh, ARefreshAbandonsTheDeviceFlowItFindsWaiting)
+{
+    // One request at a time: asking to renew replaces whatever the object was doing, and the code
+    // being polled goes with it. Neither a grant nor a failure is reported for the abandoned flow,
+    // and its poll timer stops -- nothing but the refresh goes out after it.
+    QtApplication   qt;
+    ScriptedManager manager{200, {}, true, kPending};
+    manager.queue(200, kCodeBody);
+    GithubAuth auth{&manager};
+    Reports    seen;
+    record(auth, seen);
+
+    auth.requestCode(QStringLiteral("Iv1.test"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.codeReady > 0; }));
+    manager.queue(200, kGranted);
+    const quint64 callId = auth.refresh(QStringLiteral("Iv1.test"), QStringLiteral("ghr_before"));
+    ASSERT_TRUE(spinUntil([&seen] { return seen.refreshed > 0; }));
+
+    EXPECT_EQ(seen.refreshCallId, callId);
+    EXPECT_EQ(seen.granted + seen.failed, 0) << "the abandoned sign-in reported nothing";
+
+    QElapsedTimer quiet;
+    quiet.start();
+    while (quiet.elapsed() < 1300)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    EXPECT_EQ(manager.requests, 2) << "the code request and the refresh; the poll timer stopped with the code";
+    EXPECT_EQ(seen.granted + seen.failed, 0);
+}
+
+TEST(GithubRefresh, ACancelDuringARefreshReportsNothing)
+{
+    // A refresh is as abandonable as a poll: stop() drops the connection before it aborts it, so
+    // the reply that never answers reaches nobody.
+    QtApplication   qt;
+    ScriptedManager manager{500, {}, false};
+    GithubAuth      auth{&manager};
+    Reports         seen;
+    record(auth, seen);
+
+    auth.refresh("Ov23li0i58xw4shNcF7I", "ghr_before");
+    auth.cancel();
+
+    QElapsedTimer quiet;
+    quiet.start();
+    while (quiet.elapsed() < 500)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    EXPECT_EQ(seen.refreshed + seen.refreshFailed, 0) << "a cancel reports nothing";
+    EXPECT_EQ(manager.sent.size(), 1u);
 }

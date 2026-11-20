@@ -362,3 +362,55 @@ TEST(WebDavClient, AMalformedListingFails)
     ASSERT_TRUE(spinUntil([&] { return why.has_value(); }));
     EXPECT_EQ(*why, dav::WebDavFailure::Generic);
 }
+
+/// A delete reads every "already gone" answer as the delete that was wanted, whichever shape the
+/// server says it in, and a refused password as the credential kind the form is there to fix.
+TEST(WebDavClient, ADeleteCountsEveryGoneAnswerAsDeleted)
+{
+    QtApplication                     qt;
+    ScriptedManager                   manager{500};
+    dav::WebDavClient                 client(&manager);
+    QString                           deletedPath;
+    std::optional<dav::WebDavFailure> why;
+    QObject::connect(&client, &dav::WebDavClient::deleted, [&deletedPath](quint64, QString path) { deletedPath = std::move(path); });
+    QObject::connect(&client, &dav::WebDavClient::failed, [&why](quint64, dav::WebDavFailure failure) { why = failure; });
+
+    // 204 and 409 are covered beside the address normalisation; 200 and 404 are the other two
+    // answers a delete of something already gone comes back with.
+    for (const int status : {200, 404}) {
+        deletedPath.clear();
+        manager.queue(status);
+        client.del("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json");
+        ASSERT_TRUE(spinUntil([&] { return !deletedPath.isEmpty(); }));
+        EXPECT_EQ(deletedPath.toStdString(), "Lens/lens-sync.json") << "status " << status;
+    }
+
+    for (const int status : {401, 403}) {
+        why.reset();
+        manager.queue(status);
+        client.del("https://dav.example.com/dav", "reader", "wrong-pass", "Lens/lens-sync.json");
+        ASSERT_TRUE(spinUntil([&why] { return why.has_value(); }));
+        EXPECT_EQ(*why, dav::WebDavFailure::Unauthorised) << "status " << status;
+    }
+}
+
+/// A delete whose connection never got a byte is the proxy kind, as it is for every other verb:
+/// the copy is still there and the next sync will try again.
+TEST(WebDavClient, ADeleteThatNeverAnsweredIsAProxyFailure)
+{
+    QtApplication                     qt;
+    ScriptedManager                   manager;
+    dav::WebDavClient                 client(&manager);
+    std::optional<dav::WebDavFailure> why;
+    QObject::connect(&client, &dav::WebDavClient::failed, [&why](quint64, dav::WebDavFailure failure) { why = failure; });
+
+    manager.queue(302, {}, {}, false);
+    client.del("https://dav.example.com/dav", "reader", "app-pass", "Lens/lens-sync.json");
+    ASSERT_TRUE(spinUntil([&] {
+        for (auto* reply : manager.findChildren<QNetworkReply*>())
+            if (!reply->isFinished())
+                reply->abort();
+        return why.has_value();
+    }));
+    EXPECT_EQ(*why, dav::WebDavFailure::Proxy);
+}

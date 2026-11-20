@@ -6,6 +6,7 @@
 #include <QCoreApplication>
 #include <QDate>
 #include <QDateTime>
+#include <QElapsedTimer>
 #include <QEventLoop>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -18,6 +19,7 @@
 #include <algorithm>
 #include <cstring>
 #include <fstream>
+#include <functional>
 
 #include "app/app_controller.h"
 #include "app/duties/cost_duty.h"
@@ -143,6 +145,83 @@ void quitOnExplain(llm::LlmClient& client, QEventLoop& loop)
     });
 }
 
+/// @return Whether @p done came true within @p ms, turning the loop so a streamed chunk can arrive.
+bool spinUntil(std::function<bool()> const& done, int const ms = 2000)
+{
+    QElapsedTimer clock;
+    clock.start();
+    while (not done() and clock.elapsed() < ms)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    return done();
+}
+
+/// @brief A reply whose bytes arrive when the case says so: one chunk per release, then a finish.
+/// No timer decides when a preview lands, so the card can be read between two chunks.
+class HeldReply final : public QNetworkReply {
+public:
+    explicit HeldReply(QObject* parent)
+        : QNetworkReply(parent)
+    {
+        setAttribute(QNetworkRequest::HttpStatusCodeAttribute, 200);
+        open(QIODevice::ReadOnly);
+    }
+
+    /// @brief Hand one chunk over, as a streamed answer's next read would.
+    void release(QByteArray chunk)
+    {
+        held_ += std::move(chunk);
+        emit readyRead();
+    }
+
+    /// @brief End the transfer. Whatever was released has already been read by the client.
+    void end()
+    {
+        setFinished(true);
+        emit finished();
+    }
+
+    void abort() override
+    {}
+
+protected:
+    qint64 readData(char* data, qint64 const size) override
+    {
+        if (held_.isEmpty()) return -1;
+        auto const count = std::min(size, static_cast<qint64>(held_.size()));
+        std::memcpy(data, held_.constData(), static_cast<std::size_t>(count));
+        held_.remove(0, count);
+        return count;
+    }
+
+private:
+    QByteArray held_;
+};
+
+/// @brief The manager that hands every POST a HeldReply the case drives.
+class StreamManager final : public QNetworkAccessManager {
+public:
+    HeldReply* last = nullptr;
+
+protected:
+    QNetworkReply* createRequest(Operation, QNetworkRequest const&, QIODevice*) override
+    {
+        last = new HeldReply(this);
+        return last;
+    }
+};
+
+/// @return One SSE event carrying @p content, a finish reason and optionally a usage object, as an
+///         OpenAI-compatible endpoint writes it.
+QByteArray sseEvent(QString const& content, QString const& finishReason = {}, QJsonObject const& usage = {}) // NOLINT(bugprone-easily-swappable-parameters): sseEvent takes its 2 const QString & arguments in a fixed positional order; the same-typed group cannot be reordered without changing the call's meaning
+{
+    QJsonObject choice{{"delta", QJsonObject{{"content", content}}}};
+    choice.insert(QStringLiteral("finish_reason"), finishReason.isEmpty() ? QJsonValue() : QJsonValue(finishReason));
+    QJsonObject root{{"choices", QJsonArray{choice}}};
+    if (not usage.isEmpty())
+        root.insert(QStringLiteral("usage"), usage);
+    return QByteArrayLiteral("data: ") + QJsonDocument(root).toJson(QJsonDocument::Compact) + QByteArrayLiteral("\n\n");
+}
+
 void run(app::ExplanationDuty& duty, llm::LlmClient& client, QString const& text = QStringLiteral("bank"))
 {
     QEventLoop loop;
@@ -213,6 +292,19 @@ struct Rig {
         duty.runSelectionAction("explain", lemma);
         if (manager.posts > before) loop.exec();
     }
+};
+
+/// @brief The graph the streaming cases need: the duty Rig builds, over a manager whose reply hands
+///        its body over one chunk at a time rather than as one finished answer.
+struct StreamRig {
+    QTemporaryDir        temporary;
+    core::KnownStore     store{core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json")};
+    app::StorageDuty     storage{store};
+    StreamManager        manager;
+    llm::LlmClient       client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    llm::Pricing const   pricing{llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json")};
+    app::CostDuty        cost{storage.statsStore(), client, pricing, [] { return QDate::currentDate(); }};
+    app::ExplanationDuty duty{storage, client, cost};
 };
 
 } // namespace
@@ -438,6 +530,71 @@ TEST_F(LlmTest, Phase2AWaitingCardGoesDownWhenTheReaderMovesOnFromItsWord)
     EXPECT_TRUE(rig.duty.notice().isEmpty()) << "an answer the reader had moved on from was reported as a failure";
     ASSERT_TRUE(rig.store.cacheGet("bank", {"en", false}));
     EXPECT_EQ(rig.store.cacheGet("bank", {"en", false}).value().en, "English");
+}
+
+/// A streamed answer fills the card the click raised: the first preview replaces the waiting shape
+/// without giving up the height it reserved, and the whole answer is what ends the hold.
+TEST_F(LlmTest, Phase2APreviewFillsTheWaitingCardAndKeepsItsReservation)
+{
+    QtApplication qt;
+    StreamRig     rig;
+    rig.duty.setSelection(selection());
+    rig.duty.runSelectionAction("explain", "bank");
+    ASSERT_TRUE(rig.duty.bubble().value("waiting").toBool());
+    ASSERT_TRUE(rig.manager.last != nullptr) << "the click asked nothing of the model";
+
+    // The model's content arrives one SSE event at a time; the first closes the word and the
+    // English line and nothing else.
+    rig.manager.last->release(sseEvent(QStringLiteral(R"({"results":[{"word":"bank","en":"English")")));
+    ASSERT_TRUE(spinUntil([&] { return rig.duty.bubble().value("en").toString() == QStringLiteral("English"); }));
+    EXPECT_FALSE(rig.duty.bubble().value("waiting").toBool()) << "the waiting shape gave way to the answer";
+    EXPECT_TRUE(rig.duty.bubble().value("hold").toBool()) << "a preview keeps the height the click reserved";
+    EXPECT_EQ(rig.duty.bubble().value("title").toString(), QStringLiteral("bank"));
+
+    rig.manager.last->release(sseEvent(QStringLiteral(R"(,"ipa":"/bæŋk/")")));
+    ASSERT_TRUE(spinUntil([&] { return rig.duty.bubble().value("ipa").toString() == QStringLiteral("/bæŋk/"); }));
+    EXPECT_TRUE(rig.duty.bubble().value("hold").toBool()) << "the hold lasts until the whole answer is in hand";
+
+    rig.manager.last->release(sseEvent(QStringLiteral(R"(,"zh":"a bank"}]})"), QStringLiteral("stop"), QJsonObject{{"prompt_tokens", 12}, {"completion_tokens", 9}}));
+    rig.manager.last->release(QByteArrayLiteral("data: [DONE]\n\n"));
+    rig.manager.last->end();
+    ASSERT_TRUE(spinUntil([&] { return not rig.duty.bubble().value("hold").toBool(); }));
+    EXPECT_EQ(rig.duty.bubble().value("en").toString(), QStringLiteral("English"));
+    EXPECT_EQ(rig.duty.bubble().value("ipa").toString(), QStringLiteral("/bæŋk/"));
+    EXPECT_TRUE(rig.duty.bubble().value("countsDown").toBool()) << "the settled card is a card the reader is reading";
+    ASSERT_TRUE(rig.store.cacheGet("bank", {"en", false}));
+    EXPECT_EQ(rig.store.cacheGet("bank", {"en", false}).value().en, QStringLiteral("English"));
+}
+
+/// The staleness rule does not bend for a stream: once the reader has moved on, the rest of the
+/// answer paints nothing, and the whole answer is still stored -- it was paid for.
+TEST_F(LlmTest, Phase2APreviewStopsPaintingWhenTheReaderMovesOnFromItsWord)
+{
+    QtApplication qt;
+    StreamRig     rig;
+    rig.duty.setSelection(selection());
+    rig.duty.runSelectionAction("explain", "bank");
+    ASSERT_TRUE(rig.manager.last != nullptr);
+    rig.manager.last->release(sseEvent(QStringLiteral(R"({"results":[{"word":"bank","en":"English")")));
+    ASSERT_TRUE(spinUntil([&] { return rig.duty.bubble().value("en").toString() == QStringLiteral("English"); }));
+
+    // The reader points at another word while the answer is still arriving.
+    rig.duty.setSelection(selectionFor("river"));
+    int paints = 0;
+    QObject::connect(&rig.duty, &app::ExplanationDuty::bubbleChanged, [&paints] { ++paints; });
+
+    rig.manager.last->release(sseEvent(QStringLiteral(R"(,"ipa":"/bæŋk/")")));
+    for (int i = 0; i < 5; ++i)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    EXPECT_EQ(paints, 0) << "a preview for a word the reader moved on from painted the card";
+    EXPECT_TRUE(rig.duty.bubble().value("ipa").toString().isEmpty());
+
+    rig.manager.last->release(sseEvent(QStringLiteral(R"(,"zh":"a bank"}]})"), QStringLiteral("stop")));
+    rig.manager.last->release(QByteArrayLiteral("data: [DONE]\n\n"));
+    rig.manager.last->end();
+    ASSERT_TRUE(spinUntil([&] { return rig.store.cacheGet("bank", {"en", false}).has_value(); }));
+    EXPECT_TRUE(rig.duty.notice().isEmpty()) << "an answer the reader moved on from was reported as a failure";
+    EXPECT_EQ(paints, 0);
 }
 
 TEST_F(LlmTest, Phase2AStoredWordNeedsNoWaitingCardBecauseItsAnswerIsAlreadyInHand)

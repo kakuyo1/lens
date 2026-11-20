@@ -11,12 +11,14 @@
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QNetworkReply>
 #include <QObject>
 #include <QString>
 
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <memory>
 
 #include <gtest/gtest.h>
 
@@ -62,6 +64,67 @@ bool spinUntil(const std::function<bool()>& done, int ms = 3000)
         QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
     return done();
 }
+
+/// @brief Abort every reply the manager is still holding, as a connection that never got a byte does.
+void dropTheConnection(lens::test::ScriptedManager& manager)
+{
+    for (auto* reply : manager.findChildren<QNetworkReply*>())
+        if (!reply->isFinished())
+            reply->abort();
+}
+
+/// The device-code answer the sign-in cases start from: a one-second poll, so a case reaches the
+/// pending state without waiting the production five.
+const QByteArray kCodeBody = R"({"device_code":"d","user_code":"WDJB-MJHT","verification_uri":"https://github.com/login/device",)"
+                             R"("expires_in":900,"interval":1})";
+
+/// @brief The duty over a scratch document, with the client id fixture the backend reads and the
+///        network scripted; what a case seeds it with is the only thing that differs.
+struct Rig {
+    /// @param name         The scratch directory under the system temp directory.
+    /// @param withClientId Whether `sync.json` carries the OAuth app's id; false is a fresh install.
+    /// @param webdav       Whether the stored provider is the reader's own server rather than GitHub.
+    explicit Rig(std::string const& name, bool const withClientId = true, bool const webdav = false) // NOLINT(bugprone-easily-swappable-parameters): the two flags are named at every call site and mean different things; one enum would say less than the two names do
+        : dir(std::filesystem::temp_directory_path() / name)
+    {
+        std::filesystem::remove_all(dir);
+        std::filesystem::create_directories(dir);
+        if (withClientId) {
+            std::ofstream config(dir / "sync.json");
+            config << R"({"clientId":"client-id"})";
+        }
+        store     = std::make_unique<KnownStore>(KnownStore::load(dir / "settings.json"));
+        partition = std::make_unique<SyncPartition>(*store);
+        if (webdav) {
+            partition->setProvider("webdav");
+            partition->setServer("https://dav.example.com/dav");
+            partition->setUsername("reader");
+            partition->setAppPassword("app-pass");
+        }
+        storage = std::make_unique<lens::app::StorageDuty>(*store);
+        duty    = std::make_unique<lens::app::SyncDuty>(*storage, dir, &manager);
+    }
+
+    ~Rig()
+    {
+        // The duty holds references to the storage and the partition, so it goes first.
+        duty.reset();
+        storage.reset();
+        partition.reset();
+        store.reset();
+        std::error_code ignored;
+        std::filesystem::remove_all(dir, ignored);
+    }
+
+    std::filesystem::path                   dir;
+    std::unique_ptr<KnownStore>             store;
+    std::unique_ptr<SyncPartition>          partition;
+    std::unique_ptr<lens::app::StorageDuty> storage;
+    /// A connection that never answers unless the case queued an answer: the proxy case is what
+    /// this default is for, and every other case queues the one reply it needs.
+    lens::test::ScriptedManager          manager{302, {}, false};
+    std::unique_ptr<lens::app::SyncDuty> duty;
+};
 
 }
 
@@ -345,4 +408,188 @@ TEST(SyncDuty, WebdavFormFieldsTrimWhatTheyStore)
     EXPECT_EQ(seeded.server(), "https://dav.example.com/dav");
 
     std::filesystem::remove_all(dir);
+}
+
+/// A build with no OAuth app yet is the page's "unconfigured", and every control is a no-op rather
+/// than a request that cannot work.
+TEST(SyncDuty, ADeviceWithNoClientIdReadsAsUnconfiguredAndAsksNothing)
+{
+    QtApplication qt;
+    Rig           rig("lens-sync-unconfigured-test", /*withClientId=*/false);
+
+    EXPECT_EQ(rig.duty->state(), QStringLiteral("unconfigured"));
+    rig.duty->startLogin();
+    rig.duty->syncNow();
+    rig.duty->deleteCloudData();
+
+    EXPECT_EQ(rig.manager.requests, 0) << "nothing is configured, so nothing is asked";
+    EXPECT_TRUE(rig.duty->error().isEmpty());
+}
+
+/// A configured device nobody has signed in on reads as "signedOut": Sync now does nothing, and a
+/// passphrase alone is not a sign-in, so it is refused where it stands.
+TEST(SyncDuty, ASignedOutDeviceAsksForThePassphraseAndSendsNothing)
+{
+    QtApplication qt;
+    Rig           rig("lens-sync-signedout-test");
+
+    EXPECT_EQ(rig.duty->state(), QStringLiteral("signedOut"));
+    rig.duty->syncNow();
+    EXPECT_TRUE(rig.duty->error().isEmpty()) << "no sign-in, no failure to report";
+
+    rig.duty->setPassphrase(QString{});
+    EXPECT_EQ(rig.duty->error(), QStringLiteral("passphrase"));
+    rig.duty->setPassphrase(QStringLiteral("a fixture passphrase"));
+    EXPECT_EQ(rig.manager.requests, 0) << "a passphrase cannot stand in for a sign-in";
+}
+
+/// The device flow through the duty: the code is the page's "codePending" with the code and the
+/// address to show, and calling it off takes both down without a report.
+TEST(SyncDuty, ACodeTheReaderNeverEnteredHoldsThePageUntilItIsCalledOff)
+{
+    QtApplication qt;
+    Rig           rig("lens-sync-codepending-test");
+    rig.manager.queue(200, kCodeBody);
+
+    rig.duty->startLogin();
+    ASSERT_TRUE(spinUntil([&] { return !rig.duty->userCode().isEmpty(); }));
+    EXPECT_EQ(rig.duty->state(), QStringLiteral("codePending"));
+    EXPECT_EQ(rig.duty->userCode(), QStringLiteral("WDJB-MJHT"));
+    EXPECT_EQ(rig.duty->verificationUri(), QStringLiteral("https://github.com/login/device"));
+
+    rig.duty->cancelLogin();
+    EXPECT_EQ(rig.duty->state(), QStringLiteral("signedOut"));
+    EXPECT_TRUE(rig.duty->userCode().isEmpty());
+    EXPECT_TRUE(rig.duty->error().isEmpty()) << "a cancel reports nothing";
+
+    // Both timers stop with the code: the poll that would have gone out a second later does not.
+    QElapsedTimer quiet;
+    quiet.start();
+    while (quiet.elapsed() < 1300)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    EXPECT_EQ(rig.manager.requests, 1) << "a cancelled sign-in polls no more";
+}
+
+/// A sign-in the reader declined reaches the page as its own error code, with the code taken down.
+TEST(SyncDuty, ADeclinedSignInLandsOnThePagesError)
+{
+    QtApplication qt;
+    Rig           rig("lens-sync-declined-test");
+    rig.manager.queue(200, kCodeBody);
+    rig.manager.queue(200, QByteArrayLiteral(R"({"error":"access_denied"})"));
+
+    rig.duty->startLogin();
+    ASSERT_TRUE(spinUntil([&] { return !rig.duty->error().isEmpty(); }, 8000));
+
+    EXPECT_EQ(rig.duty->error(), QStringLiteral("denied"));
+    EXPECT_EQ(rig.duty->state(), QStringLiteral("signedOut"));
+    EXPECT_TRUE(rig.duty->userCode().isEmpty());
+}
+
+/// A sync whose connection never answered is the proxy code, and it is not a sign-out: the stored
+/// token is left where it is for the retry.
+TEST(SyncDuty, AConnectionThatNeverAnsweredLeavesTheProxyCodeAndKeepsTheSignIn)
+{
+    QtApplication qt;
+    Rig           rig("lens-sync-proxy-test");
+    rig.partition->storeTokens("access-1", "refresh-1");
+    rig.partition->storeKey(aKey("a fixture passphrase", quickParams()));
+
+    rig.duty->syncNow();
+    ASSERT_TRUE(spinUntil([&] { return rig.manager.requests == 1; }));
+    dropTheConnection(rig.manager);
+    ASSERT_TRUE(spinUntil([&] { return !rig.duty->error().isEmpty(); }));
+
+    EXPECT_EQ(rig.duty->error(), QStringLiteral("proxy"));
+    EXPECT_EQ(rig.duty->state(), QStringLiteral("signedIn")) << "an unreachable server is not a sign-out";
+    EXPECT_TRUE(rig.partition->signedIn());
+    EXPECT_TRUE(rig.partition->hasKey());
+}
+
+/// A delete with no cloud copy behind it names the missing gist rather than asking; re-picking the
+/// provider already in force is not a change, and a signed-out device has nothing to delete at all.
+TEST(SyncDuty, ADeleteWithoutACloudCopyNamesTheMissingGistAndARepickChangesNothing)
+{
+    QtApplication qt;
+    Rig           rig("lens-sync-nogist-test");
+    rig.partition->storeTokens("access-1", "refresh-1"); // signed in, nothing uploaded yet
+
+    rig.duty->deleteCloudData();
+    EXPECT_EQ(rig.duty->error(), QStringLiteral("noGist"));
+    EXPECT_EQ(rig.manager.requests, 0) << "there is no id to delete";
+
+    rig.duty->useProvider(QStringLiteral("github"));
+    EXPECT_EQ(rig.duty->error(), QStringLiteral("noGist")) << "the same provider is not a rebuilt backend";
+
+    rig.duty->logOut();
+    rig.duty->deleteCloudData();
+    EXPECT_TRUE(rig.duty->error().isEmpty());
+    EXPECT_EQ(rig.manager.requests, 0);
+}
+
+/// A deleted cloud copy wakes the event channel and not the surfaces' synced line, and the sign-in
+/// that allowed the delete stays: deleting the copy is not signing out.
+TEST(SyncDuty, ADeletedCloudCopyTakesItsSignalAndLeavesTheSignInAlone)
+{
+    QtApplication qt;
+    Rig           rig("lens-sync-delete-test");
+    rig.partition->storeTokens("access-1", "refresh-1");
+    rig.partition->setGistId("gist-1");
+
+    int deleted = 0;
+    int synced  = 0;
+    QObject::connect(rig.duty.get(), &lens::app::SyncDuty::cloudDeleted, [&deleted] { ++deleted; });
+    QObject::connect(rig.duty.get(), &lens::app::SyncDuty::synced, [&synced](bool) { ++synced; });
+
+    rig.manager.queue(204);
+    rig.duty->deleteCloudData();
+    ASSERT_TRUE(spinUntil([&] { return deleted > 0; }));
+
+    EXPECT_EQ(synced, 0) << "a delete is the event channel's, not a sync of the reader's";
+    EXPECT_TRUE(rig.partition->gistId().empty());
+    EXPECT_TRUE(rig.partition->signedIn()) << "the token is not the cloud copy's";
+    EXPECT_TRUE(rig.duty->error().isEmpty());
+    ASSERT_EQ(rig.manager.sent.size(), 1u);
+    EXPECT_EQ(rig.manager.sent[0].verb, "DELETE");
+}
+
+/// Signing out forgets the token, the key, the login name and the cloud copy's id, and asks nothing
+/// of the network: the copy is left where it is.
+TEST(SyncDuty, LoggingOutForgetsTheTokenTheKeyAndTheCloudCopysIdentity)
+{
+    QtApplication qt;
+    Rig           rig("lens-sync-logout-test");
+    rig.partition->storeTokens("access-1", "refresh-1");
+    rig.partition->storeKey(aKey("a fixture passphrase", quickParams()));
+    rig.partition->setGistId("gist-1");
+    rig.partition->setLogin("reader");
+    ASSERT_EQ(rig.duty->state(), QStringLiteral("signedIn"));
+
+    rig.duty->logOut();
+
+    EXPECT_EQ(rig.duty->state(), QStringLiteral("signedOut"));
+    EXPECT_FALSE(rig.duty->hasPassphrase());
+    EXPECT_TRUE(rig.duty->login().isEmpty());
+    EXPECT_FALSE(rig.partition->signedIn());
+    EXPECT_TRUE(rig.partition->gistId().empty());
+    EXPECT_TRUE(rig.duty->error().isEmpty());
+    EXPECT_EQ(rig.manager.requests, 0) << "a sign-out is local";
+}
+
+/// The WebDAV form's confirmation line answers the credentials that were probed: a refusal of the
+/// new password takes the line down with the error the form can fix.
+TEST(SyncDuty, AWebdavProbeRefusalTakesTheConnectedLineDownWithItsError)
+{
+    QtApplication qt;
+    Rig           rig("lens-sync-webdav-probe-test", /*withClientId=*/true, /*webdav=*/true);
+
+    rig.manager.queue(207);
+    rig.duty->startLogin();
+    ASSERT_TRUE(spinUntil([&] { return rig.duty->webdavConnected(); }));
+
+    rig.manager.queue(401);
+    rig.duty->startLogin();
+    ASSERT_TRUE(spinUntil([&] { return !rig.duty->error().isEmpty(); }));
+    EXPECT_EQ(rig.duty->error(), QStringLiteral("signInExpired"));
+    EXPECT_FALSE(rig.duty->webdavConnected());
 }
