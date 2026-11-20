@@ -155,10 +155,6 @@ See [SECURITY.md](SECURITY.md) for the full boundary.
 
 **Is there a macOS or Linux build?** Windows only for now.
 
-## Roadmap
-
-- ☐ **Linux support**
-
 ## Contributing and license
 
 Lens is open source under the [MIT License](LICENSE). Issues and pull requests are welcome. If Lens helps you read more English, a star helps another reader find it.

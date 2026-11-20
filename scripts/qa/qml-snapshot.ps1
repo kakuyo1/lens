@@ -16,6 +16,19 @@
 #     and writes <dir>/<name>.png; the case guards on an empty dir and skips.
 # This script sets that environment, runs the target, and reports where the PNGs landed.
 #
+# QT_QUICK_BACKEND=software is pinned here, not left to the platform. The offscreen QPA resolves
+# to the software scene graph backend on this Qt anyway (the log says "Loading backend software"),
+# but a snapshot golden is only comparable while the rasteriser is named: hardware and RHI paths
+# differ in antialiasing and cannot run in a headless CI session. grabImage works on the software
+# backend, and MultiEffect (icons, shadows) is not rasterised by it -- which the goldens record as
+# absent, consistently. docs/qa.md's snapshot section owns the reading.
+#
+# LENS_QA_FONT_MODE=yahei is pinned for the same reason, one layer up: setup.cpp otherwise takes
+# the first optional face it finds (Noto Sans SC on this machine) and a machine without that file
+# -- a CI runner, typically -- lays the same text out at different widths. Microsoft YaHei is one
+# of the families setup.cpp already requires, so the goldens compare the same face everywhere.
+# A caller that sets the variable keeps its own choice.
+#
 # It verifies what a surface *looks like* -- glyphs, weight, alignment, colour -- not where it is
 # placed or how it reacts. Layout and interaction stay with lens_qtest_surfaces (TEST.md section
 # 2) and the real-surface tools above. docs/qa.md owns the write-up.
@@ -105,7 +118,11 @@ if (-not (Test-Path -LiteralPath $outDir)) {
 # It lives only in this process and is inherited by the runner below.
 $env:PATH = "$qtBin;$env:PATH"
 $env:QT_QPA_PLATFORM = "offscreen"
+$env:QT_QUICK_BACKEND = "software"
 $env:QT_FORCE_STDERR_LOGGING = "1"
+if ([string]::IsNullOrWhiteSpace($env:LENS_QA_FONT_MODE)) {
+    $env:LENS_QA_FONT_MODE = "yahei"
+}
 $env:LENS_QA_SNAPSHOT_DIR = $outDir
 
 $arguments = @()

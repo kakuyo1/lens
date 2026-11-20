@@ -143,6 +143,8 @@ Translation（语言先于形状判定），其余按形状：单 token 在词�
 
 **顺序**：先开发面，再离屏 QTest，最后才是真实鼠标与截图；驱动手段与判读细节见 `docs/qa.md`。为看状态临时加进 `src/` 的计时器与 `console.log` **提交前必须删干净**——探针规则见 `docs/qa.md` 的 “一轮的顺序”，`.githooks/pre-commit` 的第三项会拦。
 
+离屏快照另有一条有容差的回归：签入的 golden 在 `test/snapshots/golden/`，`scripts/qa/qml-snapshot-compare.ps1` 逐像素比较（单通道容差 16，超过图像 5% 判失败）。采集、首批范围、软件后端与字体的固定、CI 接法都归 `docs/qa.md` 的 “快照 golden 与比较”；普通运行不设 `LENS_QA_SNAPSHOT_DIR`，快照用例照旧跳过。
+
 ## 6 记录
 
 `test/records/` 存运行快照，**gitignored**——那是本机的，不进仓库。一次值得留档的运行写一个 HTML，

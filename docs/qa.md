@@ -53,9 +53,68 @@ offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照�
 在未设置 `QT_QPA_PLATFORM` 的真实平台重跑同一用例。方法
 分两处：`setup.cpp` 用 `QFontDatabase::addApplicationFont` 逐个载入 Windows 字体文件，再把输出目录经
 `lensQaSnapshotDir` 交给每个引擎——offscreen 平台本身不带字体，不载就是满屏方框；用例调用 `testutil.js` 的
-`saveSnapshot(testCase, item, name)`，内部走 `TestCase.grabImage(item)` 再 `save()`。脚本设好
-`QT_QPA_PLATFORM=offscreen` 与 `LENS_QA_SNAPSHOT_DIR` 后驱动目标，默认写到 `test/records/snapshots/`。它验的
-是渲染结果本身——字形、字重、对齐、配色；摆放与交互仍归 `TEST.md` §2 的 `lens_qtest_surfaces` 和上面那四件套。
+`saveSnapshot(testCase, item, dir, name)`，内部走 `TestCase.grabImage(item)` 再 `save()`。脚本设好
+`QT_QPA_PLATFORM=offscreen`、`QT_QUICK_BACKEND=software` 与 `LENS_QA_SNAPSHOT_DIR` 后驱动目标，默认写到
+`test/records/snapshots/`（被忽略）。它验的是渲染结果本身——字形、字重、对齐、配色；摆放与交互仍归
+`TEST.md` §2 的 `lens_qtest_surfaces` 和上面那四件套。
+
+### 快照 golden 与比较
+
+签入的 golden 在 `test/snapshots/golden/`，按目标分 `components/` 与 `surfaces/` 两份。参考机是本仓库的
+开发机，Qt 用构建树配置的那一份（本机 6.9.0，MSVC 2022）。离屏固定走软件后端：`qml-snapshot.ps1` 设
+`QT_QUICK_BACKEND=software`，运行日志里的 `qt.scenegraph.general: Loading backend software` 是证据。
+`grabImage` 在软件后端可用，多次采集逐字节一致；硬件与 RHI 后端的抗锯齿不同，golden 不能依赖它。
+offscreen 本来也解析到软件后端，固定下来是让出图的后端有名有姓，换 Qt 或换机器时先看得出差异来自哪一层。
+
+字体同样固定：脚本设 `LENS_QA_FONT_MODE=yahei`，setup.cpp 只取它已要求存在的 Microsoft YaHei，而不是
+先找到哪个可选字体就用哪个。本机的默认选法会先用 Noto Sans SC，CI 运行器通常没有这个文件；实测两种字面
+写出的同一批十张里九张越过容差，其中八张连尺寸都变了——布局随字宽走，5% 的像素容差救不回来。选一个每台
+Windows 都带的字族，golden 才比的是代码画出来的东西，而不是这台机器碰巧装了什么字体。
+
+`qml-snapshot-compare.ps1` 拿渲染目录与 golden 逐像素比较：任一通道差值超过 16 记一个不同的像素，不同像素
+超过图像的 5% 则该例失败。缺渲染图、缺 golden、尺寸变化都是失败，不会静默通过；渲染目录里多出来的图
+（整套跑会写）按设计忽略。`-Update` 只改写已有的 golden，不会把多出来的图带进仓库。
+
+首批是四个用例、七张图：
+
+| 用例 | 目标 | golden |
+| --- | --- | --- |
+| `Typography::test_captureChineseAndLatinTypography` | `lens_qtest_components` | `typography` |
+| `BubbleSenses::test_snapshotBothThemes` | `lens_qtest_surfaces` | `bubble-senses-light`、`bubble-senses-dark` |
+| `Panels::test_captureTheRemovalQuestion` | `lens_qtest_surfaces` | `words-list-light`、`words-removal-light` |
+| `SettingsWave3::test_captureTheCatalogAndDetailStates` | `lens_qtest_surfaces` | `settings-catalog`、`settings-model` |
+
+计划里的四主题 × 三表面没有照着铺：快照用例只写 `light` 与 `dark`，`frosted` / `liquid` 没有用例，
+托盘菜单也没有。首批因此覆盖三个表面——气泡卡（两主题）、词表面与它上面的删除确认（浅色）、设置页
+（深色）——再加一组混排排版。
+
+没进首批的，理由都是同一类可重复性。`SettingsWave3::test_captureTheCatalogAndDetailStates` 一次写十个
+文件，只签入上面两张：切主题的 `settings-general-light/dark` 三次采集互不相同——固定等待仍会截到配色过渡
+的中段。`Notice::test_captureTheNotice` 的深色帧复用同一张卡跨过主题切换，四轮里红了一轮（深色标题还在
+浅色墨里），整个用例因此不进。`Panels` 的 `words-removal-dark` 同样停在过渡中段（白卡、浅色字），虽然六次
+采集逐字节一致，它记录的不是读者能看到的稳定状态，因此不签入；`Panels` 的等待方式与 `Notice` 相同，继续
+观察。预览卡、宠物场景、GIF 帧序列带计时或动画，`test_readme_gifs` 的帧名还带毫秒，天然不能当 golden。
+
+采集按用例一次一个进程（整套 surfaces 只在发版跑）：
+
+```
+powershell -File scripts/qa/qml-snapshot.ps1 -Target lens_qtest_components -Test "Typography::test_captureChineseAndLatinTypography" -Out test/records/snapshots/components
+powershell -File scripts/qa/qml-snapshot.ps1 -Target lens_qtest_surfaces -Test "BubbleSenses::test_snapshotBothThemes" -Out test/records/snapshots/surfaces
+powershell -File scripts/qa/qml-snapshot.ps1 -Target lens_qtest_surfaces -Test "Panels::test_captureTheRemovalQuestion" -Out test/records/snapshots/surfaces
+powershell -File scripts/qa/qml-snapshot.ps1 -Target lens_qtest_surfaces -Test "SettingsWave3::test_captureTheCatalogAndDetailStates" -Out test/records/snapshots/surfaces
+```
+
+比较与刷新（后者只在人看过后用；它不改比较逻辑，CI 从不带这个参数）：
+
+```
+powershell -File scripts/qa/qml-snapshot-compare.ps1 -GoldenDir test/snapshots/golden/surfaces -RenderedDir test/records/snapshots/surfaces
+powershell -File scripts/qa/qml-snapshot-compare.ps1 -GoldenDir test/snapshots/golden/surfaces -RenderedDir test/records/snapshots/surfaces -Update
+```
+
+CI 在 `qml-components` 与 `qml-surfaces` 两个 job 里各加一段：用同一个目标、只点首批的用例，带
+`LENS_QA_SNAPSHOT_DIR`、`QT_QUICK_BACKEND=software` 与 `LENS_QA_FONT_MODE=yahei` 采集一轮，再跑比较；
+失败时把渲染目录与每例一行的 `diff-summary.txt` 作为 artifact 上传，跨机器差异可以直接看渲染图。普通开发
+运行不设 `LENS_QA_SNAPSHOT_DIR`，快照用例照旧跳过。
 
 一轮的顺序：先用开发面（`lens-dev.ps1` 的剧本或管道）到达要验的状态；开发面回答不了的像素问题，才接着
 用 `ui-tray-rects.ps1` 量基准、`ui-run.ps1` 起应用、`ui-input.ps1` 驱动、`ui-capture.ps1` 截图，必要时
