@@ -37,6 +37,7 @@ This is the beta release of Lens, the second release on the numbering that began
 - Auto scan **checks the page without walking the whole tree**. The periodic check that the tracked page still belongs to its window now climbs from the page up to the window root instead of enumerating every document under it -- about 45x cheaper on a heavy page (measured ~180 ms down to ~4 ms a call). That frees roughly a third of the scan thread's time for reading words, so the lines crawl in faster; a tab switch or navigation still drops the page and searches again (docs/adr/0188).
 - The **typing pace moved one notch faster all the way up**: the five speeds now write one character every 35, 25, 15, 10 and 5 ms, so what used to be the third level is the new slowest, and the default third level writes at 15 ms -- a little over twice the old pace (UI-SPEC.md 4.3).
 - Switch toggles carry a little more weight now: **the knob stretches to about 1.4x through its travel and settles back as it lands**, all inside the one press duration, so a flip reads as one gesture instead of two properties moving in parallel (UI-SPEC.md 4.17).
+- **The glass's stripes are gone in both directions**, and every quality tier now draws the same blur: thirteen taps a pass at a quarter of the prefilter texel, under a Gaussian sampled at half its sigma, so the kernel between taps is a curve rather than the straight chord that used to show the tap grid as fine stripes along both axes. The automatic and standard tiers come out about a quarter tighter at the same slider position than before, landing close to the blur the Smooth tier had; the Smooth tier reads as before, a shade softer (docs/adr/0201, superseding docs/adr/0111).
 
 ### Fixed
 - **Pressing Test connection or Sync now on the Account & sync page no longer throws the page back to the top.** The WebDAV form used to step aside for the length of a round, collapsing the page under the reader so the scroll jumped to its start; it now stays in place, dimmed and inert, until the round ends (UI-SPEC.md 4.4).
@@ -96,6 +97,7 @@ This is the beta release of Lens, the second release on the numbering that began
 - 自动扫描**检查页面不再整棵走树**。判断跟踪页是否仍属于其窗口的周期检查，现在从页元素向上爬到窗口根，而不是枚举其下所有文档——重页上约 45 倍便宜（实测每次 ~180 ms 降到 ~4 ms）。这腾出约三分之一的扫描线程时间用于读词，虚线爬升更快；切标签或导航仍会丢页并重新搜索（docs/adr/0188）。
 - **打字速度整体加快一档**：五档现在每字 35 / 25 / 15 / 10 / 5 ms，原来的第 3 档成了新的第 1 档，默认的第 3 档因此以每字 15 ms 写出，约为过去的两倍快（UI-SPEC.md 4.3）。
 - 开关的切换更有分量：**滑块在平移途中横向拉伸到约 1.4×，落定前收平**，全部在同一个 press 时长内完成，翻转读成一次带分量的动作，而不是两条并行的属性动画（UI-SPEC.md 4.17）。
+- **玻璃的条纹在两个方向都消失了**，所有画质档现在画同一套模糊：每遍 13 个抽样点、点距为预滤波 mip texel 的 ¼，权重是"在 σ 的一半处采样"的高斯——点与点之间是曲线而不是直线弦，原先沿两轴显出的细条纹因此不再出现。同一滑杆位下，自动与标准档比过去紧约四分之一，接近流畅档原来的柔度；流畅档观感与之前相当、略柔一点（docs/adr/0201，取代 docs/adr/0111）。
 
 #### 修复
 - **账号与同步页按 “Test connection” 或 “Sync now” 不再把整页弹回顶部。** WebDAV 表单过去会在同步进行时整块退场，页面在读者脚下塌陷、滚动位置被夹回顶部；现在它留在原位，灰化且不可编辑，直到这一轮结束（UI-SPEC.md 4.4）。

@@ -1,29 +1,23 @@
-// The constants both halves of the glass blur are baked from (docs/adr/0082, docs/adr/0111). Included by glass.frag and
-// glass_hblur.frag so the slider's full scale, the tap spacing and the prefilter depth cannot drift apart.
+// The constants both halves of the glass blur are baked from (docs/adr/0082, docs/adr/0111, docs/adr/0201). Included by
+// glass.frag and glass_hblur.frag so the slider's full scale, the prefilter depth and the tap train cannot drift apart.
 
 /// The blur at 100%, in DIP: the prototype's largest blur.
 const float kBlurAt100 = 60.0;
-/// A tap spacing of this many sigma leaves the nine taps' second moment at one sigma.
-const float kSpacingSigma = 0.95;
-/// How much coarser the prefilter mip is than the tap spacing. A box of exactly one tap's width has a stopband that
-/// folds fine detail back as a visible weave; three quarters of a level more flattens it and lands the same slider a
-/// little softer than the old single pass (docs/adr/0082).
-const float kLodBias = 0.75;
+/// The mip texel the taps read, in sigma. The prefilter is the mip chain itself: a box about this wide, which stops the
+/// desktop's fine detail before it can fold back into the blur as a weave (docs/adr/0082). It also sets the softness:
+/// with the train below, one pass lands at about 1.3 sigma of effective blur, close to what the old nine-tap chain
+/// delivered on the Smooth tier (docs/adr/0201).
+const float kPrefilterSigma = 2.26;
+/// One tap's step, in mip texels. The train spans three texels of a prefilter one texel wide, so neighbouring bilinear
+/// tents overlap four to one instead of merely touching: the kernel between taps is a curve, not the straight chord
+/// that used to draw the tap grid out along the blur axis as stripes (docs/adr/0111, docs/adr/0201).
+const float kTapStepTexels = 0.25;
 
-/// How much coarser the Smooth tier's prefilter mip is, in levels below the tap-spacing mip (docs/adr/0111). Its
-/// seventeen taps sit at half the mip texel, so each tent spans twice the spacing and the kernel follows the Gaussian
-/// arc between taps. The nine standard taps sit one texel apart under tents that merely touch, so the kernel there is
-/// the straight chord between neighbouring weights -- the lump the strong edges of a text page draw out as stripes
-/// along the blur axis, vertical from the horizontal pass and horizontal from the vertical one.
-const float kDenseLodBias = 1.25;
-/// The Smooth tier's tap spacing, in sigma: half the mip texel kDenseLodBias reads.
-const float kDenseSpacing = kSpacingSigma * exp2(kDenseLodBias) * 0.5;
-
-/// One tap of the Smooth tier's seventeen: a Gaussian at kDenseSpacing sigma, normalized by its integral. The train is
-/// dense enough that the discrete weight sum equals the integral, so the weights need no runtime sum; they are baked
-/// from kDenseSpacing, so the spacing and the weights cannot drift apart.
-float denseWeight(int k)
+/// One tap of the train: a Gaussian sampled at half its sigma, normalized so the thirteen weights sum to one. The
+/// sampling is dense enough that its own grid carries nothing at the frequencies a screen shows, at every slider
+/// position (docs/adr/0201).
+float tapWeight(int k)
 {
     float a = float(k);
-    return exp(-0.5 * kDenseSpacing * kDenseSpacing * a * a) * kDenseSpacing * 0.39894228;
+    return exp(-0.125 * a * a) * 0.1996756;
 }
