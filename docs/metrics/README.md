@@ -27,6 +27,7 @@
 | --- | --- |
 | [`test-coverage-baseline-2026-10-03.md`](code-quality/test-coverage-baseline-2026-10-03.md) | 哪些 C++ 行与 QML 求值位置被测试跑过 |
 | [`source-code-review-hotspots-2026-10-03.md`](code-quality/source-code-review-hotspots-2026-10-03.md) | 哪些源码文件与函数应优先审阅 |
+| [`source-code-review-hotspots-2026-11-20.md`](code-quality/source-code-review-hotspots-2026-11-20.md) | 当前规模（498 个文件、92,182 行）下的热点清单；`lemmatize` 与 `parseExplanationContent` 拆分前后的数字；取代 2026-10-03 那份 |
 | [`selection-classification-accuracy-2026-10-04.md`](code-quality/selection-classification-accuracy-2026-10-04.md) | 单层选区类型判定错在哪里，是否需要多层级策略 |
 | [`scan-pool-cleaning-2026-11-17.md`](code-quality/scan-pool-cleaning-2026-11-17.md) | 扫描池两阶段清掉哪些专名/缩写/外来碎片（日志证据 + 全池义项级清扫），真实画线少多少，覆盖与选区是否受影响（ADR 0192） |
 
@@ -64,6 +65,10 @@
 | [`soak-cycles-2026-11-10.md`](resource-footprint/soak-cycles-2026-11-10.md) | 四组循环负载：释放路径有没有回归、9.9 节的慢速爬升还在不在、释放的毫秒代价 |
 | [`handle-types-2026-11-10.md`](resource-footprint/handle-types-2026-11-10.md) | 那笔爬升是哪类句柄：Section、Mutant、Thread 各约每轮十个，Event 与 Timer 是锯齿不是泄漏 |
 | [`soak-shared-device-2026-11-17.md`](resource-footprint/soak-shared-device-2026-11-17.md) | 共享设备后开合 soak：句柄斜率归零、百轮外推成立、被拒是负载抖动不是锁死 |
+| [`idle-sample-2026-11-20.md`](resource-footprint/idle-sample-2026-11-20.md) | release 树冷启动后三十分钟的空闲水位：私有字节离 250 MB 预算差多少、堆与 Private Data 各占多少、两处台阶与它们的未归因 |
+| [`idle-attribution-2026-11-20.md`](resource-footprint/idle-attribution-2026-11-20.md) | 302 MB 空闲地板归因到哪：161 MB 堆是启动平台、随包数据只占 12%、82% 线程起于 GPU 驱动；一张玻璃表面点燃 WGC 抓屏，Private Data 87 → 372 MB、隐藏 5 秒仍 421 MB |
+| [`glass-capture-release-2026-11-20.md`](resource-footprint/glass-capture-release-2026-11-20.md) | 玻璃抓屏的空闲释放：隐藏后 10 秒释放会话、线程与句柄回退、复显 99–176 ms；D1 的 +50 MB 线为何只在一部分轮次成立（驱动高水位） |
+| [`glass-idle-residual-2026-11-20.md`](resource-footprint/glass-idle-residual-2026-11-20.md) | 玻璃空闲残差不按帧量计价（七轮 r = −0.22）；共享设备一声 Trim 把隐藏 +60 秒的地板从 +41.6 压到 +13.7 MB（ADR 0203） |
 
 ## cost
 
