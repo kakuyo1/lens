@@ -62,16 +62,20 @@ Item {
             mouseClick(switcher, switcher.width / 2, switcher.height / 2);
 
             // Sampled in a tight loop: the flight is one press token long, and a single delayed
-            // check on a loaded machine can step over it and read the settled width.
-            let peak = stretch.xScale;
-            const deadline = Date.now() + 500;
-            while (Date.now() < deadline && peak <= 1.05) {
-                peak = Math.max(peak, stretch.xScale);
-                if (peak > 1.05)
-                    break;
-                wait(10);
+            // check on a loaded machine can step over it and read the settled width. The CI
+            // runner reports Windows' client-area animations off, which makes the token 0 ms
+            // there -- no flight to sample, and the landing is all that machine can be asked for.
+            if (!Tokens.motion.reduced) {
+                let peak = stretch.xScale;
+                const deadline = Date.now() + 500;
+                while (Date.now() < deadline && peak <= 1.05) {
+                    peak = Math.max(peak, stretch.xScale);
+                    if (peak > 1.05)
+                        break;
+                    wait(10);
+                }
+                verify(peak > 1.05, "the knob crossed without stretching");
             }
-            verify(peak > 1.05, "the knob crossed without stretching");
 
             tryVerify(function () { return Math.abs(stretch.xScale - 1) < 0.01; }, 500);
         }

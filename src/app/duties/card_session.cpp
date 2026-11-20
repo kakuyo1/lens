@@ -163,12 +163,19 @@ std::optional<CardSession::CycleView> CardSession::holdAnswer(core::CacheContext
     return viewOf(cycle);
 }
 
-std::optional<CardSession::CycleView> CardSession::standingCycle(core::CacheContext const& now) const
+CardSession::Cycle const* CardSession::standingCyclePtr(core::CacheContext const& now) const
 {
     if (!wordCard() or now.multipleSenses)
+        return nullptr;
+    return findCycle(QString::fromStdString(now.language), subject_.value().lemma);
+}
+
+std::optional<CardSession::CycleView> CardSession::standingCycle(core::CacheContext const& now) const
+{
+    Cycle const* const cycle = standingCyclePtr(now);
+    if (cycle == nullptr)
         return std::nullopt;
-    auto const* cycle = findCycle(QString::fromStdString(now.language), subject_.value().lemma);
-    return cycle ? std::optional<CycleView>{viewOf(*cycle)} : std::nullopt;
+    return viewOf(*cycle);
 }
 
 CardSession::SenseStep CardSession::cycleSense(core::CacheContext const& now, bool const mayAsk)
@@ -296,15 +303,18 @@ CardSession::PeekStep CardSession::requestPeek(PeekFacts const& facts)
     if (facts.mother.isEmpty() or facts.mother == QLatin1String("en"))
         return {.kind = PeekStep::Kind::None, .why = PeekStep::Why::NoMotherTongue};
 
-    const QString            lemma      = peekKey();
-    std::optional<CycleView> cycle      = standingCycle(facts.now);
-    const int                senseIndex = cycle ? cycle->index : 0;
+    const QString lemma = peekKey();
+    // Read through the live cycle rather than a CycleView copy: the view carries QString and
+    // Sense copies this call never needs, and a card with no cycle (a sentence) must not read
+    // an empty view's storage for the index below.
+    Cycle const* const standing   = standingCyclePtr(facts.now);
+    const int          senseIndex = standing ? standing->index : 0;
 
     // The word channel always buys the Chinese pair along with the explanation. A swapped sense
     // carries its own pair, bought with the sense; the answer's own pair is the cached entry's.
     if (facts.mother == QLatin1String("zh")) {
-        if (cycle and senseIndex > 0) {
-            const QString swapped = cycle->sense.zh;
+        if (standing and senseIndex > 0) {
+            const QString swapped = standing->senses.at(senseIndex).zh;
             if (not swapped.trimmed().isEmpty())
                 return {.kind = PeekStep::Kind::Show, .line = swapped, .senseIndex = senseIndex};
         }
@@ -327,7 +337,7 @@ CardSession::PeekStep CardSession::requestPeek(PeekFacts const& facts)
     return {.kind       = PeekStep::Kind::Ask,
             .lemma      = lemma,
             .language   = facts.mother,
-            .senseEn    = cycle and senseIndex > 0 ? cycle->sense.en : QString{},
+            .senseEn    = standing and senseIndex > 0 ? standing->senses.at(senseIndex).en : QString{},
             .senseIndex = senseIndex};
 }
 
@@ -349,8 +359,8 @@ std::optional<QString> CardSession::peekAnswered(QString const& lemma, QString c
 
     if (!peekableCard() or peekKey() != lemma)
         return std::nullopt;
-    auto const cycle     = standingCycle(now);
-    const bool sameSense = cycle ? cycle->index == pending.senseIndex : pending.senseIndex == 0;
+    Cycle const* const standing  = standingCyclePtr(now);
+    const bool         sameSense = standing ? standing->index == pending.senseIndex : pending.senseIndex == 0;
     return sameSense ? std::optional<QString>{line} : std::nullopt;
 }
 

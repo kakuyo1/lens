@@ -208,9 +208,11 @@ private:
         bool    advance = false;
     };
 
-    [[nodiscard]] bool     sameCard(PendingSelection const& selection, CardKind kind) const;
-    Cycle*                 findCycle(QString const& language, QString const& lemma);
-    Cycle const*           findCycle(QString const& language, QString const& lemma) const;
+    [[nodiscard]] bool sameCard(PendingSelection const& selection, CardKind kind) const;
+    Cycle*             findCycle(QString const& language, QString const& lemma);
+    Cycle const*       findCycle(QString const& language, QString const& lemma) const;
+    /// @return The cycle the card stands on, or null when it has none to draw.
+    Cycle const*           standingCyclePtr(core::CacheContext const& now) const;
     std::optional<QString> peekLine(QString const& mother, QString const& lemma, int senseIndex) const;
     static QString         nextHint(Cycle const& cycle);
     static CycleView       viewOf(Cycle const& cycle);
