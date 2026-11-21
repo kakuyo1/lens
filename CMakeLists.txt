@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(Lens VERSION 1.0.0 LANGUAGES CXX)
+project(Lens VERSION 1.0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -154,10 +154,13 @@ configure_file(
   @ONLY
 )
 
-# Three steps, driven by naming the target: windeployqt writes the Qt runtime into
-# installer/payload beside the executable, the OCR staging script adds the configured Tesseract
-# runtime under payload/ocr, then Inno Setup (installer/lens.iss) packs that payload and data/ into
-# one installer under the build tree's installer/.
+# Four steps, driven by naming the target: windeployqt writes the Qt runtime into
+# installer/payload beside the executable, the CRT staging script adds the MSVC runtime DLLs
+# beside it (docs/adr/0207 -- windeployqt is told --no-compiler-runtime, and the CRT comes from
+# the toolchain's own redist so a payload that would not start anywhere is refused here), the OCR
+# staging script adds the configured Tesseract runtime under payload/ocr, then Inno Setup
+# (installer/lens.iss) packs that payload and data/ into one installer under the build tree's
+# installer/.
 #
 # The payload is wiped first. A dependency dropped from the deploy options would otherwise go on
 # sitting there from the previous run, and the size would be measuring a directory nothing
@@ -198,17 +201,27 @@ add_custom_target(installer
           "-DLENS_PAYLOAD_DIR=${LENS_PAYLOAD_DIR}"
           -P "${CMAKE_SOURCE_DIR}/installer/strip_media_plugins.cmake"
   COMMAND ${CMAKE_COMMAND}
+          "-DLENS_CRT_COMPILER=${CMAKE_CXX_COMPILER}"
+          "-DLENS_CRT_STAGE_DIR=${LENS_PAYLOAD_DIR}"
+          -P "${CMAKE_SOURCE_DIR}/installer/stage_crt.cmake"
+  COMMAND ${CMAKE_COMMAND}
           "-DLENS_OCR_SOURCE_DIR=${LENS_TESSERACT_ROOT}"
           "-DLENS_OCR_STAGE_DIR=${LENS_PAYLOAD_DIR}/ocr"
           "-DLENS_OCR_NOTICE_FILE=${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"
           -P "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
   # The sherpa-onnx runtime that runs the local voices is loaded from beside lens.exe, so it is copied
   # into the payload root next to the executable, with the notice and the two licenses it ships under.
+  # The application-level notice (Qt, nlohmann/json, spdlog, the MSVC runtime) and Qt's LGPL text
+  # land beside them, so the payload carries a complete third-party notice set.
   COMMAND ${CMAKE_COMMAND} -E copy
           ${LENS_SHERPA_RUNTIME_DLLS}
           "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES_VOICES.txt"
           "${CMAKE_SOURCE_DIR}/installer/voice-licenses/LICENSE-sherpa-onnx.txt"
           "${CMAKE_SOURCE_DIR}/installer/voice-licenses/LICENSE-onnxruntime.txt"
+          "${LENS_PAYLOAD_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES_APP.txt"
+          "${CMAKE_SOURCE_DIR}/installer/licenses/LICENSE-Qt-LGPL-3.0.txt"
           "${LENS_PAYLOAD_DIR}"
   COMMAND "${LENS_INNO_SETUP}" "/I${CMAKE_BINARY_DIR}/installer" "${CMAKE_SOURCE_DIR}/installer/lens.iss"
   COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/installer/portable"
@@ -226,9 +239,12 @@ add_custom_target(installer
           "Lens-${PROJECT_VERSION}"
   DEPENDS lens
           lens_reporter
+          "${CMAKE_SOURCE_DIR}/installer/stage_crt.cmake"
           "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
           "${CMAKE_SOURCE_DIR}/installer/strip_media_plugins.cmake"
           "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"
+          "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES_APP.txt"
+          "${CMAKE_SOURCE_DIR}/installer/licenses/LICENSE-Qt-LGPL-3.0.txt"
           "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES_VOICES.txt"
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   COMMENT "Packaging Lens: windeployqt, then Inno Setup, then the portable zip"
