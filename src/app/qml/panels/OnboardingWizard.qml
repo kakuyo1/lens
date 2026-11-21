@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
-import QtQuick.Effects
 import "../util/Numbers.js" as Numbers
 
 /**

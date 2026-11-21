@@ -67,7 +67,15 @@ try {
     }
     . "$PSScriptRoot\..\build\paths.ps1"
     $qtBin = (Get-LensPaths -Root $root).qtBin
-    $lint = & (Join-Path $qtBin 'qmllint.exe') '@build-ninja-release/src/app/.rcc/qmllint/lens_app.rsp' 2>&1
+    # Native stderr arrives as an ErrorRecord, and under $ErrorActionPreference = 'Stop' the first
+    # redirected line throws -- qmllint's Info lines (an unused import) killed the run before any
+    # tag existed. Continue during the capture and stringify the records, so the report the gate
+    # reads is plain text.
+    $eap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $lint = & (Join-Path $qtBin 'qmllint.exe') '@build-ninja-release/src/app/.rcc/qmllint/lens_app.rsp' 2>&1 |
+        ForEach-Object { "$_" }
+    $ErrorActionPreference = $eap
     $lint | ForEach-Object { Write-Output $_ }
     # qmllint exits 0 for an Error: line on some severities; the release gate has to read the
     # report, not just the process code.
