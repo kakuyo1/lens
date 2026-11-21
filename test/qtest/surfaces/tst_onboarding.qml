@@ -210,5 +210,9 @@ Item {
             tryCompare(wizard, "visible", false, testCase.settle);
             compare(Controller.onboardingDuty.isDone(), true);
         }
+
+        function cleanupTestCase() {
+            Controller.setApiKey("");
+        }
     }
 }
