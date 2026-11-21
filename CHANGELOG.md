@@ -1,5 +1,81 @@
 # Changelog
 
+## 1.0.1 - 2026-11-21
+
+The first stable release. An installation of 1.0.0-alpha or 1.0.0-beta -- both report themselves as version 1.0.0 -- receives this release as an automatic update, because 1.0.1 compares greater than 1.0.0. Every entry below landed after the beta's tag, so the installed beta has none of them yet, including the handful the beta notes announced ahead of their commits. Please report what you find as an issue at https://github.com/kakuyo1/lens/issues, with the steps that led to it and your Lens version.
+
+### Added
+
+- **PotPlayer joins the auto scan.** The scan reads the subtitles a local video plays in PotPlayer without OCR: the playback position and status come from the player's own window messages, and the line text comes from an external SRT/ASS/SSA/VTT file beside the video or, failing that, an embedded text track read by a native Matroska walk. The words are laid out over the real video viewport with the caption's own styling, and the settings catalog's video row is a real switch (`autoScanPotplayer`) instead of a "Coming soon" placeholder (docs/adr/0208).
+- **SumatraPDF joins the auto scan.** Its pages read through UI Automation like Chrome's: a zoom or reflow that changes the word boxes triggers a re-read, a page that awaits layout waits instead of ending the step, and the word units step past trailing punctuation (docs/adr/0197-0200). SumatraPDF 3.7 or later is required.
+- A **career statistics page** under About counts the whole behavior log, per feature and per month (docs/adr/0194).
+- The scan gains an **exclude list**: names and abbreviations the reader names in settings are kept off the page (docs/adr/0192).
+- The word list is rebuilt from **OEWN 2022 and ECDICT**, and the scan keeps its own pool of the words it draws lines for (docs/adr/0186).
+
+### Changed
+
+- The scan holds a **page-language gate**: a page that reads as non-English keeps its lines down until it reads English again, and looking up a word no longer takes the lines of the page being explained down (docs/adr/0187). The gate reads per page and resets when the page is dropped (docs/adr/0190).
+- The scan **reads each word's box once** and checks its page by climbing to the window root instead of enumerating every document, about 29% fewer UI Automation round-trips and about 45x cheaper page checks, so the lines arrive faster; the missed reads now say why they were missed, and an anchor that retires off-screen no longer churns the scroll (docs/adr/0188, 0189).
+- **One D3D11 device is shared across every glass surface**, frame-locked, instead of one per surface (docs/adr/0191); the pet renderers step off that lock, the words card is sized in C++ so its list builds only the viewport it shows, and a frame-lock wait over 100 ms logs the waiter and the holder by name.
+- **A stalled interface leaves a minidump** beside the crash dumps, with a `-hang` stem under `logs/dumps`, so a frozen window can be reported like a crash.
+- A **theme switch now crosses the value tables**, so tokens that move with the theme -- motion, the card material -- follow it instead of waiting for a restart (docs/adr/0196).
+- **Mochi is the default companion**, the "Extensions" category becomes "Pets", and the pet ships enabled (docs/adr/0195).
+- The settings rows that preview a **font, size or language draw whole** instead of re-laying on hover: 85-96 ms down to 12-17 ms measured (UI-SPEC.md 4.4).
+- **The typing pace moved one notch faster all the way up** (UI-SPEC.md 4.3), the switch knob stretches through its travel as it lands (UI-SPEC.md 4.17), and the WebDAV form stays in place, dimmed and inert, for the length of a sync round (UI-SPEC.md 4.4).
+- **Every clear and delete asks once, in red**: one confirm-dialog shape replaces the mixed confirmations.
+- The onboarding **tray lesson is its own fourth step** (docs/adr/0185).
+
+### Fixed
+
+- **The glass's stripes are gone**: every quality tier draws the same dense 13-tap kernel sampled at half its sigma, so the tap grid no longer shows as fine stripes along either axis (docs/adr/0201, superseding docs/adr/0111).
+- **A verdict now covers every form of its family.** The popup, the review pool and the exports resolve a word through its lemmas transitively, so marking "mastered" no longer silently misses inflected forms.
+- The scan's **track join moved off the GUI thread**, and the UI Automation connection and transaction timeouts are pinned, fixing the whole-application freeze a slow COM call used to cause.
+- The pencil's **Alt signpost tucks into the word's top-right corner** instead of floating up and to the right (UI-SPEC.md 4.20).
+- The settings **dropdown lists and previews are owned by their panel**, so the topmost panel can no longer be raised over them.
+- **A press on the standing hover-review card keeps the panel up** (UI-SPEC.md 4.8).
+- The sight **hit-test keeps dashed lines off the controls that cover their words** (docs/adr/0193).
+- The pet re-exposes its window through a **frameSwapped watchdog** when the render loop parks it.
+- **The installer and the portable zip carry the MSVC runtime now** (docs/adr/0207): the alpha and the beta shipped no CRT DLLs, so a machine without the VC++ redist could not start Lens at all.
+- The payload carries a **complete third-party notice set**: Qt (LGPL-3.0), nlohmann/json and spdlog (MIT) join the existing Tesseract and voice notices.
+
+### 中文
+
+这是第一个稳定版。装着 1.0.0-alpha 或 1.0.0-beta(两者都自报版本号 1.0.0)的读者会作为自动更新收到本版，因为 1.0.1 比 1.0.0 大。下面每一条都在 beta 打标签之后落地，已装的 beta 一条都没有，包括 beta 说明提前预告过的那几条。遇到问题请到 https://github.com/kakuyo1/lens/issues 提交 issue，并附上复现步骤和 Lens 版本号。
+
+#### 新增
+
+- **PotPlayer 加入自动扫描。** 扫描无 OCR 地读取本地视频在 PotPlayer 里播放的字幕：播放位置与状态来自播放器自己的窗口消息，行文本来自视频旁边的外挂 SRT/ASS/SSA/VTT 文件，没有时退而读内嵌文本轨（原生 Matroska 解析）。词按真实视频视口排布并带字幕自己的样式，设置目录里的视频一行不再是“待上线”占位，而是真正的开关（`autoScanPotplayer`）（docs/adr/0208）。
+- **SumatraPDF 加入自动扫描。** 它的页面像 Chrome 一样走 UI Automation：改变词框的缩放或重排触发重读，等待布局的页面原地等待而不是当作读完，词单元跳过尾部标点（docs/adr/0197-0200）。需要 SumatraPDF 3.7 及以上。
+- 关于页下新增**生涯统计页**，按功能、按月份统计整个行为日志（docs/adr/0194）。
+- 扫描获得**排除名单**：读者在设置里点名的名字与缩写不再上页（docs/adr/0192）。
+- 词表改由 **OEWN 2022 与 ECDICT** 重建，扫描同时维护一份自己画线用的词池（docs/adr/0186）。
+
+#### 变更
+
+- 扫描有了**页面语言门**：读作非英语的页面整页收线，直到重新读作英语；查一个词不再把正在解释那一页的线收走（docs/adr/0187）。语言门按页读取，页面被丢弃时复位（docs/adr/0190）。
+- 扫描**每个词的框只读一次**，页面检查改为爬到窗口根而不是枚举每个文档——UI Automation 往返少约 29%，页面检查便宜约 45 倍，虚线因此到得更快；漏读现在会说明原因，锚点因滚出屏幕退役不再引发滚动抖动（docs/adr/0188、0189）。
+- **所有玻璃表面共享一个 D3D11 设备**，按帧加锁，不再各自持有一个（docs/adr/0191）；宠物渲染器让出该锁，词卡改在 C++ 里定尺寸、列表只构建它视口内的行，帧锁等待超过 100 ms 会按名记下等待者与持有者。
+- **卡死的界面留下 minidump**，在 `logs/dumps` 里带 `-hang` 词干，冻结的窗口可以像崩溃一样被报告。
+- **主题切换贯通值表**，随主题移动的令牌——动效、卡片材质——即时跟随，不再等重启（docs/adr/0196）。
+- **Mochi 成为默认陪伴**，“扩展”分类更名为“宠物”，宠物默认开启（docs/adr/0195）。
+- 设置里预览**字体、字号或语言的行整行绘制**，不再悬停重排：实测 85-96 ms 降到 12-17 ms（UI-SPEC.md 4.4）。
+- **打字速度整体加快一档**（UI-SPEC.md 4.3），开关滑块在落定途中拉伸（UI-SPEC.md 4.17），WebDAV 表单在同步期间留在原地、灰化且不可编辑（UI-SPEC.md 4.4）。
+- **每次清空与删除都用红色问一次**：统一的确认弹窗替代了过去各说各话的确认。
+- 首次引导的**托盘一课单独成为第四步**（docs/adr/0185）。
+
+#### 修复
+
+- **玻璃的条纹消失了**：所有画质档画同一套 13 抽样点的密采样核、在 σ 的一半处采样，抽点网格不再沿两轴显出细条纹（docs/adr/0201，取代 docs/adr/0111）。
+- **判定现在覆盖词族的每一种形式。** 弹窗、复习池与导出经词根传递解析，标记“掌握”不再悄悄漏掉屈折形式。
+- 扫描的**轨道汇合挪离 GUI 线程**，UI Automation 的连接与事务超时被钉死，修复慢 COM 调用造成的整应用冻结。
+- 铅笔的 **Alt 路标收进词的右上角**，不再悬在右上方（UI-SPEC.md 4.20）。
+- 设置的**下拉列表与预览归属其面板**，最上层面板不再能盖住它们。
+- **按在立着的悬停复习卡上时，面板不再落下**（UI-SPEC.md 4.8）。
+- 视线的**命中测试让虚线避开遮住它们的控件**（docs/adr/0193）。
+- 宠物渲染循环停驻窗口时，**frameSwapped 看门狗**会重新显露它。
+- **安装包与便携版现在随附 MSVC 运行库**（docs/adr/0207）：alpha 与 beta 一个 CRT DLL 都没带，没有 VC++ 运行库的机器根本启动不了 Lens。
+- payload 带上**完整的第三方声明**：Qt（LGPL-3.0）、nlohmann/json 与 spdlog（MIT）加入既有的 Tesseract 与音色声明。
+
 ## 1.0.0-beta - 2026-11-16
 
 This is the beta release of Lens, the second release on the numbering that began at 1.0.0-alpha. It is more settled than the alpha, but it is still a beta: some surfaces are rough and results can still be wrong. Please report what you find as an issue at https://github.com/kakuyo1/lens/issues, with the steps that led to it and your Lens version.
