@@ -1,4 +1,4 @@
-# 0150 悬浮取词读 UI Automation 的文字模式，不用 RangeFromPoint
+# 0209 悬浮取词读 UI Automation 的文字模式，不用 RangeFromPoint
 
 - **状态**：accepted
 - **背景**：新闻和推特里的标题常是链接，鼠标选不中；剪贴板取词要点击或拖拽，OCR 对 “停一下就翻译” 太重。
