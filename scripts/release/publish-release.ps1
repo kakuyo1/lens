@@ -108,6 +108,7 @@ try {
     $arguments = @('release', 'create', $tag, $installer, $portable, $sumsPath, '--repo', $repo,
         '--verify-tag', '--title', "Lens $label", '--notes-file', $notesPath)
     if ($Draft) { $arguments += '--draft' }
+    if ($Prerelease) { $arguments += '--prerelease' }
     & gh @arguments
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: release creation failed; pushed tag is retained' }
     & gh release view $tag --repo $repo --json url,assets
