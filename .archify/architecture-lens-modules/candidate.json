@@ -9,26 +9,26 @@
     "repository": {
       "url": "git@github.com:kakuyo1/lens.git",
       "link_mode": "local-only",
-      "revision": "04433bb0f30f642a8fa3194ea32bfb3d1e9312fa"
+      "revision": "844f793a891429fcb6e78d169afee9f9bfcd0716"
     },
     "views": [
       {
         "id": "journey",
         "label": "Reader journey",
         "focus": ["reader", "platform", "app", "capture", "llm", "qml"],
-        "note": "A trigger becomes pixels, then words, then an explanation on screen."
+        "note": "A trigger becomes pixels or page text, then words, then an explanation on screen."
       },
       {
         "id": "qtfree",
         "label": "Qt-free base",
-        "focus": ["core", "util", "stores"],
-        "note": "Domain logic and JSON persistence compile without Qt."
+        "focus": ["core", "util", "stores", "reporter"],
+        "note": "Domain logic, JSON persistence and the crash reporter compile and run without Qt."
       },
       {
         "id": "network",
         "label": "Outbound edges",
-        "focus": ["app", "llm", "provider", "sync", "github", "pictures", "commons"],
-        "note": "Four targets leave the process; only lens_llm is on the lookup path."
+        "focus": ["app", "llm", "provider", "sync", "github", "webdav", "pictures", "commons", "ocr", "ocrcloud", "speech", "tts"],
+        "note": "Six targets leave the process; word text, the frozen crop and one headword each leave under their own gate."
       }
     ]
   },
@@ -41,8 +41,8 @@
       "pos": [40, 340],
       "size": [150, 66],
       "sources": [
-        { "path": "src/app/platform/global_hotkey.cpp", "line": 132, "end_line": 151 },
-        { "path": "src/app/platform/mouse_selection_hook.cpp", "line": 162 }
+        { "path": "src/app/platform/global_hotkey.cpp", "line": 130, "end_line": 152 },
+        { "path": "src/app/platform/mouse_selection_hook.cpp", "line": 83, "end_line": 121 }
       ]
     },
     {
@@ -53,8 +53,8 @@
       "pos": [40, 190],
       "size": [150, 66],
       "sources": [
-        { "path": "src/app/CMakeLists.txt", "line": 59, "end_line": 63 },
-        { "path": "src/app/app_controller.cpp", "line": 312, "end_line": 325 }
+        { "path": "src/app/CMakeLists.txt", "line": 106, "end_line": 140 },
+        { "path": "src/app/app_controller.cpp", "line": 556, "end_line": 565 }
       ]
     },
     {
@@ -65,70 +65,69 @@
       "pos": [40, 490],
       "size": [150, 66],
       "sources": [
-        { "path": "src/app/qml/Main.qml", "line": 51, "end_line": 177 },
-        { "path": "src/app/main.cpp", "line": 316, "end_line": 336 }
+        { "path": "src/app/qml/Main.qml", "line": 43, "end_line": 236 },
+        { "path": "src/app/startup.cpp", "line": 272, "end_line": 278 }
       ]
     },
     {
       "id": "capture",
       "type": "backend",
       "label": "lens_capture",
-      "sublabel": "grab + scan gate",
+      "sublabel": "grab · page scan · OCR",
       "pos": [320, 190],
       "size": [150, 66],
       "sources": [
-        { "path": "src/capture/CMakeLists.txt", "line": 13, "end_line": 14 },
-        { "path": "src/app/duties/capture_duty.cpp", "line": 275, "end_line": 282 }
+        { "path": "src/capture/CMakeLists.txt", "line": 1, "end_line": 38 },
+        { "path": "src/app/duties/capture_duty.cpp", "line": 1145, "end_line": 1201 }
       ]
     },
     {
-      "id": "tesseract",
+      "id": "ocrchild",
       "type": "external",
-      "label": "Tesseract",
-      "sublabel": "QProcess child",
+      "label": "Local OCR child",
+      "sublabel": "Tesseract · RapidOCR-json",
       "pos": [320, 40],
       "size": [150, 66],
       "sources": [
-        { "path": "src/capture/ocr_engine.cpp", "line": 61, "end_line": 137 }
+        { "path": "src/capture/ocr_engine.cpp", "line": 86, "end_line": 174 }
       ]
     },
     {
       "id": "core",
       "type": "backend",
       "label": "lens_core",
-      "sublabel": "domain + document",
+      "sublabel": "domain · document · subtitle",
       "tag": "Qt-free",
       "pos": [320, 490],
-      "size": [150, 66],
+      "size": [170, 66],
       "sources": [
-        { "path": "src/core/CMakeLists.txt", "line": 28, "end_line": 31 },
-        { "path": "src/core/domain/filter_core.cpp", "line": 503, "end_line": 550 }
+        { "path": "src/core/CMakeLists.txt", "line": 43, "end_line": 48 },
+        { "path": "src/core/domain/filter_core.cpp", "line": 686, "end_line": 790 }
       ]
     },
     {
       "id": "util",
       "type": "backend",
       "label": "lens_util",
-      "sublabel": "text · log · semver",
+      "sublabel": "text · log · semver · crash",
       "pos": [320, 640],
-      "size": [150, 66],
+      "size": [160, 66],
       "sources": [
-        { "path": "src/util/CMakeLists.txt", "line": 1, "end_line": 11 }
+        { "path": "src/util/CMakeLists.txt", "line": 1, "end_line": 12 }
       ]
     },
     {
       "id": "app",
       "type": "backend",
       "label": "lens_app",
-      "sublabel": "AppController facade · nine duties · pet · glass · GUI thread",
+      "sublabel": "AppController facade · sixteen duties · pet · glass · GUI thread",
       "tag": "one process",
       "icon": "backend",
       "pos": [320, 340],
-      "size": [710, 80],
+      "size": [710, 104],
       "sources": [
-        { "path": "src/app/CMakeLists.txt", "line": 99, "end_line": 108 },
-        { "path": "src/app/main.cpp", "line": 201, "end_line": 204 },
-        { "path": "src/app/duties/explanation_duty.cpp", "line": 393, "end_line": 428 }
+        { "path": "src/app/CMakeLists.txt", "line": 36, "end_line": 104 },
+        { "path": "src/app/CMakeLists.txt", "line": 204, "end_line": 207 }
       ]
     },
     {
@@ -139,8 +138,8 @@
       "pos": [600, 190],
       "size": [150, 66],
       "sources": [
-        { "path": "src/llm/CMakeLists.txt", "line": 13, "end_line": 18 },
-        { "path": "src/llm/llm_client.cpp", "line": 212, "end_line": 223 }
+        { "path": "src/llm/CMakeLists.txt", "line": 14, "end_line": 18 },
+        { "path": "src/llm/llm_client.cpp", "line": 325, "end_line": 371 }
       ]
     },
     {
@@ -151,18 +150,30 @@
       "pos": [600, 40],
       "size": [150, 66],
       "sources": [
-        { "path": "src/app/settings_defaults.h", "line": 26, "end_line": 37 }
+        { "path": "src/app/settings_defaults.h", "line": 21, "end_line": 38 }
+      ]
+    },
+    {
+      "id": "stores",
+      "type": "database",
+      "label": "JSON stores",
+      "sublabel": "known · review · stats · pet",
+      "pos": [600, 490],
+      "size": [160, 66],
+      "sources": [
+        { "path": "src/core/CMakeLists.txt", "line": 15, "end_line": 22 },
+        { "path": "src/app/main.cpp", "line": 57, "end_line": 65 }
       ]
     },
     {
       "id": "pet",
       "type": "backend",
       "label": "app/pet",
-      "sublabel": "controller · stage · wander · hide",
-      "pos": [600, 490],
+      "sublabel": "controller · stage · hide",
+      "pos": [600, 640],
       "size": [150, 66],
       "sources": [
-        { "path": "src/app/pet/pet_controller.h", "line": 475, "end_line": 487 },
+        { "path": "src/app/pet/pet_controller.h", "line": 73, "end_line": 115 },
         { "path": "src/app/pet/pet_stage.h", "line": 28, "end_line": 31 }
       ]
     },
@@ -189,15 +200,40 @@
       ]
     },
     {
+      "id": "update",
+      "type": "backend",
+      "label": "lens_update",
+      "sublabel": "semver check",
+      "pos": [880, 490],
+      "size": [150, 66],
+      "sources": [
+        { "path": "src/update/CMakeLists.txt", "line": 10, "end_line": 13 },
+        { "path": "src/update/update_client.cpp", "line": 83, "end_line": 102 }
+      ]
+    },
+    {
+      "id": "settings",
+      "type": "security",
+      "label": "Profile keys",
+      "sublabel": "settings.json · vault",
+      "tag": "AES + bcrypt",
+      "pos": [880, 640],
+      "size": [150, 66],
+      "sources": [
+        { "path": "src/app/paths.cpp", "line": 51, "end_line": 71 },
+        { "path": "src/core/crypto/vault.h", "line": 35, "end_line": 70 }
+      ]
+    },
+    {
       "id": "sync",
       "type": "backend",
       "label": "lens_sync",
-      "sublabel": "device flow + Gist",
+      "sublabel": "device flow · Gist · WebDAV",
       "pos": [1160, 190],
-      "size": [150, 66],
+      "size": [160, 66],
       "sources": [
-        { "path": "src/sync/CMakeLists.txt", "line": 11, "end_line": 14 },
-        { "path": "src/sync/gist_client.cpp", "line": 22 }
+        { "path": "src/sync/CMakeLists.txt", "line": 1, "end_line": 6 },
+        { "path": "src/sync/gist_client.cpp", "line": 21, "end_line": 23 }
       ]
     },
     {
@@ -208,45 +244,78 @@
       "pos": [1160, 40],
       "size": [150, 66],
       "sources": [
-        { "path": "src/sync/gist_client.cpp", "line": 22 },
-        { "path": "src/update/update_client.cpp", "line": 157 }
+        { "path": "src/sync/gist_client.cpp", "line": 21, "end_line": 23 },
+        { "path": "src/update/update_client.cpp", "line": 83, "end_line": 102 }
       ]
     },
     {
-      "id": "update",
+      "id": "webdav",
+      "type": "cloud",
+      "label": "WebDAV",
+      "sublabel": "reader's own server",
+      "pos": [1160, 340],
+      "size": [150, 66],
+      "sources": [
+        { "path": "src/sync/webdav_client.cpp", "line": 1, "end_line": 4 }
+      ]
+    },
+    {
+      "id": "speech",
       "type": "backend",
-      "label": "lens_update",
-      "sublabel": "semver check",
+      "label": "lens_speech",
+      "sublabel": "pronunciation · voices",
+      "pos": [1160, 490],
+      "size": [150, 66],
+      "sources": [
+        { "path": "src/speech/CMakeLists.txt", "line": 14, "end_line": 20 },
+        { "path": "src/speech/pronunciation_source.h", "line": 9, "end_line": 13 }
+      ]
+    },
+    {
+      "id": "ocr",
+      "type": "backend",
+      "label": "lens_ocr",
+      "sublabel": "online OCR providers",
       "pos": [1160, 640],
       "size": [150, 66],
       "sources": [
-        { "path": "src/update/CMakeLists.txt", "line": 10, "end_line": 13 },
-        { "path": "src/update/update_client.cpp", "line": 157 }
+        { "path": "src/ocr/CMakeLists.txt", "line": 22, "end_line": 27 },
+        { "path": "src/app/duties/capture_duty.h", "line": 116, "end_line": 137 }
       ]
     },
     {
-      "id": "settings",
-      "type": "security",
-      "label": "Profile keys",
-      "sublabel": "settings.json · vault",
-      "tag": "AES + bcrypt",
-      "pos": [880, 490],
+      "id": "tts",
+      "type": "cloud",
+      "label": "Speech services",
+      "sublabel": "Youdao · Google",
+      "pos": [1440, 490],
       "size": [150, 66],
       "sources": [
-        { "path": "src/app/paths.cpp", "line": 14, "end_line": 33 },
-        { "path": "src/core/crypto/vault.h", "line": 44, "end_line": 68 }
+        { "path": "src/speech/youdao_source.cpp", "line": 25, "end_line": 30 },
+        { "path": "src/speech/google_source.cpp", "line": 25, "end_line": 30 }
       ]
     },
     {
-      "id": "stores",
-      "type": "database",
-      "label": "JSON stores",
-      "sublabel": "known · review · stats",
-      "pos": [600, 640],
+      "id": "ocrcloud",
+      "type": "cloud",
+      "label": "OCR services",
+      "sublabel": "5 providers, opt-in",
+      "pos": [1440, 640],
       "size": [150, 66],
       "sources": [
-        { "path": "src/core/CMakeLists.txt", "line": 11, "end_line": 15 },
-        { "path": "src/app/main.cpp", "line": 266 }
+        { "path": "src/ocr/online_providers.cpp", "line": 21, "end_line": 35 }
+      ]
+    },
+    {
+      "id": "reporter",
+      "type": "backend",
+      "label": "lens_reporter",
+      "sublabel": "crash companion process",
+      "pos": [40, 640],
+      "size": [150, 66],
+      "sources": [
+        { "path": "src/reporter/reporter.cpp", "line": 1, "end_line": 11 },
+        { "path": "src/app/platform/crash_dump.cpp", "line": 125, "end_line": 139 }
       ]
     }
   ],
@@ -256,50 +325,58 @@
   "connections": [
     { "id": "reader-trigger", "from": "reader", "to": "platform", "label": "hotkey", "fromSide": "top", "toSide": "bottom" },
     { "id": "platform-events", "from": "platform", "to": "app", "label": "input events", "fromSide": "right", "toSide": "left" },
-    { "id": "render-bubble", "from": "app", "to": "qml", "label": "bubble payload", "fromSide": "bottom", "toSide": "top" },
+    { "id": "render-bubble", "from": "app", "to": "qml", "label": "bubble payload" },
     { "id": "grab-region", "from": "app", "to": "capture", "label": "grab region", "fromSide": "top", "toSide": "bottom" },
-    { "id": "spawn-ocr", "from": "capture", "to": "tesseract", "label": "spawn child", "fromSide": "top", "toSide": "bottom" },
+    { "id": "spawn-ocr", "from": "capture", "to": "ocrchild", "label": "spawn child", "fromSide": "top", "toSide": "bottom" },
     { "id": "explain-batch", "from": "app", "to": "llm", "label": "batch words", "fromSide": "top", "toSide": "bottom" },
     { "id": "sse-stream", "from": "llm", "to": "provider", "label": "SSE stream", "variant": "emphasis", "fromSide": "top", "toSide": "bottom" },
     { "id": "ask-picture", "from": "app", "to": "pictures", "label": "sense picture", "variant": "dashed", "fromSide": "top", "toSide": "bottom" },
     { "id": "image-search", "from": "pictures", "to": "commons", "label": "image search", "fromSide": "top", "toSide": "bottom" },
     { "id": "push-vocab", "from": "app", "to": "sync", "label": "vocabulary", "fromSide": "top", "toSide": "bottom" },
     { "id": "gist-api", "from": "sync", "to": "github", "label": "Gist API", "fromSide": "top", "toSide": "bottom" },
+    { "id": "webdav-files", "from": "sync", "to": "webdav", "label": "files · telemetry" },
     { "id": "filter-words", "from": "app", "to": "core", "label": "filter words", "fromSide": "bottom", "toSide": "top" },
-    { "id": "pet-events", "from": "app", "to": "pet", "label": "pet events", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "pet-events", "from": "app", "to": "pet", "label": "pet events", "variant": "dashed" },
     { "id": "read-keys", "from": "app", "to": "settings", "label": "API key", "variant": "security", "fromSide": "bottom", "toSide": "top" },
     { "id": "check-release", "from": "app", "to": "update", "label": "release check", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
-    { "id": "releases-feed", "from": "update", "to": "github", "label": "releases feed", "fromSide": "right", "toSide": "right" },
-    { "id": "role-machine", "from": "pet", "to": "core", "label": "role machine", "fromSide": "left", "toSide": "right" },
+    { "id": "releases-feed", "from": "update", "to": "github", "label": "releases feed" },
+    { "id": "role-machine", "from": "pet", "to": "core", "label": "role machine" },
     { "id": "use-util", "from": "core", "to": "util", "label": "text · log", "fromSide": "bottom", "toSide": "top" },
-    { "id": "write-stores", "from": "core", "to": "stores", "label": "read-write JSON", "fromSide": "right", "toSide": "top" }
+    { "id": "write-stores", "from": "core", "to": "stores", "label": "read-write JSON" },
+    { "id": "scan-online", "from": "app", "to": "ocr", "label": "frozen crop · consent" },
+    { "id": "ocr-upload", "from": "ocr", "to": "ocrcloud", "label": "image upload", "variant": "security" },
+    { "id": "ask-pronunciation", "from": "app", "to": "speech", "label": "headword · accent" },
+    { "id": "fetch-recording", "from": "speech", "to": "tts", "label": "recording fetch" },
+    { "id": "crash-spawn", "from": "app", "to": "reporter", "label": "crash spawns", "variant": "dashed" }
   ],
   "cards": [
     {
       "dot": "emerald",
       "title": "Build layering",
       "items": [
-        "lens_util links spdlog only; lens_core links lens_util and bcrypt",
-        "lens_llm, lens_sync, lens_update, lens_pictures link lens_util and Qt, not lens_core",
-        "lens_app is where core, capture and the Qt modules converge"
+        "lens_util links spdlog only; lens_core links lens_util, bcrypt and crypt32",
+        "lens_llm, lens_sync, lens_update, lens_pictures link lens_util and Qt, not lens_core; lens_speech is the first sibling to link lens_core",
+        "lens_ocr links lens_capture and owns Qt Network: the scan pipeline itself never reaches it (ADR 0130)",
+        "lens_reporter is a pure Win32 companion executable; lens_app is where core, capture and the Qt modules converge"
       ]
     },
     {
       "dot": "rose",
       "title": "Process and privacy",
       "items": [
-        "One GUI process: there is no main window, the QML root is never shown",
+        "One GUI process: the QML root is a 1×1 transparent, input-transparent window",
         "The API key lives in the reader profile document, never the install directory",
-        "Capture and OCR stay on the local machine; only word text leaves it"
+        "Local capture and OCR keep pixels on the machine; online OCR uploads the frozen crop behind the consent gate, speech sends one headword and accent, and only word text rides the LLM batch",
+        "A crash writes its dump and spawns the pure-Win32 reporter beside lens.exe"
       ]
     },
     {
       "dot": "amber",
       "title": "Off the happy path",
       "items": [
-        "OCR runs on a detached thread polled every 25 ms; stale results are dropped",
+        "Local OCR runs on one owned worker thread; completion returns by queued signal and stale results are dropped",
         "The mouse hook owns its own thread and re-enters by queued signal",
-        "app/glass duplicates the desktop through DXGI for the frosted surfaces"
+        "app/glass shares one D3D11 device across surfaces, frame-locked, duplicating the desktop through DXGI"
       ]
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "diagram_type": "lifecycle",
   "meta": {
     "title": "Lens Desktop Pet Lifecycle",
@@ -9,136 +9,425 @@
     "repository": {
       "url": "git@github.com:kakuyo1/lens.git",
       "link_mode": "local-only",
-      "revision": "04433bb0f30f642a8fa3194ea32bfb3d1e9312fa"
+      "revision": "844f793a891429fcb6e78d169afee9f9bfcd0716"
     },
     "views": [
       {
         "id": "study",
         "label": "Event roles",
-        "focus": ["idle", "thinking", "study", "praise"],
+        "focus": [
+          "idle",
+          "thinking",
+          "study",
+          "praise"
+        ],
         "note": "The Qt-free role machine in core/domain/pet."
       },
       {
         "id": "stroll",
         "label": "Window stroll",
-        "focus": ["waiting", "scene", "walking", "hiding"],
-        "note": "The controller phases that move the pet window."
+        "focus": [
+          "waiting",
+          "scene",
+          "walking",
+          "hiding",
+          "taskbar"
+        ],
+        "note": "The stroll phases that move the pet window (PetStroll)."
       }
     ]
   },
-  "lanes": [
-    { "id": "main", "label": "Event roles · core" },
-    { "id": "motion", "label": "Window stroll · controller" },
-    { "id": "poses", "label": "Interrupting poses" },
-    { "id": "terminal", "label": "Sleep" }
+  "mainPath": [
+    "idle",
+    "thinking",
+    "study",
+    "praise"
   ],
   "states": [
     {
-      "id": "idle", "type": "start", "label": "Idle", "sublabel": "Role::Idle", "tag": "idle roll · 20-90 s",
-      "lane": "main", "col": 0, "step": "01",
-      "sources": [{ "path": "src/core/domain/pet/pet_state.cpp", "line": 164, "end_line": 173 }, { "path": "src/core/domain/pet/pet_state.cpp", "line": 197, "end_line": 243 }]
+      "id": "idle",
+      "type": "start",
+      "label": "Idle",
+      "tag": "20-90 s",
+      "sources": [
+        {
+          "path": "src/core/domain/pet/pet_state.h",
+          "line": 30,
+          "end_line": 33
+        },
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 197,
+          "end_line": 243
+        }
+      ]
     },
     {
-      "id": "thinking", "type": "active", "label": "Thinking", "sublabel": "Role::Thinking", "tag": "settles 30 s",
-      "lane": "main", "col": 1, "step": "02",
-      "sources": [{ "path": "src/core/domain/pet/pet_state.cpp", "line": 34, "end_line": 111 }, { "path": "src/core/domain/pet/pet_state.h", "line": 182, "end_line": 196 }]
+      "id": "thinking",
+      "type": "active",
+      "label": "Thinking",
+      "tag": "30 s",
+      "sources": [
+        {
+          "path": "src/core/domain/pet/pet_state.h",
+          "line": 192,
+          "end_line": 193
+        },
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 73,
+          "end_line": 75
+        },
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 173,
+          "end_line": 176
+        }
+      ]
     },
     {
-      "id": "study", "type": "active", "label": "Study", "sublabel": "Role::Study hold",
-      "lane": "main", "col": 2, "step": "03",
-      "sources": [{ "path": "src/core/domain/pet/pet_state.cpp", "line": 76, "end_line": 81 }]
+      "id": "study",
+      "type": "active",
+      "label": "Study",
+      "sources": [
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 76,
+          "end_line": 81
+        }
+      ]
     },
     {
-      "id": "praise", "type": "success", "label": "Celebrate", "sublabel": "Role::Celebrate", "tag": "or Encourage",
-      "lane": "main", "col": 3, "step": "04",
-      "sources": [{ "path": "src/core/domain/pet/pet_state.h", "line": 73, "end_line": 92 }]
+      "id": "praise",
+      "type": "success",
+      "label": "Celebrate",
+      "tag": "or Encourage",
+      "sources": [
+        {
+          "path": "src/core/domain/pet/pet_state.h",
+          "line": 77,
+          "end_line": 96
+        },
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 82,
+          "end_line": 88
+        }
+      ]
     },
     {
-      "id": "waiting", "type": "waiting", "label": "Waiting", "sublabel": "StrollPhase::Waiting", "tag": "120-300 s",
-      "lane": "motion", "col": 0,
-      "sources": [{ "path": "src/app/pet/pet_controller.cpp", "line": 1826, "end_line": 1832 }, { "path": "src/app/pet/pet_controller.h", "line": 475, "end_line": 479 }]
+      "id": "waiting",
+      "type": "waiting",
+      "label": "Waiting",
+      "tag": "120-300 s",
+      "sources": [
+        {
+          "path": "src/app/pet/pet_stroll.h",
+          "line": 89,
+          "end_line": 93
+        },
+        {
+          "path": "src/app/pet/pet_stroll.cpp",
+          "line": 121,
+          "end_line": 126
+        },
+        {
+          "path": "src/core/domain/pet/pet_state.h",
+          "line": 42,
+          "end_line": 43
+        }
+      ]
     },
     {
-      "id": "scene", "type": "active", "label": "Scene", "sublabel": "PetStage · ADR 0123", "tag": "30 s",
-      "lane": "motion", "col": 1,
-      "sources": [{ "path": "src/app/pet/pet_stage.h", "line": 28, "end_line": 31 }, { "path": "docs/adr/0123-one-stage-owns-the-scene.md", "line": 5, "end_line": 15 }]
+      "id": "scene",
+      "type": "active",
+      "label": "Scene",
+      "tag": "30 s",
+      "sources": [
+        {
+          "path": "src/app/pet/pet_stage.h",
+          "line": 15,
+          "end_line": 24
+        },
+        {
+          "path": "docs/adr/0123-one-stage-owns-the-scene.md",
+          "line": 5,
+          "end_line": 15
+        },
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 188,
+          "end_line": 193
+        }
+      ]
     },
     {
-      "id": "walking", "type": "active", "label": "Walking", "sublabel": "ambient walk", "tag": "up to 2 steps",
-      "lane": "motion", "col": 2,
-      "sources": [{ "path": "src/app/pet/pet_controller.cpp", "line": 1833, "end_line": 1848 }]
+      "id": "walking",
+      "type": "active",
+      "label": "Walking",
+      "sources": [
+        {
+          "path": "src/app/pet/pet_stroll.cpp",
+          "line": 73,
+          "end_line": 79
+        },
+        {
+          "path": "src/core/domain/pet/pet_state.h",
+          "line": 44,
+          "end_line": 45
+        }
+      ]
     },
     {
-      "id": "hiding", "type": "waiting", "label": "Hiding", "sublabel": "PetHide", "tag": "no timeout",
-      "lane": "motion", "col": 3,
-      "sources": [{ "path": "src/app/pet/pet_hide.h", "line": 25, "end_line": 31 }, { "path": "docs/adr/0076-pet-wanders-hides-and-keeps-asking.md", "line": 6, "end_line": 15 }]
+      "id": "taskbar",
+      "type": "active",
+      "label": "Taskbar",
+      "tag": "0.5% roll",
+      "sources": [
+        {
+          "path": "src/core/domain/pet/pet_state.h",
+          "line": 48,
+          "end_line": 49
+        },
+        {
+          "path": "src/app/pet/pet_controller.cpp",
+          "line": 1811,
+          "end_line": 1816
+        }
+      ]
     },
     {
-      "id": "clickreact", "type": "active", "label": "Click react", "sublabel": "Role::ClickReact", "tag": "3 in 2 s → Angry",
-      "lane": "poses", "col": 0,
-      "sources": [{ "path": "src/core/domain/pet/pet_state.cpp", "line": 56, "end_line": 68 }]
+      "id": "hiding",
+      "type": "waiting",
+      "label": "Hiding",
+      "tag": "no timeout",
+      "sources": [
+        {
+          "path": "src/app/pet/pet_hide.h",
+          "line": 14,
+          "end_line": 22
+        },
+        {
+          "path": "docs/adr/0076-pet-wanders-hides-and-keeps-asking.md",
+          "line": 6,
+          "end_line": 15
+        }
+      ]
     },
     {
-      "id": "pickup", "type": "active", "label": "Picked up", "sublabel": "Role::Pickup", "tag": "Drag priority",
-      "lane": "poses", "col": 2,
-      "sources": [{ "path": "src/core/domain/pet/pet_state.cpp", "line": 44, "end_line": 53 }]
+      "id": "clickreact",
+      "type": "active",
+      "label": "Click react",
+      "tag": "3 in 2 s",
+      "sources": [
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 57,
+          "end_line": 68
+        },
+        {
+          "path": "src/core/domain/pet/pet_state.h",
+          "line": 38,
+          "end_line": 40
+        }
+      ]
     },
     {
-      "id": "ask", "type": "decision", "label": "Review sign", "sublabel": "Role::Ask hold", "tag": "per-pet sign · ADR 0125",
-      "lane": "poses", "col": 3,
-      "sources": [{ "path": "src/core/domain/pet/pet_state.cpp", "line": 96, "end_line": 108 }]
+      "id": "pickup",
+      "type": "active",
+      "label": "Picked up",
+      "tag": "drag",
+      "sources": [
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 43,
+          "end_line": 47
+        }
+      ]
     },
     {
-      "id": "sleeping", "type": "waiting", "label": "Napping", "sublabel": "Role::Sleep", "tag": "90-300 s",
-      "lane": "terminal", "col": 1,
-      "sources": [{ "path": "src/core/domain/pet/pet_state.cpp", "line": 178, "end_line": 188 }, { "path": "src/core/domain/pet/pet_state.h", "line": 182, "end_line": 185 }]
+      "id": "ask",
+      "type": "decision",
+      "label": "Review sign",
+      "tag": "ADR 0125",
+      "sources": [
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 95,
+          "end_line": 108
+        },
+        {
+          "path": "docs/adr/0125-each-pet-has-its-own-review-sign.md",
+          "line": 6,
+          "end_line": 7
+        }
+      ]
+    },
+    {
+      "id": "sleeping",
+      "type": "waiting",
+      "label": "Napping",
+      "tag": "90-300 s",
+      "sources": [
+        {
+          "path": "src/core/domain/pet/pet_state.h",
+          "line": 187,
+          "end_line": 189
+        },
+        {
+          "path": "src/core/domain/pet/pet_state.cpp",
+          "line": 180,
+          "end_line": 187
+        }
+      ]
     }
   ],
   "transitions": [
-    { "from": "idle", "to": "thinking", "label": "explain asked" },
-    { "from": "thinking", "to": "study", "label": "answer in" },
-    { "from": "study", "to": "praise", "label": "known marked" },
-    { "from": "thinking", "to": "idle", "label": "settles", "variant": "dashed" },
-    { "from": "praise", "to": "idle", "label": "settle", "variant": "dashed", "route": "top-channel" },
-    { "from": "idle", "to": "waiting", "label": "true idle" },
-    { "from": "waiting", "to": "scene", "label": "1/6 roll" },
-    { "from": "scene", "to": "walking", "label": "30 s ends" },
-    { "from": "walking", "to": "hiding", "label": "at edge · 70%" },
-    { "from": "hiding", "to": "walking", "label": "dragged out", "variant": "dashed" },
-    { "from": "waiting", "to": "clickreact", "label": "click" },
-    { "from": "clickreact", "to": "waiting", "label": "pose ends", "variant": "dashed" },
-    { "from": "walking", "to": "pickup", "label": "drag start" },
-    { "from": "pickup", "to": "walking", "label": "drag end", "variant": "dashed" },
-    { "from": "hiding", "to": "ask", "label": "review asked" },
-    { "from": "ask", "to": "hiding", "label": "sign answered", "variant": "dashed" },
-    { "from": "scene", "to": "sleeping", "label": "1/12 · yawn" },
-    { "from": "sleeping", "to": "waiting", "label": "wakes", "variant": "dashed" }
+    {
+      "from": "idle",
+      "to": "thinking",
+      "label": "explain asked"
+    },
+    {
+      "from": "thinking",
+      "to": "study",
+      "label": "answer in"
+    },
+    {
+      "from": "study",
+      "to": "praise",
+      "label": "known marked"
+    },
+    {
+      "from": "thinking",
+      "to": "idle",
+      "label": "settles",
+      "variant": "dashed"
+    },
+    {
+      "from": "praise",
+      "to": "idle",
+      "label": "settle",
+      "variant": "dashed"
+    },
+    {
+      "from": "idle",
+      "to": "waiting",
+      "label": "true idle"
+    },
+    {
+      "from": "waiting",
+      "to": "scene",
+      "label": "1/6 roll"
+    },
+    {
+      "from": "scene",
+      "to": "walking",
+      "label": "30 s"
+    },
+    {
+      "from": "walking",
+      "to": "hiding",
+      "label": "70%"
+    },
+    {
+      "from": "hiding",
+      "to": "walking",
+      "label": "drag out",
+      "variant": "dashed"
+    },
+    {
+      "from": "hiding",
+      "to": "waiting",
+      "label": "click lures out",
+      "variant": "dashed"
+    },
+    {
+      "from": "waiting",
+      "to": "taskbar",
+      "label": "0.5% roll"
+    },
+    {
+      "from": "taskbar",
+      "to": "waiting",
+      "label": "ends",
+      "variant": "dashed"
+    },
+    {
+      "from": "waiting",
+      "to": "clickreact",
+      "label": "click"
+    },
+    {
+      "from": "clickreact",
+      "to": "waiting",
+      "label": "ends",
+      "variant": "dashed"
+    },
+    {
+      "from": "walking",
+      "to": "pickup",
+      "label": "drag"
+    },
+    {
+      "from": "pickup",
+      "to": "walking",
+      "label": "drop",
+      "variant": "dashed"
+    },
+    {
+      "from": "hiding",
+      "to": "ask",
+      "label": "review asked"
+    },
+    {
+      "from": "ask",
+      "to": "hiding",
+      "label": "answered",
+      "variant": "dashed"
+    },
+    {
+      "from": "idle",
+      "to": "sleeping",
+      "label": "1/12"
+    },
+    {
+      "from": "sleeping",
+      "to": "idle",
+      "label": "wakes",
+      "variant": "dashed"
+    }
   ],
   "cards": [
     {
       "dot": "cyan",
       "title": "Two machines",
       "items": [
-        "core owns the role machine and is Qt-free; the controller owns the window",
-        "QML reads only Pet.action and Pet.scene, never a state enum",
+        "core owns the role machine and is Qt-free; PetStroll owns the walk, PetStage the scene, PetHide the hide",
+        "Every drawn state maps to code: Role::Idle, Thinking, Study, Celebrate, ClickReact, Pickup, Ask and Sleep; PetStroll Phase::Waiting/Walking; PetHide; PetStage",
+        "QML reads only the PetPose value — action, scene, review sign — never a state enum",
         "Priority: Idle < Situational < Event < Click < Drag; Study, Ask and Sleep are held states the pet returns to",
-        "A nap that ends by itself, or a wake from the budget's sleep, stretches once before idling (ADR 0098)"
+        "Three clicks in two seconds turn the click pose Angry",
+        "A self-ended nap or a wake from the budget's sleep stretches once before idling (ADR 0098)"
       ]
     },
     {
       "dot": "emerald",
-      "title": "Wander and hide · ADR 0076",
+      "title": "Wander, hide and trip · ADR 0076 + 0155",
       "items": [
-        "120-300 s of true idle before a stroll; the gait comes from the pet's data (glide, float, hop, trot)",
-        "A stroll walks up to two steps with pauses between; a step ending at the work-area edge rolls 70% into a hide",
-        "Nothing times a hide out: only a drag out past 0.8 of the width ends it, else it snaps back"
+        "120-300 s of true idle before a stroll; the gait comes from the pet's data (glide, float, hop, trot, pounce)",
+        "A stroll walks up to two steps with pauses between; a pounce gait still takes exactly one",
+        "A step ending at the work-area edge rolls 70% into a hide",
+        "Nothing times a hide out: a drag out past 0.8 of the width or a click on the sliver ends it (ADR 0095)",
+        "At 0.5% the stroll becomes a taskbar trip instead, and the role clock holds while it runs (ADR 0155)"
       ]
     },
     {
       "dot": "amber",
-      "title": "Scenes and signs · ADR 0123 + 0125",
+      "title": "Rolls and signs · ADR 0123 + 0125",
       "items": [
         "PetStage owns the scene lottery, the entry timeline and the frames; the controller only publishes (ADR 0123)",
+        "The 1/6 scene and 1/12 yawn rolls live in the role machine's idle turn",
         "Review answers branch: remembered Celebrate, forgotten Encourage, ignored Angry",
         "Each pet draws its own review sign (ADR 0125); the behavior block tunes the idle odds (ADR 0094)"
       ]
