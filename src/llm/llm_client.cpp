@@ -258,7 +258,7 @@ Handle LlmClient::request(Request request)
 
 void LlmClient::cancel(Handle const handle)
 {
-    if (QPointer<QNetworkReply> reply = replies_.take(handle.id))
+    if (QPointer<QNetworkReply> reply = replies_.take(handle.id)) // NOLINT(clang-analyzer-cplusplus.NewDelete): the analyzer frees the QPointer's control block on destruction and then reads it; the refcount is atomic and the block outlives the pointer (Qt 6.9 headers)
         reply->abort();
 }
 

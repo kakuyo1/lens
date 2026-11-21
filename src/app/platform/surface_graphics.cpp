@@ -212,6 +212,7 @@ private:
 
 } // namespace
 
+// NOLINTBEGIN(clang-analyzer-cplusplus.NewDelete): Qt 6.9's QPointer refcount is atomic; the analyzer frees the control block and then reads it (false positive in the headers).
 void releaseHiddenSurfaces(QObject* root, SharedGraphics* shared)
 {
     if (auto* self = qobject_cast<QQuickWindow*>(root))
@@ -222,5 +223,6 @@ void releaseHiddenSurfaces(QObject* root, SharedGraphics* shared)
     // would lock the same mutex twice on one render thread.
     qApp->installEventFilter(new LateWindowTuner(root, shared));
 }
+// NOLINTEND(clang-analyzer-cplusplus.NewDelete)
 
 } // namespace lens::app

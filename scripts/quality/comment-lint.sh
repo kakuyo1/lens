@@ -8,7 +8,10 @@
 # that state: prose comments may go down, never up.
 #
 # What counts as prose: a // line that is not a /// or //! document line, a trailing // on a
-# code line, and any line inside a /* */ block that did not open as /**. The /// form is the
+# code line, and any line inside a /* */ block that did not open as /**. A line carrying
+# NOLINT (NOLINT, NOLINTNEXTLINE, NOLINTBEGIN, NOLINTEND) is a mechanical suppression the
+# tidy gate needs, not prose, and is not counted; the baselines below were stepped down with
+# that exemption in force, so it creates no room for comment creep. The /// form is the
 # API contract AGENTS.md's Code Style mandates and a pre-commit check holds the /** @file
 # blocks, so neither is this check's business. The counter has no parser, so a // or /*
 # inside a string literal reads as prose; the URL forms it would most often meet
@@ -27,9 +30,11 @@
 
 set -u
 
-# The 2026-11 audit left these counts behind; each only goes down.
-BASELINE_SRC=4152
-BASELINE_TEST=2103
+# The 2026-11 audit left these counts behind; each only goes down. They were recomputed when
+# NOLINT lines stopped counting as prose (3981 src / 2070 test), so mechanical suppressions
+# create no room here.
+BASELINE_SRC=3981
+BASELINE_TEST=2070
 
 root=$(git rev-parse --show-toplevel 2>/dev/null)
 [ -n "$root" ] || root=$(cd "$(dirname "$0")/../.." && pwd)
@@ -48,7 +53,7 @@ AWK_COUNT='
     {
         line = $0
         if (inblock) {
-            if (!isdoc) count++
+            if (!isdoc && index(line, "NOLINT") == 0) count++
             if (index(line, "*/") > 0) inblock = 0
             next
         }
@@ -64,11 +69,11 @@ AWK_COUNT='
         p = index(l, "//")
         if (p == 0) next
         if (p == 1) {
-            # A comment-only line: prose unless it opens as /// or //!.
-            if (substr(l, 3, 1) != "/" && substr(l, 3, 1) != "!") count++
+            # A comment-only line: prose unless it opens as /// or //!, or carries a NOLINT.
+            if (substr(l, 3, 1) != "/" && substr(l, 3, 1) != "!" && index(l, "NOLINT") == 0) count++
         } else if (l !~ /https?:\/\// && l !~ /qrc:\//) {
-            # A trailing comment after code: prose unless it opens as /// or //!.
-            if (substr(l, p + 2, 1) != "/" && substr(l, p + 2, 1) != "!") count++
+            # A trailing comment after code: prose unless it opens as /// or //!, or carries a NOLINT.
+            if (substr(l, p + 2, 1) != "/" && substr(l, p + 2, 1) != "!" && index(l, "NOLINT") == 0) count++
         }
     }
     END { printf "%d %s\n", count, prev }
