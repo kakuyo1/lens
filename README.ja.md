@@ -31,8 +31,9 @@
 <p align="center"><sub><a href="README.en.md">English</a> · <a href="README.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · 日本語 · <a href="README.es.md">Español</a></sub></p>
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/7661ebec-3051-4ee2-a550-30f6afb04e17" width="100%" autoplay muted loop playsinline controls aria-label="Lens が英文エッセイの横で serendipity を英語で説明している"></video>
+  <a href="https://github.com/user-attachments/assets/7661ebec-3051-4ee2-a550-30f6afb04e17"><img src="docs/readme/hero-film.gif" width="100%" alt="Lens が英文エッセイの横で serendipity を英語で説明している"></a>
 </p>
+<p align="center"><sub>▶ <a href="https://github.com/user-attachments/assets/7661ebec-3051-4ee2-a550-30f6afb04e17">35秒のフル映像（MP4）を再生</a></sub></p>
 
 <p align="center"><sub>説明は既定で英語です。知っている英語で、その単語がここで何をしているかを説明します。</sub></p>
 

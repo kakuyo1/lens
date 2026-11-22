@@ -31,8 +31,9 @@
 <p align="center"><sub>English · <a href="README.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/7661ebec-3051-4ee2-a550-30f6afb04e17" width="100%" autoplay muted loop playsinline controls aria-label="Lens explains the word serendipity in English in a card beside an English essay"></video>
+  <a href="https://github.com/user-attachments/assets/7661ebec-3051-4ee2-a550-30f6afb04e17"><img src="docs/readme/hero-film.gif" width="100%" alt="Lens explains the word serendipity in English in a card beside an English essay"></a>
 </p>
+<p align="center"><sub>▶ <a href="https://github.com/user-attachments/assets/7661ebec-3051-4ee2-a550-30f6afb04e17">Watch the full 35s film (MP4)</a></sub></p>
 
 <p align="center"><sub>Explanations default to English: it tells you what the word does here, in words you already know.</sub></p>
 

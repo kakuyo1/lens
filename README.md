@@ -31,8 +31,9 @@
 <p align="center"><sub><a href="README.en.md">English</a> · 简体中文 · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/f4a9eca4-fd47-4e13-b70e-afd230d9c183" width="100%" autoplay muted loop playsinline controls aria-label="Lens 在英文文章旁用英文解释 serendipity 这个词"></video>
+  <a href="https://github.com/user-attachments/assets/f4a9eca4-fd47-4e13-b70e-afd230d9c183"><img src="docs/readme/hero-film.gif" width="100%" alt="Lens 在英文文章旁用英文解释 serendipity 这个词"></a>
 </p>
+<p align="center"><sub>▶ <a href="https://github.com/user-attachments/assets/f4a9eca4-fd47-4e13-b70e-afd230d9c183">观看完整 35 秒影片（MP4）</a></sub></p>
 
 <p align="center"><sub>解释默认是英文：用你已经认识的英文，讲清这个词在这里做什么。</sub></p>
 
