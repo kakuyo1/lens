@@ -31,10 +31,7 @@
 <p align="center"><sub><a href="README.en.md">English</a> · 简体中文 · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-dark.png">
-    <img src="docs/readme/hero-light.png" width="100%" alt="Lens 在英文文章旁用英文解释 serendipity 这个词">
-  </picture>
+  <video src="docs/readme/lens-hero-zh.mp4" width="100%" autoplay muted loop playsinline controls aria-label="Lens 在英文文章旁用英文解释 serendipity 这个词"></video>
 </p>
 
 <p align="center"><sub>解释默认是英文：用你已经认识的英文，讲清这个词在这里做什么。</sub></p>

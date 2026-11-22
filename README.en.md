@@ -31,10 +31,7 @@
 <p align="center"><sub>English · <a href="README.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.es.md">Español</a></sub></p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-dark.png">
-    <img src="docs/readme/hero-light.png" width="100%" alt="Lens explains the word serendipity in English in a card beside an English essay">
-  </picture>
+  <video src="docs/readme/lens-hero-en.mp4" width="100%" autoplay muted loop playsinline controls aria-label="Lens explains the word serendipity in English in a card beside an English essay"></video>
 </p>
 
 <p align="center"><sub>Explanations default to English: it tells you what the word does here, in words you already know.</sub></p>
