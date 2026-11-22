@@ -43,6 +43,8 @@ public:
     Q_INVOKABLE void fitOnScreen();
     /// @brief Records where the window was dropped, relative to the screen it landed on.
     Q_INVOKABLE void savePosition(QPoint at);
+    /// @brief Forwards PetController::reassertAbove(): the pet back on top of the band, then reasserted().
+    Q_INVOKABLE void reassertAbove();
     /// @brief Runs the frame clock for the desktop window. The window calls it with its visibility.
     Q_INVOKABLE void setRunning(bool on);
     /// @brief Tells the ceremonies whether motion is reduced, so both animation switches land them at once.
@@ -50,6 +52,7 @@ public:
 
 signals:
     void shownChanged();
+    void reasserted();
 
 private:
     PetController& owner_;

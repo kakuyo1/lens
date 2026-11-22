@@ -1724,6 +1724,13 @@ void PetController::savePosition(QPoint at)
     store_.setPosition(SavedPosition{device.toStdString(), offset.x(), offset.y()});
 }
 
+void PetController::reassertAbove()
+{
+    if (not window_ or not window_->isVisible()) return;
+    window_->raise();
+    emit reasserted();
+}
+
 void PetController::tick()
 {
     // A taskbar trip owns the body: the machine's clock is held so no idle turn, scene or held state can cut in.

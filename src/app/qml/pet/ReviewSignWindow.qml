@@ -86,6 +86,24 @@ Window {
         }
     }
 
+    Connections {
+        target: Pet.host
+
+        function onReasserted() {
+            sign.followPetAbove();
+        }
+    }
+
+    /// @brief Puts the sign and its open card back above the pet, right after the pet's once-a-second re-assert:
+    ///        the pet's canvas is one full rectangle of pointer events, so a sign buried under it goes dead over
+    ///        most of the board (UI-SPEC.md 4.13).
+    function followPetAbove() {
+        if (visible)
+            raise();
+        if (card.visible)
+            card.raise();
+    }
+
     /// Answers the question. The bubble's anchor goes out in physical pixels, as every other surface's does,
     /// converted from this screen's own origin (surface_geometry.h).
     function answer(remembered) {

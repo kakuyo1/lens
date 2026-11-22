@@ -22,6 +22,15 @@ Item {
         Main {}
     }
 
+    Component {
+        id: reassertedSpyComponent
+
+        SignalSpy {
+            target: Pet.host
+            signalName: "reasserted"
+        }
+    }
+
     TestCase {
         id: testCase
         name: "Main"
@@ -521,6 +530,28 @@ Item {
             verify(settings.x + settings.width <= petWindow.x, "the card did not flip to the pet's left");
             verify(separate(settings, petWindow), "the card covers a pet parked at the right edge");
 
+            Pet.setEnabled(false);
+        }
+
+        /// The once-a-second re-assert puts the pet back at the top of the topmost band, and announces itself so
+        /// the windows that stand above the pet -- the review sign and its card -- raise themselves in the same
+        /// tick and never fall under the pet's canvas (UI-SPEC.md 4.13). Without a window on screen there is
+        /// nothing to assert, and the announcement stays down.
+        function test_theReassertRaisesThePetAndAnnouncesIt() {
+            const spy = createTemporaryObject(reassertedSpyComponent, root);
+            verify(spy);
+            Pet.host.reassertAbove();
+            compare(spy.count, 0, "the re-assert spoke while the pet had no window on screen");
+
+            const main = make();
+            const petWindow = panel(main, "PetWindow");
+            Pet.setEnabled(true);
+            tryCompare(petWindow, "visible", true);
+            wait(50);
+
+            Pet.host.reassertAbove();
+            compare(spy.count, 1, "the re-assert did not announce itself");
+            compare(petWindow.visible, true, "the re-assert hid the pet");
             Pet.setEnabled(false);
         }
 

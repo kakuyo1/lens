@@ -247,6 +247,10 @@ public:
     void fitOnScreen();
     /// @brief Records where the window was dropped, relative to the screen it landed on.
     void savePosition(QPoint at);
+    /// @brief Puts the pet back at the top of the topmost band, then says so on reasserted(): a topmost window shown
+    ///        later (PotPlayer) joins the band above the pet, and the sign and its card follow in the same tick
+    ///        (UI-SPEC.md 4.13). QML reaches it as Pet.host.reassertAbove().
+    void reassertAbove();
 
 signals:
     void frameChanged();
@@ -262,6 +266,8 @@ signals:
     void confirmationRequested(QString id, QString name);
     /// @brief The chosen pet was gone or refused, so the shipped default is in use. Shown as a notice (docs/adr/0043).
     void fellBack(QString title, QString body);
+    /// @brief The pet just re-asserted its topmost band position (see reassertAbove()).
+    void reasserted();
 
 private:
     /// @brief Loads the pet in folder `id` from the catalogue, and starts it from its first frame. A pet the catalogue does

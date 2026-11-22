@@ -8,6 +8,7 @@ PetHost::PetHost(PetController& owner, QObject* parent)
     : QObject(parent), owner_(owner)
 {
     connect(&owner_, &PetController::shownChanged, this, &PetHost::shownChanged);
+    connect(&owner_, &PetController::reasserted, this, &PetHost::reasserted);
 }
 
 bool PetHost::shown() const
@@ -43,6 +44,11 @@ void PetHost::fitOnScreen()
 void PetHost::savePosition(QPoint at)
 {
     owner_.savePosition(at);
+}
+
+void PetHost::reassertAbove()
+{
+    owner_.reassertAbove();
 }
 
 void PetHost::setRunning(bool on)

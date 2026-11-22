@@ -56,12 +56,15 @@ Window {
     }
 
     /// The pet is a topmost window, but another topmost window shown later (PotPlayer while a
-    /// video plays) joins the band above it; a slow re-assert keeps the companion visible.
+    /// video plays) joins the band above it; a slow re-assert keeps the companion visible. The
+    /// re-assert would bury the windows that stand above the pet -- the review sign and its
+    /// card -- under the pet's canvas, whose transparent margins eat the pointer over the board,
+    /// so they raise themselves right after, on Pet.host.reasserted (UI-SPEC.md 4.13).
     Timer {
         interval: 1000
         repeat: true
         running: petWindow.visible
-        onTriggered: petWindow.raise()
+        onTriggered: Pet.host.reassertAbove()
     }
 
     PetScene {

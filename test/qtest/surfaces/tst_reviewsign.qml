@@ -191,6 +191,18 @@ Item {
             tryCompare(sign, "expanded", false);
         }
 
+        /// The pet re-asserts its topmost band once a second, and the sign and its open card raise themselves right
+        /// after it -- the pet's canvas is one full rectangle of pointer events, so a sign buried in it goes dead
+        /// over most of the board (UI-SPEC.md 4.13). The follow neither hides the sign nor closes the card.
+        function test_theSignAndItsCardFollowThePetsReassert() {
+            askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2));
+            openCard();
+            sign.followPetAbove();
+            compare(sign.visible, true, "following the re-assert hid the sign");
+            compare(sign.expanded, true, "following the re-assert closed the card");
+            compare(sign.card.visible, true, "following the re-assert hid the card");
+        }
+
         /// The answer's card goes on the sign's side and is centred on the pet, while the work area has room there.
         function test_answerCardGoesOnTheSignsSideCentredOnThePet() {
             askFromPetAt(Math.round(Screen.desktopAvailableWidth / 2 - fakePet.width / 2));
