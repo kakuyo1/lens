@@ -54,7 +54,7 @@ Item {
             }
             Text {
                 width: parent.width
-                text: qsTranslate("SettingsPopup", "Marks words above your level in supported apps. It reads the text those apps expose, without OCR or an online service.")
+                text: qsTranslate("SettingsPopup", "Marks words above your level in supported apps.")
                 color: root.tokens.muted
                 font.pixelSize: 12
                 wrapMode: Text.WordWrap
@@ -113,13 +113,6 @@ Item {
                         onToggled: (on) => Controller.captureDuty.setAutoScanPotplayer(on)
                     }
                 }
-            }
-            Text {
-                width: parent.width
-                text: qsTranslate("SettingsPopup", "Chrome web pages, Notepad++ documents, Sumatra PDF files and PotPlayer video subtitles are supported.")
-                color: root.tokens.muted
-                font.pixelSize: 12
-                wrapMode: Text.WordWrap
             }
         }
     }

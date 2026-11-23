@@ -68,6 +68,16 @@ Item {
         return qsTr("Pictures unavailable. Check your connection.");
     }
 
+    /// Whether the strip names its source and the network it may need. The settings preview
+    /// draws bundled samples, and a lookup that simply matched nothing has nothing to explain.
+    readonly property bool sourceNoteVisible: {
+        if (root.sample !== null)
+            return false;
+        if (root.phase === "ready")
+            return true;
+        return root.phase === "failed" && root.answer.failure !== "no-results";
+    }
+
     /// @return The item whose caption and attribution are drawn: the focused one, or the first.
     function currentItem() {
         if (root.items.length === 0)
@@ -356,6 +366,17 @@ Item {
                 Keys.onSpacePressed: Controller.pictureDuty.openFallback()
                 Keys.onReturnPressed: Controller.pictureDuty.openFallback()
             }
+        }
+
+        Text {
+            visible: root.sourceNoteVisible
+            topPadding: 4
+            bottomPadding: 6
+            width: parent.width
+            text: qsTr("Pictures come from Wikimedia Commons; a VPN may be needed to load them.")
+            color: root.tokens.faint
+            font.pixelSize: Math.round(9.5 * root.scale)
+            wrapMode: Text.WordWrap
         }
     }
 
