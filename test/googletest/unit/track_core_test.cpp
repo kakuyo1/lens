@@ -296,6 +296,23 @@ TEST(TrackCore, ABackgroundTabSliverIsRefusedUntilThePageFillsTheBand)
     EXPECT_TRUE(drew);
 }
 
+TEST(TrackCore, AZeroBoxPageAwaitsItsLayoutInsteadOfBeingDropped)
+{
+    FakePageReader reader = articleReader();
+    reader.page->pageBox  = Band{};
+    TrackCore core{reader};
+    auto      t = kStart;
+
+    for (int i = 0; i < 20; ++i) {
+        auto const out = step(core, t);
+        ASSERT_FALSE(out.frame and not out.frame->visible.empty());
+    }
+    EXPECT_EQ(reader.drops, 0);
+
+    reader.page->pageBox = kBand;
+    settleToFirstDraw(core, reader, t);
+}
+
 TEST(TrackCore, AStandingPageThatCollapsesToASliverIsDroppedByThePeriodicRecheck)
 {
     FakePageReader reader = articleReader();

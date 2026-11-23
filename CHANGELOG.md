@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.4 - 2026-11-23
+
+Chrome's built-in PDF viewer scans again: a page that answers 0×0 while the viewer lays it out is kept and retried, and a viewer's words skip the occlusion hit-test that marked all of them covered.
+
+### Fixed
+
+- **A PDF page that is still laying out is waited for.** When Chrome's PDF viewer answers a 0×0 page box while it builds its document, the track keeps the page and re-reads its box for up to two seconds instead of dropping it; the lines then start without the reader changing the foreground. A page that stays empty past the wait is still refused and searched again.
+- **A PDF viewer's words skip the sight pass.** A virtual document named "PDF document…" marks the page as a viewer. Its hit-test answers for the page, not the word, so every word used to be read as covered and its line was hidden. The page now draws as it reads, the same no-mechanics answer SumatraPDF already uses (docs/adr/0193).
+
+### 中文
+
+Chrome 内置 PDF 视图重新可以扫描：页面在布局中返回 0×0 时会被等待；PDF 视图的词跳过遮挡命中测试，不再整页被误判为被盖住。
+
+#### 修复
+
+- **布局中的 PDF 页面会被等待。** Chrome PDF 视图在布局期间返回 0×0 页面框时，轨道保留页面并最多重读两秒，不再需要切一次前台才能开始画线；超过等待仍是空框的页面才按原逻辑拒绝并重搜。
+- **PDF 视图的词跳过遮挡判定。** 名为 “PDF document…” 的虚拟文档会把页面识别为 PDF 视图。它的命中测试返回的是页面而不是词的容器，原先把每个词都判成被盖住、线被清掉；现在按 SumatraPDF 已有的“无遮挡机制”路径随读随画（docs/adr/0193）。
+
 ## 1.0.3 - 2026-11-23
 
 Three first-run corrections: auto scan starts on, a shipped pet starts smaller, and an installed build no longer carries the repository's development settings into a new profile.

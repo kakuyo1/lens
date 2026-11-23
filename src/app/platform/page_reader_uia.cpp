@@ -87,7 +87,19 @@ struct PageDocument {
     /// The intersection of the document frames above the page. A PDF viewer's document covers its own toolbar,
     /// but the frame it sits in begins below that toolbar, so the frame is what the reader can see.
     std::optional<QRect> clip;
+    /// Whether the page belongs to a PDF viewer: its hit-test answers for the page, not the word.
+    bool pdfViewer = false;
 };
+
+/// @return The element's current name, or an empty string when it has none.
+QString nameOf(IUIAutomationElement& element)
+{
+    BSTR name = nullptr;
+    if (FAILED(element.get_CurrentName(&name)) or not name) return {};
+    QString const text = QString::fromWCharArray(name, static_cast<int>(SysStringLen(name)));
+    SysFreeString(name);
+    return text;
+}
 
 /// @return How many elements lie above @p element in the tree, capped at kMaxLevels.
 int depthOf(IUIAutomation& automation, IUIAutomationElement& element)
@@ -192,6 +204,7 @@ PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root, QRect
     // shortcut: a PDF viewer lays its whole file out as one document, many screens tall and scrolled above the window;
     // its words are the same as the visible page's, but its box is not where they are. First pass skips such documents,
     // the second pass keeps the rule as it was when only such documents are left. Revisit if a long article trips it.
+    // A virtual document named "PDF document..." also marks the page as a viewer, whose hit-test cannot judge its words.
     RECT windowBox{};
     root.get_CurrentBoundingRectangle(&windowBox);
     constexpr int kVirtualDocumentShare = 4;
@@ -199,6 +212,12 @@ PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root, QRect
     auto const    virtualDocument       = [&](Candidate const& candidate) {
         return windowHeight > 0 and candidate.box.top < windowBox.top and candidate.box.bottom - candidate.box.top > kVirtualDocumentShare * windowHeight;
     };
+    bool pdfViewer = false;
+    for (auto const& candidate : candidates)
+        if (virtualDocument(candidate) and nameOf(*candidate.element).contains(QLatin1String("PDF document"), Qt::CaseInsensitive)) {
+            pdfViewer = true;
+            break;
+        }
     for (bool const allowVirtual : {false, true}) {
         PageDocument page;
         LONGLONG     chosenArea  = -1;
@@ -213,7 +232,10 @@ PageDocument pageOf(IUIAutomation& automation, IUIAutomationElement& root, QRect
             chosenArea   = candidate.area;
             chosenDepth  = candidate.depth;
         }
-        if (page.element) return page;
+        if (page.element) {
+            page.pdfViewer = pdfViewer;
+            return page;
+        }
     }
     return {};
 }
@@ -334,8 +356,15 @@ public:
             Com<IUIAutomationElement>      element,
             Com<IUIAutomationTextPattern>  pattern,
             std::optional<QRect>           clip,
-            bool const                     sumatra)
-        : automation_{std::move(automation)}, window_{window}, element_{std::move(element)}, pattern_{std::move(pattern)}, clip_{clip}, sumatra_{sumatra}
+            bool const                     sumatra,
+            bool const                     pdfViewer)
+        : automation_{std::move(automation)},
+          window_{window},
+          element_{std::move(element)},
+          pattern_{std::move(pattern)},
+          clip_{clip},
+          sumatra_{sumatra},
+          pdfViewer_{pdfViewer}
     {}
 
     bool                             present() const override;
@@ -359,6 +388,7 @@ private:
     Com<IUIAutomationTextPattern>  pattern_;
     std::optional<QRect> const     clip_;
     bool const                     sumatra_;
+    bool const                     pdfViewer_;
     /// The hit-test's own running mean, never drained: the shell's per-second drain reset the shared
     /// accumulator to zero, re-opening the cost gate every second and flapping the placed set
     /// between filtered and whole -- the flicker the reader saw (docs/adr/0193).
@@ -537,11 +567,11 @@ std::shared_ptr<capture::Word> UiaPage::stepByBox(capture::Word const& word, int
 ///         the cost gate reads that mean, and it must survive the shell's per-second drain.
 bool UiaPage::visible(capture::Word const& word, capture::Band const& box)
 {
-    // SumatraPDF answers every hit inside the page with the page element, not with the word's own
-    // container, so the probe below would read every word as covered. Its overlays are separate
-    // native controls and it offers no cheaper signal, so its places draw as they read (the
-    // no-mechanics answer of docs/adr/0193, recorded with the reader in docs/adr/0197).
-    if (sumatra_) return true;
+    // A PDF viewer -- SumatraPDF or Chrome's embedded viewer -- answers every hit inside the page
+    // with the page element, not the word's container, so the probe below would read every word as
+    // covered. Its overlays are separate controls, so its places draw as they read (the no-mechanics
+    // answer of docs/adr/0193, recorded with the readers in docs/adr/0197).
+    if (sumatra_ or pdfViewer_) return true;
     auto const   start = std::chrono::steady_clock::now();
     bool const   seen  = visibleProbe(word, box);
     double const ms    = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
@@ -552,9 +582,11 @@ bool UiaPage::visible(capture::Word const& word, capture::Band const& box)
 
 /// @return The page's own mean hit-test cost, learned once the cold-start window passes and latched
 ///         for the page's life: a PDF viewer's twenty-millisecond point query closes the gate once,
-///         not once a second. Nothing is said while the page is still cold.
+///         not once a second. A viewer answers for its page, not its words, so it reports a cost
+///         past the track's ceiling and its places draw as they read. Nothing is said while cold.
 std::chrono::microseconds UiaPage::sightCost() const
 {
+    if (pdfViewer_) return std::chrono::seconds{1};
     if (std::chrono::steady_clock::now() - bornAt_ < std::chrono::milliseconds{1500}) return {};
     return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::duration<double, std::milli>{sightMeanMs_});
 }
@@ -654,7 +686,7 @@ std::shared_ptr<capture::Page> UiaPageReader::acquire(capture::Band const& band)
     if (not root) return nullptr;
     auto page = pageOf(*automation_, *root, rectOf(band));
     if (not page.pattern) return nullptr;
-    auto                  document = std::make_shared<UiaPage>(automation_, window_, std::move(page.element), std::move(page.pattern), page.clip, sumatra_);
+    auto                  document = std::make_shared<UiaPage>(automation_, window_, std::move(page.element), std::move(page.pattern), page.clip, sumatra_, page.pdfViewer);
     std::lock_guard const lock{cache.guard};
     cache.window = window_;
     cache.page   = document;

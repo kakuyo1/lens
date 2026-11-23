@@ -42,6 +42,9 @@ constexpr std::chrono::seconds kNameRetry{1};
 constexpr std::chrono::milliseconds kPageCheckPeriod{500};
 /// The wait between fresh page searches while the window answers with none; a search walks the window's whole tree.
 constexpr std::chrono::milliseconds kPageSearchPeriod{250};
+/// The wait before a page that answers a zero box is dropped: a PDF viewer answers 0x0 while it lays the page out,
+/// and a fresh search would only find the same page.
+constexpr std::chrono::milliseconds kPageLayoutWait{2000};
 /// Places one step hit-tests before drawing them; the rest keep their last verdict and wait for the next step.
 constexpr int kSightChecksPerStep = 8;
 /// The share of the track's time the refresh may spend: credit accrues at this rate and one hit-test
@@ -188,6 +191,7 @@ private:
     int                                   framesSent_   = 0;  ///< Frames returned in the last second.
     int                                   emptyAnchors_ = 0;  ///< Anchor words read empty in a row.
     std::chrono::steady_clock::time_point pageSearchAt_{};    ///< When the page was last searched for.
+    std::chrono::steady_clock::time_point layoutSince_{};     ///< When a zero-box page started waiting for its layout.
     bool                                  cacheWarm_ = false; ///< Whether the reader is believed to hold a page for this window; a search is asked for only on the slow clock while it does not.
     bool                                  lines_     = false; ///< Whether the last frame sent drew its words.
     std::chrono::steady_clock::time_point pageCheckAt_{};

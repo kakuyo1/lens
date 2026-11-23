@@ -405,12 +405,20 @@ std::optional<TrackFrame> TrackCore::acquire(Band const& band, std::chrono::stea
     cacheWarm_ = page_ != nullptr;
     if (not page_) return std::nullopt;
     Band const visible = intersected(band, page_->box());
-    // The browser rebuilds its document on a navigation, a discarded tab or a renderer swap, and the
-    // cached page then answers nothing forever. A tab parked in the background answers with less: its
-    // box collapses to a sliver of the window, and a search run while the real page answers nothing
-    // picks that sliver -- its words then draw in its corner of the screen while the article goes
-    // unwired, for as long as the tab stays open (docs/adr/0163). Either way the page is dropped, so
-    // the next step searches anew.
+    // A page that answers 0x0 is still laying out -- Chrome's PDF viewer does while it builds its
+    // document. Keep it and re-read its box next step; dropping it would need a fresh search and a
+    // foreground change before the track starts again. A page that answers less than the band is a
+    // background tab's sliver, and its words would draw in its corner while the article goes unwired
+    // (docs/adr/0163); that one is dropped so the next step searches anew.
+    if (emptyOf(visible)) {
+        if (layoutSince_ == std::chrono::steady_clock::time_point{}) {
+            layoutSince_ = now;
+            note_        = "awaiting layout: it answers " + std::to_string(visible.width) + "x" + std::to_string(visible.height) +
+                    " in a " + std::to_string(band.width) + "x" + std::to_string(band.height) + " band";
+        }
+        if (now - layoutSince_ < kPageLayoutWait) return std::nullopt;
+    }
+    layoutSince_ = {};
     if (not fillsTheBand(visible, band)) {
         note_ = "refused: it answers " + std::to_string(visible.width) + "x" + std::to_string(visible.height) +
                 " in a " + std::to_string(band.width) + "x" + std::to_string(band.height) + " band";
@@ -486,7 +494,8 @@ void TrackCore::dropPage()
 {
     reader_.drop();
     page_.reset();
-    cacheWarm_ = false;
+    cacheWarm_   = false;
+    layoutSince_ = {};
     // The verdict was read from the page now gone: a fresh page reads its own names and language
     // before it draws, the way a cold start does, rather than inheriting this one (docs/adr/0190).
     names_       = {};
