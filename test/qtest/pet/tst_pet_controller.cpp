@@ -291,11 +291,11 @@ void TstPetController::sizeIsStoredAndAnnounced()
     QVERIFY(dir.isValid());
     Rig rig{settingsIn(dir), shippedRoot()};
 
-    // Mochi declares scale 3, which is 67% to a reader who has never moved the slider, and draws ×3.01.
-    QCOMPARE(rig.controller.size(), 67);
+    // A shipped pet starts at 25%, which draws ×1.75; the package's scale 3 is no longer the default.
+    QCOMPARE(rig.controller.size(), 25);
     QCOMPARE(rig.controller.minSize(), 0);
     QCOMPARE(rig.controller.maxSize(), 100);
-    QCOMPARE(rig.controller.scale(), 3.01);
+    QCOMPARE(rig.controller.scale(), 1.75);
 
     QSignalSpy changed(&rig.controller, &PetController::settingsChanged);
     rig.controller.setSize(200);

@@ -34,8 +34,8 @@ struct Outfit {
 constexpr int kMinSize = 0;
 constexpr int kMaxSize = 100;
 
-/// @return The percentage a package's whole-number 1..4 scale means to a reader who has never moved the slider. A
-///         package's declared scale is that reader's fallback, so `scale` 3 reads as 67%.
+/// @return The percentage a package's whole-number 1..4 scale means: `scale` 3 reads as 67%. An installed package
+///         uses it as its reader's fallback; a shipped pet starts at kDefaultShippedSize instead.
 inline int sizeFromScale(int scale)
 {
     return static_cast<int>(std::lround((scale - 1) * 100.0 / 3.0));
@@ -49,6 +49,10 @@ inline double magnificationOf(int size)
 
 /// @brief The shipped pet a reader is given when the one they chose is gone or refused (docs/adr/0043).
 inline constexpr char const* kDefaultPet = "mochi";
+
+/// @brief The size a shipped pet draws at until the reader moves the slider: 25% is ×1.75. An installed package
+///        keeps its declared scale as its reader's fallback.
+inline constexpr int kDefaultShippedSize = 25;
 
 /// @brief Where the window was left: the screen it sat on, by device name, and its offset from that screen's origin.
 struct SavedPosition {
@@ -80,8 +84,8 @@ public:
     void setPassthrough(bool on);
 
     /// @param pet The pet the size belongs to, by folder name.
-    /// @param fallback Returned while that pet has no chosen size, normally the package's declared scale as a
-    ///                 percentage through sizeFromScale().
+    /// @param fallback Returned while that pet has no chosen size: 25 for a shipped pet, the package's declared
+    ///                 scale as a percentage through sizeFromScale() for an installed one.
     /// @return The chosen size in kMinSize..kMaxSize.
     int size(std::string const& pet, int fallback) const;
     /// @brief Stores the size, clamped to kMinSize..kMaxSize.

@@ -106,7 +106,7 @@ Item {
             compare(Controller.settings.frostedBlur, 10);
             compare(Controller.settings.provider, "DeepSeek");
             compare(Controller.settings.model, "deepseek-flash");
-            compare(Controller.settings.autoScan, false);
+            compare(Controller.settings.autoScan, true);
             compare(Controller.settings.hasApiKey, hasApiKey);
             compare(Controller.settings.autostart, autostart);
         }

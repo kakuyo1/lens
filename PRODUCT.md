@@ -34,7 +34,7 @@ web
 
 取舍见 [ADR 0130](docs/adr/0130-local-and-online-ocr-are-separate-modes.md) 与 [ADR 0133](docs/adr/0133-offline-ocr-ships-tesseract-and-rapidocr.md)；线上协议见 `API.md` §8，信任边界见 `SECURITY.md`，表面见 `UI-SPEC.md` 4.4。
 
-- **模式与回退**：手动截图提供本地 / 在线两种模式，缺省本地；本地自动选择使用 Tesseract，RapidOCR 只能明确选择，明确选择不回退。自动扫描读 Chrome 网页的正文与词框（UI Automation）和 Notepad++ 文档的正文与词框（编辑器消息），不依赖本地 OCR 运行时，也不受手动截图的模式选择影响（[ADR 0164](docs/adr/0164-track-core-and-page-reader-seam.md)）；原生选区不走 OCR（`docs/adr/0154`）。总开关与对应软件的开关都打开才生效。截图与扫描总开关的关闭默认值不变。
+- **模式与回退**：手动截图提供本地 / 在线两种模式，缺省本地；本地自动选择使用 Tesseract，RapidOCR 只能明确选择，明确选择不回退。自动扫描读 Chrome 网页的正文与词框（UI Automation）和 Notepad++ 文档的正文与词框（编辑器消息），不依赖本地 OCR 运行时，也不受手动截图的模式选择影响（[ADR 0164](docs/adr/0164-track-core-and-page-reader-seam.md)）；原生选区不走 OCR（`docs/adr/0154`）。总开关与对应软件的开关都打开才生效。截图总开关仍默认关，扫描总开关默认开。
 - **RapidOCR 的边界**：安装包只带 Tesseract 与英文数据。RapidOCR-json v0.2.0 可由设置页下载（钉死发行包、逐字节校验后解压进 `%APPDATA%\Lens\rapidocr\`，再走同一条检测信任流程，[ADR 0149](docs/adr/0149-rapidocr-is-downloadable-and-pinned.md)），读者自备的副本同样受支持；自动策略不会运行它。模型目录必须是 ASCII 路径；设置页会警示并禁用检测，捕获门报 `path-unsupported`，不回退 Tesseract（[ADR 0132](docs/adr/0132-rapidocr-model-paths-stay-ascii.md)、[基线证据](docs/metrics/ocr-baseline-2026-10-28.md#2-rapidocr-json-v020-审计)）。首次使用需显式检测并信任，信任摘要绑定可执行文件、模型目录与全部模型文件；切换识别语言不重新要求信任，程序或模型改变会撤销信任。
 - **混排识别**：中文模型会把拉丁词粘成一串，混排页因此在疑似粘连时用英文模型对同一张图再读一遍——同一检测框下，英文行只在去空格后与中文行（去汉字、去空格）完全一致时才替换空格，汉字原样插回；不一致就保留中文模型原文。这是同一张图的第二次识别，不是词典猜测，也不伪造词框。
 - **上传授权**：在线 OCR 每次只上传读者框选并确认的像素区域；本地失败、低置信度、模式选择或连接检测都不构成上传授权。没有自动云端重试或跨服务商回退；一次明确的人工重试可用。
@@ -75,12 +75,12 @@ web
 | 复习提问 | 宠物空闲时在脚边立起木牌问到期词；躲藏时也能立，问题不结束躲藏。提问期间眼睛看向牌或展开的小卡，答完回正 | ADR 0050 / 0052 / 0076 / 0097 |
 | 配饰 | 七只随包宠物各有九件：头、脸、身各三件，共 63 件；同槽一件，随时可换，没有解锁门槛。部分配饰带可选 `sceneWeights`，戴上后待机抽景更常去它偏爱的场景，摘下即恢复；设置页在佩戴时用一行小字说明 | ADR 0099 / 0102 |
 | 宠物包 | 只扫描读者目录、只读；包只含 JSON 与 PNG，不执行代码；外部包首次选中确认一次 | ADR 0043 / `skills/lens-pet-maker/references/pet-package-format.md` |
-| 每只宠物的装扮与读者的落点 | 大小与三槽配饰按宠物 id 各记一份，换宠即换回它自己的大小与装扮；窗口落点只有一份，属于读者，换宠不改落点，新宠在边缘放不下时按工作区夹回。开关、鼠标穿透与确认列表也是读者的 | ADR 0096 / 0100 |
+| 每只宠物的装扮与读者的落点 | 大小与三槽配饰按宠物 id 各记一份，换宠即换回它自己的大小与装扮（随包宠物首次 25%，外部包首次取包声明的 scale）；窗口落点只有一份，属于读者，换宠不改落点，新宠在边缘放不下时按工作区夹回。开关、鼠标穿透与确认列表也是读者的 | ADR 0096 / 0100 |
 | 边界 | 不算表面、不进互斥、不计数、不读统计；窗口排除抓屏 | ADR 0021 |
 
 ### 扫描管道（自动模式）
 
-> 总开关缺省关，Chrome、Notepad++、Sumatra PDF 与 PotPlayer 的开关缺省开，总开关与前台软件的开关同时打开才扫描。Sumatra PDF 需 3.7 及以上（docs/adr/0197）；PotPlayer 字幕见 docs/adr/0208。
+> 总开关缺省开，Chrome、Notepad++、Sumatra PDF 与 PotPlayer 的开关缺省开，总开关与前台软件的开关同时打开才扫描。Sumatra PDF 需 3.7 及以上（docs/adr/0197）；PotPlayer 字幕见 docs/adr/0208。
 
 ```
 总开关与前台软件的开关都打开，且前台进程是 chrome.exe、notepad++.exe、SumatraPDF.exe 或 PotPlayerMini64.exe？否则收线

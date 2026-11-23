@@ -182,7 +182,7 @@ inline constexpr Row kRows[]{
     // Capture: what may start a capture, and where the OCR engine is.
     {.key = "selectionCapture", .kind = Kind::Toggle, .signal = Signal::Logged, .fallback = true},
     {.key = "ocrCapture", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = false},
-    {.key = "autoScan", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = false},
+    {.key = "autoScan", .kind = Kind::Toggle, .signal = Signal::Capture, .fallback = true},
     // The apps auto scan may read: Chrome pages and SumatraPDF documents through UI Automation,
     // Notepad++ documents through the editor's own messages, PotPlayer video subtitles through the
     // player's clock and the media's own subtitle track (docs/adr/0197, docs/adr/0201). SumatraPDF

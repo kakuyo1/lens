@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.0.3 - 2026-11-23
+
+Three first-run corrections: auto scan starts on, a shipped pet starts smaller, and an installed build no longer carries the repository's development settings into a new profile.
+
+### Changed
+
+- **Auto scan starts on.** The master switch's default is now on; the four app switches keep their on defaults, and `Defaults` restores the master to on. The scan still reads only the text the supported app exposes, without OCR or an online service.
+- **Shipped pets start at 25%.** The seven shipped pets draw at ×1.75 until the reader moves the size slider; an installed package keeps its declared scale as its reader's default. The review sign scales with the pet.
+
+### Fixed
+
+- **An installed build no longer copies the repository's `settings.local.json`.** Only a build tree carries that development document into a new profile. On a machine with the repository, a fresh install used to skip onboarding and inherit the developer's API key and word marks.
+
+### 中文
+
+三处首次运行的修正：自动扫描默认开启，随包宠物默认更小，安装版不再把仓库里的开发配置带进新配置。
+
+#### 变更
+
+- **自动扫描默认开启。** 总开关的默认值改为开；四个应用开关仍默认开，`Defaults` 也把总开关恢复为开。扫描仍然只读受支持应用提供的文字，不经过 OCR，不调用在线服务。
+- **随包宠物默认 25%。** 七只随包宠物在读者拖动大小滑杆之前按 ×1.75 绘制；外部宠物包仍以包声明的 scale 作为首次默认。牌子随宠物等比缩放。
+
+#### 修复
+
+- **安装版不再复制仓库里的 `settings.local.json`。** 只有构建树会把这份开发配置带进新配置。在这台有仓库的机器上，全新安装原本会跳过首次引导，并继承开发者的 API key 与判定。
+
 ## 1.0.2 - 2026-11-23
 
 A small release: the auto-scan page says less, the picture strip says one more thing, and the pet's review sign stays above its own window.

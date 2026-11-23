@@ -35,6 +35,7 @@
 namespace lens::app::pet {
 
 using core::pet::kDefaultPet;
+using core::pet::kDefaultShippedSize;
 using core::pet::kMaxSize;
 using core::pet::kMinSize;
 using core::pet::magnificationOf;
@@ -663,9 +664,12 @@ int PetController::canvas() const
 
 int PetController::size() const
 {
-    // A reader who has never moved the slider gets the package's declared 1..4 scale, as a percentage. The size
-    // belongs to the pet on screen, which is the one the settings name (ADR 0096).
-    return store_.size(store_.pet(), assets_ ? sizeFromScale(assets_->scale) : kMinSize);
+    // A shipped pet starts at 25% (×1.75); an installed package keeps its declared 1..4 scale as the reader's
+    // fallback. The size belongs to the pet on screen, which is the one the settings name (ADR 0096).
+    const int fallback = assets_
+                             ? (isShipped(store_.pet()) ? kDefaultShippedSize : sizeFromScale(assets_->scale))
+                             : kMinSize;
+    return store_.size(store_.pet(), fallback);
 }
 
 double PetController::scale() const

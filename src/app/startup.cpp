@@ -45,8 +45,8 @@
 namespace lens::app {
 namespace {
 
-/// The settings document at the repository root, which a first run copies into the reader's
-/// profile once. See settingsPath().
+/// The settings document at the repository root. A build tree copies it into a new profile once;
+/// an installed build never does. See settingsPath().
 constexpr const char* kDevSettingsPath = LENS_SETTINGS_PATH;
 
 /// The build switch for the first-run notice (docs/adr/0144): on, the notice goes up at every launch and the
@@ -152,8 +152,12 @@ bool loadPipelineData(const std::filesystem::path& dataDir)
     return true;
 }
 
+/// @brief Resolve the settings document: an explicit development file, else the reader's profile. An installed build
+///        never carries the repository's development document into a new profile.
 std::filesystem::path resolveSettingsPath(const QStringList& arguments)
 {
+    const std::filesystem::path legacy =
+        installedBuild() ? std::filesystem::path{} : toPath(QString::fromUtf8(kDevSettingsPath));
 #if defined(LENS_DEV_SURFACE)
     // docs/adr/0068: a run given --settings-file keeps its document there, so it never writes the reader's profile.
     const auto devSettings = devSettingsFile(arguments);
@@ -161,9 +165,9 @@ std::filesystem::path resolveSettingsPath(const QStringList& arguments)
         LENS_CRITICAL("--settings-file takes a path");
         return {};
     }
-    const std::filesystem::path settings = devSettings ? *devSettings : settingsPath(toPath(QString::fromUtf8(kDevSettingsPath)));
+    const std::filesystem::path settings = devSettings ? *devSettings : settingsPath(legacy);
 #else
-    const std::filesystem::path settings = settingsPath(toPath(QString::fromUtf8(kDevSettingsPath)));
+    const std::filesystem::path settings = settingsPath(legacy);
 #endif
     LENS_INFO("settings document: {}", narrow(settings));
     return settings;
