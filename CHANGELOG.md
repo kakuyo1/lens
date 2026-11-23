@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.0.2 - 2026-11-23
+
+A small release: the auto-scan page says less, the picture strip says one more thing, and the pet's review sign stays above its own window.
+
+### Changed
+
+- **The auto-scan page's note is one line.** It now says only that the scan marks words above your level in supported apps; the separate line listing Chrome, Notepad++, Sumatra PDF and PotPlayer is gone, because the switches below it already name them.
+- **The picture strip names the VPN its pictures may need.** When pictures load, or when the network fails, the strip says at its foot that they come from Wikimedia Commons and a VPN may be needed to load them. A lookup that matched no pictures, and the settings preview's bundled samples, do not show the note.
+
+### Fixed
+
+- **The pet's review sign and its card follow the pet's re-assert.** The pet raises itself above late topmost windows once a second; the sign and its open card now raise with it, so the pet's canvas no longer buries them and leaves only the board's left sliver hoverable.
+
+### 中文
+
+这是个小版本：自动扫描页的说明收成一行，图片条补一行 VPN 注记，宠物的复习牌重新跟住宠物窗口。
+
+#### 变更
+
+- **自动扫描页的说明收成一行。** 现在只说 “在支持的软件里标出超出你档位的词”；下方那条列出 Chrome、Notepad++、Sumatra PDF 与 PotPlayer 的文字已删除，因为下面的开关已经写明了这些名字。
+- **图片条标注可能需要的 VPN。** 有图时，或网络失败时，图片条底部说明图片来自 Wikimedia Commons，加载可能需要 VPN 服务；“没有匹配的图片”和设置页的样例图条不显示这行。
+
+#### 修复
+
+- **宠物的复习牌与小卡跟随宠物的再置顶。** 宠物每秒把自己抬回置顶带顶部；牌子与展开的小卡现在随之再抬一次，不再被宠物画布整块压住、只剩木板左缘可悬停。
+
 ## 1.0.1 - 2026-11-21
 
 The first stable release. An installation of 1.0.0-alpha or 1.0.0-beta -- both report themselves as version 1.0.0 -- receives this release as an automatic update, because 1.0.1 compares greater than 1.0.0. Every entry below landed after the beta's tag, so the installed beta has none of them yet, including the handful the beta notes announced ahead of their commits. Please report what you find as an issue at https://github.com/kakuyo1/lens/issues, with the steps that led to it and your Lens version.
