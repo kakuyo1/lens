@@ -171,16 +171,22 @@ Item {
 
         /// The pet looks at the sign's side, turns to the open card's side, and goes back to centre when the question ends.
         function test_thePetLooksAtTheSignThenTheCard() {
-            askFromPetAt(300);
-            compare(sign.side, "left");
-            compare(sign.cardSide, "right", "this case needs an inner card, got " + sign.cardSide);
-            compare(Pet.pose.gaze, Qt.point(-1, 0));
+            const chosen = Pet.size;
+            try {
+                Pet.setSize(67);
+                askFromPetAt(300);
+                compare(sign.side, "left");
+                compare(sign.cardSide, "right", "this case needs an inner card, got " + sign.cardSide);
+                compare(Pet.pose.gaze, Qt.point(-1, 0));
 
-            openCard();
-            compare(Pet.pose.gaze, Qt.point(1, 0));
+                openCard();
+                compare(Pet.pose.gaze, Qt.point(1, 0));
 
-            sign.begin("");
-            compare(Pet.pose.gaze, Qt.point(0, 0));
+                sign.begin("");
+                compare(Pet.pose.gaze, Qt.point(0, 0));
+            } finally {
+                Pet.setSize(chosen);
+            }
         }
 
         /// The pointer leaving the sign closes the card again, 120 ms later.
